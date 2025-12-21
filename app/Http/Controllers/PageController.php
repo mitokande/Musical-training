@@ -20,12 +20,12 @@ class PageController extends Controller
             'single-note-practice' => SingleNotePractice::class,
         ];
 
-        $practice = $practiceMap[$slug];
+        $practiceClass = $practiceMap[$slug];
 
-        if (!$practice) {
+        if (!$practiceClass) {
             return redirect()->back()->with('error', 'Practice not found');
         }
-        $practices = $practice->all();
+        $practices = $practiceClass::all();
         return view('practice', compact('practices'));
     }
 }
