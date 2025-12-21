@@ -26,6 +26,7 @@ class PageController extends Controller
             return redirect()->back()->with('error', 'Practice not found');
         }
         $practices = $practiceClass::all();
+        $practices = $practices[0];
         return view('practice', compact('practices'));
     }
 }
