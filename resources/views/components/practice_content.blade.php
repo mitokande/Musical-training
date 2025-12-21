@@ -25,12 +25,11 @@
 
     <!-- Answer Options -->
     <div id="answerOptions" class="grid grid-cols-2 gap-4">
-        <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="aa">
-            aa
-        </button>
-        <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="bb">
-            bb
-        </button>
+        @foreach(explode(',', $practices->other_options) as $option)
+            <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ $option }}">
+                {{ $option }}
+            </button>
+        @endforeach
     </div>
 </div>
 

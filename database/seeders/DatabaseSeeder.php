@@ -48,14 +48,14 @@ class DatabaseSeeder extends Seeder
             'target' => 'C',
             'octave' => '4',
             'target_type' => 'note',
-            'other_options' => 'C, E, G',
+            'other_options' => 'C, E, G, B',
         ]);
 
         SingleNotePractice::create([
             'target' => 'E',
             'octave' => '3',
             'target_type' => 'note',
-            'other_options' => 'A, G, F',
+            'other_options' => 'A, G, F, D',
         ]);
     }
 }
