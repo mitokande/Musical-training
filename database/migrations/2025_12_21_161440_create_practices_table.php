@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('single_note_practices', function (Blueprint $table) {
+        Schema::create('practices', function (Blueprint $table) {
             $table->id();
-            $table->string('target');
-            $table->string('target_type')->default('note');
-            $table->string('other_options');
-            $table->string('octave')->default('4');
+            $table->string('name');
+            $table->string('slug');
+            $table->string('description')->nullable();
+            $table->string('type');
+            $table->string('is_premium')->default(false);
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('single_note_practices');
+        Schema::dropIfExists('practices');
     }
 };

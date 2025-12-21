@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -24,6 +25,15 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
             'email' => 'test@example.com',
             'password' => \Hash::make('password'),
+        ]);
+
+
+        Practice::create([
+            'name' => 'Single Note Practice',
+            'slug' => 'single-note-practice',
+            'description' => 'Practice single notes',
+            'type' => 'Recognition',
+            'is_premium' => false,
         ]);
 
         SingleNotePractice::create([

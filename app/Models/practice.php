@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class practice extends Model
+class Practice extends Model
 {
     //
 }
