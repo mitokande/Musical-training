@@ -104,7 +104,7 @@
                         <i data-lucide="home" class="w-4 h-4"></i>
                         Home
                     </a>
-                    <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                    <a href="/learn" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                         Learn Path
                     </a>
