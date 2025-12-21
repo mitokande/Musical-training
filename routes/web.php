@@ -14,7 +14,7 @@ Route::get('/dashboard', function () {
 
 Route::get('/learn', [PageController::class, 'learnView'])->middleware(['auth', 'verified'])->name('learn');
 
-
+Route::get('/practice/{slug}', [PageController::class, 'practiceView'])->middleware(['auth', 'verified'])->name('practice');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
