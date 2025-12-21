@@ -186,43 +186,37 @@
         </div>
 
         <!-- Filter Tabs -->
+        @php
+            // Get distinct types from practices
+            $practiceTypes = collect($practices)->pluck('type')->unique()->filter()->values()->toArray();
+            
+            // Define icons for each type
+            $typeIcons = [
+                'Recognition' => 'ear',
+                'Dictation' => 'pencil',
+                'Theory' => 'book-open',
+                'Rhythm' => 'drum',
+                'Intervals' => 'git-branch',
+                'Scales' => 'waves',
+                'Chords' => 'layers',
+                'default' => 'music',
+            ];
+        @endphp
+        
         <div class="flex flex-wrap gap-2 mb-8">
-            <button class="filter-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium">
+            <!-- All Modules Tab -->
+            <button class="filter-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
                 <i data-lucide="music" class="w-4 h-4"></i>
                 All Modules
             </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="git-branch" class="w-4 h-4"></i>
-                Intervals
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="music-2" class="w-4 h-4"></i>
-                Melodic Intervals
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
-                Intervals Direction
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="music-3" class="w-4 h-4"></i>
-                Harmonic Intervals
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="waves" class="w-4 h-4"></i>
-                Scales & Modes
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="layers" class="w-4 h-4"></i>
-                Chords
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="drum" class="w-4 h-4"></i>
-                Rhythm
-            </button>
-            <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">
-                <i data-lucide="pencil" class="w-4 h-4"></i>
-                Melodic Dictation
-            </button>
+            
+            <!-- Dynamic Type Tabs -->
+            @foreach($practiceTypes as $type)
+                <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="{{ Str::slug($type) }}">
+                    <i data-lucide="{{ $typeIcons[$type] ?? $typeIcons['default'] }}" class="w-4 h-4"></i>
+                    {{ $type }}
+                </button>
+            @endforeach
         </div>
 
         <!-- Module Cards Grid -->
@@ -242,7 +236,7 @@
                     $isPremium = $practice['is_premium'] == '1' || $practice['is_premium'] == 1;
                 @endphp
 
-                <div class="module-card card p-6 relative">
+                <div class="module-card card p-6 relative" data-type="{{ Str::slug($practice['type']) }}">
                     @if($isPremium)
                         <div class="absolute top-4 right-4">
                             <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
@@ -425,6 +419,35 @@
     <!-- Initialize Lucide Icons -->
     <script>
         lucide.createIcons();
+        
+        // Filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const moduleCards = document.querySelectorAll('.module-card');
+            
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    
+                    // Update active tab styling
+                    filterTabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.classList.add('text-gray-600', 'bg-white', 'border', 'border-gray-200');
+                    });
+                    this.classList.add('active');
+                    this.classList.remove('text-gray-600', 'bg-white', 'border', 'border-gray-200');
+                    
+                    // Filter cards
+                    moduleCards.forEach(card => {
+                        if (filter === 'all' || card.dataset.type === filter) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
     </script>
 </body>
 </html>

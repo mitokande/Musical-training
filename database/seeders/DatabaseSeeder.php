@@ -36,6 +36,14 @@ class DatabaseSeeder extends Seeder
             'is_premium' => false,
         ]);
 
+        Practice::create([
+            'name' => 'Interval Practice',
+            'slug' => 'interval-practice',
+            'description' => 'Practice intervals',
+            'type' => 'Dictation',
+            'is_premium' => false,
+        ]);
+
         SingleNotePractice::create([
             'target' => 'C',
             'octave' => '4',
