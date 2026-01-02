@@ -63,14 +63,29 @@
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play
                         </button>
-                        <button 
-                            id="nextPracticeBtn" 
-                            wire:click="getNextPractice"
-                            class="btn-secondary font-semibold py-2 px-6 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                            Next
-                        </button>
+                        @if ($currentPracticeIndex < ($practices->count() - 1))
+                            <button 
+                                id="nextPracticeBtn" 
+                                wire:click="getNextPractice"
+                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                    bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
+                                style="border-width: 2px;"
+                            >
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                                Next
+                            </button>
+                        @else
+                            <a 
+                                href="/learn"
+                                id="nextPracticeBtn"
+                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                    bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
+                                style="border-width: 2px;"
+                            >
+                                <i data-lucide="check" class="w-5 h-5"></i>
+                                Finish
+                            </a>
+                        @endif
                         </div>
                         <p id="playStatus" class="text-sm text-gray-500">Listen to the note to start</p>
                     </div>
