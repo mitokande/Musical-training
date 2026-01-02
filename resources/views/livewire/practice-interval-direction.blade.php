@@ -66,7 +66,7 @@
                         <button 
                             id="nextPracticeBtn" 
                             wire:click="getNextPractice"
-                            class="btn-secondary font-semibold py-2 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="btn-secondary font-semibold py-2 px-6 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <i data-lucide="arrow-right" class="w-5 h-5"></i>
                             Next
@@ -159,6 +159,7 @@
                 // Initialize Interactions
                 const playButton = document.getElementById('playButton');
                 const playStatus = document.getElementById('playStatus');
+                const nextButton = document.getElementById('nextPracticeBtn');
                 const answerOptions = document.getElementById('answerOptions');
                 const answerButtons = document.querySelectorAll('.answer-btn');
                 const feedbackMessage = document.getElementById('feedbackMessage');
@@ -173,11 +174,6 @@
                     if (typeof lucide !== 'undefined') {
                         lucide.createIcons();
                     }
-                    
-                    // Remove existing listeners by cloning (simple way to reset if not using named handlers)
-                    // But since we are likely replacing DOM with Livewire, fresh elements are present.
-                    // If elements are NOT replaced, we might be adding duplicate listeners.
-                    // Given wire:id on main, elements SHOULD be replaced.
                     
                     // Play button click handler
                     playButton.onclick = function() {
@@ -273,6 +269,11 @@
                                 
                                 isAnswered = true;
                                 
+                                // Toggle buttons: Hide Play, Show Next
+                                if (playButton) playButton.classList.add('hidden');
+                                if (playStatus) playStatus.classList.add('hidden');
+                                if (nextButton) nextButton.classList.remove('hidden');
+
                                 // Reset button text
                                 this.textContent = answer.charAt(0).toUpperCase() + answer.slice(1);
                                 
