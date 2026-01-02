@@ -34,6 +34,7 @@ class PracticeIntervalDirection extends Component
         if (isset($this->practices[$this->currentPracticeIndex])) {
             $this->currentPractice = $this->practices[$this->currentPracticeIndex];
         }
+        $this->dispatch('practice-updated');
     }
 
     public function answerPractice($answer) {
