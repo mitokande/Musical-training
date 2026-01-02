@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/learn', [PageController::class, 'learnView'])->middleware(['auth', 'verified'])->name('learn');
+
+
+Route::post('/api/practice/check-answer', [PracticeController::class, 'checkAnswer'])->name('api.practice.check-answer');
+
 
 Route::get('/practice/{slug}', [PageController::class, 'practiceView'])->middleware(['auth', 'verified'])->name('practice');
 Route::middleware('auth')->group(function () {

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use App\Models\User;
@@ -37,10 +38,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Practice::create([
-            'name' => 'Interval Practice',
-            'slug' => 'interval-practice',
-            'description' => 'Practice intervals',
-            'type' => 'Dictation',
+            'name' => 'Interval Direction Practice',
+            'slug' => 'interval-direction-practice',
+            'description' => 'Practice interval direction',
+            'type' => 'Recognition',
             'is_premium' => false,
         ]);
 
@@ -56,6 +57,30 @@ class DatabaseSeeder extends Seeder
             'octave' => '3',
             'target_type' => 'note',
             'other_options' => 'A, G, F, D',
+        ]);
+
+        IntervalDirectionPractice::create([
+            'clef' => 'treble',
+            'note1' => 'C',
+            'note2' => 'D',
+            'direction' => 'ascending',
+            'octave' => '4',
+        ]);
+
+        IntervalDirectionPractice::create([
+            'clef' => 'treble',
+            'note1' => 'D',
+            'note2' => 'C',
+            'direction' => 'descending',
+            'octave' => '4',
+        ]);
+
+        IntervalDirectionPractice::create([
+            'clef' => 'treble',
+            'note1' => 'G',
+            'note2' => 'F',
+            'direction' => 'ascending',
+            'octave' => '4',
         ]);
     }
 }

@@ -31,7 +31,8 @@
         const notesFromParams = "{{ $target }}";
         notesParsed = notesFromParams.split(',');
         console.log(notesParsed);
-        const notes = notesParsed.map(note => new StaveNote({ keys: [note ], duration: "1" }));
+        duration = notesParsed.length > 1 ? "h" : "1";
+        const notes = notesParsed.map(note => new StaveNote({ keys: [note ], duration: duration }));
 
         // const notes = [
         //     // A quarter-note C.

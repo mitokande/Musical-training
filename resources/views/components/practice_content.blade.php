@@ -24,21 +24,30 @@
     </div>
 
     <!-- Answer Options -->
-    <div id="answerOptions" class="grid grid-cols-2 gap-4">
+    <div id="answerOptions" class="grid grid-cols-2 gap-4" data-target="{{ $practices->target }}">
         @foreach(explode(',', $practices->other_options) as $option)
-            <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ $option }}">
-                {{ $option }}
+            <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ trim($option) }}">
+                {{ trim($option) }}
             </button>
         @endforeach
     </div>
+    
+    <!-- Feedback Message -->
+    <div id="feedbackMessage" class="mt-4 p-4 rounded-lg text-center font-medium hidden"></div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const playButton = document.getElementById('playButton');
     const playStatus = document.getElementById('playStatus');
+    const answerOptions = document.getElementById('answerOptions');
+    const answerButtons = document.querySelectorAll('.answer-btn');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const target = answerOptions.dataset.target;
     let currentAudio = null;
+    let isAnswered = false;
     
+    // Play button click handler
     playButton.addEventListener('click', function() {
         const note = this.dataset.note;
         const audioUrl = `https://mithatck.com/music/api/note.php?note=${note}&duration=2`;
@@ -91,6 +100,101 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Start loading
         currentAudio.load();
+    });
+    
+    // Answer button click handlers
+    answerButtons.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            // Prevent multiple answers
+            if (isAnswered) return;
+            
+            const answer = this.dataset.answer;
+            
+            // Disable all buttons while checking
+            answerButtons.forEach(b => b.disabled = true);
+            
+            // Show loading state on clicked button
+            this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Checking...';
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            try {
+                const response = await fetch('/api/practice/check-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        practice_id: {{ $practices->id }},
+                        answer: answer,
+                        target: target
+                    })
+                });
+                
+                const data = await response.json();
+                
+                isAnswered = true;
+                
+                // Reset button text
+                this.textContent = answer;
+                
+                if (data.is_correct) {
+                    // Correct answer
+                    this.classList.add('correct');
+                    this.classList.remove('text-gray-700');
+                    this.classList.add('text-green-700');
+                    feedbackMessage.textContent = '✓ Correct! Well done!';
+                    feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+                    feedbackMessage.classList.add('bg-green-100', 'text-green-700');
+                } else {
+                    // Incorrect answer
+                    this.classList.add('incorrect');
+                    this.classList.remove('text-gray-700');
+                    this.classList.add('text-red-700');
+                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${data.correctAnswer || target}.`;
+                    feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+                    feedbackMessage.classList.add('bg-red-100', 'text-red-700');
+                    
+                    // Highlight correct answer
+                    answerButtons.forEach(b => {
+                        if (b.dataset.answer.toUpperCase() === target.toUpperCase()) {
+                            b.classList.add('correct');
+                            b.classList.remove('text-gray-700');
+                            b.classList.add('text-green-700');
+                        }
+                    });
+                }
+                
+                // Update score displays if they exist
+                if (data.xp !== undefined) {
+                    const xpElement = document.getElementById('xpEarned');
+                    if (xpElement) xpElement.textContent = data.xp;
+                }
+                if (data.correctCount !== undefined) {
+                    const correctElement = document.getElementById('correctCount');
+                    const scoreCorrect = document.getElementById('scoreCorrect');
+                    if (correctElement) correctElement.textContent = data.correctCount;
+                    if (scoreCorrect) scoreCorrect.textContent = data.correctCount;
+                }
+                if (data.totalCount !== undefined) {
+                    const scoreTotal = document.getElementById('scoreTotal');
+                    if (scoreTotal) scoreTotal.textContent = data.totalCount;
+                }
+                
+            } catch (error) {
+                console.error('Error checking answer:', error);
+                this.textContent = answer;
+                feedbackMessage.textContent = 'Error checking answer. Please try again.';
+                feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+                feedbackMessage.classList.add('bg-red-100', 'text-red-700');
+                
+                // Re-enable buttons on error
+                answerButtons.forEach(b => b.disabled = false);
+                isAnswered = false;
+            }
+        });
     });
 });
 </script>

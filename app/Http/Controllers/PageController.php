@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use Illuminate\Http\Request;
@@ -18,15 +19,19 @@ class PageController extends Controller
     public function practiceView($slug) {
         $practiceMap = [
             'single-note-practice' => SingleNotePractice::class,
+            'interval-direction-practice' => IntervalDirectionPractice::class,
         ];
 
-        $practiceClass = $practiceMap[$slug];
+        $practiceClass = $practiceMap[$slug] ?? null;
 
         if (!$practiceClass) {
-            return redirect()->back()->with('error', 'Practice not found');
+            abort(404, 'Practice not found');
         }
-        $practices = $practiceClass::all();
-        $practices = $practices[0];
-        return view('practice', compact('practices'));
+
+        $practices = $practiceClass::inRandomOrder()->get();
+        return view('practice', [
+            'practices' => $practices,
+            'slug' => $slug,
+        ]);
     }
 }
