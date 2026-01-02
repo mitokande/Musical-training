@@ -52,7 +52,7 @@
                         <button 
                             id="playButton" 
                             class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                            data-note="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave . ',' . strtolower($currentPractice->note2) . '/' . $currentPractice->octave }}"
+                            data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2)  . $currentPractice->octave }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play
@@ -90,7 +90,7 @@
                 playButton.addEventListener('click', function() {
                     const notes = this.dataset.note;
                     const notesParsed = notes.split(',');
-                    const audioUrl = `https://mithatck.com/music/api/note.php?note=${notesParsed[0]}&duration=1`;
+                    const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${notesParsed[0]}&duration=1`;
                     const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${notesParsed[1]}&duration=1`;
                     
                     // Stop any currently playing audio
@@ -109,19 +109,38 @@
                         lucide.createIcons();
                     }
                     
-                    // Create and play audio
-                    currentAudio = new Audio(audioUrl);
+                    // Create audio objects
+                    const audio1 = new Audio(audioUrl1);
+                    const audio2 = new Audio(audioUrl2);
+                    currentAudio = audio1;
+
+                    const handleError = () => {
+                        playButton.disabled = false;
+                        playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
+                        playStatus.textContent = 'Error loading audio. Try again.';
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+                    };
                     
-                    currentAudio.addEventListener('canplaythrough', function() {
+                    // Play first note
+                    audio1.addEventListener('canplaythrough', function() {
                         playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
                         playStatus.textContent = 'Playing notes...';
                         if (typeof lucide !== 'undefined') {
                             lucide.createIcons();
                         }
-                        currentAudio.play();
+                        audio1.play();
                     });
                     
-                    currentAudio.addEventListener('ended', function() {
+                    // When first note ends, play second note
+                    audio1.addEventListener('ended', function() {
+                        currentAudio = audio2;
+                        audio2.play();
+                    });
+
+                    // When second note ends, reset button
+                    audio2.addEventListener('ended', function() {
                         playButton.disabled = false;
                         playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
                         playStatus.textContent = 'Click to play again';
@@ -130,17 +149,12 @@
                         }
                     });
                     
-                    currentAudio.addEventListener('error', function() {
-                        playButton.disabled = false;
-                        playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
-                        playStatus.textContent = 'Error loading audio. Try again.';
-                        if (typeof lucide !== 'undefined') {
-                            lucide.createIcons();
-                        }
-                    });
+                    audio1.addEventListener('error', handleError);
+                    audio2.addEventListener('error', handleError);
                     
-                    // Start loading
-                    currentAudio.load();
+                    // Start loading both
+                    audio1.load();
+                    audio2.load();
                 });
                 
                 // Answer button click handlers
