@@ -19,6 +19,7 @@ class PracticeIntervalDirection extends Component
 
     public function render()
     {
+        \Log::info('render', ['currentPracticeIndex' => $this->currentPracticeIndex, 'practices' => $this->practices]);
         return view('livewire.practice-interval-direction', [
             'practices' => $this->practices,
             'currentPractice' => $this->currentPractice,
@@ -28,8 +29,11 @@ class PracticeIntervalDirection extends Component
 
     public function getNextPractice()
     {
-        $this->currentPractice = $this->practices[$this->currentPracticeIndex];
         $this->currentPracticeIndex++;
+        \Log::info('getNextPractice', ['currentPracticeIndex' => $this->currentPracticeIndex]);
+        if (isset($this->practices[$this->currentPracticeIndex])) {
+            $this->currentPractice = $this->practices[$this->currentPracticeIndex];
+        }
     }
 
     public function answerPractice($answer) {
