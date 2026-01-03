@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IntervalDirectionPractice;
 use App\Models\SingleNotePractice;
 use App\Models\UserPractice;
 use Illuminate\Http\Request;
@@ -43,5 +44,26 @@ class PracticeController extends Controller
             'target' => $target,
             'is_correct' => $answer == $target,
         ]);
+    }
+
+
+    public static function getIntervalDirectionProgress() {
+        $user_id = auth()->user()->id;
+        $userIntervalPractice = UserPractice::where('user_id','=' ,$user_id)->where('practice_id', '=', '2')->get();
+        return $userIntervalPractice;
+    }
+
+    public static function getPracticeProgressByUser($slug) {
+        if ($slug == "interval-direction-practice") {
+            $userP = self::getIntervalDirectionProgress();
+            $solved = 0;
+            if (count($userP)> 0) {
+
+                $solved = $userP[0]->total_questions;
+            }
+            $all = IntervalDirectionPractice::all();
+            $progress = $solved / count($all);
+            return $progress == 1 ? 100 : $progress;
+        }
     }
 }

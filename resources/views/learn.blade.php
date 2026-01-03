@@ -260,7 +260,7 @@
                                 {{ $practice['type'] }}
                             </span>
                         </div>
-                        <span class="text-gray-400">0%</span>
+                        <span class="text-gray-400">{{ \App\Http\Controllers\PracticeController::getPracticeProgressByUser($practice['slug'])}}%</span>
                     </div>
                     
                     <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">

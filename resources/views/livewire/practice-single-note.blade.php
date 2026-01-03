@@ -165,7 +165,7 @@
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                                 },
                                 body: JSON.stringify({
-                                    practice_id: {{ $currentPractice->id }},
+                                    practice_id: 1,
                                     answer: answer,
                                     target: target
                                 })
