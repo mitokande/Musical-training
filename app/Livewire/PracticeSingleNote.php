@@ -27,7 +27,11 @@ class PracticeSingleNote extends Component
 
     public function getNextPractice()
     {
-        $this->currentPractice = $this->practices[$this->currentPracticeIndex];
+        $this->currentPracticeIndex++;
+        if (isset($this->practices[$this->currentPracticeIndex])) {
+            $this->currentPractice = $this->practices[$this->currentPracticeIndex];
+        }
+        $this->dispatch('practice-updated');
         $this->currentPracticeIndex++;
     }
 

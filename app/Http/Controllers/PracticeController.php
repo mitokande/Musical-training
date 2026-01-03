@@ -53,6 +53,12 @@ class PracticeController extends Controller
         return $userIntervalPractice;
     }
 
+    public static function getSingleNoteProgress() {
+        $user_id = auth()->user()->id;
+        $userSingleNotePractice = UserPractice::where('user_id','=' ,$user_id)->where('practice_id', '=', '1')->get();
+        return $userSingleNotePractice;
+    }
+
     public static function getPracticeProgressByUser($slug) {
         if ($slug == "interval-direction-practice") {
             $userP = self::getIntervalDirectionProgress();
@@ -62,6 +68,16 @@ class PracticeController extends Controller
                 $solved = $userP[0]->total_questions;
             }
             $all = IntervalDirectionPractice::all();
+            $progress = $solved / count($all);
+            return $progress == 1 ? 100 : $progress;
+        }
+        if ($slug == "single-note-practice") {
+            $userP = self::getSingleNoteProgress();
+            $solved = 0;
+            if (count($userP)> 0) {
+                $solved = $userP[0]->total_questions;
+            }
+            $all = SingleNotePractice::all();
             $progress = $solved / count($all);
             return $progress == 1 ? 100 : $progress;
         }

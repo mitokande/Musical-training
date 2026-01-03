@@ -223,11 +223,12 @@
                         
                         // Play first note
                         audio1.addEventListener('canplaythrough', function() {
+                            if (currentAudio !== audio1) return;
                             playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
                             playStatus.textContent = 'Playing notes...';
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                             audio1.play();
-                        });
+                        }, { once: true });
                         
                         // When first note ends, play second note
                         audio1.addEventListener('ended', function() {

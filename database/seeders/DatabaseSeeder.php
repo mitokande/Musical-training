@@ -54,9 +54,9 @@ class DatabaseSeeder extends Seeder
 
         SingleNotePractice::create([
             'target' => 'E',
-            'octave' => '3',
+            'octave' => '5',
             'target_type' => 'note',
-            'other_options' => 'A, G, F, D',
+            'other_options' => 'A, E, F, D',
         ]);
 
         IntervalDirectionPractice::create([
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
             'clef' => 'treble',
             'note1' => 'G',
             'note2' => 'F',
-            'direction' => 'ascending',
+            'direction' => 'descending',
             'octave' => '4',
         ]);
     }
