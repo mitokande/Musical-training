@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Http\Controllers\AIController;
+use App\Models\IntervalDirectionPractice;
 use App\Models\UserPractice;
 use Livewire\Component;
 
@@ -20,6 +22,8 @@ class PracticeIntervalDirection extends Component
     public function render()
     {
         \Log::info('render', ['currentPracticeIndex' => $this->currentPracticeIndex, 'practices' => $this->practices]);
+
+        // $this->generateIntervalDirectionPractice();
         return view('livewire.practice-interval-direction', [
             'practices' => $this->practices,
             'currentPractice' => $this->currentPractice,
@@ -60,5 +64,22 @@ class PracticeIntervalDirection extends Component
         } else {
             return false;
         }
+    }
+
+    public function generateIntervalDirectionPractice() {
+        $aiController = new AIController();
+        $practice = $aiController->generateIntervalDirectionPractice();
+        \Log::info($practice);
+        $intervalDirectionPractice = new IntervalDirectionPractice();
+        $intervalDirectionPractice->clef = $practice['clef'];
+        $intervalDirectionPractice->note1 = $practice['note1'];
+        $intervalDirectionPractice->note2 = $practice['note2'];
+        $intervalDirectionPractice->direction = $practice['direction'];
+        $intervalDirectionPractice->octave = $practice['octave'];
+        $intervalDirectionPractice->save();
+        $this->practices = [$intervalDirectionPractice];
+        $this->currentPractice = $intervalDirectionPractice;
+        $this->currentPracticeIndex = count($this->practices) - 1;
+        $this->dispatch('practice-updated');
     }
 }

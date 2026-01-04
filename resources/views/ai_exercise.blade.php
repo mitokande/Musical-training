@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Learning Path - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>AI Assisted Exercises - {{ config('app.name', 'Ear Training Studio') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -50,25 +50,19 @@
 
     <style>
         .hero-gradient {
-            background: linear-gradient(135deg, #9333ea 0%, #c084fc 35%, #f97316 100%);
+            background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 50%, #fff7ed 100%);
         }
         .card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         .btn-primary {
             background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
         }
         .btn-primary:hover {
             background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
-        }
-        .progress-bar {
-            background: linear-gradient(90deg, #9333ea 0%, #c084fc 100%);
-        }
-        .progress-bar-yellow {
-            background: linear-gradient(90deg, #f97316 0%, #fbbf24 100%);
         }
         .nav-item {
             transition: all 0.2s ease;
@@ -80,22 +74,44 @@
             background: #f3f4f6;
             font-weight: 600;
         }
-        .filter-tab {
+        .checkbox-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .checkbox-card:hover {
+            border-color: #c084fc;
+        }
+        .checkbox-card.selected {
+            border-color: #9333ea;
+            background: #faf5ff;
+        }
+        .checkbox-card input[type="checkbox"]:checked + .checkbox-label {
+            color: #7c3aed;
+        }
+        .difficulty-btn {
             transition: all 0.2s ease;
         }
-        .filter-tab:hover {
-            background: #f3f4f6;
+        .difficulty-btn:hover {
+            border-color: #c084fc;
         }
-        .filter-tab.active {
-            background: #1f2937;
+        .difficulty-btn.selected {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
             color: white;
+            border-color: transparent;
         }
-        .module-card {
-            transition: all 0.2s ease;
+        .select-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25rem 1.25rem;
         }
-        .module-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        /* Musical notes decoration */
+        .music-note {
+            position: absolute;
+            opacity: 0.1;
+            font-size: 3rem;
+            color: #9333ea;
         }
     </style>
 </head>
@@ -114,15 +130,15 @@
 
                 <!-- Navigation -->
                 <nav class="hidden lg:flex items-center gap-1">
-                    <a href="/dashboard" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                    <a href="/dashboard" class="nav-item  flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
                         <i data-lucide="home" class="w-4 h-4"></i>
                         Home
                     </a>
-                    <a href="/learn" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
+                    <a href="/learn" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                         Learn Path
                     </a>
-                    <a href="/ai-exercises" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                    <a href="/ai-exercises" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                         AI Exercises
                     </a>
@@ -160,140 +176,132 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Section -->
-        <div class="hero-gradient rounded-2xl p-8 mb-8 relative overflow-hidden">
-            <!-- Decorative elements -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-            
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
-                        Your Learning Path
-                    </h1>
-                    <p class="text-white/80">Master essential ear training skills step by step</p>
-                </div>
-                
-                <div class="mt-6 md:mt-0 text-right">
-                    <div class="text-4xl font-bold text-white mb-1">4%</div>
-                    <p class="text-white/80 text-sm mb-3">Overall Progress</p>
-                    <div class="w-48 bg-white/30 rounded-full h-2">
-                        <div class="progress-bar-yellow h-2 rounded-full" style="width: 4%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter Tabs -->
-        @php
-            // Get distinct types from practices
-            $practiceTypes = collect($practices)->pluck('type')->unique()->filter()->values()->toArray();
-            
-            // Define icons for each type
-            $typeIcons = [
-                'Recognition' => 'ear',
-                'Dictation' => 'pencil',
-                'Theory' => 'book-open',
-                'Rhythm' => 'drum',
-                'Intervals' => 'git-branch',
-                'Scales' => 'waves',
-                'Chords' => 'layers',
-                'default' => 'music',
-            ];
-        @endphp
+    <main class="hero-gradient min-h-[calc(100vh-64px)] py-12 relative overflow-hidden">
+        <!-- Decorative musical elements -->
+        <div class="music-note" style="top: 10%; left: 5%;">♪</div>
+        <div class="music-note" style="top: 30%; right: 8%;">♫</div>
+        <div class="music-note" style="bottom: 20%; left: 10%;">♩</div>
+        <div class="music-note" style="bottom: 40%; right: 5%;">♬</div>
         
-        <div class="flex flex-wrap gap-2 mb-8">
-            <!-- All Modules Tab -->
-            <button class="filter-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
-                <i data-lucide="music" class="w-4 h-4"></i>
-                All Modules
-            </button>
-            
-            <!-- Dynamic Type Tabs -->
-            @foreach($practiceTypes as $type)
-                <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="{{ Str::slug($type) }}">
-                    <i data-lucide="{{ $typeIcons[$type] ?? $typeIcons['default'] }}" class="w-4 h-4"></i>
-                    {{ $type }}
-                </button>
-            @endforeach
-        </div>
-
-        <!-- Module Cards Grid -->
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            @forelse($practices as $practice)
-                @php
-                    // Define icon colors based on practice type
-                    $iconColors = [
-                        'Recognition' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600'],
-                        'Dictation' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-600'],
-                        'Theory' => ['bg' => 'bg-cyan-100', 'text' => 'text-cyan-600'],
-                        'Rhythm' => ['bg' => 'bg-red-100', 'text' => 'text-red-600'],
-                        'default' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600'],
-                    ];
-                    $colors = $iconColors[$practice['type']] ?? $iconColors['default'];
-                    $isPremium = $practice['is_premium'] == '1' || $practice['is_premium'] == 1;
-                @endphp
-
-                <div class="module-card card p-6 relative" data-type="{{ Str::slug($practice['type']) }}">
-                    @if($isPremium)
-                        <div class="absolute top-4 right-4">
-                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                <i data-lucide="crown" class="w-3 h-3"></i>
-                                Premium
-                            </span>
-                        </div>
-                    @endif
-
-                    <div class="w-12 h-12 rounded-xl {{ $colors['bg'] }} flex items-center justify-center mb-4">
-                        <i data-lucide="music" class="w-6 h-6 {{ $colors['text'] }}"></i>
-                    </div>
-
-                    <h3 class="font-bold text-gray-900 mb-1">{{ $practice['name'] }}</h3>
-                    <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ $practice['description'] }}</p>
-                    
-                    <div class="flex items-center justify-between text-sm mb-3">
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center gap-1 text-gray-500">
-                                <i data-lucide="clock" class="w-4 h-4"></i>
-                                {{ $practice['type'] }}
-                            </span>
-                        </div>
-                        <span class="text-gray-400">{{ \App\Http\Controllers\PracticeController::getPracticeProgressByUser($practice['slug'])}}%</span>
-                    </div>
-                    
-                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">
-                        <div class="progress-bar h-1.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                    
-                    @if($isPremium)
-                        <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 border border-gray-200">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                            Unlock with Premium
-                        </button>
-                    @else
-                        <a href="/practice/{{ $practice['slug'] }}" class="w-full btn-primary text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
-                            <i data-lucide="play" class="w-4 h-4"></i>
-                            Start Module
-                        </a>
-                    @endif
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Header Section -->
+            <div class="text-center mb-8">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-purple-200">
+                    <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
                 </div>
-            @empty
-                <div class="col-span-full text-center py-12">
-                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="music" class="w-8 h-8 text-gray-400"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No practices available</h3>
-                    <p class="text-gray-500">Check back later for new ear training exercises.</p>
-                </div>
-            @endforelse
+                <h1 class="text-3xl sm:text-4xl font-bold text-purple-600 mb-3">
+                    AI Assisted Exercises
+                </h1>
+                <p class="text-gray-600 max-w-md mx-auto">
+                    Create a personalized practice session tailored to your specific needs and goals.
+                </p>
+            </div>
 
+            <!-- Session Configuration Card -->
+            <div class="card p-6 sm:p-8">
+                <form action="/ai-exercises/generate" method="POST" id="sessionForm">
+                    @csrf
+                    
+                    <!-- Section Header -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                            <i data-lucide="settings" class="w-3.5 h-3.5 text-purple-600"></i>
+                        </div>
+                        <h2 class="font-semibold text-gray-900">Session Configuration</h2>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-6">Tell us what you want to practice</p>
+
+                    <!-- Exercise Types -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-900 mb-3">Exercise Types</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            @foreach($practices as $practice)
+                                @php
+                                    $isNew = in_array($practice->slug, ['improvisation', 'composition', 'mini-project']);
+                                @endphp
+                                <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox>
+                                    <input type="checkbox" 
+                                           name="exercise_types[]" 
+                                           value="{{ $practice->id }}" 
+                                           class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
+                                    <span class="checkbox-label text-sm text-gray-700">
+                                        {{ $practice->name }}
+                                        @if($isNew)
+                                            <span class="text-purple-600 font-medium">(New!)</span>
+                                        @endif
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Number of Questions & Student Level -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
+                            <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="5">5 Questions (Quick)</option>
+                                <option value="10" selected>10 Questions (Standard)</option>
+                                <option value="15">15 Questions (Extended)</option>
+                                <option value="20">20 Questions (Comprehensive)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Student Level</label>
+                            <select name="student_level" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate" selected>Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Mode -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-900 mb-3">Difficulty Mode</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="easy">
+                                Easy
+                            </button>
+                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="medium">
+                                Medium
+                            </button>
+                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="hard">
+                                Hard
+                            </button>
+                            <button type="button" class="difficulty-btn selected px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="adaptive">
+                                Adaptive
+                            </button>
+                        </div>
+                        <input type="hidden" name="difficulty" id="difficultyInput" value="adaptive">
+                    </div>
+
+                    <!-- Notes for AI Coach -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-purple-500"></i>
+                                Notes for AI Coach (Optional)
+                            </div>
+                        </label>
+                        <textarea name="coach_notes" 
+                                  rows="3" 
+                                  class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                                  placeholder="e.g., I struggle with descending intervals, focus on minor 3rds..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full btn-primary text-white font-semibold py-3.5 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all duration-200">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        Start AI Practice Session
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-16">
+    <footer class="bg-gray-900 text-gray-400">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 <!-- Brand -->
@@ -327,9 +335,11 @@
                 <div>
                     <h4 class="font-semibold text-white mb-4">Platform</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Learning Path</a></li>
+                        <li><a href="/dashboard" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="/learn" class="hover:text-white transition-colors">Learning Path</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Quick Drills</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Piano Studio</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Music Games</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Pricing & Plans</a></li>
                         <li><a href="#" class="hover:text-white transition-colors">Search Content</a></li>
                     </ul>
@@ -420,31 +430,40 @@
     <script>
         lucide.createIcons();
         
-        // Filter functionality
+        // Checkbox card selection styling
         document.addEventListener('DOMContentLoaded', function() {
-            const filterTabs = document.querySelectorAll('.filter-tab');
-            const moduleCards = document.querySelectorAll('.module-card');
+            const checkboxCards = document.querySelectorAll('[data-checkbox]');
             
-            filterTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const filter = this.dataset.filter;
+            checkboxCards.forEach(card => {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                
+                // Set initial state
+                if (checkbox.checked) {
+                    card.classList.add('selected');
+                }
+                
+                card.addEventListener('click', function(e) {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                    }
                     
-                    // Update active tab styling
-                    filterTabs.forEach(t => {
-                        t.classList.remove('active');
-                        t.classList.add('text-gray-600', 'bg-white', 'border', 'border-gray-200');
-                    });
-                    this.classList.add('active');
-                    this.classList.remove('text-gray-600', 'bg-white', 'border', 'border-gray-200');
-                    
-                    // Filter cards
-                    moduleCards.forEach(card => {
-                        if (filter === 'all' || card.dataset.type === filter) {
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
+                    if (checkbox.checked) {
+                        card.classList.add('selected');
+                    } else {
+                        card.classList.remove('selected');
+                    }
+                });
+            });
+            
+            // Difficulty buttons
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            const difficultyInput = document.getElementById('difficultyInput');
+            
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    difficultyBtns.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    difficultyInput.value = this.dataset.difficulty;
                 });
             });
         });

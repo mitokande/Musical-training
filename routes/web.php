@@ -16,6 +16,9 @@ Route::get('/dashboard', function () {
 
 Route::get('/learn', [PageController::class, 'learnView'])->middleware(['auth', 'verified'])->name('learn');
 
+Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified'])->name('ai.exercises');
+Route::post('/ai-exercises/generate', [AIController::class, 'generatePractices'])->middleware(['auth', 'verified'])->name('ai.generate-practices');
+
 
 Route::post('/api/practice/check-answer', [PracticeController::class, 'checkAnswer'])->name('api.practice.check-answer');
 

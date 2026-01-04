@@ -108,7 +108,7 @@
                         <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                         Learn Path
                     </a>
-                    <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                    <a href="/ai-exercises" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                         AI Exercises
                     </a>
@@ -171,7 +171,7 @@
                         <i data-lucide="play-circle" class="w-5 h-5"></i>
                         Continue Learning
                     </a>
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
+                    <a href="/ai-exercises" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
                         AI Exercises
                     </a>

@@ -33,7 +33,7 @@
                         <span class="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur">
                             <span id="currentQuestion">{{ $currentPracticeIndex + 1 }}</span>
                             <span class="text-white font-medium">/</span>
-                            <span id="totalQuestions">{{ $practices->count() }}</span>
+                            <span id="totalQuestions">{{ count($practices) }}</span>
                         </span>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play
                         </button>
-                        @if ($currentPracticeIndex < ($practices->count() - 1))
+                        @if ($currentPracticeIndex < (count($practices) - 1))
                             <button 
                                 id="nextPracticeBtn" 
                                 wire:click="getNextPractice"
