@@ -1,30 +1,23 @@
     <!-- Main Content -->
     <main wire:id="practice-interval-direction-{{ $currentPracticeIndex }}" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- Top Bar: Back Button & Practice Name -->
-        <div class="flex items-center justify-between mb-4">
-            <a href="/learn" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                <span class="font-medium">Back</span>
-            </a>
-            <span class="px-4 py-1.5 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">
-                Interval Direction Practice
-            </span>
-        </div>
 
-        <!-- Progress Bar -->
+
+        {{-- <!-- Progress Bar -->
         <div class="flex items-center justify-between mb-2">
             <span class="text-sm text-gray-600">Question <span id="currentQuestion">{{ $currentPracticeIndex + 1 }}</span> of <span id="totalQuestions">{{ $practices->count() }}</span></span>
             <span class="text-sm text-gray-600"><span id="correctCount">0</span> correct</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
-            <div id="progressBar" class="progress-bar h-2 rounded-full transition-all duration-300" style="width: 100%"></div>
-        </div>
+        </div> --}}
+
 
         <!-- Practice Card -->
         <div class="card overflow-hidden mb-6">
             <!-- Header -->
             <div class="hero-gradient p-6">
                 <div class="flex items-center gap-4">
+                    <a href="/learn" class="w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
                     <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                         <i data-lucide="music" class="w-6 h-6 text-white"></i>
                     </div>
