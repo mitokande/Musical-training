@@ -24,6 +24,8 @@ Route::post('/api/practice/check-answer', [PracticeController::class, 'checkAnsw
 
 
 Route::get('/practice/{slug}', [PageController::class, 'practiceView'])->middleware(['auth', 'verified'])->name('practice');
+Route::get('/practice-mixed', [PageController::class, 'practiceMixedView'])->middleware(['auth', 'verified'])->name('practice.mixed');
+Route::post('/practice-mixed/start', [PageController::class, 'startMixedPractice'])->middleware(['auth', 'verified'])->name('practice.mixed.start');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
