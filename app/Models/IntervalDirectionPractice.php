@@ -41,8 +41,13 @@ class IntervalDirectionPractice extends Model
                         'enum' => ['2', '3', '4', '5', '6'],
                         'description' => 'The octave number for the notes'
                     ],
+                    'type' => [
+                        'type' => 'string',
+                        'enum' => ['interval-direction'],
+                        'description' => 'The type of practice'
+                    ],
                 ],
-                'required' => ['clef', 'note1', 'note2', 'direction', 'octave'],
+                'required' => ['clef', 'note1', 'note2', 'direction', 'octave', 'type'],
                 'additionalProperties' => false
         ];
     }

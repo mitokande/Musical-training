@@ -69,7 +69,7 @@
             <div id="noteVisualPlaceholder" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
                 <div>
                     <div id="output" style="width: 400px; height: 200px;" 
-                         data-notes="@if($type === 'single_note'){{ strtolower($practice->target) . '/' . $practice->octave }}@elseif($type === 'interval_direction'){{ strtolower($practice->note1) . '/' . $practice->octave . ',' . strtolower($practice->note2) . '/' . $practice->octave }}@endif"
+                         data-notes="@if($type === 'single_note'){{ strtolower($practice['target']) . '/' . $practice['octave'] }}@elseif($type === 'interval_direction'){{ strtolower($practice['note1']) . '/' . $practice['octave'] . ',' . strtolower($practice['note2']) . '/' . $practice['octave'] }}@endif"
                          data-type="{{ $type }}">
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         <button 
                             id="playButton" 
                             class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                            data-note="@if($type === 'single_note'){{ strtoupper($practice->target) . $practice->octave }}@elseif($type === 'interval_direction'){{ strtoupper($practice->note1) . $practice->octave . ',' . strtoupper($practice->note2) . $practice->octave }}@endif"
+                            data-note="@if($type === 'single_note'){{ ucfirst(strtolower($practice['target'])) . $practice['octave'] }}@elseif($type === 'interval_direction'){{ ucfirst(strtolower($practice['note1'])) . $practice['octave'] . ',' . ucfirst(strtolower($practice['note2'])) . $practice['octave'] }}@endif"
                             data-type="{{ $type }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
@@ -120,10 +120,10 @@
             <!-- Answer Options - Dynamic based on type -->
             @if($type === 'single_note')
                 <div id="answerOptions" class="grid grid-cols-2 gap-4" 
-                     data-target="{{ $practice->target }}"
-                     data-practice-id="{{ $practice->id }}"
+                     data-target="{{ $practice['target'] }}"
+                     data-practice-id="{{ $practice['id'] }}"
                      data-type="{{ $type }}">
-                    @foreach(explode(',', $practice->other_options) as $option)
+                    @foreach(explode(',', $practice['other_options']) as $option)
                         <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ trim($option) }}">
                             {{ trim($option) }}
                         </button>
@@ -131,8 +131,8 @@
                 </div>
             @elseif($type === 'interval_direction')
                 <div id="answerOptions" class="grid grid-cols-2 gap-4" 
-                     data-target="{{ $practice->direction }}"
-                     data-practice-id="{{ $practice->id }}"
+                     data-target="{{ $practice['direction'] }}"
+                     data-practice-id="{{ $practice['id'] }}"
                      data-type="{{ $type }}">
                     <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all flex items-center justify-center gap-2" data-answer="ascending">
                         <i data-lucide="trending-up" class="w-5 h-5 text-green-500"></i>
@@ -252,8 +252,10 @@
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     
                     if (notesParsed.length === 1) {
+                        console.log('single note playback', notesParsed);
                         // Single note playback
-                        const audioUrl = `https://mithatck.com/music/api/note.php?note=${notesParsed[0]}&duration=1`;
+                        const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
+                        const audioUrl = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
                         const audio = new Audio(audioUrl);
                         currentAudio = audio;
 
@@ -283,8 +285,9 @@
                         audio.load();
                     } else {
                         // Two notes (interval) playback
-                        const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${notesParsed[0]}&duration=1`;
-                        const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${notesParsed[1]}&duration=1`;
+                        const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
+                        const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
+                        const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[1]}&duration=1`;
                         
                         const audio1 = new Audio(audioUrl1);
                         const audio2 = new Audio(audioUrl2);

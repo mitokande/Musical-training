@@ -126,4 +126,57 @@ class PageController extends Controller
         // Shuffle and limit to exact number requested
         return $practices->shuffle()->take($numQuestions);
     }
+
+    public function aiPracticeView() {
+        // Get AI-generated questions from session
+        $questions = session('ai_practice_questions');
+        $title = session('ai_practice_title', 'AI Generated Practice');
+        
+        if (!$questions || empty($questions)) {
+            // No questions in session, redirect back to AI exercises page
+            return redirect()->route('ai.exercises')->with('error', 'No practice questions generated. Please try again.');
+        }
+        
+        // Clear session after retrieving
+        session()->forget(['ai_practice_questions', 'ai_practice_title']);
+        
+        // Convert raw question data to practice objects
+        $practices = $this->convertAIQuestionsToPractices($questions);
+        \Log::info(json_encode($practices));
+        return view('practice-mixed', [
+            'practices' => $practices,
+            'title' => $title,
+        ]);
+    }
+    
+    /**
+     * Convert AI-generated question arrays to practice model instances
+     */
+    protected function convertAIQuestionsToPractices(array $questions): \Illuminate\Support\Collection {
+        return collect($questions)->map(function ($question) {
+            // Determine the type based on the question structure
+            if (isset($question['direction']) && isset($question['note1']) && isset($question['note2'])) {
+                // Interval Direction Practice
+                $practice = new IntervalDirectionPractice();
+                $practice->clef = $question['clef'] ?? 'treble';
+                $practice->note1 = $question['note1'];
+                $practice->note2 = $question['note2'];
+                $practice->direction = $question['direction'];
+                $practice->octave = $question['octave'] ?? '4';
+                $practice->id =  rand(1, 1000000); // Temporary ID for frontend
+                return $practice;
+            } elseif (isset($question['target']) && isset($question['other_options'])) {
+                // Single Note Practice
+                $practice = new SingleNotePractice();
+                $practice->target = $question['target'];
+                $practice->target_type = $question['target_type'] ?? 'note';
+                $practice->other_options = $question['other_options'];
+                $practice->octave = $question['octave'] ?? '4';
+                $practice->id = rand(1, 1000000); // Temporary ID for frontend
+                return $practice;
+            }
+            
+            return null;
+        })->filter(); // Remove any null values
+    }
 }

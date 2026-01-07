@@ -18,14 +18,19 @@ class PracticeMixed extends Component
 
     public function mount($practices, $title = 'Mixed Practice')
     {
-        // Convert practices to array with type information
+        // Convert practices to plain arrays (not model instances) to survive Livewire hydration
         $this->practices = collect($practices)->map(function ($practice) {
+            $type = $this->getPracticeType($practice);
+            
+            // Convert model to array to prevent Livewire hydration issues
+            $data = $practice->toArray();
+            
             return [
-                'data' => $practice,
-                'type' => $this->getPracticeType($practice),
+                'data' => $data,
+                'type' => $type,
             ];
         })->toArray();
-
+        
         $this->totalQuestions = count($this->practices);
         $this->sessionTitle = $title;
 
@@ -77,7 +82,7 @@ class PracticeMixed extends Component
     public function getNextPractice()
     {
         $this->currentPracticeIndex++;
-
+        
         if (isset($this->practices[$this->currentPracticeIndex])) {
             $this->currentPractice = $this->practices[$this->currentPracticeIndex];
         }

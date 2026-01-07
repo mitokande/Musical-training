@@ -99,8 +99,15 @@ class AIController extends Controller
         $totalTokens = $response->usage->toArray()['total_tokens'];
         $costPerThousandTokens = 0.01;
         $cost = ($totalTokens / 1000) * $costPerThousandTokens;
+        $questions = json_decode($response->choices[0]->message->content, true);
         \Log::info("OpenAI API call cost estimate: $" . number_format($cost, 6) . " for {$totalTokens} tokens.");
-        \Log::info(json_encode($response));
-        return json_decode($response->choices[0]->message->content, true);
+        \Log::info(json_encode($questions));
+        
+        
+        // Store questions in session and redirect to AI practice view
+        session(['ai_practice_questions' => $questions['questions']]);
+        session(['ai_practice_title' => 'AI Generated Practice']);
+        
+        return redirect()->route('practice.ai');
     }
 }

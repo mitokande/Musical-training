@@ -38,8 +38,13 @@ class SingleNotePractice extends Model
                         'type' => 'string',
                         'description' => 'The octave number for the note. This should be a number between 2 and 6.'
                     ],
+                    'type' => [
+                        'type' => 'string',
+                        'enum' => ['single-note'],
+                        'description' => 'The type of practice'
+                    ],
                 ],
-                'required' => ['target', 'target_type', 'other_options', 'octave'],
+                'required' => ['target', 'target_type', 'other_options', 'octave', 'type'],
                 'additionalProperties' => false
         ];
     }
