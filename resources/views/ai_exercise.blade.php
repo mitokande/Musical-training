@@ -291,9 +291,13 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="w-full btn-primary text-white font-semibold py-3.5 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all duration-200">
-                        <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        Start AI Practice Session
+                    <button type="submit" id="submitBtn" class="w-full btn-primary text-white font-semibold py-3.5 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <i data-lucide="sparkles" class="w-5 h-5 btn-icon"></i>
+                        <svg class="animate-spin w-5 h-5 btn-spinner hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="btn-text">Start AI Practice Session</span>
                     </button>
                 </form>
             </div>
@@ -465,6 +469,17 @@
                     this.classList.add('selected');
                     difficultyInput.value = this.dataset.difficulty;
                 });
+            });
+            
+            // Form submission loading state
+            const sessionForm = document.getElementById('sessionForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            sessionForm.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-icon').classList.add('hidden');
+                submitBtn.querySelector('.btn-spinner').classList.remove('hidden');
+                submitBtn.querySelector('.btn-text').textContent = 'Generating Your Session...';
             });
         });
     </script>
