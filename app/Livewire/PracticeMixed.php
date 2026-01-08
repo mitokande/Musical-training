@@ -2,12 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Http\Controllers\AIController;
 use App\Models\UserPractice;
 use Livewire\Component;
 
 class PracticeMixed extends Component
 {
     public $practices = [];
+    public $answers = [];
+
     public $currentPractice;
     public $currentPracticeIndex = 0;
     public $totalQuestions;
@@ -15,6 +18,10 @@ class PracticeMixed extends Component
     public $incorrectCount = 0;
     public $xpEarned = 0;
     public $sessionTitle = 'Mixed Practice';
+    
+    public $showResults = false;
+    public $coachNotes = null;
+    public $isGeneratingNotes = false;
 
     public function mount($practices, $title = 'Mixed Practice')
     {
@@ -76,6 +83,7 @@ class PracticeMixed extends Component
             'incorrectCount' => $this->incorrectCount,
             'xpEarned' => $this->xpEarned,
             'sessionTitle' => $this->sessionTitle,
+            'answers' => $this->answers,
         ]);
     }
 
@@ -159,6 +167,32 @@ class PracticeMixed extends Component
         }
 
         return (($this->currentPracticeIndex + 1) / $this->totalQuestions) * 100;
+    }
+
+    public function generateCoachNotes() {
+        $this->isGeneratingNotes = true;
+        
+        $aiController = new AIController();
+        $questions = $this->practices;
+        $answers = $this->answers;
+        $coachNotes = $aiController->generateCoachNotes(['questions' => $questions, 'answers' => $answers]);
+        
+        \Log::info('generateCoachNotes', ['coachNotes' => $coachNotes]);
+        
+        $this->coachNotes = $coachNotes;
+        $this->isGeneratingNotes = false;
+        $this->showResults = true;
+    }
+
+    public function saveAnswerPractice($answer, $target) {
+        $this->skipRender();
+        $this->answers[] = [
+            'id' => $this->practices[$this->currentPracticeIndex]['data']['id'],
+            'answer' => $answer,
+            'target' => $target,
+        ];
+        \Log::info('saveAnswerPractice', ['answers' => $this->answers]);
+        \Log::info('saveAnswerPractice', ['practices' => $this->practices]);
     }
 }
 

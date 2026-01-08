@@ -1,6 +1,180 @@
 <!-- Main Content -->
 <main wire:id="practice-mixed-{{ $currentPracticeIndex }}" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     
+    @if($showResults && $coachNotes)
+    <!-- AI Coach Results Page -->
+    <div class="card overflow-hidden mb-6">
+        <!-- Results Header -->
+        <div class="bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-500 p-8 text-center">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                <i data-lucide="trophy" class="w-10 h-10 text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white mb-2">Practice Complete!</h1>
+            <p class="text-white/80">{{ $sessionTitle }}</p>
+        </div>
+        
+        <!-- Score Circle -->
+        <div class="relative -mt-8 mb-6">
+            <div class="w-32 h-32 mx-auto rounded-full bg-white shadow-xl flex items-center justify-center border-4 
+                @if($coachNotes['score_percentage'] >= 80) border-green-400
+                @elseif($coachNotes['score_percentage'] >= 60) border-yellow-400
+                @else border-red-400
+                @endif">
+                <div class="text-center">
+                    <span class="text-4xl font-bold 
+                        @if($coachNotes['score_percentage'] >= 80) text-green-600
+                        @elseif($coachNotes['score_percentage'] >= 60) text-yellow-600
+                        @else text-red-600
+                        @endif">{{ round($coachNotes['score_percentage']) }}%</span>
+                    <p class="text-xs text-gray-500 mt-1">Score</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="px-8 pb-6">
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                <div class="text-center p-4 bg-green-50 rounded-xl">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-green-100 flex items-center justify-center">
+                        <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-green-600">{{ $correctCount }}</span>
+                    <p class="text-xs text-green-600/70">Correct</p>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-xl">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 flex items-center justify-center">
+                        <i data-lucide="x" class="w-5 h-5 text-red-600"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-red-600">{{ $totalQuestions - $correctCount }}</span>
+                    <p class="text-xs text-red-600/70">Incorrect</p>
+                </div>
+                <div class="text-center p-4 bg-yellow-50 rounded-xl">
+                    <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-yellow-600"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-yellow-600">+{{ $xpEarned }}</span>
+                    <p class="text-xs text-yellow-600/70">XP Earned</p>
+                </div>
+            </div>
+            
+            <!-- AI Coach Summary -->
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-5 mb-6 border border-purple-100">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-purple-900 mb-1">AI Coach Summary</h3>
+                        <p class="text-gray-700 text-sm leading-relaxed">{{ $coachNotes['summary'] }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Strengths -->
+            @if(!empty($coachNotes['strengths']))
+            <div class="mb-6">
+                <h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3">
+                    <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                        <i data-lucide="thumbs-up" class="w-3.5 h-3.5 text-green-600"></i>
+                    </div>
+                    Your Strengths
+                </h3>
+                <ul class="space-y-2">
+                    @foreach($coachNotes['strengths'] as $strength)
+                    <li class="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                        {{ $strength }}
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            
+            <!-- Weak Areas -->
+            @if(!empty($coachNotes['weak_areas']))
+            <div class="mb-6">
+                <h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3">
+                    <div class="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
+                        <i data-lucide="target" class="w-3.5 h-3.5 text-orange-600"></i>
+                    </div>
+                    Areas to Improve
+                </h3>
+                <ul class="space-y-2">
+                    @foreach($coachNotes['weak_areas'] as $area)
+                    <li class="flex items-start gap-2 text-sm text-gray-700 bg-orange-50 p-3 rounded-lg">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0"></i>
+                        {{ $area }}
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            
+            <!-- Suggestions -->
+            @if(!empty($coachNotes['suggestions']))
+            <div class="mb-6">
+                <h3 class="flex items-center gap-2 font-semibold text-gray-900 mb-3">
+                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-blue-600"></i>
+                    </div>
+                    Practice Suggestions
+                </h3>
+                <ul class="space-y-2">
+                    @foreach($coachNotes['suggestions'] as $suggestion)
+                    <li class="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"></i>
+                        {{ $suggestion }}
+                    </li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            
+            <!-- Encouragement -->
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-5 border border-amber-200">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="heart" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-amber-900 mb-1">Keep Going!</h3>
+                        <p class="text-amber-800 text-sm leading-relaxed">{{ $coachNotes['encouragement'] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="px-8 pb-8">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="/ai-exercises" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:shadow-lg transition-shadow">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    New AI Session
+                </a>
+                <a href="/learn" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    Learning Path
+                </a>
+                <a href="/dashboard" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Re-initialize Lucide icons for results page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+    @else
     <!-- Practice Card -->
     <div class="card overflow-hidden mb-6">
         <!-- Header -->
@@ -101,16 +275,24 @@
                                 Next
                             </button>
                         @else
-                            <a 
-                                href="/learn"
-                                id="nextPracticeBtn"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                            <button 
+                                wire:click="generateCoachNotes"
+                                wire:loading.attr="disabled"
+                                id="finishPracticeBtn"
+                                class="font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-70 disabled:cursor-not-allowed
                                     bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 hover:text-green-800 hover:border-green-400"
                                 style="border-width: 2px;"
                             >
-                                <i data-lucide="check" class="w-5 h-5"></i>
-                                Finish
-                            </a>
+                                <span wire:loading.remove wire:target="generateCoachNotes">
+                                    <i data-lucide="check" class="w-5 h-5"></i>
+                                </span>
+                                <svg wire:loading wire:target="generateCoachNotes" class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span wire:loading.remove wire:target="generateCoachNotes">Finish</span>
+                                <span wire:loading wire:target="generateCoachNotes">Generating AI Feedback...</span>
+                            </button>
                         @endif
                     </div>
                     <p id="playStatus" class="text-sm text-gray-500">Listen to the note to start</p>
@@ -123,8 +305,9 @@
                      data-target="{{ $practice['target'] }}"
                      data-practice-id="{{ $practice['id'] }}"
                      data-type="{{ $type }}">
-                    @foreach(explode(',', $practice['other_options']) as $option)
-                        <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ trim($option) }}">
+                     @foreach(explode(',', $practice['other_options']) as $option)
+                     
+                     <button wire:click.prevent="saveAnswerPractice('{{ trim($option) }}', '{{ $practice['target'] }}')" class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="{{ trim($option) }}">
                             {{ trim($option) }}
                         </button>
                     @endforeach
@@ -134,7 +317,7 @@
                      data-target="{{ $practice['direction'] }}"
                      data-practice-id="{{ $practice['id'] }}"
                      data-type="{{ $type }}">
-                    <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all flex items-center justify-center gap-2" data-answer="ascending">
+                    <button wire:click.prevent="saveAnswerPractice('ascending', '{{ $practice['direction'] }}')" class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all flex items-center justify-center gap-2" data-answer="ascending">
                         <i data-lucide="trending-up" class="w-5 h-5 text-green-500"></i>
                         Ascending
                     </button>
@@ -217,9 +400,12 @@
             const playButton = document.getElementById('playButton');
             const playStatus = document.getElementById('playStatus');
             const nextButton = document.getElementById('nextPracticeBtn');
+            const finishPracticeBtn = document.getElementById('finishPracticeBtn');
             const answerOptions = document.getElementById('answerOptions');
             const answerButtons = document.querySelectorAll('.answer-btn');
             const feedbackMessage = document.getElementById('feedbackMessage');
+            const totalQuestions = {{ $totalQuestions }};
+            const currentPracticeIndex = {{ $currentPracticeIndex }};
             
             if (playButton && answerOptions) {
                 const target = answerOptions.dataset.target;
@@ -468,6 +654,7 @@
             }
         });
     </script>
+    @endif
 
 </main>
 

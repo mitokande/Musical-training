@@ -240,8 +240,8 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
                             <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="5">5 Questions (Quick)</option>
-                                <option value="10" selected>10 Questions (Standard)</option>
+                                <option value="5" selected>5 Questions (Quick)</option>
+                                <option value="10" >10 Questions (Standard)</option>
                                 <option value="15">15 Questions (Extended)</option>
                                 <option value="20">20 Questions (Comprehensive)</option>
                             </select>
