@@ -18,18 +18,20 @@ class IntervalComparisonPractice extends Model
     public static function schema() {
         return [
             'type' => 'object',
+            'description' => 'Interval Comparison Practice Question, the user must identify which interval has larger distance. One of the intervals will be larger than the other.',
             'properties' => [
                 'interval_a' => [
                     'type' => 'string',
-                    'description' => 'The first interval, two notes separated by a comma (e.g. C,E or D,A)'
+                    'description' => 'The first interval, two notes separated by a comma (e.g. C,E or D,A). Do not include the octave number.'
                 ],
                 'interval_b' => [
                     'type' => 'string',
-                    'description' => 'The second interval, two notes separated by a comma (e.g. C,E or D,A)'
+                    'description' => 'The second interval, two notes separated by a comma (e.g. C,E or D,A). Do not include the octave number.'
                 ],
                 'target' => [
                     'type' => 'string',
-                    'description' => 'Interval that has larger interval distance'
+                    'description' => 'Interval that has larger interval distance. Answer must be either A or B.',
+                    'enum' => ['a', 'b']
                 ],
                 'octave' => [
                     'type' => 'string',

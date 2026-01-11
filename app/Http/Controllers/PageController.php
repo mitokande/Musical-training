@@ -89,7 +89,7 @@ class PageController extends Controller
     public function startMixedPractice(\Illuminate\Http\Request $request) {
         $validated = $request->validate([
             'exercise_types' => 'required|array|min:1',
-            'exercise_types.*' => 'in:single_note,interval_direction',
+            'exercise_types.*' => 'in:single_note,interval_direction,interval_comparison',
             'num_questions' => 'required|integer|min:1|max:50',
             'title' => 'nullable|string|max:100',
         ]);

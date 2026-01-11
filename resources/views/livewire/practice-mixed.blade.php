@@ -192,6 +192,8 @@
                                 Single Note Recognition
                             @elseif($currentPractice['type'] === 'interval_direction')
                                 Interval Direction
+                            @elseif($currentPractice['type'] === 'interval_comparison')
+                                Interval Comparison
                             @else
                                 Mixed Exercise
                             @endif
@@ -236,18 +238,46 @@
                         <i data-lucide="arrow-up-down" class="w-3 h-3"></i>
                         Interval Direction
                     </span>
+                @elseif($type === 'interval_comparison')
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <i data-lucide="git-compare" class="w-3 h-3"></i>
+                        Interval Comparison
+                    </span>
                 @endif
             </div>
 
             <!-- Note Visual -->
-            <div id="noteVisualPlaceholder" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
-                <div>
-                    <div id="output" style="width: 400px; height: 200px;" 
-                         data-notes="@if($type === 'single_note'){{ strtolower($practice['target']) . '/' . $practice['octave'] }}@elseif($type === 'interval_direction'){{ strtolower($practice['note1']) . '/' . $practice['octave'] . ',' . strtolower($practice['note2']) . '/' . $practice['octave'] }}@endif"
-                         data-type="{{ $type }}">
+            @if($type === 'interval_comparison')
+                @php
+                    $intervalANotes = explode(',', $practice['interval_a']);
+                    $intervalBNotes = explode(',', $practice['interval_b']);
+                @endphp
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <!-- Interval A -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
+                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A</h3>
+                        <div id="outputA" style="width: 100%; height: 150px;" 
+                             data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalANotes[1])) . '/' . $practice['octave'] }}">
+                        </div>
+                    </div>
+                    <!-- Interval B -->
+                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
+                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval B</h3>
+                        <div id="outputB" style="width: 100%; height: 150px;" 
+                             data-notes="{{ strtolower(trim($intervalBNotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $practice['octave'] }}">
+                        </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div id="noteVisualPlaceholder" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
+                    <div>
+                        <div id="output" style="width: 400px; height: 200px;" 
+                             data-notes="@if($type === 'single_note'){{ strtolower($practice['target']) . '/' . $practice['octave'] }}@elseif($type === 'interval_direction'){{ strtolower($practice['note1']) . '/' . $practice['octave'] . ',' . strtolower($practice['note2']) . '/' . $practice['octave'] }}@endif"
+                             data-type="{{ $type }}">
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <!-- Play Button Section -->
             <div class="card p-6 mb-8">
@@ -257,10 +287,18 @@
                             id="playButton" 
                             class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
                             data-note="@if($type === 'single_note'){{ ucfirst(strtolower($practice['target'])) . $practice['octave'] }}@elseif($type === 'interval_direction'){{ ucfirst(strtolower($practice['note1'])) . $practice['octave'] . ',' . ucfirst(strtolower($practice['note2'])) . $practice['octave'] }}@endif"
+                            @if($type === 'interval_comparison')
+                                data-interval-a="{{ strtoupper(trim($intervalANotes[0])) . $practice['octave'] . ',' . strtoupper(trim($intervalANotes[1])) . $practice['octave'] }}"
+                                data-interval-b="{{ strtoupper(trim($intervalBNotes[0])) . $practice['octave'] . ',' . strtoupper(trim($intervalBNotes[1])) . $practice['octave'] }}"
+                            @endif
                             data-type="{{ $type }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
-                            Play
+                            @if($type === 'interval_comparison')
+                                Play Both Intervals
+                            @else
+                                Play
+                            @endif
                         </button>
                         
                         @if ($currentPracticeIndex < ($totalQuestions - 1))
@@ -326,6 +364,20 @@
                         Descending
                     </button>
                 </div>
+            @elseif($type === 'interval_comparison')
+                <div id="answerOptions" class="grid grid-cols-2 gap-4" 
+                     data-target="{{ $practice['target'] }}"
+                     data-practice-id="{{ $practice['id'] }}"
+                     data-type="{{ $type }}">
+                    <button wire:click.prevent="saveAnswerPractice('a', '{{ $practice['target'] }}')" class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all flex flex-col items-center justify-center gap-1" data-answer="a">
+                        <span class="text-2xl font-bold text-green-600">A</span>
+                        <span class="text-sm text-gray-500">Interval A is larger</span>
+                    </button>
+                    <button wire:click.prevent="saveAnswerPractice('b', '{{ $practice['target'] }}')" class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all flex flex-col items-center justify-center gap-1" data-answer="b">
+                        <span class="text-2xl font-bold text-blue-600">B</span>
+                        <span class="text-sm text-gray-500">Interval B is larger</span>
+                    </button>
+                </div>
             @endif
 
             <!-- Feedback Message -->
@@ -353,45 +405,72 @@
                 console.log("VexFlow Build:", Vex.Flow.BUILD);
                 const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
         
-                // Create an SVG renderer and attach it to the DIV element named "output".
-                const div = document.getElementById("output");
-                if (div) {
-                    div.innerHTML = ''; // Clear previous content
-                    
-                    const renderer = new Renderer(div, Renderer.Backends.SVG);
-            
-                    // Configure the rendering context.
-                    renderer.resize(420, 200);
-                    const context = renderer.getContext();
-            
-                    // Create a stave of width 400 at position 10, 40 on the canvas.
-                    const stave = new Stave(10, 40, 600);
-            
-                    // Add a clef and time signature.
-                    stave.addClef("treble");
-            
-                    stave.setNoteStartX(stave.getNoteStartX() + 40); // Adds padding after clef
-            
-                    // Connect it to the rendering context and draw!
-                    stave.setContext(context).draw();
-            
-                    // Create the notes
-                    const notesFromParams = div.dataset.notes;
-                    if (notesFromParams) {
-                        const notesParsed = notesFromParams.split(',');
-                        console.log("Notes parsed:", notesParsed);
-                        const duration = notesParsed.length > 1 ? "h" : "1";
-                        const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: duration }));
+                // Check if this is interval comparison (has outputA and outputB)
+                const divA = document.getElementById("outputA");
+                const divB = document.getElementById("outputB");
+                
+                if (divA && divB) {
+                    // Interval Comparison: Render two staves
+                    [divA, divB].forEach(div => {
+                        div.innerHTML = '';
+                        const renderer = new Renderer(div, Renderer.Backends.SVG);
+                        renderer.resize(180, 150);
+                        const context = renderer.getContext();
+                        const stave = new Stave(10, 20, 160);
+                        stave.addClef("treble");
+                        stave.setContext(context).draw();
                         
-                        // Create a voice in 4/4 and add above notes
-                        const voice = new Voice({ numBeats: 2, beatValue: 2 });
-                        voice.addTickables(notes);
+                        const notesFromParams = div.dataset.notes;
+                        if (notesFromParams) {
+                            const notesParsed = notesFromParams.split(',');
+                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "h" }));
+                            const voice = new Voice({ numBeats: 2, beatValue: 2 });
+                            voice.addTickables(notes);
+                            new Formatter().joinVoices([voice]).format([voice], 100);
+                            voice.draw(context, stave);
+                        }
+                    });
+                } else {
+                    // Single Note or Interval Direction: Single stave
+                    const div = document.getElementById("output");
+                    if (div) {
+                        div.innerHTML = ''; // Clear previous content
+                        
+                        const renderer = new Renderer(div, Renderer.Backends.SVG);
                 
-                        // Format and justify the notes to 400 pixels.
-                        new Formatter().joinVoices([voice]).format([voice], 300);
+                        // Configure the rendering context.
+                        renderer.resize(420, 200);
+                        const context = renderer.getContext();
                 
-                        // Render voice
-                        voice.draw(context, stave);
+                        // Create a stave of width 400 at position 10, 40 on the canvas.
+                        const stave = new Stave(10, 40, 600);
+                
+                        // Add a clef and time signature.
+                        stave.addClef("treble");
+                
+                        stave.setNoteStartX(stave.getNoteStartX() + 40); // Adds padding after clef
+                
+                        // Connect it to the rendering context and draw!
+                        stave.setContext(context).draw();
+                
+                        // Create the notes
+                        const notesFromParams = div.dataset.notes;
+                        if (notesFromParams) {
+                            const notesParsed = notesFromParams.split(',');
+                            console.log("Notes parsed:", notesParsed);
+                            const duration = notesParsed.length > 1 ? "h" : "1";
+                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: duration }));
+                            
+                            // Create a voice in 4/4 and add above notes
+                            const voice = new Voice({ numBeats: 2, beatValue: 2 });
+                            voice.addTickables(notes);
+                    
+                            // Format and justify the notes to 400 pixels.
+                            new Formatter().joinVoices([voice]).format([voice], 300);
+                    
+                            // Render voice
+                            voice.draw(context, stave);
+                        }
                     }
                 }
             }
@@ -422,9 +501,6 @@
                 
                 // Play button click handler
                 playButton.onclick = function() {
-                    const notes = this.dataset.note;
-                    const notesParsed = notes.split(',');
-                    
                     // Stop any currently playing audio
                     if (currentAudio) {
                         currentAudio.pause();
@@ -437,80 +513,141 @@
                     playStatus.textContent = 'Loading audio...';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     
-                    if (notesParsed.length === 1) {
-                        console.log('single note playback', notesParsed);
-                        // Single note playback
-                        const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
-                        const audioUrl = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
-                        const audio = new Audio(audioUrl);
-                        currentAudio = audio;
-
-                        const handleError = () => {
-                            playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
-                            playStatus.textContent = 'Error loading audio. Try again.';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                    const handleError = () => {
+                        playButton.disabled = false;
+                        playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
+                        playStatus.textContent = 'Error loading audio. Try again.';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    };
+                    
+                    // Check if this is interval comparison (has data-interval-a and data-interval-b)
+                    if (practiceType === 'interval_comparison') {
+                        // Interval Comparison: 4 notes with 1-second delay between intervals
+                        const intervalA = this.dataset.intervalA.split(',');
+                        const intervalB = this.dataset.intervalB.split(',');
+                        
+                        const audioUrls = [
+                            `https://mithatck.com/music/api/note.php?note=${intervalA[0].replace(/#/g, '%23')}&duration=1`,
+                            `https://mithatck.com/music/api/note.php?note=${intervalA[1].replace(/#/g, '%23')}&duration=1`,
+                            `https://mithatck.com/music/api/note.php?note=${intervalB[0].replace(/#/g, '%23')}&duration=1`,
+                            `https://mithatck.com/music/api/note.php?note=${intervalB[1].replace(/#/g, '%23')}&duration=1`,
+                        ];
+                        
+                        const audios = audioUrls.map(url => new Audio(url));
+                        let currentIndex = 0;
+                        
+                        const playNext = () => {
+                            if (currentIndex >= audios.length) {
+                                playButton.disabled = false;
+                                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                                playStatus.textContent = 'Click to play again';
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                                return;
+                            }
+                            
+                            currentAudio = audios[currentIndex];
+                            
+                            if (currentIndex < 2) {
+                                playStatus.textContent = 'Playing Interval A...';
+                            } else {
+                                playStatus.textContent = 'Playing Interval B...';
+                            }
+                            
+                            currentAudio.addEventListener('ended', function() {
+                                currentIndex++;
+                                // Add 1 second delay between intervals (after note 2, before note 3)
+                                if (currentIndex === 2) {
+                                    playStatus.textContent = 'Pause...';
+                                    setTimeout(playNext, 1000);
+                                } else {
+                                    playNext();
+                                }
+                            }, { once: true });
+                            
+                            currentAudio.addEventListener('error', handleError, { once: true });
+                            currentAudio.play();
                         };
                         
-                        audio.addEventListener('canplaythrough', function() {
-                            if (currentAudio !== audio) return;
-                            playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                            playStatus.textContent = 'Playing note...';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                            audio.play();
-                        }, { once: true });
-                        
-                        audio.addEventListener('ended', function() {
-                            playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                            playStatus.textContent = 'Click to play again';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        // Preload all audio files then start playing
+                        let loadedCount = 0;
+                        audios.forEach((audio, index) => {
+                            audio.addEventListener('canplaythrough', function() {
+                                loadedCount++;
+                                if (loadedCount === audios.length) {
+                                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                                    playNext();
+                                }
+                            }, { once: true });
+                            audio.addEventListener('error', handleError, { once: true });
+                            audio.load();
                         });
-                        
-                        audio.addEventListener('error', handleError);
-                        audio.load();
                     } else {
-                        // Two notes (interval) playback
-                        const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
-                        const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
-                        const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[1]}&duration=1`;
+                        // Single note or Interval Direction playback
+                        const notes = this.dataset.note;
+                        const notesParsed = notes.split(',');
                         
-                        const audio1 = new Audio(audioUrl1);
-                        const audio2 = new Audio(audioUrl2);
-                        currentAudio = audio1;
+                        if (notesParsed.length === 1) {
+                            console.log('single note playback', notesParsed);
+                            // Single note playback
+                            const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
+                            const audioUrl = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
+                            const audio = new Audio(audioUrl);
+                            currentAudio = audio;
+                            
+                            audio.addEventListener('canplaythrough', function() {
+                                if (currentAudio !== audio) return;
+                                playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                                playStatus.textContent = 'Playing note...';
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                                audio.play();
+                            }, { once: true });
+                            
+                            audio.addEventListener('ended', function() {
+                                playButton.disabled = false;
+                                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                                playStatus.textContent = 'Click to play again';
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                            });
+                            
+                            audio.addEventListener('error', handleError);
+                            audio.load();
+                        } else {
+                            // Two notes (interval) playback
+                            const sanitizedNotesParsed = notesParsed.map(n => n.replace(/#/g, '%23'));
+                            const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[0]}&duration=1`;
+                            const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${sanitizedNotesParsed[1]}&duration=1`;
+                            
+                            const audio1 = new Audio(audioUrl1);
+                            const audio2 = new Audio(audioUrl2);
+                            currentAudio = audio1;
+                            
+                            audio1.addEventListener('canplaythrough', function() {
+                                if (currentAudio !== audio1) return;
+                                playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                                playStatus.textContent = 'Playing notes...';
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                                audio1.play();
+                            }, { once: true });
+                            
+                            audio1.addEventListener('ended', function() {
+                                currentAudio = audio2;
+                                audio2.play();
+                            });
 
-                        const handleError = () => {
-                            playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
-                            playStatus.textContent = 'Error loading audio. Try again.';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                        };
-                        
-                        audio1.addEventListener('canplaythrough', function() {
-                            if (currentAudio !== audio1) return;
-                            playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                            playStatus.textContent = 'Playing notes...';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                            audio1.play();
-                        }, { once: true });
-                        
-                        audio1.addEventListener('ended', function() {
-                            currentAudio = audio2;
-                            audio2.play();
-                        });
-
-                        audio2.addEventListener('ended', function() {
-                            playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                            playStatus.textContent = 'Click to play again';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                        });
-                        
-                        audio1.addEventListener('error', handleError);
-                        audio2.addEventListener('error', handleError);
-                        
-                        audio1.load();
-                        audio2.load();
+                            audio2.addEventListener('ended', function() {
+                                playButton.disabled = false;
+                                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                                playStatus.textContent = 'Click to play again';
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                            });
+                            
+                            audio1.addEventListener('error', handleError);
+                            audio2.addEventListener('error', handleError);
+                            
+                            audio1.load();
+                            audio2.load();
+                        }
                     }
                 };
                 
@@ -547,6 +684,10 @@
                                     ? '<i data-lucide="trending-up" class="w-5 h-5 text-green-500"></i>'
                                     : '<i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i>';
                                 this.innerHTML = icon + ' ' + answer.charAt(0).toUpperCase() + answer.slice(1);
+                            } else if (practiceType === 'interval_comparison') {
+                                const label = answer.toUpperCase();
+                                const desc = answer === 'a' ? 'Interval A is larger' : 'Interval B is larger';
+                                this.innerHTML = `<span class="text-2xl font-bold">${label}</span><span class="text-sm text-gray-500">${desc}</span>`;
                             } else {
                                 this.textContent = answer.charAt(0).toUpperCase() + answer.slice(1);
                             }
@@ -578,7 +719,10 @@
                                 this.classList.add('incorrect');
                                 this.classList.remove('text-gray-700');
                                 this.classList.add('text-red-700');
-                                feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target.charAt(0).toUpperCase() + target.slice(1)}.`;
+                                const correctDisplay = practiceType === 'interval_comparison' 
+                                    ? target.toUpperCase()
+                                    : target.charAt(0).toUpperCase() + target.slice(1);
+                                feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${correctDisplay}.`;
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                 
