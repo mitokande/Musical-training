@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
@@ -45,6 +46,14 @@ class DatabaseSeeder extends Seeder
             'is_premium' => false,
         ]);
 
+        Practice::create([
+            'name' => 'Interval Comparison Practice',
+            'slug' => 'interval-comparison-practice',
+            'description' => 'Practice interval comparison',
+            'type' => 'Recognition',
+            'is_premium' => false,
+        ]);
+
         SingleNotePractice::create([
             'target' => 'C',
             'octave' => '4',
@@ -81,6 +90,14 @@ class DatabaseSeeder extends Seeder
             'note2' => 'F',
             'direction' => 'descending',
             'octave' => '4',
+        ]);
+
+        IntervalComparisonPractice::create([
+            'interval_a' => 'C,E',
+            'interval_b' => 'D,F',
+            'target' => 'C,E',
+            'octave' => '4',
+            'clef' => 'treble',
         ]);
     }
 }
