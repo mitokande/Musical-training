@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\IntervalComparisonPractice;
+use App\Models\Practice;
 use Illuminate\Http\Request;
 
 class IntervalComparisonPracticeController extends Controller
@@ -14,7 +15,8 @@ class IntervalComparisonPracticeController extends Controller
     public function index()
     {
         $practices = IntervalComparisonPractice::latest()->paginate(15);
-        return view('admin.interval-comparison.index', compact('practices'));
+        $settings = Practice::where('slug', 'interval-comparison-practice')->first();
+        return view('admin.interval-comparison.index', compact('practices', 'settings'));
     }
 
     /**
@@ -81,5 +83,28 @@ class IntervalComparisonPracticeController extends Controller
         return redirect()->route('admin.interval-comparison.index')
             ->with('success', 'Interval Comparison Practice deleted successfully.');
     }
-}
 
+    /**
+     * Update practice settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'type' => 'required|string|max:100',
+            'is_premium' => 'boolean',
+        ]);
+
+        $validated['is_premium'] = $request->has('is_premium');
+
+        $practice = Practice::where('slug', 'interval-comparison-practice')->first();
+        
+        if ($practice) {
+            $practice->update($validated);
+        }
+
+        return redirect()->route('admin.interval-comparison.index')
+            ->with('success', 'Practice settings updated successfully.');
+    }
+}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,8 @@ class SingleNotePracticeController extends Controller
     public function index()
     {
         $practices = SingleNotePractice::latest()->paginate(15);
-        return view('admin.single-note.index', compact('practices'));
+        $settings = Practice::where('slug', 'single-note-practice')->first();
+        return view('admin.single-note.index', compact('practices', 'settings'));
     }
 
     /**
@@ -79,5 +81,28 @@ class SingleNotePracticeController extends Controller
         return redirect()->route('admin.single-note.index')
             ->with('success', 'Single Note Practice deleted successfully.');
     }
-}
 
+    /**
+     * Update practice settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'type' => 'required|string|max:100',
+            'is_premium' => 'boolean',
+        ]);
+
+        $validated['is_premium'] = $request->has('is_premium');
+
+        $practice = Practice::where('slug', 'single-note-practice')->first();
+        
+        if ($practice) {
+            $practice->update($validated);
+        }
+
+        return redirect()->route('admin.single-note.index')
+            ->with('success', 'Practice settings updated successfully.');
+    }
+}

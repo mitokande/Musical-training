@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\IntervalDirectionPractice;
+use App\Models\Practice;
 use Illuminate\Http\Request;
 
 class IntervalDirectionPracticeController extends Controller
@@ -14,7 +15,8 @@ class IntervalDirectionPracticeController extends Controller
     public function index()
     {
         $practices = IntervalDirectionPractice::latest()->paginate(15);
-        return view('admin.interval-direction.index', compact('practices'));
+        $settings = Practice::where('slug', 'interval-direction-practice')->first();
+        return view('admin.interval-direction.index', compact('practices', 'settings'));
     }
 
     /**
@@ -81,5 +83,28 @@ class IntervalDirectionPracticeController extends Controller
         return redirect()->route('admin.interval-direction.index')
             ->with('success', 'Interval Direction Practice deleted successfully.');
     }
-}
 
+    /**
+     * Update practice settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'type' => 'required|string|max:100',
+            'is_premium' => 'boolean',
+        ]);
+
+        $validated['is_premium'] = $request->has('is_premium');
+
+        $practice = Practice::where('slug', 'interval-direction-practice')->first();
+        
+        if ($practice) {
+            $practice->update($validated);
+        }
+
+        return redirect()->route('admin.interval-direction.index')
+            ->with('success', 'Practice settings updated successfully.');
+    }
+}

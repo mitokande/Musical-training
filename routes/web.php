@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SingleNotePracticeController;
 use App\Http\Controllers\Admin\IntervalDirectionPracticeController;
 use App\Http\Controllers\Admin\IntervalComparisonPracticeController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
@@ -43,9 +44,17 @@ Route::get('/api/ai/generate-interval-direction-practice', [AIController::class,
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    
     Route::resource('single-note', SingleNotePracticeController::class)->except(['show']);
+    Route::put('single-note-settings', [SingleNotePracticeController::class, 'updateSettings'])->name('single-note.settings');
+    
     Route::resource('interval-direction', IntervalDirectionPracticeController::class)->except(['show']);
+    Route::put('interval-direction-settings', [IntervalDirectionPracticeController::class, 'updateSettings'])->name('interval-direction.settings');
+    
     Route::resource('interval-comparison', IntervalComparisonPracticeController::class)->except(['show']);
+    Route::put('interval-comparison-settings', [IntervalComparisonPracticeController::class, 'updateSettings'])->name('interval-comparison.settings');
+    
+    Route::resource('users', UserController::class)->except(['create', 'store', 'show']);
 });
 
 require __DIR__.'/auth.php';

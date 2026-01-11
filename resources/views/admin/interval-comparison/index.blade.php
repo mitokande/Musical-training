@@ -20,8 +20,81 @@
         </a>
     </div>
 
+    <!-- Practice Settings -->
+    @if($settings)
+    <div class="card p-6">
+        <div class="flex items-center gap-2 mb-6">
+            <i data-lucide="settings" class="w-5 h-5 text-orange-600"></i>
+            <h2 class="text-lg font-semibold text-gray-900">Practice Settings</h2>
+        </div>
+        
+        <form action="{{ route('admin.interval-comparison.settings') }}" method="POST">
+            @csrf
+            @method('PUT')
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Practice Name</label>
+                    <input type="text" 
+                           name="name" 
+                           id="name" 
+                           value="{{ old('name', $settings->name) }}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                           required>
+                </div>
+                
+                <div>
+                    <label for="type" class="block text-sm font-semibold text-gray-700 mb-2">Practice Type</label>
+                    <select name="type" 
+                            id="type"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            required>
+                        <option value="Recognition" {{ old('type', $settings->type) == 'Recognition' ? 'selected' : '' }}>Recognition</option>
+                        <option value="Dictation" {{ old('type', $settings->type) == 'Dictation' ? 'selected' : '' }}>Dictation</option>
+                        <option value="Sight Reading" {{ old('type', $settings->type) == 'Sight Reading' ? 'selected' : '' }}>Sight Reading</option>
+                        <option value="Theory" {{ old('type', $settings->type) == 'Theory' ? 'selected' : '' }}>Theory</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <textarea name="description" 
+                              id="description" 
+                              rows="2"
+                              class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                              placeholder="Brief description of this practice...">{{ old('description', $settings->description) }}</textarea>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                <label class="relative flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" 
+                           name="is_premium" 
+                           value="1"
+                           {{ old('is_premium', $settings->is_premium) ? 'checked' : '' }}
+                           class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="crown" class="w-4 h-4 text-orange-500"></i>
+                        <span class="text-sm font-medium text-gray-700">Premium Only</span>
+                    </div>
+                </label>
+                
+                <button type="submit" 
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg transition-all">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    @endif
+
     <!-- Table -->
     <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h3 class="font-semibold text-gray-900">Practice Questions</h3>
+        </div>
         <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>

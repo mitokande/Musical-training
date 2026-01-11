@@ -119,6 +119,10 @@
                         <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
                         Interval Comparison
                     </a>
+                    <a href="{{ route('admin.users.index') }}" class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }} flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        Users
+                    </a>
                 </nav>
 
                 <!-- User Menu -->

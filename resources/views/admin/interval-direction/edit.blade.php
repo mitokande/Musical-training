@@ -99,26 +99,39 @@
             <p class="mt-2 text-xs text-gray-500">The octave number for the notes (2-6)</p>
         </div>
 
-        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-            <form action="{{ route('admin.interval-direction.destroy', $practice) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this practice?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="inline-flex items-center gap-2 text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    Delete this practice
-                </button>
-            </form>
-            <div class="flex items-center gap-4">
-                <a href="{{ route('admin.interval-direction.index') }}" 
-                   class="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors">
-                    Cancel
-                </a>
-                <button type="submit" 
-                        class="btn-primary px-6 py-2.5 text-white font-semibold rounded-lg transition-all hover:shadow-lg">
-                    Update Practice
-                </button>
-            </div>
+        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
+            <a href="{{ route('admin.interval-direction.index') }}" 
+               class="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="btn-primary px-6 py-2.5 text-white font-semibold rounded-lg transition-all hover:shadow-lg">
+                Update Practice
+            </button>
         </div>
     </form>
+
+    <!-- Delete Practice (separate form outside main form) -->
+    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-red-700">Danger Zone</p>
+                    <p class="text-sm text-red-600">Permanently delete this practice question</p>
+                </div>
+            </div>
+            <form action="{{ route('admin.interval-direction.destroy', $practice) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this practice?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Delete Practice
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection

@@ -29,6 +29,14 @@ class DatabaseSeeder extends Seeder
             'password' => \Hash::make('password'),
         ]);
 
+        User::factory()->create([
+            'name' => 'Mithat Can Turan',
+            'username' => 'mithatck',
+            'role' => 'admin',
+            'email' => 'benmithat18@gmail.com',
+            'password' => \Hash::make('123123123'),
+        ]);
+
 
         Practice::create([
             'name' => 'Single Note Practice',
