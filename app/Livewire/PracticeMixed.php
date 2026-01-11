@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\AIController;
+use App\Http\Controllers\PageController;
 use App\Models\UserPractice;
 use Livewire\Component;
 
@@ -98,38 +99,33 @@ class PracticeMixed extends Component
         $this->dispatch('practice-updated');
     }
 
-    public function answerPractice($answer, $target)
+    public function answerPractice($practiceId, $answer, $target)
     {
-        $practiceType = $this->currentPractice['type'] ?? 'unknown';
-        $practiceId = $this->getPracticeIdByType($practiceType);
-
-        // Track user progress
         $userPractice = UserPractice::firstOrCreate([
             'user_id' => auth()->user()->id,
             'practice_id' => $practiceId,
         ]);
 
         $userPractice->total_questions++;
+        $userPractice->save();
 
-        $isCorrect = strtolower($answer) === strtolower($target);
+        $isCorrect = $answer == $target;
 
         if ($isCorrect) {
             $userPractice->correct_answers++;
             $this->correctCount++;
-            $this->xpEarned += 10; // Award XP for correct answers
+            $this->xpEarned += 10;
         } else {
             $userPractice->incorrect_answers++;
             $this->incorrectCount++;
         }
-
-        $userPractice->score = ($userPractice->correct_answers / $userPractice->total_questions) * 100;
+        $userPractice->score = $userPractice->correct_answers / $userPractice->total_questions * 100;
         $userPractice->save();
 
         return [
-            'is_correct' => $isCorrect,
-            'correctCount' => $this->correctCount,
-            'totalCount' => $this->currentPracticeIndex + 1,
-            'xp' => $this->xpEarned,
+            'answer' => $answer,
+            'target' => $target,
+            'is_correct' => $answer == $target,
         ];
     }
 

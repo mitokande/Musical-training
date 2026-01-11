@@ -279,7 +279,7 @@
                                 wire:click="generateCoachNotes"
                                 wire:loading.attr="disabled"
                                 id="finishPracticeBtn"
-                                class="font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-70 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-8 hidden rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-70 disabled:cursor-not-allowed
                                     bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 hover:text-green-800 hover:border-green-400"
                                 style="border-width: 2px;"
                             >
@@ -531,30 +531,15 @@
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         
                         try {
-                            // Determine practice_id based on type
-                            let practiceIdNum = practiceType === 'single_note' ? 1 : 2;
-                            
-                            const response = await fetch('/api/practice/check-answer', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                },
-                                body: JSON.stringify({
-                                    practice_id: practiceIdNum,
-                                    answer: answer,
-                                    target: target
-                                })
-                            });
-                            
-                            const data = await response.json();
-                            
+                            const data = await @this.call('answerPractice', practiceId, answer, target);
+                            console.log(data);
                             isAnswered = true;
                             
                             // Toggle buttons: Hide Play, Show Next
                             if (playButton) playButton.classList.add('hidden');
                             if (playStatus) playStatus.classList.add('hidden');
                             if (nextButton) nextButton.classList.remove('hidden');
+                            if (finishPracticeBtn) finishPracticeBtn.classList.remove('hidden');
 
                             // Reset button text
                             if (practiceType === 'interval_direction') {
