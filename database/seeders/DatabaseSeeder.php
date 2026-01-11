@@ -93,9 +93,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         IntervalComparisonPractice::create([
-            'interval_a' => 'C,E',
+            'interval_a' => 'C,G',
             'interval_b' => 'D,F',
-            'target' => 'C,E',
+            'target' => 'a',
             'octave' => '4',
             'clef' => 'treble',
         ]);

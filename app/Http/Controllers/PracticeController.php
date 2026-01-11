@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\SingleNotePractice;
 use App\Models\UserPractice;
@@ -59,6 +60,12 @@ class PracticeController extends Controller
         return $userSingleNotePractice;
     }
 
+    public static function getIntervalComparisonProgress() {
+        $user_id = auth()->user()->id;
+        $userIntervalComparisonPractice = UserPractice::where('user_id','=' ,$user_id)->where('practice_id', '=', '3')->get();
+        return $userIntervalComparisonPractice;
+    }
+
     public static function getPracticeProgressByUser($slug) {
         if ($slug == "interval-direction-practice") {
             $userP = self::getIntervalDirectionProgress();
@@ -79,6 +86,16 @@ class PracticeController extends Controller
             }
             $all = SingleNotePractice::all();
             $progress = $solved / count($all);
+            return $progress == 1 ? 100 : $progress;
+        }
+        if ($slug == "interval-comparison-practice") {
+            $userP = self::getIntervalComparisonProgress();
+            $solved = 0;
+            if (count($userP)> 0) {
+                $solved = $userP[0]->total_questions;
+            }
+            $all = IntervalComparisonPractice::all();
+            $progress = count($all) > 0 ? $solved / count($all) : 0;
             return $progress == 1 ? 100 : $progress;
         }
     }

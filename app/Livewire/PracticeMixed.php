@@ -57,6 +57,7 @@ class PracticeMixed extends Component
         return match ($class) {
             'App\Models\SingleNotePractice' => 'single_note',
             'App\Models\IntervalDirectionPractice' => 'interval_direction',
+            'App\Models\IntervalComparisonPractice' => 'interval_comparison',
             default => 'unknown',
         };
     }
@@ -69,6 +70,7 @@ class PracticeMixed extends Component
         return match ($type) {
             'single_note' => 1,
             'interval_direction' => 2,
+            'interval_comparison' => 3,
             default => 0,
         };
     }

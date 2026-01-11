@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
@@ -52,6 +53,7 @@ class AIController extends Controller
         $practiceClasses = [
             'single-note-practice' => SingleNotePractice::class,
             'interval-direction-practice' => IntervalDirectionPractice::class,
+            'interval-comparison-practice' => IntervalComparisonPractice::class,
         ];
         foreach ($practiceTypes as $practiceType) {
             $practiceClass = $practiceClasses[$practiceType->slug];

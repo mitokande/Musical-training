@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
@@ -42,6 +43,7 @@ class PageController extends Controller
         $practiceMap = [
             'single-note-practice' => SingleNotePractice::class,
             'interval-direction-practice' => IntervalDirectionPractice::class,
+            'interval-comparison-practice' => IntervalComparisonPractice::class
         ];
 
         $practiceClass = $practiceMap[$slug] ?? null;
@@ -118,6 +120,7 @@ class PageController extends Controller
             $typeQuestions = match ($type) {
                 'single_note' => SingleNotePractice::inRandomOrder()->limit($questionsPerType)->get(),
                 'interval_direction' => IntervalDirectionPractice::inRandomOrder()->limit($questionsPerType)->get(),
+                'interval_comparison' => IntervalComparisonPractice::inRandomOrder()->limit($questionsPerType)->get(),
                 default => collect(),
             };
             $practices = $practices->merge($typeQuestions);
@@ -164,6 +167,16 @@ class PageController extends Controller
                 $practice->direction = $question['direction'];
                 $practice->octave = $question['octave'] ?? '4';
                 $practice->id =  rand(1, 1000000); // Temporary ID for frontend
+                return $practice;
+            } elseif (isset($question['interval_a']) && isset($question['interval_b'])) {
+                // Interval Comparison Practice
+                $practice = new IntervalComparisonPractice();
+                $practice->clef = $question['clef'] ?? 'treble';
+                $practice->interval_a = $question['interval_a'];
+                $practice->interval_b = $question['interval_b'];
+                $practice->target = $question['target'];
+                $practice->octave = $question['octave'] ?? '4';
+                $practice->id = rand(1, 1000000); // Temporary ID for frontend
                 return $practice;
             } elseif (isset($question['target']) && isset($question['other_options'])) {
                 // Single Note Practice

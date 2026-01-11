@@ -166,6 +166,9 @@
         @case ('interval-direction-practice')
             <livewire:practice-interval-direction :practices="$practices" />
             @break
+        @case ('interval-comparison-practice')
+            <livewire:practice-interval-comparison :practices="$practices" />
+            @break
     @endswitch
 
 
