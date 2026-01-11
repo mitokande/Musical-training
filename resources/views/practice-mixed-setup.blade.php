@@ -167,8 +167,25 @@
                             </div>
                         </label>
                     </div>
+                    
+                    <!-- Interval Comparison -->
+                    <div>
+                        <input type="checkbox" id="interval_comparison" name="exercise_types[]" value="interval_comparison" class="exercise-checkbox sr-only" checked>
+                        <label for="interval_comparison" class="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-purple-300 transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="compare-horizontal" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900">Interval Comparison</h3>
+                                <p class="text-sm text-gray-500">Compare the distance of two intervals</p>
+                            </div>
+                            <div class="check-icon hidden w-8 h-8 rounded-full bg-purple-600 items-center justify-center">
+                                <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                            </div>
+                        </label>
+                    </div>
+                    
                 </div>
-
                 @error('exercise_types')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                 @enderror
