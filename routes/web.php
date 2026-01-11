@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AIController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\SingleNotePracticeController;
+use App\Http\Controllers\Admin\IntervalDirectionPracticeController;
+use App\Http\Controllers\Admin\IntervalComparisonPracticeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
@@ -35,5 +39,13 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/api/ai/generate-interval-direction-practice', [AIController::class, 'generateIntervalDirectionPractice'])->name('api.ai.generate-interval-direction-practice');
+
+// Admin Routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::resource('single-note', SingleNotePracticeController::class)->except(['show']);
+    Route::resource('interval-direction', IntervalDirectionPracticeController::class)->except(['show']);
+    Route::resource('interval-comparison', IntervalComparisonPracticeController::class)->except(['show']);
+});
 
 require __DIR__.'/auth.php';
