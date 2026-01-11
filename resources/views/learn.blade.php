@@ -134,7 +134,7 @@
                         <i data-lucide="zap" class="w-4 h-4"></i>
                         Quick Drills
                     </a>
-                    <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                    <a href="/progress" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
                         My Progress
                     </a>

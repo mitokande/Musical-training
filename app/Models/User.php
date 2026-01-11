@@ -45,4 +45,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the user's practice sessions.
+     */
+    public function userPractices()
+    {
+        return $this->hasMany(UserPractice::class);
+    }
 }

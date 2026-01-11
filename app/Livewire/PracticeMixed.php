@@ -101,11 +101,11 @@ class PracticeMixed extends Component
         $this->dispatch('practice-updated');
     }
 
-    public function answerPractice($practiceId, $answer, $target)
+    public function answerPractice($practiceType, $answer, $target)
     {
         $userPractice = UserPractice::firstOrCreate([
             'user_id' => auth()->user()->id,
-            'practice_id' => $practiceId,
+            'practice_id' => $this->getPracticeIdByType($practiceType),
         ]);
 
         $userPractice->total_questions++;
@@ -190,7 +190,7 @@ class PracticeMixed extends Component
             'target' => $target,
         ];
         \Log::info('saveAnswerPractice', ['answers' => $this->answers]);
-        \Log::info('saveAnswerPractice', ['practices' => $this->practices]);
+        \Log::info('test', ['practices' => $this->practices[$this->currentPracticeIndex]]);
     }
 }
 

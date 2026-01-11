@@ -6,7 +6,10 @@ use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
+use App\Models\UserPractice;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class PageController extends Controller
 {
@@ -191,5 +194,178 @@ class PageController extends Controller
             
             return null;
         })->filter(); // Remove any null values
+    }
+
+    /**
+     * Display the user's progress page with detailed statistics
+     */
+    public function progressView() {
+        $user = Auth::user();
+        $practices = Practice::all();
+        
+        // Get all user practice sessions
+        $userPractices = UserPractice::where('user_id', $user->id)
+            ->with('practice')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate overall statistics
+        $totalSessions = $userPractices->count();
+        $totalQuestions = $userPractices->sum('total_questions');
+        $totalCorrect = $userPractices->sum('correct_answers');
+        $totalIncorrect = $userPractices->sum('incorrect_answers');
+        $totalSkipped = $userPractices->sum('skipped_answers');
+        $totalTime = $userPractices->sum('total_time'); // in seconds
+        
+        $overallAccuracy = $totalQuestions > 0 
+            ? round(($totalCorrect / $totalQuestions) * 100, 1) 
+            : 0;
+        
+        // Calculate streak (consecutive days practiced)
+        $streak = $this->calculateStreak($userPractices);
+        
+        // Calculate practice type breakdown
+        $practiceBreakdown = [];
+        foreach ($practices as $practice) {
+            $typePractices = $userPractices->where('practice_id', $practice->id);
+            $typeQuestions = $typePractices->sum('total_questions');
+            $typeCorrect = $typePractices->sum('correct_answers');
+            $typeTime = $typePractices->sum('total_time');
+            
+            $practiceBreakdown[] = [
+                'id' => $practice->id,
+                'name' => $practice->name,
+                'slug' => $practice->slug,
+                'sessions' => $typePractices->count(),
+                'total_questions' => $typeQuestions,
+                'correct_answers' => $typeCorrect,
+                'accuracy' => $typeQuestions > 0 ? round(($typeCorrect / $typeQuestions) * 100, 1) : 0,
+                'total_time' => $typeTime,
+                'avg_time' => $typeQuestions > 0 ? round($typeTime / $typeQuestions, 1) : 0,
+            ];
+        }
+        
+        // Find best and weakest areas
+        $sortedBreakdown = collect($practiceBreakdown)->filter(fn($p) => $p['sessions'] > 0)->sortByDesc('accuracy');
+        $bestArea = $sortedBreakdown->first();
+        $weakestArea = $sortedBreakdown->last();
+        
+        // Get recent activity (last 10 sessions)
+        $recentActivity = $userPractices->take(10);
+        
+        // Calculate weekly performance (last 7 days)
+        $weeklyPerformance = $this->calculateWeeklyPerformance($userPractices);
+        
+        // Format total time
+        $formattedTime = $this->formatTime($totalTime);
+        
+        return view('progress', compact(
+            'totalSessions',
+            'totalQuestions',
+            'totalCorrect',
+            'totalIncorrect',
+            'totalSkipped',
+            'overallAccuracy',
+            'streak',
+            'practiceBreakdown',
+            'bestArea',
+            'weakestArea',
+            'recentActivity',
+            'weeklyPerformance',
+            'formattedTime'
+        ));
+    }
+    
+    /**
+     * Calculate the user's practice streak (consecutive days)
+     */
+    protected function calculateStreak($userPractices): int {
+        if ($userPractices->isEmpty()) {
+            return 0;
+        }
+        
+        $dates = $userPractices->pluck('created_at')
+            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->unique()
+            ->sort()
+            ->reverse()
+            ->values();
+        
+        if ($dates->isEmpty()) {
+            return 0;
+        }
+        
+        $streak = 0;
+        $today = Carbon::today()->format('Y-m-d');
+        $yesterday = Carbon::yesterday()->format('Y-m-d');
+        
+        // Check if user practiced today or yesterday to start streak
+        if ($dates->first() !== $today && $dates->first() !== $yesterday) {
+            return 0;
+        }
+        
+        $currentDate = Carbon::parse($dates->first());
+        
+        foreach ($dates as $date) {
+            $practiceDate = Carbon::parse($date);
+            
+            if ($currentDate->diffInDays($practiceDate) <= 1) {
+                $streak++;
+                $currentDate = $practiceDate;
+            } else {
+                break;
+            }
+        }
+        
+        return $streak;
+    }
+    
+    /**
+     * Calculate weekly performance data for charts
+     */
+    protected function calculateWeeklyPerformance($userPractices): array {
+        $weeklyData = [];
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $dayPractices = $userPractices->filter(function ($practice) use ($date) {
+                return Carbon::parse($practice->created_at)->format('Y-m-d') === $date->format('Y-m-d');
+            });
+            
+            $dayQuestions = $dayPractices->sum('total_questions');
+            $dayCorrect = $dayPractices->sum('correct_answers');
+            
+            $weeklyData[] = [
+                'date' => $date->format('M d'),
+                'day' => $date->format('D'),
+                'sessions' => $dayPractices->count(),
+                'questions' => $dayQuestions,
+                'correct' => $dayCorrect,
+                'accuracy' => $dayQuestions > 0 ? round(($dayCorrect / $dayQuestions) * 100, 1) : 0,
+            ];
+        }
+        
+        return $weeklyData;
+    }
+    
+    /**
+     * Format seconds into human readable time
+     */
+    protected function formatTime(int $seconds): string {
+        if ($seconds < 60) {
+            return $seconds . 's';
+        }
+        
+        $minutes = floor($seconds / 60);
+        $remainingSeconds = $seconds % 60;
+        
+        if ($minutes < 60) {
+            return $minutes . 'm ' . $remainingSeconds . 's';
+        }
+        
+        $hours = floor($minutes / 60);
+        $remainingMinutes = $minutes % 60;
+        
+        return $hours . 'h ' . $remainingMinutes . 'm';
     }
 }

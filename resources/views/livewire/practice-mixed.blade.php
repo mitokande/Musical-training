@@ -668,7 +668,7 @@
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         
                         try {
-                            const data = await @this.call('answerPractice', practiceId, answer, target);
+                            const data = await @this.call('answerPractice', practiceType, answer, target);
                             console.log(data);
                             isAnswered = true;
                             
