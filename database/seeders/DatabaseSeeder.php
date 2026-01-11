@@ -99,5 +99,13 @@ class DatabaseSeeder extends Seeder
             'octave' => '4',
             'clef' => 'treble',
         ]);
+
+        IntervalComparisonPractice::create([
+            'interval_a' => 'C,E',
+            'interval_b' => 'D,G',
+            'target' => 'b',
+            'octave' => '5',
+            'clef' => 'treble',
+        ]);
     }
 }
