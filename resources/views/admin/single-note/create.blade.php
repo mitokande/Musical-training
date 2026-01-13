@@ -46,15 +46,18 @@
         </div>
 
         <div>
-            <label for="other_options" class="block text-sm font-semibold text-gray-700 mb-2">Answer Options *</label>
-            <input type="text" 
-                   name="other_options" 
-                   id="other_options" 
-                   value="{{ old('other_options') }}"
-                   placeholder="e.g., C, E, G, B"
-                   class="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                   required>
-            <p class="mt-2 text-xs text-gray-500">Comma-separated list of options (include the target)</p>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Answer Options *</label>
+            <input type="hidden" name="other_options" id="other_options" value="{{ old('other_options') }}">
+            <div id="options-container" class="space-y-2">
+                <!-- Dynamic option inputs will be added here -->
+            </div>
+            <button type="button" 
+                    onclick="addOption()"
+                    class="mt-3 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Add Option
+            </button>
+            <p class="mt-2 text-xs text-gray-500">Add all answer options (include the target note)</p>
         </div>
 
         <div>
@@ -82,4 +85,75 @@
         </div>
     </form>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('options-container');
+        const hiddenInput = document.getElementById('other_options');
+        const form = hiddenInput.closest('form');
+        
+        // Parse existing value (from old() on validation error)
+        const existingValue = hiddenInput.value;
+        if (existingValue) {
+            const options = existingValue.split(',').map(opt => opt.trim()).filter(opt => opt);
+            options.forEach(opt => addOption(opt));
+        } else {
+            // Add one empty option by default
+            addOption();
+        }
+        
+        // Before form submit, collect all options
+        form.addEventListener('submit', function(e) {
+            const inputs = container.querySelectorAll('input[type="text"]');
+            const values = Array.from(inputs)
+                .map(input => input.value.trim())
+                .filter(val => val);
+            hiddenInput.value = values.join(',');
+            
+            if (values.length === 0) {
+                e.preventDefault();
+                alert('Please add at least one option');
+            }
+        });
+        
+        // Re-initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+    
+    function addOption(value = '') {
+        const container = document.getElementById('options-container');
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-2';
+        div.innerHTML = `
+            <input type="text" 
+                   value="${value}"
+                   placeholder="e.g., C, D#, Eb"
+                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+            <button type="button" 
+                    onclick="removeOption(this)"
+                    class="p-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+        `;
+        container.appendChild(div);
+        
+        // Re-initialize Lucide icons for the new button
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+    
+    function removeOption(button) {
+        const container = document.getElementById('options-container');
+        if (container.children.length > 1) {
+            button.closest('div').remove();
+        } else {
+            alert('At least one option is required');
+        }
+    }
+</script>
+@endpush
 @endsection
