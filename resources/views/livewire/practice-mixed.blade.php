@@ -252,20 +252,11 @@
                     $intervalANotes = explode(',', $practice['interval_a']);
                     $intervalBNotes = explode(',', $practice['interval_b']);
                 @endphp
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <!-- Interval A -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
-                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A</h3>
-                        <div id="outputA" style="width: 100%; height: 150px;" 
-                             data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalANotes[1])) . '/' . $practice['octave'] }}">
-                        </div>
-                    </div>
-                    <!-- Interval B -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
-                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval B</h3>
-                        <div id="outputB" style="width: 100%; height: 150px;" 
-                             data-notes="{{ strtolower(trim($intervalBNotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $practice['octave'] }}">
-                        </div>
+                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-8">
+                    <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A then Interval B</h3>
+                    <div id="output" style="width: 100%; height: 180px;" 
+                         data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalANotes[1])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $practice['octave'] }}"
+                         data-type="{{ $type }}">
                     </div>
                 </div>
             @else
@@ -405,40 +396,31 @@
                 console.log("VexFlow Build:", Vex.Flow.BUILD);
                 const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
         
-                // Check if this is interval comparison (has outputA and outputB)
-                const divA = document.getElementById("outputA");
-                const divB = document.getElementById("outputB");
-                
-                if (divA && divB) {
-                    // Interval Comparison: Render two staves
-                    [divA, divB].forEach(div => {
-                        div.innerHTML = '';
-                        const renderer = new Renderer(div, Renderer.Backends.SVG);
-                        renderer.resize(180, 150);
+                const div = document.getElementById("output");
+                if (div) {
+                    div.innerHTML = ''; // Clear previous content
+                    
+                    const renderer = new Renderer(div, Renderer.Backends.SVG);
+                    const notesFromParams = div.dataset.notes;
+                    const noteType = div.dataset.type;
+            
+                    if (noteType === 'interval_comparison') {
+                        renderer.resize(360, 180);
                         const context = renderer.getContext();
-                        const stave = new Stave(10, 20, 160);
+                        const stave = new Stave(10, 30, 340);
                         stave.addClef("treble");
                         stave.setContext(context).draw();
-                        
-                        const notesFromParams = div.dataset.notes;
+            
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
-                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "h" }));
-                            const voice = new Voice({ numBeats: 2, beatValue: 2 });
+                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "q" }));
+                            const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables(notes);
-                            new Formatter().joinVoices([voice]).format([voice], 100);
+                            new Formatter().joinVoices([voice]).format([voice], 280);
                             voice.draw(context, stave);
                         }
-                    });
-                } else {
-                    // Single Note or Interval Direction: Single stave
-                    const div = document.getElementById("output");
-                    if (div) {
-                        div.innerHTML = ''; // Clear previous content
-                        
-                        const renderer = new Renderer(div, Renderer.Backends.SVG);
-                
-                        // Configure the rendering context.
+                    } else {
+                        // Single Note or Interval Direction: Single stave
                         renderer.resize(420, 200);
                         const context = renderer.getContext();
                 
@@ -454,7 +436,6 @@
                         stave.setContext(context).draw();
                 
                         // Create the notes
-                        const notesFromParams = div.dataset.notes;
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
                             console.log("Notes parsed:", notesParsed);
@@ -786,4 +767,3 @@
     @endif
 
 </main>
-
