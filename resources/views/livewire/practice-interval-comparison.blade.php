@@ -37,20 +37,23 @@
                     $intervalBNotes = explode(',', $currentPractice->interval_b);
                 @endphp
                 
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <!-- Interval A -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
-                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A</h3>
-                        <div id="outputA" style="width: 100%; height: 150px;" 
-                             data-notes="{{ strtolower($intervalANotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalANotes[1]) . '/' . $currentPractice->octave }}">
+                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-8">
+                    <h3 class="text-center font-semibold text-gray-700">Note Visuals</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+                        <!-- Interval A -->
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-center font-semibold text-gray-700 mb-2">Interval A</h4>
+                            <div id="outputA" style="width: 100%; height: 150px;" 
+                                 data-notes="{{ strtolower($intervalANotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalANotes[1]) . '/' . $currentPractice->octave }}">
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- Interval B -->
-                    <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4">
-                        <h3 class="text-center font-semibold text-gray-700 mb-2">Interval B</h3>
-                        <div id="outputB" style="width: 100%; height: 150px;" 
-                             data-notes="{{ strtolower($intervalBNotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalBNotes[1]) . '/' . $currentPractice->octave }}">
+                        
+                        <!-- Interval B -->
+                        <div class="flex flex-col items-center">
+                            <h4 class="text-center font-semibold text-gray-700 mb-2">Interval B</h4>
+                            <div id="outputB" style="width: 100%; height: 150px;" 
+                                 data-notes="{{ strtolower($intervalBNotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalBNotes[1]) . '/' . $currentPractice->octave }}">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -411,4 +414,3 @@
         </script>
 
     </main>
-
