@@ -41,7 +41,7 @@
                     <h3 class="text-center font-semibold text-gray-700">Note Visuals</h3>
                     <p class="text-center text-sm text-gray-500 mt-1">Interval A followed by Interval B</p>
                     <div class="flex flex-col items-center mt-4">
-                        <div id="output" style="width: 100%; height: 180px;" 
+                        <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
                              data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalANotes[1])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $currentPractice->octave }}">
                         </div>
                     </div>
