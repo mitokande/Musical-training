@@ -39,21 +39,10 @@
                 
                 <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-8">
                     <h3 class="text-center font-semibold text-gray-700">Note Visuals</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
-                        <!-- Interval A -->
-                        <div class="flex flex-col items-center">
-                            <h4 class="text-center font-semibold text-gray-700 mb-2">Interval A</h4>
-                            <div id="outputA" style="width: 100%; height: 150px;" 
-                                 data-notes="{{ strtolower($intervalANotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalANotes[1]) . '/' . $currentPractice->octave }}">
-                            </div>
-                        </div>
-                        
-                        <!-- Interval B -->
-                        <div class="flex flex-col items-center">
-                            <h4 class="text-center font-semibold text-gray-700 mb-2">Interval B</h4>
-                            <div id="outputB" style="width: 100%; height: 150px;" 
-                                 data-notes="{{ strtolower($intervalBNotes[0]) . '/' . $currentPractice->octave . ',' . strtolower($intervalBNotes[1]) . '/' . $currentPractice->octave }}">
-                            </div>
+                    <p class="text-center text-sm text-gray-500 mt-1">Interval A followed by Interval B</p>
+                    <div class="flex flex-col items-center mt-4">
+                        <div id="output" style="width: 100%; height: 180px;" 
+                             data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalANotes[1])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $currentPractice->octave }}">
                         </div>
                     </div>
                 </div>
@@ -139,47 +128,24 @@
                     console.log("VexFlow Build:", Vex.Flow.BUILD);
                     const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
             
-                    // Render Interval A
-                    const divA = document.getElementById("outputA");
-                    if (divA) {
-                        divA.innerHTML = '';
-                        const rendererA = new Renderer(divA, Renderer.Backends.SVG);
-                        rendererA.resize(180, 150);
-                        const contextA = rendererA.getContext();
-                        const staveA = new Stave(10, 20, 160);
-                        staveA.addClef("treble");
-                        staveA.setContext(contextA).draw();
+                    const div = document.getElementById("output");
+                    if (div) {
+                        div.innerHTML = '';
+                        const renderer = new Renderer(div, Renderer.Backends.SVG);
+                        renderer.resize(360, 180);
+                        const context = renderer.getContext();
+                        const stave = new Stave(10, 30, 340);
+                        stave.addClef("treble");
+                        stave.setContext(context).draw();
                         
-                        const notesFromParamsA = divA.dataset.notes;
-                        if (notesFromParamsA) {
-                            const notesParsedA = notesFromParamsA.split(',');
-                            const notesA = notesParsedA.map(note => new StaveNote({ keys: [note], duration: "h" }));
-                            const voiceA = new Voice({ numBeats: 2, beatValue: 2 });
-                            voiceA.addTickables(notesA);
-                            new Formatter().joinVoices([voiceA]).format([voiceA], 100);
-                            voiceA.draw(contextA, staveA);
-                        }
-                    }
-
-                    // Render Interval B
-                    const divB = document.getElementById("outputB");
-                    if (divB) {
-                        divB.innerHTML = '';
-                        const rendererB = new Renderer(divB, Renderer.Backends.SVG);
-                        rendererB.resize(180, 150);
-                        const contextB = rendererB.getContext();
-                        const staveB = new Stave(10, 20, 160);
-                        staveB.addClef("treble");
-                        staveB.setContext(contextB).draw();
-                        
-                        const notesFromParamsB = divB.dataset.notes;
-                        if (notesFromParamsB) {
-                            const notesParsedB = notesFromParamsB.split(',');
-                            const notesB = notesParsedB.map(note => new StaveNote({ keys: [note], duration: "h" }));
-                            const voiceB = new Voice({ numBeats: 2, beatValue: 2 });
-                            voiceB.addTickables(notesB);
-                            new Formatter().joinVoices([voiceB]).format([voiceB], 100);
-                            voiceB.draw(contextB, staveB);
+                        const notesFromParams = div.dataset.notes;
+                        if (notesFromParams) {
+                            const notesParsed = notesFromParams.split(',');
+                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "q" }));
+                            const voice = new Voice({ numBeats: 4, beatValue: 4 });
+                            voice.addTickables(notes);
+                            new Formatter().joinVoices([voice]).format([voice], 280);
+                            voice.draw(context, stave);
                         }
                     }
                 }
