@@ -107,8 +107,8 @@
         
         .white-key {
             flex: 1;
-            min-width: 30px;
-            height: 150px;
+            min-width: 36px;
+            height: 200px;
             background: linear-gradient(180deg, #fefefe 0%, #f5f5f5 100%);
             border: 1px solid #d1d5db;
             border-radius: 0 0 5px 5px;
@@ -127,8 +127,8 @@
         }
         
         .black-key {
-            height: 90px;
-            min-width: 18px;
+            height: 120px;
+            min-width: 22px;
             background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
             border-radius: 0 0 3px 3px;
             position: absolute;
@@ -143,7 +143,7 @@
         .black-key.active {
             background: linear-gradient(180deg, #7c3aed 0%, #6b21a8 100%);
             transform: translateY(2px);
-            height: 88px;
+            height: 118px;
             box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.2);
         }
 
@@ -214,7 +214,7 @@
             order: 3;
         }
 
-        /* Metronome Styles */
+        /* Metronome Styles - Lean Design */
         .metronome-widget {
             background: white;
             border-radius: 12px;
@@ -226,130 +226,141 @@
         .metronome-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
             padding-bottom: 0.75rem;
             border-bottom: 1px solid #e5e7eb;
         }
 
-        .bpm-display {
-            text-align: center;
-            margin-bottom: 1rem;
+        .metronome-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .bpm-value {
-            font-size: 2.5rem;
+        .bpm-display-inline {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .bpm-value-inline {
+            font-size: 1.125rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #7c3aed;
         }
 
-        .bpm-label {
+        .bpm-label-inline {
             font-size: 0.75rem;
             color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-weight: 500;
         }
 
-        .bpm-slider {
+        .metronome-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .metronome-play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .metronome-play-btn.start {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .metronome-play-btn.start:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
+        }
+
+        .metronome-play-btn.stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .metronome-play-btn.stop:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        .slider-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .bpm-slider-lean {
             width: 100%;
             height: 6px;
             -webkit-appearance: none;
             appearance: none;
-            background: linear-gradient(to right, #e5e7eb, #e5e7eb);
+            background: linear-gradient(to right, #c084fc 0%, #e5e7eb 0%);
             border-radius: 3px;
             outline: none;
-            margin-bottom: 1rem;
         }
 
-        .bpm-slider::-webkit-slider-thumb {
+        .bpm-slider-lean::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            width: 14px;
+            height: 14px;
+            background: #7c3aed;
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 2px 4px rgb(0 0 0 / 0.2);
             transition: transform 0.15s ease;
         }
 
-        .bpm-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
+        .bpm-slider-lean::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
         }
 
-        .tempo-presets {
-            margin-bottom: 1rem;
-        }
-
-        .tempo-presets select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            color: #374151;
-            background: white;
-            cursor: pointer;
-        }
-
-        .beat-indicator {
+        .slider-labels {
             display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            justify-content: space-between;
+            font-size: 0.625rem;
+            color: #9ca3af;
         }
 
-        .beat-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
+        /* Beat indicator bars */
+        .beat-indicator-bars {
+            display: flex;
+            gap: 4px;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .beat-bar {
+            flex: 1;
+            height: 4px;
             background: #e5e7eb;
+            border-radius: 2px;
             transition: all 0.1s ease;
         }
 
-        .beat-dot.active {
+        .beat-bar.active {
             background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-            transform: scale(1.2);
-            box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+            box-shadow: 0 0 6px rgba(147, 51, 234, 0.4);
         }
 
-        .beat-dot.first-beat.active {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
-        }
-
-        .metronome-btn {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .metronome-btn.start {
-            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-            color: white;
-        }
-
-        .metronome-btn.start:hover {
-            background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
-        }
-
-        .metronome-btn.stop {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .metronome-btn.stop:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        /* Hidden elements for lean design */
+        .tempo-presets, .beat-indicator {
+            display: none;
         }
 
         /* Playback Sidebar Styles */
@@ -512,45 +523,50 @@
             <aside class="sidebar sidebar-left">
                 <div class="metronome-widget">
                     <div class="metronome-header">
-                        <i data-lucide="timer" class="w-5 h-5 text-purple-600"></i>
-                        <h3 class="font-semibold text-gray-900">Metronome</h3>
+                        <div class="metronome-title">
+                            <i data-lucide="activity" class="w-4 h-4 text-purple-600"></i>
+                            <h3 class="font-semibold text-gray-900 text-sm">Metronome</h3>
+                        </div>
+                        <div class="bpm-display-inline">
+                            <span class="bpm-value-inline" id="bpmValue">120</span>
+                            <span class="bpm-label-inline">BPM</span>
+                        </div>
                     </div>
                     
-                    <!-- BPM Display -->
-                    <div class="bpm-display">
-                        <div class="bpm-value" id="bpmValue">120</div>
-                        <div class="bpm-label">BPM</div>
+                    <!-- Controls Row -->
+                    <div class="metronome-controls">
+                        <button id="metronomeBtn" class="metronome-play-btn start">
+                            <i data-lucide="play" class="w-4 h-4"></i>
+                        </button>
+                        <div class="slider-container">
+                            <input type="range" id="bpmSlider" class="bpm-slider-lean" min="40" max="240" value="120">
+                            <div class="slider-labels">
+                                <span>40</span>
+                                <span>240</span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- BPM Slider -->
-                    <input type="range" id="bpmSlider" class="bpm-slider" min="40" max="240" value="120">
+                    <!-- Beat Indicator Bars -->
+                    <div class="beat-indicator-bars">
+                        <div class="beat-bar first-beat" data-beat="0"></div>
+                        <div class="beat-bar" data-beat="1"></div>
+                        <div class="beat-bar" data-beat="2"></div>
+                        <div class="beat-bar" data-beat="3"></div>
+                    </div>
                     
-                    <!-- Tempo Presets -->
-                    <div class="tempo-presets">
+                    <!-- Hidden elements for JS compatibility -->
+                    <div class="tempo-presets" style="display:none;">
                         <select id="tempoPreset">
                             <option value="">Select Tempo...</option>
-                            <option value="60">Largo (60)</option>
-                            <option value="76">Adagio (76)</option>
-                            <option value="92">Andante (92)</option>
-                            <option value="120">Moderato (120)</option>
-                            <option value="140">Allegro (140)</option>
-                            <option value="180">Presto (180)</option>
                         </select>
                     </div>
-                    
-                    <!-- Beat Indicator -->
-                    <div class="beat-indicator">
+                    <div class="beat-indicator" style="display:none;">
                         <div class="beat-dot first-beat" data-beat="1"></div>
                         <div class="beat-dot" data-beat="2"></div>
                         <div class="beat-dot" data-beat="3"></div>
                         <div class="beat-dot" data-beat="4"></div>
                     </div>
-                    
-                    <!-- Start/Stop Button -->
-                    <button id="metronomeBtn" class="metronome-btn start">
-                        <i data-lucide="play" class="w-5 h-5"></i>
-                        <span>Start</span>
-                    </button>
                 </div>
             </aside>
 
@@ -1164,10 +1180,20 @@
 
         // Update beat indicator
         function updateBeatIndicator(beat) {
+            // Update old dot indicators (hidden but kept for compatibility)
             beatDots.forEach((dot, index) => {
                 dot.classList.remove('active');
                 if (index === beat) {
                     dot.classList.add('active');
+                }
+            });
+            
+            // Update new bar indicators
+            const beatBars = document.querySelectorAll('.beat-bar');
+            beatBars.forEach((bar, index) => {
+                bar.classList.remove('active');
+                if (index === beat) {
+                    bar.classList.add('active');
                 }
             });
         }
@@ -1182,7 +1208,7 @@
             // Update button appearance
             metronomeBtn.classList.remove('start');
             metronomeBtn.classList.add('stop');
-            metronomeBtn.innerHTML = '<i data-lucide="square" class="w-5 h-5"></i><span>Stop</span>';
+            metronomeBtn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
             lucide.createIcons();
             
             // Calculate interval in ms
@@ -1215,12 +1241,13 @@
             
             // Reset beat indicator
             beatDots.forEach(dot => dot.classList.remove('active'));
+            document.querySelectorAll('.beat-bar').forEach(bar => bar.classList.remove('active'));
             currentBeat = 0;
             
             // Update button appearance
             metronomeBtn.classList.remove('stop');
             metronomeBtn.classList.add('start');
-            metronomeBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i><span>Start</span>';
+            metronomeBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>';
             lucide.createIcons();
         }
 
