@@ -154,6 +154,7 @@
             padding: 20px;
             min-height: 200px;
             overflow-x: auto;
+            scroll-behavior: smooth;
         }
 
         #notation-container svg {
@@ -615,6 +616,10 @@
                 
                 xPos += measureWidth;
             });
+            
+            // Auto-scroll to the right to show the latest notes
+            const notationContainer = document.getElementById('notation-container');
+            notationContainer.scrollLeft = notationContainer.scrollWidth;
         }
 
         // Playback recorded notes
