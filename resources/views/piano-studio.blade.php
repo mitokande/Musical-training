@@ -359,8 +359,37 @@
         }
 
         /* Hidden elements for lean design */
-        .tempo-presets, .beat-indicator {
+        .beat-indicator {
             display: none;
+        }
+
+        /* Tempo preset dropdown - lean style */
+        .tempo-preset-lean {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .tempo-preset-lean select {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .tempo-preset-lean select:hover {
+            border-color: #c084fc;
+        }
+
+        .tempo-preset-lean select:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1);
         }
 
         /* Playback Sidebar Styles */
@@ -555,12 +584,20 @@
                         <div class="beat-bar" data-beat="3"></div>
                     </div>
                     
-                    <!-- Hidden elements for JS compatibility -->
-                    <div class="tempo-presets" style="display:none;">
+                    <!-- Tempo Presets -->
+                    <div class="tempo-preset-lean">
                         <select id="tempoPreset">
-                            <option value="">Select Tempo...</option>
+                            <option value="">Select Preset...</option>
+                            <option value="60">Largo (60)</option>
+                            <option value="76">Adagio (76)</option>
+                            <option value="92">Andante (92)</option>
+                            <option value="120">Moderato (120)</option>
+                            <option value="140">Allegro (140)</option>
+                            <option value="180">Presto (180)</option>
                         </select>
                     </div>
+                    
+                    <!-- Hidden elements for JS compatibility -->
                     <div class="beat-indicator" style="display:none;">
                         <div class="beat-dot first-beat" data-beat="1"></div>
                         <div class="beat-dot" data-beat="2"></div>
