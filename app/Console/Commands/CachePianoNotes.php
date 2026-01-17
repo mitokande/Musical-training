@@ -26,10 +26,23 @@ class CachePianoNotes extends Command
     protected $description = 'Cache all piano notes from the external API for offline/faster playback';
 
     /**
-     * All notes to cache (2 octaves: C3-B4)
+     * All notes to cache (4 octaves: C2-B5)
      */
     protected array $notes = [
-        // Lower octave (C3-B3)
+        // Octave 2 (C2-B2)
+        ['note' => 'C', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'C', 'octave' => 2, 'isSharp' => true],   // C#
+        ['note' => 'D', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'D', 'octave' => 2, 'isSharp' => true],   // D#
+        ['note' => 'E', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'F', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'F', 'octave' => 2, 'isSharp' => true],   // F#
+        ['note' => 'G', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'G', 'octave' => 2, 'isSharp' => true],   // G#
+        ['note' => 'A', 'octave' => 2, 'isSharp' => false],
+        ['note' => 'A', 'octave' => 2, 'isSharp' => true],   // A#
+        ['note' => 'B', 'octave' => 2, 'isSharp' => false],
+        // Octave 3 (C3-B3)
         ['note' => 'C', 'octave' => 3, 'isSharp' => false],
         ['note' => 'C', 'octave' => 3, 'isSharp' => true],   // C#
         ['note' => 'D', 'octave' => 3, 'isSharp' => false],
@@ -42,7 +55,7 @@ class CachePianoNotes extends Command
         ['note' => 'A', 'octave' => 3, 'isSharp' => false],
         ['note' => 'A', 'octave' => 3, 'isSharp' => true],   // A#
         ['note' => 'B', 'octave' => 3, 'isSharp' => false],
-        // Upper octave (C4-B4)
+        // Octave 4 (C4-B4)
         ['note' => 'C', 'octave' => 4, 'isSharp' => false],
         ['note' => 'C', 'octave' => 4, 'isSharp' => true],   // C#
         ['note' => 'D', 'octave' => 4, 'isSharp' => false],
@@ -55,6 +68,19 @@ class CachePianoNotes extends Command
         ['note' => 'A', 'octave' => 4, 'isSharp' => false],
         ['note' => 'A', 'octave' => 4, 'isSharp' => true],   // A#
         ['note' => 'B', 'octave' => 4, 'isSharp' => false],
+        // Octave 5 (C5-B5)
+        ['note' => 'C', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'C', 'octave' => 5, 'isSharp' => true],   // C#
+        ['note' => 'D', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'D', 'octave' => 5, 'isSharp' => true],   // D#
+        ['note' => 'E', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'F', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'F', 'octave' => 5, 'isSharp' => true],   // F#
+        ['note' => 'G', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'G', 'octave' => 5, 'isSharp' => true],   // G#
+        ['note' => 'A', 'octave' => 5, 'isSharp' => false],
+        ['note' => 'A', 'octave' => 5, 'isSharp' => true],   // A#
+        ['note' => 'B', 'octave' => 5, 'isSharp' => false],
     ];
 
     /**
