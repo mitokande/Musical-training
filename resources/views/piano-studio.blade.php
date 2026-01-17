@@ -185,6 +185,235 @@
         .playing {
             animation: pulse 0.5s ease-in-out infinite;
         }
+
+        /* Sidebar Layout */
+        .studio-layout {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 80px;
+        }
+
+        .sidebar-left {
+            order: 1;
+        }
+
+        .center-content {
+            flex: 1;
+            min-width: 0;
+            order: 2;
+        }
+
+        .sidebar-right {
+            order: 3;
+        }
+
+        /* Metronome Styles */
+        .metronome-widget {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            padding: 1rem;
+        }
+
+        .metronome-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .bpm-display {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .bpm-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .bpm-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .bpm-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #e5e7eb, #e5e7eb);
+            border-radius: 3px;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+
+        .bpm-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.2);
+            transition: transform 0.15s ease;
+        }
+
+        .bpm-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .tempo-presets {
+            margin-bottom: 1rem;
+        }
+
+        .tempo-presets select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+        }
+
+        .beat-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .beat-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            transition: all 0.1s ease;
+        }
+
+        .beat-dot.active {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+        }
+
+        .beat-dot.first-beat.active {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        .metronome-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .metronome-btn.start {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .metronome-btn.start:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
+        }
+
+        .metronome-btn.stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .metronome-btn.stop:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        /* Playback Sidebar Styles */
+        .playback-widget {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            padding: 1rem;
+        }
+
+        .playback-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .playback-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .playback-btn-group button {
+            width: 100%;
+        }
+
+        .note-count-display {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .note-count-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #9333ea;
+        }
+
+        .note-count-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        /* Responsive: Hide sidebars on smaller screens */
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+            .mobile-controls {
+                display: block;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .mobile-controls {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="font-sans bg-gray-50 min-h-screen">
@@ -244,7 +473,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Page Header -->
         <div class="mb-4">
             <div class="flex items-center gap-3">
@@ -255,23 +484,78 @@
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="card p-4 mb-4">
+        <!-- Mobile Controls (shown on smaller screens) -->
+        <div class="mobile-controls card p-4 mb-4">
             <div class="flex flex-wrap items-center gap-4">
-                <button id="playbackBtn" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <button id="playbackBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <i data-lucide="play" class="w-4 h-4"></i>
                     <span>Playback</span>
                 </button>
-                <button id="clearBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
+                <button id="clearBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                     Clear
                 </button>
+                <button id="metronomeBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
+                    <i data-lucide="timer" class="w-4 h-4"></i>
+                    Metronome
+                </button>
                 <div class="flex-1"></div>
                 <div class="text-sm text-gray-500">
-                    <span id="noteCount">0</span> notes recorded
+                    <span id="noteCountMobile">0</span> notes recorded
                 </div>
             </div>
         </div>
+
+        <!-- Studio Layout with Sidebars -->
+        <div class="studio-layout">
+            <!-- Left Sidebar - Metronome -->
+            <aside class="sidebar sidebar-left">
+                <div class="metronome-widget">
+                    <div class="metronome-header">
+                        <i data-lucide="timer" class="w-5 h-5 text-purple-600"></i>
+                        <h3 class="font-semibold text-gray-900">Metronome</h3>
+                    </div>
+                    
+                    <!-- BPM Display -->
+                    <div class="bpm-display">
+                        <div class="bpm-value" id="bpmValue">120</div>
+                        <div class="bpm-label">BPM</div>
+                    </div>
+                    
+                    <!-- BPM Slider -->
+                    <input type="range" id="bpmSlider" class="bpm-slider" min="40" max="240" value="120">
+                    
+                    <!-- Tempo Presets -->
+                    <div class="tempo-presets">
+                        <select id="tempoPreset">
+                            <option value="">Select Tempo...</option>
+                            <option value="60">Largo (60)</option>
+                            <option value="76">Adagio (76)</option>
+                            <option value="92">Andante (92)</option>
+                            <option value="120">Moderato (120)</option>
+                            <option value="140">Allegro (140)</option>
+                            <option value="180">Presto (180)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Beat Indicator -->
+                    <div class="beat-indicator">
+                        <div class="beat-dot first-beat" data-beat="1"></div>
+                        <div class="beat-dot" data-beat="2"></div>
+                        <div class="beat-dot" data-beat="3"></div>
+                        <div class="beat-dot" data-beat="4"></div>
+                    </div>
+                    
+                    <!-- Start/Stop Button -->
+                    <button id="metronomeBtn" class="metronome-btn start">
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        <span>Start</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Center Content -->
+            <div class="center-content">
 
         <!-- Keyboard Shortcuts Guide -->
         {{-- <div class="card p-4 mb-6">
@@ -294,27 +578,57 @@
             </div>
         </div> --}}
 
-        <!-- Music Notation Display -->
-        <div class="card mb-4">
-            <div class="p-4 border-b border-gray-200">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
-                    <h3 class="font-semibold text-gray-900">Music Notation</h3>
+                <!-- Music Notation Display -->
+                <div class="card mb-4">
+                    <div class="p-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
+                            <h3 class="font-semibold text-gray-900">Music Notation</h3>
+                        </div>
+                    </div>
+                    <div id="notation-container">
+                        <div id="notation-output"></div>
+                        <p id="notation-placeholder" class="text-center text-gray-400 py-12">Play some notes to see them appear here...</p>
+                    </div>
                 </div>
-            </div>
-            <div id="notation-container">
-                <div id="notation-output"></div>
-                <p id="notation-placeholder" class="text-center text-gray-400 py-12">Play some notes to see them appear here...</p>
-            </div>
-        </div>
 
-        <!-- Piano Keyboard -->
-        <div class="card p-3">
-            <div class="piano-wrapper">
-                <div class="piano-container" id="piano">
-                    <!-- Piano keys will be generated by JavaScript -->
+                <!-- Piano Keyboard -->
+                <div class="card p-3">
+                    <div class="piano-wrapper">
+                        <div class="piano-container" id="piano">
+                            <!-- Piano keys will be generated by JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Right Sidebar - Playback -->
+            <aside class="sidebar sidebar-right">
+                <div class="playback-widget">
+                    <div class="playback-header">
+                        <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
+                        <h3 class="font-semibold text-gray-900">Playback</h3>
+                    </div>
+                    
+                    <!-- Playback Buttons -->
+                    <div class="playback-btn-group">
+                        <button id="playbackBtn" class="inline-flex items-center justify-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i data-lucide="play" class="w-4 h-4"></i>
+                            <span>Playback</span>
+                        </button>
+                        <button id="clearBtn" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Clear
+                        </button>
+                    </div>
+                    
+                    <!-- Note Count -->
+                    <div class="note-count-display">
+                        <div class="note-count-value" id="noteCount">0</div>
+                        <div class="note-count-label">notes recorded</div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </main>
 
@@ -752,6 +1066,197 @@
         document.addEventListener('keyup', handleKeyUp);
         playbackBtn.addEventListener('click', playback);
         clearBtn.addEventListener('click', clearNotes);
+
+        // Mobile button event listeners
+        const playbackBtnMobile = document.getElementById('playbackBtnMobile');
+        const clearBtnMobile = document.getElementById('clearBtnMobile');
+        const noteCountMobile = document.getElementById('noteCountMobile');
+        
+        if (playbackBtnMobile) {
+            playbackBtnMobile.addEventListener('click', playback);
+        }
+        if (clearBtnMobile) {
+            clearBtnMobile.addEventListener('click', clearNotes);
+        }
+
+        // Update note count to work with both elements
+        const originalUpdateNoteCount = updateNoteCount;
+        updateNoteCount = function() {
+            noteCountEl.textContent = recordedNotes.length;
+            if (noteCountMobile) {
+                noteCountMobile.textContent = recordedNotes.length;
+            }
+            playbackBtn.disabled = recordedNotes.length === 0;
+            if (playbackBtnMobile) {
+                playbackBtnMobile.disabled = recordedNotes.length === 0;
+            }
+        };
+
+        // =============================================
+        // METRONOME FUNCTIONALITY
+        // =============================================
+        
+        // Metronome state
+        let metronomeRunning = false;
+        let metronomeBpm = 120;
+        let metronomeInterval = null;
+        let currentBeat = 0;
+        let audioContext = null;
+
+        // Metronome DOM elements
+        const bpmValueEl = document.getElementById('bpmValue');
+        const bpmSlider = document.getElementById('bpmSlider');
+        const tempoPreset = document.getElementById('tempoPreset');
+        const metronomeBtn = document.getElementById('metronomeBtn');
+        const beatDots = document.querySelectorAll('.beat-dot');
+
+        // Initialize Audio Context (needs user interaction first)
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            return audioContext;
+        }
+
+        // Create click sound using Web Audio API
+        function playClick(isFirstBeat = false) {
+            const ctx = initAudioContext();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            // Higher pitch and louder for first beat
+            oscillator.frequency.value = isFirstBeat ? 1200 : 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(isFirstBeat ? 0.5 : 0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+            
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.08);
+        }
+
+        // Update BPM display and slider
+        function updateBpm(bpm) {
+            metronomeBpm = Math.max(40, Math.min(240, parseInt(bpm)));
+            bpmValueEl.textContent = metronomeBpm;
+            bpmSlider.value = metronomeBpm;
+            
+            // Update tempo preset selector to match
+            const matchingOption = Array.from(tempoPreset.options).find(opt => opt.value === String(metronomeBpm));
+            if (matchingOption) {
+                tempoPreset.value = metronomeBpm;
+            } else {
+                tempoPreset.value = '';
+            }
+            
+            // If metronome is running, restart with new tempo
+            if (metronomeRunning) {
+                stopMetronome();
+                startMetronome();
+            }
+        }
+
+        // Update beat indicator
+        function updateBeatIndicator(beat) {
+            beatDots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (index === beat) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        // Start metronome
+        function startMetronome() {
+            if (metronomeRunning) return;
+            
+            metronomeRunning = true;
+            currentBeat = 0;
+            
+            // Update button appearance
+            metronomeBtn.classList.remove('start');
+            metronomeBtn.classList.add('stop');
+            metronomeBtn.innerHTML = '<i data-lucide="square" class="w-5 h-5"></i><span>Stop</span>';
+            lucide.createIcons();
+            
+            // Calculate interval in ms
+            const intervalMs = (60 / metronomeBpm) * 1000;
+            
+            // Play first beat immediately
+            playClick(true);
+            updateBeatIndicator(0);
+            currentBeat = 1;
+            
+            // Start interval for subsequent beats
+            metronomeInterval = setInterval(() => {
+                const isFirstBeat = currentBeat === 0;
+                playClick(isFirstBeat);
+                updateBeatIndicator(currentBeat);
+                currentBeat = (currentBeat + 1) % 4;
+            }, intervalMs);
+        }
+
+        // Stop metronome
+        function stopMetronome() {
+            if (!metronomeRunning) return;
+            
+            metronomeRunning = false;
+            
+            if (metronomeInterval) {
+                clearInterval(metronomeInterval);
+                metronomeInterval = null;
+            }
+            
+            // Reset beat indicator
+            beatDots.forEach(dot => dot.classList.remove('active'));
+            currentBeat = 0;
+            
+            // Update button appearance
+            metronomeBtn.classList.remove('stop');
+            metronomeBtn.classList.add('start');
+            metronomeBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i><span>Start</span>';
+            lucide.createIcons();
+        }
+
+        // Toggle metronome
+        function toggleMetronome() {
+            if (metronomeRunning) {
+                stopMetronome();
+            } else {
+                startMetronome();
+            }
+        }
+
+        // Metronome event listeners
+        if (bpmSlider) {
+            bpmSlider.addEventListener('input', (e) => {
+                updateBpm(e.target.value);
+            });
+        }
+
+        if (tempoPreset) {
+            tempoPreset.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    updateBpm(e.target.value);
+                }
+            });
+        }
+
+        if (metronomeBtn) {
+            metronomeBtn.addEventListener('click', toggleMetronome);
+        }
+
+        // Mobile metronome button toggle
+        const metronomeBtnMobile = document.getElementById('metronomeBtnMobile');
+        if (metronomeBtnMobile) {
+            metronomeBtnMobile.addEventListener('click', toggleMetronome);
+        }
 
         // Initialize piano on page load
         document.addEventListener('DOMContentLoaded', () => {
