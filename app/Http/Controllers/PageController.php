@@ -158,6 +158,13 @@ class PageController extends Controller
     /**
      * Convert AI-generated question arrays to practice model instances
      */
+    public function pianoGameView() {
+        return view('piano-game');
+    }
+
+    /**
+     * Convert AI-generated question arrays to practice model instances
+     */
     protected function convertAIQuestionsToPractices(array $questions): \Illuminate\Support\Collection {
         return collect($questions)->map(function ($question) {
             // Determine the type based on the question structure

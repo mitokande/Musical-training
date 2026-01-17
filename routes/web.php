@@ -25,6 +25,8 @@ Route::get('/progress', [PageController::class, 'progressView'])->middleware(['a
 Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified'])->name('ai.exercises');
 Route::post('/ai-exercises/generate', [AIController::class, 'generatePractices'])->middleware(['auth', 'verified'])->name('ai.generate-practices');
 
+Route::get('/piano-game', [PageController::class, 'pianoGameView'])->middleware(['auth', 'verified'])->name('piano.game');
+
 
 Route::post('/api/practice/check-answer', [PracticeController::class, 'checkAnswer'])->name('api.practice.check-answer');
 
