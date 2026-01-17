@@ -412,15 +412,23 @@
         const notationOutput = document.getElementById('notation-output');
         const notationPlaceholder = document.getElementById('notation-placeholder');
 
-        // Play a note using the external API
+        // Play a note using cached audio files (falls back to API if not cached)
         function playNote(note, octave, duration = 1) {
-            // Format note name for API (e.g., "C#" -> "C%23" for URL encoding)
-            const noteName = note.replace('#', '%23');
-            const apiUrl = `https://mithatck.com/music/api/note.php?note=${noteName}${octave}&duration=${duration}`;
+            // Format note name for cached file (e.g., "C#" -> "Cs")
+            const noteName = note.replace('#', 's');
+            const cachedUrl = `/audio/piano/${noteName}${octave}_d${duration}.mp3`;
             
-            const audio = new Audio(apiUrl);
+            const audio = new Audio(cachedUrl);
+            
+            // Try cached file first, fall back to API if it fails
             audio.play().catch(err => {
-                console.log('Audio playback failed:', err);
+                console.log('Cached audio not found, falling back to API...');
+                const apiNoteName = note.replace('#', '%23');
+                const apiUrl = `https://mithatck.com/music/api/note.php?note=${apiNoteName}${octave}&duration=${duration}`;
+                const apiAudio = new Audio(apiUrl);
+                apiAudio.play().catch(apiErr => {
+                    console.log('Audio playback failed:', apiErr);
+                });
             });
             
             return audio;
