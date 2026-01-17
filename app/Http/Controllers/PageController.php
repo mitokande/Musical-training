@@ -158,8 +158,8 @@ class PageController extends Controller
     /**
      * Convert AI-generated question arrays to practice model instances
      */
-    public function pianoGameView() {
-        return view('piano-game');
+    public function pianoStudioView() {
+        return view('piano-studio');
     }
 
     /**

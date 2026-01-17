@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Piano Game - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>Piano Studio - {{ config('app.name', 'Ear Training Studio') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -214,9 +214,9 @@
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                         AI Exercises
                     </a>
-                    <a href="/piano-game" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
+                    <a href="/piano-studio" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
                         <i data-lucide="piano" class="w-4 h-4"></i>
-                        Piano Game
+                        Piano Studio
                     </a>
                     <a href="/progress" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
@@ -251,7 +251,7 @@
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
                     <i data-lucide="music-2" class="w-6 h-6 text-white"></i>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Piano Game</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Piano Studio</h1>
             </div>
         </div>
 
@@ -341,7 +341,7 @@
                     <ul class="space-y-2 text-sm">
                         <li><a href="/dashboard" class="hover:text-white transition-colors">Home</a></li>
                         <li><a href="/learn" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="/piano-game" class="hover:text-white transition-colors">Piano Game</a></li>
+                        <li><a href="/piano-studio" class="hover:text-white transition-colors">Piano Studio</a></li>
                     </ul>
                 </div>
 
@@ -384,7 +384,7 @@
         lucide.createIcons();
     </script>
 
-    <!-- Piano Game Logic -->
+    <!-- Piano Studio Logic -->
     <script>
         // Piano configuration - 4 octaves from C2 to B5
         const NOTES = [

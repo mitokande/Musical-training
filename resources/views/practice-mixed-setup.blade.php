@@ -96,6 +96,10 @@
                         <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                         Learn Path
                     </a>
+                    <a href="/piano-studio" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                        <i data-lucide="piano" class="w-4 h-4"></i>
+                        Piano Studio
+                    </a>
                 </nav>
 
                 <!-- User Menu -->

@@ -112,6 +112,10 @@
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                         AI Exercises
                     </a>
+                    <a href="/piano-studio" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
+                        <i data-lucide="piano" class="w-4 h-4"></i>
+                        Piano Studio
+                    </a>
                     <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
                         <i data-lucide="file-text" class="w-4 h-4"></i>
                         Resources
@@ -167,9 +171,13 @@
                 <p class="text-white/80 mb-6">Ready to level up your ear training today?</p>
                 
                 <div class="flex flex-wrap gap-3">
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
+                    <a href="/learn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
                         <i data-lucide="play-circle" class="w-5 h-5"></i>
                         Continue Learning
+                    </a>
+                    <a href="/piano-studio" class="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500/80 text-white font-semibold rounded-lg hover:bg-orange-500 transition-colors backdrop-blur-sm">
+                        <i data-lucide="piano" class="w-5 h-5"></i>
+                        Piano Studio
                     </a>
                     <a href="/ai-exercises" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
@@ -178,10 +186,6 @@
                     <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
                         <i data-lucide="zap" class="w-5 h-5"></i>
                         Quick Drills
-                    </a>
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
-                        <i data-lucide="message-circle" class="w-5 h-5"></i>
-                        Ask AI Assistant
                     </a>
                 </div>
             </div>
@@ -318,21 +322,28 @@
                     <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     
                     <div class="space-y-2">
-                        <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="/learn" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                                 <i data-lucide="play-circle" class="w-4 h-4 text-green-600"></i>
                             </div>
                             <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Continue Learning Path</span>
                         </a>
                         
-                        <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="/piano-studio" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <i data-lucide="piano" class="w-4 h-4 text-orange-600"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Piano Studio</span>
+                        </a>
+                        
+                        <a href="/ai-exercises" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                 <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Practice Quick Drills</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">AI Exercises</span>
                         </a>
                         
-                        <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="/progress" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-600"></i>
                             </div>
