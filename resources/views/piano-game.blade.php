@@ -400,7 +400,6 @@
         ];
 
         // State
-        let audioContext = null;
         let recordedNotes = [];
         let isPlaying = false;
         let activeKeys = new Set();
@@ -413,46 +412,18 @@
         const notationOutput = document.getElementById('notation-output');
         const notationPlaceholder = document.getElementById('notation-placeholder');
 
-        // Initialize Audio Context on user interaction
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        }
-
-        // Convert MIDI note to frequency
-        function midiToFreq(midi) {
-            return 440 * Math.pow(2, (midi - 69) / 12);
-        }
-
-        // Play a note with Web Audio API
-        function playNote(midi, duration = 0.5) {
-            initAudio();
+        // Play a note using the external API
+        function playNote(note, octave, duration = 1) {
+            // Format note name for API (e.g., "C#" -> "C%23" for URL encoding)
+            const noteName = note.replace('#', '%23');
+            const apiUrl = `https://mithatck.com/music/api/note.php?note=${noteName}${octave}&duration=${duration}`;
             
-            const freq = midiToFreq(midi);
-            const now = audioContext.currentTime;
+            const audio = new Audio(apiUrl);
+            audio.play().catch(err => {
+                console.log('Audio playback failed:', err);
+            });
             
-            // Create oscillator
-            const osc = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq, now);
-            
-            // Piano-like envelope
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.5, now + 0.01); // Attack
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);  // Decay
-            gainNode.gain.linearRampToValueAtTime(0, now + duration); // Release
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            osc.start(now);
-            osc.stop(now + duration);
+            return audio;
         }
 
         // Build piano keyboard
@@ -534,7 +505,7 @@
             const keyEl = document.getElementById(`key-${noteData.midi}`);
             if (keyEl) keyEl.classList.add('active');
             
-            playNote(noteData.midi);
+            playNote(noteData.note, noteData.octave, 1);
             
             // Record the note
             recordedNotes.push({
@@ -647,9 +618,6 @@
             playbackBtn.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i><span>Playing...</span>';
             lucide.createIcons();
             
-            // Calculate relative timings
-            const startTime = recordedNotes[0].timestamp;
-            
             for (let i = 0; i < recordedNotes.length; i++) {
                 if (!isPlaying) break;
                 
@@ -660,12 +628,12 @@
                 const keyEl = document.getElementById(`key-${noteData.midi}`);
                 if (keyEl) keyEl.classList.add('active');
                 
-                playNote(noteData.midi, 0.4);
+                playNote(noteData.note, noteData.octave, 1);
                 
                 // Calculate delay until next note
-                let delay = 300; // Default delay
+                let delay = 500; // Default delay
                 if (nextNote) {
-                    delay = Math.min(Math.max(nextNote.timestamp - noteData.timestamp, 100), 1000);
+                    delay = Math.min(Math.max(nextNote.timestamp - noteData.timestamp, 200), 1500);
                 }
                 
                 await new Promise(resolve => setTimeout(resolve, delay));
@@ -714,12 +682,9 @@
         playbackBtn.addEventListener('click', playback);
         clearBtn.addEventListener('click', clearNotes);
 
-        // Prevent default behavior for piano keys
+        // Initialize piano on page load
         document.addEventListener('DOMContentLoaded', () => {
             buildPiano();
-            
-            // Initialize audio on first click
-            document.body.addEventListener('click', initAudio, { once: true });
         });
     </script>
 </body>
