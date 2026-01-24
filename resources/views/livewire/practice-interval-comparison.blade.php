@@ -29,18 +29,14 @@
             <!-- Content -->
             <div class="p-8">
                 <!-- Question -->
-                <h2 class="text-xl font-semibold text-gray-900 text-center mb-6">Listen and select which interval has a larger distance</h2>
-
                 <!-- Two Intervals Visual Display -->
                 @php
                     $intervalANotes = explode(',', $currentPractice->interval_a);
                     $intervalBNotes = explode(',', $currentPractice->interval_b);
                 @endphp
                 
-                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-8">
-                    <h3 class="text-center font-semibold text-gray-700">Note Visuals</h3>
-                    <p class="text-center text-sm text-gray-500 mt-1">Interval A followed by Interval B</p>
-                    <div class="flex flex-col items-center mt-4">
+                <div class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
+                    <div class="flex flex-col items-center">
                         <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
                              data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalANotes[1])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $currentPractice->octave }}">
                         </div>
@@ -93,12 +89,12 @@
                      data-target="{{ $currentPractice->target }}"
                      data-practice-id="{{ $currentPractice->id }}">
                     <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="a">
-                        <span class="text-2xl mb-2 block">A</span>
-                        <span class="text-sm text-gray-500">Interval A is larger</span>
+                        <!-- <span class="text-2xl mb-2 block">A</span> -->
+                        <span class="text-md text-gray-500">Interval A is larger</span>
                     </button>
                     <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="b">
-                        <span class="text-2xl mb-2 block">B</span>
-                        <span class="text-sm text-gray-500">Interval B is larger</span>
+                        <!-- <span class="text-2xl mb-2 block">B</span> -->
+                        <span class="text-md text-gray-500">Interval B is larger</span>
                     </button>
                 </div>
 
