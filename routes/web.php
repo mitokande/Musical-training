@@ -5,6 +5,9 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SingleNotePracticeController;
 use App\Http\Controllers\Admin\IntervalDirectionPracticeController;
 use App\Http\Controllers\Admin\IntervalComparisonPracticeController;
+use App\Http\Controllers\Admin\MelodicIntervalPracticeController;
+use App\Http\Controllers\Admin\HarmonicIntervalPracticeController;
+use App\Http\Controllers\Admin\IntervalConstructionPracticeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PracticeController;
@@ -55,6 +58,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     Route::resource('interval-comparison', IntervalComparisonPracticeController::class)->except(['show']);
     Route::put('interval-comparison-settings', [IntervalComparisonPracticeController::class, 'updateSettings'])->name('interval-comparison.settings');
+    
+    Route::resource('melodic-interval', MelodicIntervalPracticeController::class)->except(['show']);
+    Route::put('melodic-interval-settings', [MelodicIntervalPracticeController::class, 'updateSettings'])->name('melodic-interval.settings');
+    
+    Route::resource('harmonic-interval', HarmonicIntervalPracticeController::class)->except(['show']);
+    Route::put('harmonic-interval-settings', [HarmonicIntervalPracticeController::class, 'updateSettings'])->name('harmonic-interval.settings');
+    
+    Route::resource('interval-construction', IntervalConstructionPracticeController::class)->except(['show']);
+    Route::put('interval-construction-settings', [IntervalConstructionPracticeController::class, 'updateSettings'])->name('interval-construction.settings');
     
     Route::resource('users', UserController::class)->except(['create', 'store', 'show']);
 });

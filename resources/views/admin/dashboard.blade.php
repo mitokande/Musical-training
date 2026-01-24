@@ -123,6 +123,57 @@
                 <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
             </a>
         </div>
+
+        <!-- Melodic Interval Stats -->
+        <div class="card p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Melodic Interval Practices</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['melodic_interval_count'] }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <i data-lucide="music-2" class="w-6 h-6 text-purple-600"></i>
+                </div>
+            </div>
+            <a href="{{ route('admin.melodic-interval.index') }}" class="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                Manage questions
+                <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Harmonic Interval Stats -->
+        <div class="card p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Harmonic Interval Practices</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['harmonic_interval_count'] }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <i data-lucide="layers" class="w-6 h-6 text-blue-600"></i>
+                </div>
+            </div>
+            <a href="{{ route('admin.harmonic-interval.index') }}" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                Manage questions
+                <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Interval Construction Stats -->
+        <div class="card p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Interval Construction Practices</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1">{{ $stats['interval_construction_count'] }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                    <i data-lucide="hammer" class="w-6 h-6 text-green-600"></i>
+                </div>
+            </div>
+            <a href="{{ route('admin.interval-construction.index') }}" class="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-700 transition-colors">
+                Manage questions
+                <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+            </a>
+        </div>
     </div>
 
     <!-- Quick Actions -->

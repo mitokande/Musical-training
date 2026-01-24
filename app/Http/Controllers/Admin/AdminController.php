@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\SingleNotePractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\IntervalComparisonPractice;
+use App\Models\MelodicIntervalPractice;
+use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalConstructionPractice;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -19,6 +22,9 @@ class AdminController extends Controller
             'single_note_count' => SingleNotePractice::count(),
             'interval_direction_count' => IntervalDirectionPractice::count(),
             'interval_comparison_count' => IntervalComparisonPractice::count(),
+            'melodic_interval_count' => MelodicIntervalPractice::count(),
+            'harmonic_interval_count' => HarmonicIntervalPractice::count(),
+            'interval_construction_count' => IntervalConstructionPractice::count(),
             'user_count' => User::count(),
             'student_count' => User::where('role', 'student')->count(),
             'admin_count' => User::where('role', 'admin')->count(),
