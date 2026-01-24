@@ -814,6 +814,7 @@
         let recordedNotes = [];
         let isPlaying = false;
         let activeKeys = new Set();
+        let notationNoteElements = []; // Store VexFlow SVG elements for highlighting
 
         // DOM Elements
         const pianoContainer = document.getElementById('piano');
@@ -968,6 +969,9 @@
 
         // Render notation using VexFlow
         function renderNotation() {
+            // Reset stored note elements
+            notationNoteElements = [];
+            
             if (recordedNotes.length === 0) {
                 notationOutput.innerHTML = '';
                 notationPlaceholder.style.display = 'block';
@@ -1015,6 +1019,9 @@
                 measures.push(staveNotes.slice(i, i + notesPerMeasure));
             }
             
+            // Keep track of original note indices for each measure
+            let noteIndex = 0;
+            
             // Render each measure
             let xPos = 10;
             measures.forEach((measureNotes, measureIndex) => {
@@ -1025,6 +1032,9 @@
                 }
                 
                 stave.setContext(context).draw();
+                
+                // Track how many actual notes (non-rests) in this measure
+                const actualNoteCount = measureNotes.length;
                 
                 // Pad with rests if needed to fill measure
                 while (measureNotes.length < notesPerMeasure) {
@@ -1040,12 +1050,82 @@
                 new VF.Formatter().joinVoices([voice]).format([voice], measureWidth - 50);
                 voice.draw(context, stave);
                 
+                // Store SVG element references for actual notes (not rests)
+                for (let i = 0; i < actualNoteCount; i++) {
+                    const staveNote = measureNotes[i];
+                    const svg = staveNote.getSVGElement();
+                    if (svg) {
+                        notationNoteElements.push({
+                            svg: svg,
+                            staveNote: staveNote,
+                            xPos: xPos + (i * (measureWidth - 50) / notesPerMeasure)
+                        });
+                    }
+                }
+                
                 xPos += measureWidth;
             });
             
             // Auto-scroll to the right to show the latest notes
             const notationContainer = document.getElementById('notation-container');
             notationContainer.scrollLeft = notationContainer.scrollWidth;
+        }
+        
+        // Highlight a note in the notation
+        function highlightNotationNote(index, highlight = true) {
+            if (index < 0 || index >= notationNoteElements.length) return;
+            
+            const noteEl = notationNoteElements[index];
+            if (!noteEl || !noteEl.svg) return;
+            
+            const svg = noteEl.svg;
+            const color = highlight ? '#9333ea' : 'black'; // Purple when highlighted, black otherwise
+            
+            // Change fill and stroke colors on all child elements
+            svg.querySelectorAll('*').forEach((child) => {
+                child.setAttribute('fill', color);
+                child.setAttribute('stroke', color);
+            });
+            
+            // Update selection state on parent
+            if (highlight) {
+                svg.classList.add('playing-note');
+            } else {
+                svg.classList.remove('playing-note');
+            }
+        }
+        
+        // Scroll notation container to center on a specific note
+        function scrollToNote(index) {
+            if (index < 0 || index >= notationNoteElements.length) return;
+            
+            const noteEl = notationNoteElements[index];
+            if (!noteEl || !noteEl.svg) return;
+            
+            const notationContainer = document.getElementById('notation-container');
+            const containerWidth = notationContainer.clientWidth;
+            
+            // Get the note's bounding rect relative to the SVG
+            const svgRect = noteEl.svg.getBoundingClientRect();
+            const containerRect = notationContainer.getBoundingClientRect();
+            
+            // Calculate the note's position relative to the scroll container
+            const noteCenter = svgRect.left - containerRect.left + notationContainer.scrollLeft + (svgRect.width / 2);
+            
+            // Scroll to center the note
+            const targetScroll = noteCenter - (containerWidth / 2);
+            
+            notationContainer.scrollTo({
+                left: Math.max(0, targetScroll),
+                behavior: 'smooth'
+            });
+        }
+        
+        // Reset all notation highlighting
+        function resetNotationHighlighting() {
+            notationNoteElements.forEach((noteEl, index) => {
+                highlightNotationNote(index, false);
+            });
         }
 
         // Playback recorded notes
@@ -1057,15 +1137,23 @@
             playbackBtn.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i><span>Playing...</span>';
             lucide.createIcons();
             
+            // Reset any previous highlighting
+            resetNotationHighlighting();
+            
             for (let i = 0; i < recordedNotes.length; i++) {
                 if (!isPlaying) break;
                 
                 const noteData = recordedNotes[i];
                 const nextNote = recordedNotes[i + 1];
                 
-                // Visual feedback
+                // Visual feedback on piano key
                 const keyEl = document.getElementById(`key-${noteData.midi}`);
                 if (keyEl) keyEl.classList.add('active');
+                
+                // Reset all previous highlighting and highlight only current note
+                resetNotationHighlighting();
+                highlightNotationNote(i, true);
+                scrollToNote(i);
                 
                 playNote(noteData.note, noteData.octave, 1);
                 
@@ -1079,6 +1167,10 @@
                 
                 if (keyEl) keyEl.classList.remove('active');
             }
+            
+            // Reset last note highlighting after a short delay
+            await new Promise(resolve => setTimeout(resolve, 300));
+            resetNotationHighlighting();
             
             isPlaying = false;
             playbackBtn.classList.remove('playing');
