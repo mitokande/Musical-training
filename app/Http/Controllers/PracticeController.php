@@ -6,6 +6,7 @@ use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\MelodicIntervalPractice;
 use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalConstructionPractice;
 use App\Models\SingleNotePractice;
 use App\Models\UserPractice;
 use Illuminate\Http\Request;
@@ -80,6 +81,12 @@ class PracticeController extends Controller
         return $userHarmonicIntervalPractice;
     }
 
+    public static function getIntervalConstructionProgress() {
+        $user_id = auth()->user()->id;
+        $userIntervalConstructionPractice = UserPractice::where('user_id','=' ,$user_id)->where('practice_id', '=', '6')->get();
+        return $userIntervalConstructionPractice;
+    }
+
     public static function getPracticeProgressByUser($slug) {
         if ($slug == "interval-direction-practice") {
             $userP = self::getIntervalDirectionProgress();
@@ -129,6 +136,16 @@ class PracticeController extends Controller
                 $solved = $userP[0]->total_questions;
             }
             $all = HarmonicIntervalPractice::all();
+            $progress = count($all) > 0 ? $solved / count($all) : 0;
+            return $progress == 1 ? 100 : $progress;
+        }
+        if ($slug == "interval-construction-practice") {
+            $userP = self::getIntervalConstructionProgress();
+            $solved = 0;
+            if (count($userP)> 0) {
+                $solved = $userP[0]->total_questions;
+            }
+            $all = IntervalConstructionPractice::all();
             $progress = count($all) > 0 ? $solved / count($all) : 0;
             return $progress == 1 ? 100 : $progress;
         }
