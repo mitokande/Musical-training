@@ -176,6 +176,9 @@
         @case ('melodic-interval-practice')
             <livewire:practice-melodic-interval :practices="$practices" />
             @break
+        @case ('harmonic-interval-practice')
+            <livewire:practice-harmonic-interval :practices="$practices" />
+            @break
     @endswitch
 
 
