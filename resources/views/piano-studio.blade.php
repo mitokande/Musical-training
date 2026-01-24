@@ -457,60 +457,8 @@
     </style>
 </head>
 <body class="font-sans bg-gray-50 min-h-screen">
-    <!-- Header/Navigation -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                        <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <span class="font-bold text-lg text-gray-900">Ear Training<br class="sm:hidden"><span class="text-purple-600"> Studio</span></span>
-                </div>
-
-                <!-- Navigation -->
-                <nav class="hidden lg:flex items-center gap-1">
-                    <a href="/dashboard" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="home" class="w-4 h-4"></i>
-                        Home
-                    </a>
-                    <a href="/learn" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                        Learn Path
-                    </a>
-                    <a href="/ai-exercises" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i>
-                        AI Exercises
-                    </a>
-                    <a href="/piano-studio" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
-                        <i data-lucide="piano" class="w-4 h-4"></i>
-                        Piano Studio
-                    </a>
-                    <a href="/progress" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        My Progress
-                    </a>
-                </nav>
-
-                <!-- User Menu -->
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
-                            {{ substr(Auth::user()->name ?? 'M', 0, 1) }}
-                        </div>
-                        <span class="hidden sm:block text-sm font-medium text-gray-700">{{ Auth::user()->name ?? 'Guest' }}</span>
-                    </div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                            <i data-lucide="log-out" class="w-5 h-5"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
+    {{-- Navbar --}}
+    @include('partials.navbar', ['active' => 'piano'])
 
     <!-- Main Content -->
     <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -17,6 +17,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -64,16 +67,6 @@
         .btn-primary:hover {
             background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
         }
-        .nav-item {
-            transition: all 0.2s ease;
-        }
-        .nav-item:hover {
-            background: #f3f4f6;
-        }
-        .nav-item.active {
-            background: #f3f4f6;
-            font-weight: 600;
-        }
         .checkbox-card {
             transition: all 0.2s ease;
             cursor: pointer;
@@ -106,7 +99,6 @@
             background-repeat: no-repeat;
             background-size: 1.25rem 1.25rem;
         }
-        /* Musical notes decoration */
         .music-note {
             position: absolute;
             opacity: 0.1;
@@ -116,68 +108,8 @@
     </style>
 </head>
 <body class="font-sans bg-gray-50 min-h-screen">
-    <!-- Header/Navigation -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                        <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <span class="font-bold text-lg text-gray-900">Ear Training<br class="sm:hidden"><span class="text-purple-600"> Studio</span></span>
-                </div>
-
-                <!-- Navigation -->
-                <nav class="hidden lg:flex items-center gap-1">
-                    <a href="/dashboard" class="nav-item  flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
-                        <i data-lucide="home" class="w-4 h-4"></i>
-                        Home
-                    </a>
-                    <a href="/learn" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                        Learn Path
-                    </a>
-                    <a href="/ai-exercises" class="nav-item active flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-700">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i>
-                        AI Exercises
-                    </a>
-                    <a href="/piano-studio" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="piano" class="w-4 h-4"></i>
-                        Piano Studio
-                    </a>
-                    <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
-                        Resources
-                    </a>
-                    <a href="#" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="zap" class="w-4 h-4"></i>
-                        Quick Drills
-                    </a>
-                    <a href="/progress" class="nav-item flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-gray-600">
-                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        My Progress
-                    </a>
-                </nav>
-
-                <!-- User Menu -->
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
-                            {{ substr(Auth::user()->name ?? 'M', 0, 1) }}
-                        </div>
-                        <span class="hidden sm:block text-sm font-medium text-gray-700">{{ Auth::user()->name ?? 'Mithat Can Turan' }}</span>
-                    </div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                            <i data-lucide="log-out" class="w-5 h-5"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
+    {{-- Navbar --}}
+    @include('partials.navbar', ['active' => 'ai'])
 
     <!-- Main Content -->
     <main class="hero-gradient min-h-[calc(100vh-64px)] py-12 relative overflow-hidden">
