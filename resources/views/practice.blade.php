@@ -173,6 +173,9 @@
         @case ('interval-comparison-practice')
             <livewire:practice-interval-comparison :practices="$practices" />
             @break
+        @case ('melodic-interval-practice')
+            <livewire:practice-melodic-interval :practices="$practices" />
+            @break
     @endswitch
 
 

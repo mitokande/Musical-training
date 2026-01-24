@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
+use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalConstructionPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use App\Models\UserPractice;
@@ -46,7 +49,10 @@ class PageController extends Controller
         $practiceMap = [
             'single-note-practice' => SingleNotePractice::class,
             'interval-direction-practice' => IntervalDirectionPractice::class,
-            'interval-comparison-practice' => IntervalComparisonPractice::class
+            'interval-comparison-practice' => IntervalComparisonPractice::class,
+            'melodic-interval-practice' => MelodicIntervalPractice::class,
+            'harmonic-interval-practice' => HarmonicIntervalPractice::class,
+            'interval-construction-practice' => IntervalConstructionPractice::class,
         ];
 
         $practiceClass = $practiceMap[$slug] ?? null;

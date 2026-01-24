@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\IntervalComparisonPractice;
+use App\Models\IntervalConstructionPractice;
 use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
+use App\Models\HarmonicIntervalPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use App\Models\User;
@@ -62,6 +65,30 @@ class DatabaseSeeder extends Seeder
             'is_premium' => false,
         ]);
 
+        Practice::create([
+            'name' => 'Melodic Interval Practice',
+            'slug' => 'melodic-interval-practice',
+            'description' => 'Practice melodic intervals',
+            'type' => 'Recognition',
+            'is_premium' => false,
+        ]);
+
+        Practice::create([
+            'name' => 'Harmonic Interval Practice',
+            'slug' => 'harmonic-interval-practice',
+            'description' => 'Practice harmonic intervals',
+            'type' => 'Recognition',
+            'is_premium' => false,
+        ]);
+
+        Practice::create([
+            'name' => 'Interval Construction Practice',
+            'slug' => 'interval-construction-practice',
+            'description' => 'Practice interval construction',
+            'type' => 'Recognition',
+            'is_premium' => false,
+        ]);
+
         SingleNotePractice::create([
             'target' => 'C',
             'octave' => '4',
@@ -114,6 +141,48 @@ class DatabaseSeeder extends Seeder
             'target' => 'b',
             'octave' => '5',
             'clef' => 'treble',
+        ]);
+
+        MelodicIntervalPractice::create([
+            'interval' => 'Perfect Fifth',
+            'note1' => 'C',
+            'note2' => 'G',
+            'octave' => '4',
+        ]);
+
+        MelodicIntervalPractice::create([
+            'interval' => 'Major Third',
+            'note1' => 'C',
+            'note2' => 'E',
+            'octave' => '4',
+        ]);
+
+        HarmonicIntervalPractice::create([
+            'interval' => 'Perfect Fifth',
+            'note1' => 'C',
+            'note2' => 'G',
+            'octave' => '4',
+        ]);
+
+        HarmonicIntervalPractice::create([
+            'interval' => 'Major Third',
+            'note1' => 'C',
+            'note2' => 'E',
+            'octave' => '4',
+        ]);
+
+        IntervalConstructionPractice::create([
+            'interval' => 'Perfect Fifth',
+            'note1' => 'C',
+            'note2' => 'G',
+            'octave' => '4',
+        ]);
+
+        IntervalConstructionPractice::create([
+            'interval' => 'Major Third',
+            'note1' => 'C',
+            'note2' => 'E',
+            'octave' => '4',
         ]);
     }
 }
