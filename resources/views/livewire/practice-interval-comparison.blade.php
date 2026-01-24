@@ -35,7 +35,7 @@
                     $intervalBNotes = explode(',', $currentPractice->interval_b);
                 @endphp
                 
-                <div class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
+                <div id="noteDisplayContainer" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8 hidden">
                     <div class="flex flex-col items-center">
                         <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
                              data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalANotes[1])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $currentPractice->octave }}">
@@ -286,6 +286,10 @@
                                 const data = await response.json();
                                 
                                 isAnswered = true;
+                                
+                                // Show the note display when answer is submitted
+                                const noteDisplayContainer = document.getElementById('noteDisplayContainer');
+                                if (noteDisplayContainer) noteDisplayContainer.classList.remove('hidden');
                                 
                                 // Toggle buttons: Hide Play, Show Next
                                 if (playButton) playButton.classList.add('hidden');

@@ -252,7 +252,7 @@
                     $intervalANotes = explode(',', $practice['interval_a']);
                     $intervalBNotes = explode(',', $practice['interval_b']);
                 @endphp
-                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-8">
+                <div id="noteDisplayContainer" class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-8 hidden">
                     <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A then Interval B</h3>
                     <div id="output" style="width: 100%; height: 180px;" 
                          data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalANotes[1])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $practice['octave'] }}"
@@ -652,6 +652,12 @@
                             const data = await @this.call('answerPractice', practiceType, answer, target);
                             console.log(data);
                             isAnswered = true;
+                            
+                            // Show the note display when answer is submitted (for interval_comparison)
+                            if (practiceType === 'interval_comparison') {
+                                const noteDisplayContainer = document.getElementById('noteDisplayContainer');
+                                if (noteDisplayContainer) noteDisplayContainer.classList.remove('hidden');
+                            }
                             
                             // Toggle buttons: Hide Play, Show Next
                             if (playButton) playButton.classList.add('hidden');
