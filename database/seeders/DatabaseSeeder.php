@@ -144,42 +144,42 @@ class DatabaseSeeder extends Seeder
         ]);
 
         MelodicIntervalPractice::create([
-            'interval' => 'Perfect Fifth',
+            'interval' => 'Perfect 5th',
             'note1' => 'C',
             'note2' => 'G',
             'octave' => '4',
         ]);
 
         MelodicIntervalPractice::create([
-            'interval' => 'Major Third',
+            'interval' => 'Major 3rd',
             'note1' => 'C',
             'note2' => 'E',
             'octave' => '4',
         ]);
 
         HarmonicIntervalPractice::create([
-            'interval' => 'Perfect Fifth',
+            'interval' => 'Perfect 5th',
             'note1' => 'C',
             'note2' => 'G',
             'octave' => '4',
         ]);
 
         HarmonicIntervalPractice::create([
-            'interval' => 'Major Third',
+            'interval' => 'Major 3rd',
             'note1' => 'C',
             'note2' => 'E',
             'octave' => '4',
         ]);
 
         IntervalConstructionPractice::create([
-            'interval' => 'Perfect Fifth',
+            'interval' => 'Perfect 5th',
             'note1' => 'C',
             'note2' => 'G',
             'octave' => '4',
         ]);
 
         IntervalConstructionPractice::create([
-            'interval' => 'Major Third',
+            'interval' => 'Major 3rd',
             'note1' => 'C',
             'note2' => 'E',
             'octave' => '4',

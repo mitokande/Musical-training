@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
 use App\Models\SingleNotePractice;
 use App\Models\UserPractice;
 use Illuminate\Http\Request;
@@ -66,6 +67,12 @@ class PracticeController extends Controller
         return $userIntervalComparisonPractice;
     }
 
+    public static function getMelodicIntervalProgress() {
+        $user_id = auth()->user()->id;
+        $userMelodicIntervalPractice = UserPractice::where('user_id','=' ,$user_id)->where('practice_id', '=', '4')->get();
+        return $userMelodicIntervalPractice;
+    }
+
     public static function getPracticeProgressByUser($slug) {
         if ($slug == "interval-direction-practice") {
             $userP = self::getIntervalDirectionProgress();
@@ -95,6 +102,16 @@ class PracticeController extends Controller
                 $solved = $userP[0]->total_questions;
             }
             $all = IntervalComparisonPractice::all();
+            $progress = count($all) > 0 ? $solved / count($all) : 0;
+            return $progress == 1 ? 100 : $progress;
+        }
+        if ($slug == "melodic-interval-practice") {
+            $userP = self::getMelodicIntervalProgress();
+            $solved = 0;
+            if (count($userP)> 0) {
+                $solved = $userP[0]->total_questions;
+            }
+            $all = MelodicIntervalPractice::all();
             $progress = count($all) > 0 ? $solved / count($all) : 0;
             return $progress == 1 ? 100 : $progress;
         }
