@@ -254,7 +254,7 @@
                 @endphp
                 <div id="noteDisplayContainer" class="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-8 hidden">
                     <h3 class="text-center font-semibold text-gray-700 mb-2">Interval A then Interval B</h3>
-                    <div id="output" style="width: 100%; height: 180px;" 
+                    <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
                          data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalANotes[1])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $practice['octave'] . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $practice['octave'] }}"
                          data-type="{{ $type }}">
                     </div>
