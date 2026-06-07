@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\HarmonicIntervalPractice;
 use App\Models\Practice;
+use App\Services\MusicTheoryService;
 use Illuminate\Http\Request;
 
 class HarmonicIntervalPracticeController extends Controller
@@ -33,11 +34,20 @@ class HarmonicIntervalPracticeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'interval' => 'required|string|max:50',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'interval'     => 'required|string|max:50',
+            'note1'        => 'required|string|max:10',
+            'note2'        => 'required|string|max:10',
+            'octave'       => 'required|string|in:2,3,4,5,6',
+            'note2_octave' => 'nullable|integer|min:2|max:8',
         ]);
+
+        if (empty($validated['note2_octave'])) {
+            $result = app(MusicTheoryService::class)->noteAboveByInterval($validated['note1'], (int)$validated['octave'], $validated['interval']);
+            $validated['note2_octave'] = $result['octave'] ?? $validated['octave'];
+        }
+
+        $validated['validation_status'] = app(MusicTheoryService::class)
+            ->validateQuestionConsistency($validated, 'harmonic-interval-practice')['status'];
 
         HarmonicIntervalPractice::create($validated);
 
@@ -59,11 +69,20 @@ class HarmonicIntervalPracticeController extends Controller
     public function update(Request $request, HarmonicIntervalPractice $harmonic_interval)
     {
         $validated = $request->validate([
-            'interval' => 'required|string|max:50',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'interval'     => 'required|string|max:50',
+            'note1'        => 'required|string|max:10',
+            'note2'        => 'required|string|max:10',
+            'octave'       => 'required|string|in:2,3,4,5,6',
+            'note2_octave' => 'nullable|integer|min:2|max:8',
         ]);
+
+        if (empty($validated['note2_octave'])) {
+            $result = app(MusicTheoryService::class)->noteAboveByInterval($validated['note1'], (int)$validated['octave'], $validated['interval']);
+            $validated['note2_octave'] = $result['octave'] ?? $validated['octave'];
+        }
+
+        $validated['validation_status'] = app(MusicTheoryService::class)
+            ->validateQuestionConsistency($validated, 'harmonic-interval-practice')['status'];
 
         $harmonic_interval->update($validated);
 

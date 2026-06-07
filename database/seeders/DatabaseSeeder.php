@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'username' => 'testuser',
             'role' => 'admin',
-            'email' => 'test@example.com',
-            'password' => \Hash::make('password'),
+            'email' => 'admin@kandemir.com',
+            'password' => \Hash::make(env('ADMIN_PASSWORD_1', \Str::random(16))),
         ]);
 
         User::factory()->create([
@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'mithatck',
             'role' => 'admin',
             'email' => 'benmithat18@gmail.com',
-            'password' => \Hash::make('123123123'),
+            'password' => \Hash::make(env('ADMIN_PASSWORD_2', \Str::random(16))),
         ]);
 
 
@@ -184,5 +184,8 @@ class DatabaseSeeder extends Seeder
             'note2' => 'E',
             'octave' => '4',
         ]);
+
+        $this->call(QuestionnaireSeeder::class);
+        $this->call(LearningPathExerciseSeeder::class);
     }
 }

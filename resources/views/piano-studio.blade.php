@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Piano Studio - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>Piano Studio - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,7 +15,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.460.0"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+
+    <!-- Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js" integrity="sha512-F1myjNkIKU5XJtOs1HXRo/zOjiUsABgFEEGKLx/riwK82jRThZFebEnfF2HWo9eeC+iC1Nwwnn9Vj6OGq+r7rQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <!-- VexFlow for music notation -->
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
@@ -634,70 +640,72 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                <!-- Brand -->
-                <div class="col-span-2 md:col-span-4 lg:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span class="font-bold text-lg text-white">Ear Training Studio</span>
-                    </div>
-                    <p class="text-sm mb-4">
-                        An AI-powered ear training platform for musicians, students, and educators. Master your musical ear with personalized exercises.
-                    </p>
-                </div>
-
-                <!-- Platform -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Platform</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="/dashboard" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="/learn" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="/piano-studio" class="hover:text-white transition-colors">Piano Studio</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">All Resources</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Articles</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">FAQ & Help Center</a></li>
-                    </ul>
-                </div>
-
-                <!-- Company -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Company</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy & Terms</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ date('Y') }} Ear Training Studio. All rights reserved.</p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.footer')
 
     <!-- Initialize Lucide Icons -->
     <script>
         lucide.createIcons();
+    </script>
+
+    <script>
+    window.HarmonivaAudio = (function () {
+        let sampler = null;
+        let ready = false;
+
+        function init() {
+            if (sampler) return;
+            sampler = new Tone.Sampler({
+                urls: {
+                    A1:'A1.mp3', C2:'C2.mp3', 'D#2':'Ds2.mp3', 'F#2':'Fs2.mp3',
+                    A2:'A2.mp3', C3:'C3.mp3', 'D#3':'Ds3.mp3', 'F#3':'Fs3.mp3',
+                    A3:'A3.mp3', C4:'C4.mp3', 'D#4':'Ds4.mp3', 'F#4':'Fs4.mp3',
+                    A4:'A4.mp3', C5:'C5.mp3', 'D#5':'Ds5.mp3', 'F#5':'Fs5.mp3',
+                    A5:'A5.mp3', C6:'C6.mp3', 'D#6':'Ds6.mp3', 'F#6':'Fs6.mp3',
+                    A6:'A6.mp3', C7:'C7.mp3', 'D#7':'Ds7.mp3', 'F#7':'Fs7.mp3',
+                },
+                release: 1,
+                baseUrl: 'https://tonejs.github.io/audio/salamander/',
+                onload: () => { ready = true; }
+            }).toDestination();
+        }
+
+        async function ensureReady() {
+            await Tone.start();
+            if (!sampler) init();
+            const deadline = Date.now() + 8000;
+            while (!ready && Date.now() < deadline) {
+                await new Promise(r => setTimeout(r, 80));
+            }
+        }
+
+        return {
+            async playNote(note, duration) {
+                await ensureReady();
+                sampler.triggerAttackRelease(note, duration ?? 1);
+            },
+            async playSimultaneous(notes, duration) {
+                await ensureReady();
+                const now = Tone.now();
+                notes.forEach(n => sampler.triggerAttackRelease(n, duration ?? 2, now));
+            },
+            async playSequential(notes, intervalMs, duration) {
+                await ensureReady();
+                const now = Tone.now();
+                notes.forEach((n, i) =>
+                    sampler.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
+            },
+            async playArpeggio(notes, delayMs, duration) {
+                await ensureReady();
+                const now = Tone.now();
+                notes.forEach((n, i) =>
+                    sampler.triggerAttackRelease(n, duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
+            },
+            totalMs(notes, delayMs) {
+                return (notes.length - 1) * (delayMs ?? 400) + 2000;
+            },
+            stop() { if (sampler) sampler.releaseAll(); }
+        };
+    })();
     </script>
 
     <!-- Piano Studio Logic -->
@@ -772,26 +780,9 @@
         const notationOutput = document.getElementById('notation-output');
         const notationPlaceholder = document.getElementById('notation-placeholder');
 
-        // Play a note using cached audio files (falls back to API if not cached)
+        // Play a note using Tone.js Salamander Grand Piano sampler
         function playNote(note, octave, duration = 1) {
-            // Format note name for cached file (e.g., "C#" -> "Cs")
-            const noteName = note.replace('#', 's');
-            const cachedUrl = `/audio/piano/${noteName}${octave}_d${duration}.mp3`;
-            
-            const audio = new Audio(cachedUrl);
-            
-            // Try cached file first, fall back to API if it fails
-            audio.play().catch(err => {
-                console.log('Cached audio not found, falling back to API...');
-                const apiNoteName = note.replace('#', '%23');
-                const apiUrl = `https://mithatck.com/music/api/note.php?note=${apiNoteName}${octave}&duration=${duration}`;
-                const apiAudio = new Audio(apiUrl);
-                apiAudio.play().catch(apiErr => {
-                    console.log('Audio playback failed:', apiErr);
-                });
-            });
-            
-            return audio;
+            window.HarmonivaAudio.playNote(note + octave, duration);
         }
 
         // Build piano keyboard
@@ -1368,5 +1359,7 @@
             buildPiano();
         });
     </script>
+
+    @include('partials.guest-timer-popup', ['timerKey' => 'piano-studio'])
 </body>
 </html>

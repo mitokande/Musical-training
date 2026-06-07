@@ -33,6 +33,7 @@
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Starting Note</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Target Note</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Octave</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
@@ -61,6 +62,18 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
+                        @php
+                            $vs = $practice->validation_status ?? app(\App\Services\MusicTheoryService::class)->validateQuestionConsistency($practice->toArray(), 'interval-construction-practice')['status'];
+                        @endphp
+                        @if ($vs === 'valid')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Valid</span>
+                        @elseif ($vs === 'needs_review')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Needs Review</span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Invalid</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.interval-construction.edit', $practice) }}" 
                                class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
@@ -78,7 +91,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-12 text-center">
+                    <td colspan="7" class="px-6 py-12 text-center">
                         <div class="flex flex-col items-center">
                             <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                                 <i data-lucide="hammer" class="w-8 h-8 text-gray-400"></i>

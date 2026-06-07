@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MelodicIntervalPractice;
 use App\Models\Practice;
+use App\Services\MusicTheoryService;
 use Illuminate\Http\Request;
 
 class MelodicIntervalPracticeController extends Controller
@@ -33,11 +34,23 @@ class MelodicIntervalPracticeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'interval' => 'required|string|max:50',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'interval'    => 'required|string|max:50',
+            'note1'       => 'required|string|max:10',
+            'note2'       => 'required|string|max:10',
+            'octave'      => 'required|string|in:2,3,4,5,6',
+            'note2_octave'=> 'nullable|integer|min:2|max:8',
         ]);
+
+        // Auto-derive note2_octave if not supplied
+        if (empty($validated['note2_octave'])) {
+            $music  = app(MusicTheoryService::class);
+            $result = $music->noteAboveByInterval($validated['note1'], (int)$validated['octave'], $validated['interval']);
+            $validated['note2_octave'] = $result['octave'] ?? $validated['octave'];
+        }
+
+        // Stamp validation status
+        $validated['validation_status'] = app(MusicTheoryService::class)
+            ->validateQuestionConsistency($validated, 'melodic-interval-practice')['status'];
 
         MelodicIntervalPractice::create($validated);
 
@@ -59,11 +72,23 @@ class MelodicIntervalPracticeController extends Controller
     public function update(Request $request, MelodicIntervalPractice $melodic_interval)
     {
         $validated = $request->validate([
-            'interval' => 'required|string|max:50',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'interval'    => 'required|string|max:50',
+            'note1'       => 'required|string|max:10',
+            'note2'       => 'required|string|max:10',
+            'octave'      => 'required|string|in:2,3,4,5,6',
+            'note2_octave'=> 'nullable|integer|min:2|max:8',
         ]);
+
+        // Auto-derive note2_octave if not supplied via hidden field
+        if (empty($validated['note2_octave'])) {
+            $music  = app(MusicTheoryService::class);
+            $result = $music->noteAboveByInterval($validated['note1'], (int)$validated['octave'], $validated['interval']);
+            $validated['note2_octave'] = $result['octave'] ?? $validated['octave'];
+        }
+
+        // Re-stamp validation status
+        $validated['validation_status'] = app(MusicTheoryService::class)
+            ->validateQuestionConsistency($validated, 'melodic-interval-practice')['status'];
 
         $melodic_interval->update($validated);
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>My Progress - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>My Progress - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,10 +15,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.460.0"></script>
 
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -266,40 +269,26 @@
                     </div>
                 </div>
 
-                <!-- Weekly Performance Chart -->
+                <!-- Weekly Performance Chart (Chart.js) -->
                 <div class="card p-6">
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i>
                             <h3 class="font-semibold text-gray-900">Weekly Performance</h3>
                         </div>
                         <span class="text-sm text-gray-500">Last 7 days</span>
                     </div>
-                    
-                    <!-- Simple Bar Chart -->
-                    <div class="flex items-end justify-between gap-2 h-40 mb-4">
-                        @foreach($weeklyPerformance as $day)
-                            <div class="flex-1 flex flex-col items-center">
-                                <div class="w-full bg-gray-100 rounded-t-lg relative" style="height: 120px;">
-                                    @if($day['questions'] > 0)
-                                        <div class="chart-bar absolute bottom-0 w-full bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg transition-all duration-300" 
-                                             style="height: {{ max(10, $day['accuracy']) }}%"
-                                             title="{{ $day['accuracy'] }}% accuracy">
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="mt-2 text-center">
-                                    <div class="text-xs font-medium text-gray-900">{{ $day['day'] }}</div>
-                                    <div class="text-[10px] text-gray-500">{{ $day['questions'] }}q</div>
-                                </div>
-                            </div>
-                        @endforeach
+                    <div class="relative h-48">
+                        <canvas id="weeklyChart"></canvas>
                     </div>
-                    
-                    <div class="flex items-center justify-center gap-6 text-sm">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded bg-purple-500"></div>
-                            <span class="text-gray-600">Accuracy %</span>
+                    <div class="flex items-center justify-center gap-6 text-xs mt-3">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                            <span class="text-gray-500">{{ __('app.progress.accuracy_pct') }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-orange-400"></div>
+                            <span class="text-gray-500">{{ __('app.progress.question_count_lbl') }}</span>
                         </div>
                     </div>
                 </div>
@@ -488,133 +477,100 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                <!-- Brand -->
-                <div class="col-span-2 md:col-span-4 lg:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span class="font-bold text-lg text-white">Ear Training Studio</span>
-                    </div>
-                    <p class="text-sm mb-4">
-                        An AI-powered ear training platform for musicians, students, and educators. Master your musical ear with personalized exercises.
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="youtube" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="instagram" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="twitter" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                </div>
+    @include('partials.footer')
 
-                <!-- Platform -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Platform</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="/dashboard" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="/learn" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Quick Drills</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Pricing & Plans</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Search Content</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">All Resources</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Articles</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Documents</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Videos</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">FAQ & Help Center</a></li>
-                    </ul>
-                </div>
-
-                <!-- Company -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Company</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy & Terms</a></li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                            <span>support@eartraining.com</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <span>San Francisco, CA</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- App Download & Search -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-3">Get the App (Coming Soon)</p>
-                        <div class="flex items-center gap-3">
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="apple" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">Download on the</p>
-                                    <p class="text-sm font-semibold text-white">App Store</p>
-                                </div>
-                            </a>
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="smartphone" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">GET IT ON</p>
-                                    <p class="text-sm font-semibold text-white">Google Play</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" placeholder="Search content..." class="w-64 bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        </div>
-                        <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                            <i data-lucide="globe" class="w-4 h-4"></i>
-                            English
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ date('Y') }} Ear Training Studio. All rights reserved.</p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                        <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Initialize Lucide Icons -->
+    <!-- Initialize Lucide Icons & Chart.js -->
     <script>
         lucide.createIcons();
+
+        // Weekly Performance Chart
+        (function() {
+            const canvas = document.getElementById('weeklyChart');
+            if (!canvas) return;
+
+            const weeklyData = @json($weeklyPerformance);
+            const labels = weeklyData.map(d => d.day);
+            const accuracyData = weeklyData.map(d => d.questions > 0 ? d.accuracy : null);
+            const questionData = weeklyData.map(d => d.questions);
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '{{ __("app.progress.accuracy_pct") }}',
+                            data: accuracyData,
+                            backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                            borderColor: 'rgba(124, 58, 237, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            yAxisID: 'y',
+                        },
+                        {
+                            label: '{{ __("app.progress.question_count_lbl") }}',
+                            data: questionData,
+                            type: 'line',
+                            backgroundColor: 'rgba(249, 115, 22, 0.15)',
+                            borderColor: 'rgba(249, 115, 22, 0.8)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+                            pointRadius: 4,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y2',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === '{{ __("app.progress.accuracy_pct") }}') {
+                                        return ctx.raw !== null ? '{{ __("app.progress.accuracy_tooltip") }}: ' + ctx.raw + '%' : '{{ __("app.progress.no_practice_label") }}';
+                                    }
+                                    return '{{ __("app.progress.questions_tooltip") }}: ' + ctx.raw;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11 }, color: '#6b7280' }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: v => v + '%',
+                                font: { size: 11 },
+                                color: '#9333ea'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            position: 'right',
+                            min: 0,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 11 },
+                                color: '#f97316'
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        })();
     </script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="55%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="200" height="200" rx="44" fill="url(#grad)"/>
+
+  <!-- Stylized H with wave crossbar -->
+  <!-- Left pillar -->
+  <rect x="34" y="44" width="34" height="112" rx="12" fill="white"/>
+  <!-- Right pillar -->
+  <rect x="132" y="44" width="34" height="112" rx="12" fill="white"/>
+  <!-- Wave crossbar: sine wave path -->
+  <path d="M68 100 Q84 68 100 100 Q116 132 132 100" stroke="white" stroke-width="22" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

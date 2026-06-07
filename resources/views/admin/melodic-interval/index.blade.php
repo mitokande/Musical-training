@@ -33,6 +33,7 @@
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Note 1</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Note 2</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Octave</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
@@ -59,6 +60,18 @@
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium">
                             {{ $practice->octave }}
                         </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        @php
+                            $vs = $practice->validation_status ?? app(\App\Services\MusicTheoryService::class)->validateQuestionConsistency($practice->toArray(), 'melodic-interval-practice')['status'];
+                        @endphp
+                        @if ($vs === 'valid')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Valid</span>
+                        @elseif ($vs === 'needs_review')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Needs Review</span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Invalid</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">

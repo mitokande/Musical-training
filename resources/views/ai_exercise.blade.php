@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>AI Assisted Exercises - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>AI Assisted Exercises - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,10 +15,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.460.0"></script>
 
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -92,6 +92,17 @@
             color: white;
             border-color: transparent;
         }
+        .tempo-btn {
+            transition: all 0.2s ease;
+        }
+        .tempo-btn:hover {
+            border-color: #c084fc;
+        }
+        .tempo-btn.selected {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            color: white;
+            border-color: transparent;
+        }
         .select-input {
             appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -101,9 +112,10 @@
         }
         .music-note {
             position: absolute;
-            opacity: 0.1;
-            font-size: 3rem;
             color: #9333ea;
+            pointer-events: none;
+            user-select: none;
+            line-height: 1;
         }
     </style>
 </head>
@@ -112,26 +124,59 @@
     @include('partials.navbar', ['active' => 'ai'])
 
     <!-- Main Content -->
-    <main class="hero-gradient min-h-[calc(100vh-64px)] py-12 relative overflow-hidden">
-        <!-- Decorative musical elements -->
-        <div class="music-note" style="top: 10%; left: 5%;">♪</div>
-        <div class="music-note" style="top: 30%; right: 8%;">♫</div>
-        <div class="music-note" style="bottom: 20%; left: 10%;">♩</div>
-        <div class="music-note" style="bottom: 40%; right: 5%;">♬</div>
-        
+    <main class="hero-gradient min-h-[calc(100vh-64px)] py-6 relative overflow-hidden">
+
+        <!-- ── Sol zemin: 5 nota sembolü ── -->
+        <div class="music-note" style="top:6%;  left:2%;   font-size:2.2rem; opacity:0.13; transform:rotate(-15deg);">♪</div>
+        <div class="music-note" style="top:22%; left:6%;   font-size:3.4rem; opacity:0.08; transform:rotate(8deg);">♫</div>
+        <div class="music-note" style="top:45%; left:1.5%; font-size:2.8rem; opacity:0.11; transform:rotate(-5deg);">♩</div>
+        <div class="music-note" style="top:65%; left:7%;   font-size:2rem;   opacity:0.09; transform:rotate(12deg);">♬</div>
+        <div class="music-note" style="top:83%; left:3%;   font-size:3rem;   opacity:0.12; transform:rotate(-10deg);">♪</div>
+
+        <!-- ── Sağ zemin: 5 nota sembolü ── -->
+        <div class="music-note" style="top:8%;  right:3%;  font-size:3rem;   opacity:0.10; transform:rotate(10deg);">♫</div>
+        <div class="music-note" style="top:28%; right:7%;  font-size:2.4rem; opacity:0.13; transform:rotate(-8deg);">♬</div>
+        <div class="music-note" style="top:50%; right:2%;  font-size:2rem;   opacity:0.08; transform:rotate(15deg);">♩</div>
+        <div class="music-note" style="top:68%; right:6%;  font-size:3.2rem; opacity:0.11; transform:rotate(-12deg);">♪</div>
+        <div class="music-note" style="top:85%; right:4%;  font-size:2.6rem; opacity:0.09; transform:rotate(6deg);">♫</div>
+
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <!-- Header Section -->
-            <div class="text-center mb-8">
-                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-purple-200">
-                    <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center gap-3 mb-3">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-purple-600">
+                        AI Assisted Exercises
+                    </h1>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-200 flex-shrink-0">
+                        <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                    </div>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-bold text-purple-600 mb-3">
-                    AI Assisted Exercises
-                </h1>
                 <p class="text-gray-600 max-w-md mx-auto">
                     Create a personalized practice session tailored to your specific needs and goals.
                 </p>
             </div>
+
+            <!-- Error Messages -->
+            @if(session('error'))
+                <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 flex items-center gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="text-sm font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="text-sm font-semibold">Please fix the following errors:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm space-y-1 ml-7">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <!-- Session Configuration Card -->
             <div class="card p-6 sm:p-8">
@@ -150,18 +195,26 @@
                     <!-- Exercise Types -->
                     <div class="mb-6">
                         <label class="block text-sm font-semibold text-gray-900 mb-3">Exercise Types</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             @foreach($practices as $practice)
+                                @if($practice->slug === 'interval-direction-practice')
+                                    @continue
+                                @endif
                                 @php
                                     $isNew = in_array($practice->slug, ['improvisation', 'composition', 'mini-project']);
+                                    if ($practice->slug === 'rhythm-practice') {
+                                        $displayName = 'Rhythm Dictation';
+                                    } else {
+                                        $displayName = preg_replace('/\s+Practice$/i', '', $practice->name);
+                                    }
                                 @endphp
-                                <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox>
-                                    <input type="checkbox" 
-                                           name="exercise_types[]" 
-                                           value="{{ $practice->id }}" 
+                                <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox data-slug="{{ $practice->slug }}">
+                                    <input type="checkbox"
+                                           name="exercise_types[]"
+                                           value="{{ $practice->id }}"
                                            class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
                                     <span class="checkbox-label text-sm text-gray-700">
-                                        {{ $practice->name }}
+                                        {{ $displayName }}
                                         @if($isNew)
                                             <span class="text-purple-600 font-medium">(New!)</span>
                                         @endif
@@ -171,25 +224,53 @@
                         </div>
                     </div>
 
-                    <!-- Number of Questions & Student Level -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
-                            <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="5" selected>5 Questions (Quick)</option>
-                                <option value="10" >10 Questions (Standard)</option>
-                                <option value="15">15 Questions (Extended)</option>
-                                <option value="20">20 Questions (Comprehensive)</option>
-                            </select>
+                    <!-- Rhythm Dictation options (shown only when Rhythm Dictation is selected) -->
+                    <div id="rhythmOptions" class="mb-6 hidden">
+                        <div class="rounded-lg border border-purple-200 bg-purple-50/60 p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="music-2" class="w-4 h-4 text-purple-600"></i>
+                                <span class="text-sm font-semibold text-gray-900">Rhythm Dictation Settings</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Time Signature</label>
+                                    <select name="rhythm_time_signature" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                        <option value="2/4">2/4</option>
+                                        <option value="3/4">3/4</option>
+                                        <option value="4/4" selected>4/4</option>
+                                        <option value="6/8">6/8</option>
+                                        <option value="9/8">9/8</option>
+                                        <option value="2/2">2/2</option>
+                                        <option value="3/2">3/2</option>
+                                        <option value="4/2">4/2</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Tempo (BPM)</label>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        @foreach ([60, 80, 90, 100] as $bpm)
+                                            <button type="button"
+                                                    class="tempo-btn px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 {{ $bpm === 90 ? 'selected' : '' }}"
+                                                    data-tempo="{{ $bpm }}">
+                                                {{ $bpm }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                    <input type="hidden" name="rhythm_tempo" id="rhythmTempo" value="90">
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-900 mb-2">Student Level</label>
-                            <select name="student_level" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="beginner">Beginner</option>
-                                <option value="intermediate" selected>Intermediate</option>
-                                <option value="advanced">Advanced</option>
-                            </select>
-                        </div>
+                    </div>
+
+                    <!-- Number of Questions -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
+                        <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="5" selected>5 Questions (Quick)</option>
+                            <option value="10" >10 Questions (Standard)</option>
+                            <option value="15">15 Questions (Extended)</option>
+                            <option value="20">20 Questions (Comprehensive)</option>
+                        </select>
                     </div>
 
                     <!-- Difficulty Mode -->
@@ -212,20 +293,6 @@
                         <input type="hidden" name="difficulty" id="difficultyInput" value="adaptive">
                     </div>
 
-                    <!-- Notes for AI Coach -->
-                    <div class="mb-8">
-                        <label class="block text-sm font-semibold text-gray-900 mb-2">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="sparkles" class="w-4 h-4 text-purple-500"></i>
-                                Notes for AI Coach (Optional)
-                            </div>
-                        </label>
-                        <textarea name="coach_notes" 
-                                  rows="3" 
-                                  class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                                  placeholder="e.g., I struggle with descending intervals, focus on minor 3rds..."></textarea>
-                    </div>
-
                     <!-- Submit Button -->
                     <button type="submit" id="submitBtn" class="w-full btn-primary text-white font-semibold py-3.5 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
                         <i data-lucide="sparkles" class="w-5 h-5 btn-icon"></i>
@@ -240,131 +307,7 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                <!-- Brand -->
-                <div class="col-span-2 md:col-span-4 lg:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span class="font-bold text-lg text-white">Ear Training Studio</span>
-                    </div>
-                    <p class="text-sm mb-4">
-                        An AI-powered ear training platform for musicians, students, and educators. Master your musical ear with personalized exercises.
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="youtube" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="instagram" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="twitter" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Platform -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Platform</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="/dashboard" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="/learn" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Quick Drills</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Piano Studio</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Music Games</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Pricing & Plans</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Search Content</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">All Resources</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Articles</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Documents</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Videos</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">FAQ & Help Center</a></li>
-                    </ul>
-                </div>
-
-                <!-- Company -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Company</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy & Terms</a></li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                            <span>support@eartraining.com</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <span>San Francisco, CA</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- App Download & Search -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-3">Get the App (Coming Soon)</p>
-                        <div class="flex items-center gap-3">
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="apple" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">Download on the</p>
-                                    <p class="text-sm font-semibold text-white">App Store</p>
-                                </div>
-                            </a>
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="smartphone" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">GET IT ON</p>
-                                    <p class="text-sm font-semibold text-white">Google Play</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" placeholder="Search content..." class="w-64 bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        </div>
-                        <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                            <i data-lucide="globe" class="w-4 h-4"></i>
-                            English
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ date('Y') }} Ear Training Studio. All rights reserved.</p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                        <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.footer')
 
     <!-- Initialize Lucide Icons -->
     <script>
@@ -374,24 +317,47 @@
         document.addEventListener('DOMContentLoaded', function() {
             const checkboxCards = document.querySelectorAll('[data-checkbox]');
             
+            // Show the Rhythm Dictation settings panel only while its type is selected.
+            const rhythmOptions = document.getElementById('rhythmOptions');
+            const rhythmCard = document.querySelector('[data-slug="rhythm-practice"]');
+            const syncRhythmOptions = function() {
+                if (!rhythmOptions || !rhythmCard) return;
+                const cb = rhythmCard.querySelector('input[type="checkbox"]');
+                rhythmOptions.classList.toggle('hidden', !(cb && cb.checked));
+            };
+
             checkboxCards.forEach(card => {
                 const checkbox = card.querySelector('input[type="checkbox"]');
-                
+
                 // Set initial state
                 if (checkbox.checked) {
                     card.classList.add('selected');
                 }
-                
+
                 card.addEventListener('click', function(e) {
                     if (e.target !== checkbox) {
                         checkbox.checked = !checkbox.checked;
                     }
-                    
+
                     if (checkbox.checked) {
                         card.classList.add('selected');
                     } else {
                         card.classList.remove('selected');
                     }
+
+                    syncRhythmOptions();
+                });
+            });
+            syncRhythmOptions();
+
+            // Predefined tempo selection (60 / 80 / 90 / 100 BPM).
+            const tempoBtns = document.querySelectorAll('.tempo-btn');
+            const rhythmTempoInput = document.getElementById('rhythmTempo');
+            tempoBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tempoBtns.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    if (rhythmTempoInput) rhythmTempoInput.value = this.dataset.tempo;
                 });
             });
             

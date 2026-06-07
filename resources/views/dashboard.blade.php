@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Dashboard - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>Dashboard - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,10 +15,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.460.0"></script>
 
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -53,7 +53,7 @@
 
     <style>
         .hero-gradient {
-            background: linear-gradient(135deg, #9333ea 0%, #c084fc 35%, #f97316 100%);
+            background: linear-gradient(135deg, #0e3f5c 0%, #1a6e8a 45%, #0f8a7a 100%);
         }
         .card {
             background: white;
@@ -74,7 +74,7 @@
             background: linear-gradient(135deg, #9333ea 0%, #c084fc 50%, #f97316 100%);
         }
         .premium-gradient {
-            background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fbbf24 100%);
+            background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 50%, #9333ea 100%);
         }
     </style>
 </head>
@@ -104,21 +104,25 @@
                 <p class="text-white/80 mb-6">Ready to level up your ear training today?</p>
                 
                 <div class="flex flex-wrap gap-3">
-                    <a href="/learn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
+                    <a href="/learn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-teal-800 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
                         <i data-lucide="play-circle" class="w-5 h-5"></i>
                         Continue Learning
                     </a>
-                    <a href="/piano-studio" class="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500/80 text-white font-semibold rounded-lg hover:bg-orange-500 transition-colors backdrop-blur-sm">
-                        <i data-lucide="piano" class="w-5 h-5"></i>
-                        Piano Studio
+                    <a href="/exercise-setup" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
+                        <i data-lucide="wand-sparkles" class="w-5 h-5"></i>
+                        Exercise Setup
                     </a>
-                    <a href="/ai-exercises" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
+                    <a href="/ai-exercises" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
                         AI Exercises
                     </a>
-                    <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-700/50 text-white font-semibold rounded-lg hover:bg-purple-700/70 transition-colors backdrop-blur-sm">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                        Quick Drills
+                    <a href="/ai-chat" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
+                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                        Ask AI
+                    </a>
+                    <a href="/piano-studio" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
+                        <i data-lucide="piano" class="w-5 h-5"></i>
+                        Piano Studio
                     </a>
                 </div>
             </div>
@@ -269,9 +273,16 @@
                             <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Piano Studio</span>
                         </a>
                         
-                        <a href="/ai-exercises" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="/exercise-setup" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
+                                <i data-lucide="wand-sparkles" class="w-4 h-4 text-purple-600"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Custom Exercise Session</span>
+                        </a>
+
+                        <a href="/ai-exercises" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i>
                             </div>
                             <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">AI Exercises</span>
                         </a>
@@ -296,7 +307,7 @@
                         Unlock unlimited lessons, AI coaching, and advanced analytics.
                     </p>
                     
-                    <button class="w-full bg-white text-orange-600 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
+                    <button class="w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
                         Learn More
                     </button>
                 </div>
@@ -304,129 +315,8 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                <!-- Brand -->
-                <div class="col-span-2 md:col-span-4 lg:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span class="font-bold text-lg text-white">Ear Training Studio</span>
-                    </div>
-                    <p class="text-sm mb-4">
-                        An AI-powered ear training platform for musicians, students, and educators. Master your musical ear with personalized exercises.
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="youtube" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="instagram" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="twitter" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Platform -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Platform</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Quick Drills</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Pricing & Plans</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Search Content</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">All Resources</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Articles</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Documents</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Videos</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">FAQ & Help Center</a></li>
-                    </ul>
-                </div>
-
-                <!-- Company -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Company</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy & Terms</a></li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                            <span>support@eartraining.com</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <span>San Francisco, CA</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- App Download & Search -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-3">Get the App (Coming Soon)</p>
-                        <div class="flex items-center gap-3">
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="apple" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">Download on the</p>
-                                    <p class="text-sm font-semibold text-white">App Store</p>
-                                </div>
-                            </a>
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="smartphone" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">GET IT ON</p>
-                                    <p class="text-sm font-semibold text-white">Google Play</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" placeholder="Search content..." class="w-64 bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        </div>
-                        <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                            <i data-lucide="globe" class="w-4 h-4"></i>
-                            English
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ date('Y') }} Ear Training Studio. All rights reserved.</p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                        <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {{-- Shared Footer --}}
+    @include('partials.footer')
 
     <!-- Initialize Lucide Icons -->
     <script>

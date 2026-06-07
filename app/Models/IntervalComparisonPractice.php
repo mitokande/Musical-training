@@ -8,12 +8,11 @@ class IntervalComparisonPractice extends Model
 {
     //
     protected $fillable = [
-        'interval_a',
-        'interval_b',
-        'target',
-        'octave',
-        'clef',
+        'interval_a', 'interval_b', 'target', 'octave', 'clef',
+        'backup_data', 'needs_review', 'validation_status',
     ];
+
+    protected $casts = ['backup_data' => 'array', 'needs_review' => 'boolean'];
 
     public static function schema() {
         return [
@@ -41,8 +40,13 @@ class IntervalComparisonPractice extends Model
                     'type' => 'string',
                     'description' => 'The clef for displaying the intervals (treble, alto, bass)'
                 ],
+                'type' => [
+                    'type' => 'string',
+                    'enum' => ['interval-comparison'],
+                    'description' => 'The type of practice'
+                ],
             ],
-            'required' => ['interval_a', 'interval_b', 'target', 'octave', 'clef'],
+            'required' => ['interval_a', 'interval_b', 'target', 'octave', 'clef', 'type'],
             'additionalProperties' => false
         ];
     }   

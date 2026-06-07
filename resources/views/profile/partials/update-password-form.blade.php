@@ -13,11 +13,17 @@
         @csrf
         @method('put')
 
+        @if (auth()->user()->hasPassword())
         <div>
             <x-input-label for="update_password_current_password" :value="__('Current Password')" />
             <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />
             <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
         </div>
+        @else
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p class="text-sm text-blue-800 dark:text-blue-300">Google ile giris yaptiniz. Asagida bir sifre belirleyerek email+sifre ile de giris yapabilirsiniz.</p>
+        </div>
+        @endif
 
         <div>
             <x-input-label for="update_password_password" :value="__('New Password')" />

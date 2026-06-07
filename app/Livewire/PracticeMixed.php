@@ -4,7 +4,9 @@ namespace App\Livewire;
 
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\PageController;
+use App\Models\UserIntervalStat;
 use App\Models\UserPractice;
+use App\Services\MusicTheoryService;
 use Livewire\Component;
 
 class PracticeMixed extends Component
@@ -29,10 +31,15 @@ class PracticeMixed extends Component
         // Convert practices to plain arrays (not model instances) to survive Livewire hydration
         $this->practices = collect($practices)->map(function ($practice) {
             $type = $this->getPracticeType($practice);
-            
+
             // Convert model to array to prevent Livewire hydration issues
             $data = $practice->toArray();
-            
+
+            // Include computed note_array for chord/scale (not in $appends, so toArray() skips it)
+            if (in_array($type, ['chord', 'scale']) && method_exists($practice, 'getNoteArrayAttribute')) {
+                $data['note_array'] = $practice->note_array;
+            }
+
             return [
                 'data' => $data,
                 'type' => $type,
@@ -58,6 +65,13 @@ class PracticeMixed extends Component
             'App\Models\SingleNotePractice' => 'single_note',
             'App\Models\IntervalDirectionPractice' => 'interval_direction',
             'App\Models\IntervalComparisonPractice' => 'interval_comparison',
+            'App\Models\MelodicIntervalPractice' => 'melodic_interval',
+            'App\Models\HarmonicIntervalPractice' => 'harmonic_interval',
+            'App\Models\IntervalConstructionPractice' => 'interval_construction',
+            'App\Models\ChordPractice' => 'chord',
+            'App\Models\ScalePractice' => 'scale',
+            'App\Models\RhythmPractice' => 'rhythm',
+            'App\Models\MelodicDictationPractice' => 'melodic_dictation',
             default => 'unknown',
         };
     }
@@ -67,12 +81,31 @@ class PracticeMixed extends Component
      */
     protected function getPracticeIdByType(string $type): int
     {
-        return match ($type) {
-            'single_note' => 1,
-            'interval_direction' => 2,
-            'interval_comparison' => 3,
-            default => 0,
-        };
+        $slug = $this->slugForType($type);
+        if (!$slug) {
+            return 0;
+        }
+
+        return \App\Models\Practice::where('slug', $slug)->value('id') ?? 0;
+    }
+
+    /**
+     * Map the internal underscore practice type to its canonical slug.
+     */
+    protected function slugForType(string $type): ?string
+    {
+        return [
+            'single_note'          => 'single-note-practice',
+            'interval_direction'   => 'interval-direction-practice',
+            'interval_comparison'  => 'interval-comparison-practice',
+            'melodic_interval'     => 'melodic-interval-practice',
+            'harmonic_interval'    => 'harmonic-interval-practice',
+            'interval_construction'=> 'interval-construction-practice',
+            'chord'                => 'chord-practice',
+            'scale'                => 'scale-practice',
+            'rhythm'               => 'rhythm-practice',
+            'melodic_dictation'    => 'melodic-dictation',
+        ][$type] ?? null;
     }
 
     public function render()
@@ -103,15 +136,26 @@ class PracticeMixed extends Component
 
     public function answerPractice($practiceType, $answer, $target)
     {
-        $userPractice = UserPractice::firstOrCreate([
-            'user_id' => auth()->user()->id,
-            'practice_id' => $this->getPracticeIdByType($practiceType),
-        ]);
+        $this->skipRender();
+
+        // Save answer for coach notes
+        $this->answers[] = [
+            'id' => $this->practices[$this->currentPracticeIndex]['data']['id'] ?? 0,
+            'answer' => $answer,
+            'target' => $target,
+        ];
+
+        $userPractice = UserPractice::firstOrCreate(
+            [
+                'user_id' => auth()->user()->id,
+                'practice_id' => $this->getPracticeIdByType($practiceType),
+            ],
+            ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
+        );
 
         $userPractice->total_questions++;
-        $userPractice->save();
 
-        $isCorrect = $answer == $target;
+        $isCorrect = strtolower(trim($answer)) === strtolower(trim($target));
 
         if ($isCorrect) {
             $userPractice->correct_answers++;
@@ -121,13 +165,24 @@ class PracticeMixed extends Component
             $userPractice->incorrect_answers++;
             $this->incorrectCount++;
         }
-        $userPractice->score = $userPractice->correct_answers / $userPractice->total_questions * 100;
+        $userPractice->score = $userPractice->total_questions > 0
+            ? ($userPractice->correct_answers / $userPractice->total_questions) * 100
+            : 0;
         $userPractice->save();
+
+        $slug = $this->slugForType($practiceType);
+        if ($slug) {
+            $data     = $this->practices[$this->currentPracticeIndex]['data'] ?? [];
+            $interval = app(MusicTheoryService::class)->intervalForStats($data, $slug);
+            if ($interval !== null) {
+                UserIntervalStat::record(auth()->id(), $this->getPracticeIdByType($practiceType), $interval, $isCorrect);
+            }
+        }
 
         return [
             'answer' => $answer,
             'target' => $target,
-            'is_correct' => $answer == $target,
+            'is_correct' => $isCorrect,
         ];
     }
 
@@ -175,8 +230,6 @@ class PracticeMixed extends Component
         $answers = $this->answers;
         $coachNotes = $aiController->generateCoachNotes(['questions' => $questions, 'answers' => $answers]);
         
-        \Log::info('generateCoachNotes', ['coachNotes' => $coachNotes]);
-        
         $this->coachNotes = $coachNotes;
         $this->isGeneratingNotes = false;
         $this->showResults = true;
@@ -189,8 +242,6 @@ class PracticeMixed extends Component
             'answer' => $answer,
             'target' => $target,
         ];
-        \Log::info('saveAnswerPractice', ['answers' => $this->answers]);
-        \Log::info('test', ['practices' => $this->practices[$this->currentPracticeIndex]]);
     }
 }
 

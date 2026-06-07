@@ -31,14 +31,19 @@
                 <!-- Question -->
                 <!-- Two Intervals Visual Display -->
                 @php
-                    $intervalANotes = explode(',', $currentPractice->interval_a);
-                    $intervalBNotes = explode(',', $currentPractice->interval_b);
+                    $intervalANotes = explode(',', $currentPractice->interval_a ?? '');
+                    $intervalBNotes = explode(',', $currentPractice->interval_b ?? '');
+                    $intervalANote0 = strtolower(trim($intervalANotes[0] ?? ''));
+                    $intervalANote1 = strtolower(trim($intervalANotes[1] ?? $intervalANotes[0] ?? ''));
+                    $intervalBNote0 = strtolower(trim($intervalBNotes[0] ?? ''));
+                    $intervalBNote1 = strtolower(trim($intervalBNotes[1] ?? $intervalBNotes[0] ?? ''));
+                    $octave = $currentPractice->octave ?? '4';
                 @endphp
-                
+
                 <div id="noteDisplayContainer" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8 hidden">
                     <div class="flex flex-col items-center">
-                        <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
-                             data-notes="{{ strtolower(trim($intervalANotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalANotes[1])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[0])) . '/' . $currentPractice->octave . ',' . strtolower(trim($intervalBNotes[1])) . '/' . $currentPractice->octave }}">
+                        <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;"
+                             data-notes="{{ $intervalANote0 . '/' . $octave . ',' . $intervalANote1 . '/' . $octave . ',' . $intervalBNote0 . '/' . $octave . ',' . $intervalBNote1 . '/' . $octave }}">
                         </div>
                     </div>
                 </div>
@@ -50,8 +55,8 @@
                             <button 
                             id="playButton" 
                             class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                            data-interval-a="{{ strtoupper($intervalANotes[0]) . $currentPractice->octave . ',' . strtoupper($intervalANotes[1]) . $currentPractice->octave }}"
-                            data-interval-b="{{ strtoupper($intervalBNotes[0]) . $currentPractice->octave . ',' . strtoupper($intervalBNotes[1]) . $currentPractice->octave }}"
+                            data-interval-a="{{ strtoupper($intervalANote0) . $octave . ',' . strtoupper($intervalANote1) . $octave }}"
+                            data-interval-b="{{ strtoupper($intervalBNote0) . $octave . ',' . strtoupper($intervalBNote1) . $octave }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play Both Intervals
@@ -117,30 +122,50 @@
         
         <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
+            function vfStemDirCmp(noteKey) {
+                const m = noteKey.match(/^([a-g])(#{1,2}|b{1,2}|x)?\/(\d+)$/i);
+                if (!m) return 1;
+                const letterSt = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+                let st = letterSt[m[1].toLowerCase()] ?? 0;
+                const acc = (m[2] || '').toLowerCase();
+                if (acc === '#') st += 1;
+                else if (acc === '##' || acc === 'x') st += 2;
+                else if (acc === 'b') st -= 1;
+                else if (acc === 'bb') st -= 2;
+                const midi = (parseInt(m[3]) + 1) * 12 + st;
+                return midi >= 71 ? -1 : 1;
+            }
+
             // Define global init function
             window.initPracticeIntervalComparison = function() {
+                window._practiceGen = (window._practiceGen || 0) + 1;
+                const myGen = window._practiceGen;
                 // Initialize VexFlow for both intervals
                 if (typeof Vex !== 'undefined') {
-                    console.log("VexFlow Build:", Vex.Flow.BUILD);
-                    const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
-            
+                    const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
+
                     const div = document.getElementById("output");
                     if (div) {
                         div.innerHTML = '';
                         const renderer = new Renderer(div, Renderer.Backends.SVG);
-                        renderer.resize(360, 180);
+                        renderer.resize(568, 180);
                         const context = renderer.getContext();
-                        const stave = new Stave(10, 30, 340);
+                        const stave = new Stave(10, 30, 542);
                         stave.addClef("treble");
+                        stave.setNoteStartX(stave.getNoteStartX() + 100);
                         stave.setContext(context).draw();
-                        
+
                         const notesFromParams = div.dataset.notes;
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
-                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "q" }));
+                            const notes = notesParsed.map(note => {
+                                const sd = vfStemDirCmp(note);
+                                return new StaveNote({ keys: [note], duration: 'q', stem_direction: sd });
+                            });
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables(notes);
-                            new Formatter().joinVoices([voice]).format([voice], 280);
+                            Accidental.applyAccidentals([voice], 'C');
+                            new Formatter().joinVoices([voice]).format([voice], 300);
                             voice.draw(context, stave);
                         }
                     }
@@ -157,100 +182,36 @@
                 if (playButton && answerOptions) {
                     const target = answerOptions.dataset.target;
                     const practiceId = answerOptions.dataset.practiceId;
-                    let currentAudio = null;
                     let isAnswered = false;
 
-                    // Re-initialize icons
                     if (typeof lucide !== 'undefined') {
                         lucide.createIcons();
                     }
-                    
-                    // Play button click handler - plays both intervals with 1 second delay
-                    playButton.onclick = function() {
+
+                    // Play button click handler - plays interval A then pause then interval B
+                    playButton.onclick = async function() {
+                        await Tone.start();
                         const intervalA = this.dataset.intervalA.split(',');
                         const intervalB = this.dataset.intervalB.split(',');
-                        
-                        // Create audio URLs for all 4 notes
-                        const audioUrls = [
-                            `https://mithatck.com/music/api/note.php?note=${intervalA[0]}&duration=1`,
-                            `https://mithatck.com/music/api/note.php?note=${intervalA[1]}&duration=1`,
-                            `https://mithatck.com/music/api/note.php?note=${intervalB[0]}&duration=1`,
-                            `https://mithatck.com/music/api/note.php?note=${intervalB[1]}&duration=1`,
-                        ];
-                        
-                        // Stop any currently playing audio
-                        if (currentAudio) {
-                            currentAudio.pause();
-                            currentAudio.currentTime = 0;
-                        }
-                        
-                        // Update button state
                         playButton.disabled = true;
-                        playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Loading...';
-                        playStatus.textContent = 'Loading audio...';
+                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                        playStatus.textContent = 'Playing Interval A...';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
-                        
-                        // Create audio objects
-                        const audios = audioUrls.map(url => new Audio(url));
-                        let currentIndex = 0;
-                        
-                        const handleError = () => {
+                        // Play interval A (2 sequential notes)
+                        window.HarmonivaAudio.playSequential(intervalA, 700, 1);
+                        // After ~2s play interval B
+                        setTimeout(() => {
+                            if (window._practiceGen !== myGen) return;
+                            playStatus.textContent = 'Playing Interval B...';
+                            window.HarmonivaAudio.playSequential(intervalB, 700, 1);
+                        }, 2000);
+                        setTimeout(() => {
+                            if (window._practiceGen !== myGen) return;
                             playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
-                            playStatus.textContent = 'Error loading audio. Try again.';
+                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                            playStatus.textContent = 'Click to play again';
                             if (typeof lucide !== 'undefined') lucide.createIcons();
-                        };
-                        
-                        // Sequential playback function
-                        const playNext = () => {
-                            if (currentIndex >= audios.length) {
-                                // All notes played
-                                playButton.disabled = false;
-                                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                                playStatus.textContent = 'Click to play again';
-                                if (typeof lucide !== 'undefined') lucide.createIcons();
-                                return;
-                            }
-                            
-                            currentAudio = audios[currentIndex];
-                            
-                            // Update status based on which interval is playing
-                            if (currentIndex < 2) {
-                                playStatus.textContent = 'Playing Interval A...';
-                            } else {
-                                playStatus.textContent = 'Playing Interval B...';
-                            }
-                            
-                            currentAudio.addEventListener('ended', function() {
-                                currentIndex++;
-                                
-                                // Add 1 second delay between intervals (after note 2, before note 3)
-                                if (currentIndex === 2) {
-                                    playStatus.textContent = 'Pause between intervals...';
-                                    setTimeout(playNext, 1000);
-                                } else {
-                                    playNext();
-                                }
-                            }, { once: true });
-                            
-                            currentAudio.addEventListener('error', handleError, { once: true });
-                            currentAudio.play();
-                        };
-                        
-                        // Preload all audio files then start playing
-                        let loadedCount = 0;
-                        audios.forEach((audio, index) => {
-                            audio.addEventListener('canplaythrough', function() {
-                                loadedCount++;
-                                if (loadedCount === audios.length) {
-                                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                                    if (typeof lucide !== 'undefined') lucide.createIcons();
-                                    playNext();
-                                }
-                            }, { once: true });
-                            audio.addEventListener('error', handleError, { once: true });
-                            audio.load();
-                        });
+                        }, 4200);
                     };
                     
                     // Answer button click handlers
@@ -278,8 +239,8 @@
                                     },
                                     body: JSON.stringify({
                                         practice_id: 3,
-                                        answer: answer,
-                                        target: target
+                                        question_id: parseInt(practiceId),
+                                        answer: answer
                                     })
                                 });
                                 
@@ -358,25 +319,29 @@
                 }
             };
 
-            // Run on initial load
+            // Initialize immediately if DOM already ready, else wait.
+            if (document.readyState !== 'loading') {
+                window.initPracticeIntervalComparison();
+            } else {
+                document.addEventListener('DOMContentLoaded', function() {
+                    window.initPracticeIntervalComparison();
+                });
+            }
+
             document.addEventListener('livewire:init', function() {
                 window.initPracticeIntervalComparison();
-                
-                // Re-run when practice is updated (Next clicked)
-                Livewire.on('practice-updated', () => {
-                    // Small delay to ensure DOM is updated
-                    setTimeout(() => {
-                        window.initPracticeIntervalComparison();
-                    }, 50);
-                });
             });
-            
-            // Fallback for non-Livewire loads (standard page load)
-            document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Livewire === 'undefined') {
-                     window.initPracticeIntervalComparison();
-                }
-            });
+
+            if (!window._practiceIntervalComparisonUpdatedRegistered) {
+                window._practiceIntervalComparisonUpdatedRegistered = true;
+                document.addEventListener('livewire:init', function() {
+                    Livewire.on('practice-updated', () => {
+                        setTimeout(() => {
+                            window.initPracticeIntervalComparison();
+                        }, 50);
+                    });
+                }, { once: true });
+            }
         </script>
 
     </main>

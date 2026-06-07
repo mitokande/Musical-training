@@ -1,7 +1,7 @@
 @extends('admin.layouts.admin')
 
 @section('content')
-<div class="max-w-2xl">
+<div class="max-w-2xl" x-data="intervalEditor('{{ $practice->note1 }}', {{ (int)$practice->octave }}, '{{ $practice->note2 }}', {{ (int)($practice->note2_octave ?? $practice->octave) }})">
     <!-- Header -->
     <div class="mb-8">
         <a href="{{ route('admin.melodic-interval.index') }}" class="inline-flex items-center text-gray-500 hover:text-purple-600 transition-colors mb-4">
@@ -38,8 +38,9 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label for="note1" class="block text-sm font-semibold text-gray-700 mb-2">First Note *</label>
-                <select name="note1" 
+                <select name="note1"
                         id="note1"
+                        x-model="note1"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         required>
                     @foreach (['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as $note)
@@ -51,8 +52,9 @@
 
             <div>
                 <label for="note2" class="block text-sm font-semibold text-gray-700 mb-2">Second Note *</label>
-                <select name="note2" 
+                <select name="note2"
                         id="note2"
+                        x-model="note2"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         required>
                     @foreach (['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as $note)
@@ -65,8 +67,9 @@
 
         <div>
             <label for="octave" class="block text-sm font-semibold text-gray-700 mb-2">Octave *</label>
-            <select name="octave" 
+            <select name="octave"
                     id="octave"
+                    x-model.number="octave1"
                     class="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     required>
                 @foreach (['2', '3', '4', '5', '6'] as $octave)
@@ -76,17 +79,76 @@
             <p class="mt-2 text-xs text-gray-500">The octave number (2-6)</p>
         </div>
 
+        <!-- note2_octave hidden field — populated by auto-recalculate -->
+        <input type="hidden" name="note2_octave" :value="note2Octave">
+
         <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
-            <a href="{{ route('admin.melodic-interval.index') }}" 
+            <a href="{{ route('admin.melodic-interval.index') }}"
                class="px-5 py-2.5 text-gray-600 hover:text-gray-800 font-medium transition-colors">
                 Cancel
             </a>
-            <button type="submit" 
+            <button type="submit"
                     class="btn-primary px-6 py-2.5 text-white font-semibold rounded-lg transition-all hover:shadow-lg">
                 Update Practice
             </button>
         </div>
     </form>
+
+    <!-- Auto-recalculate panel -->
+    <div class="mt-6 card p-6" x-show="recalcResult !== null">
+        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4 text-purple-600"></i>
+            Calculated Values
+        </h3>
+        <div class="grid grid-cols-2 gap-4 text-sm" x-show="recalcResult">
+            <div>
+                <span class="text-gray-500">Direction:</span>
+                <span class="font-semibold ml-2" x-text="recalcResult?.direction ?? '—'"></span>
+            </div>
+            <div>
+                <span class="text-gray-500">Interval:</span>
+                <span class="font-semibold ml-2" x-text="recalcResult?.interval_name ?? '—'"></span>
+            </div>
+            <div>
+                <span class="text-gray-500">Semitones:</span>
+                <span class="font-semibold ml-2" x-text="recalcResult?.semitones ?? '—'"></span>
+            </div>
+            <div>
+                <span class="text-gray-500">Note2 Octave:</span>
+                <span class="font-semibold ml-2" x-text="recalcResult?.note2_octave ?? '—'"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function intervalEditor(note1, octave1, note2, note2Octave) {
+        return {
+            note1, octave1, note2, note2Octave,
+            recalcResult: null,
+            async recalc() {
+                try {
+                    const params = new URLSearchParams({
+                        note1: this.note1, note1_octave: this.octave1,
+                        note2: this.note2, note2_octave: this.note2Octave
+                    });
+                    const r = await fetch(`{{ route('admin.api.recalculate-interval') }}?` + params, {
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                    });
+                    this.recalcResult = await r.json();
+                    if (this.recalcResult.note2_octave) {
+                        this.note2Octave = this.recalcResult.note2_octave;
+                    }
+                } catch(e) { console.error(e); }
+            },
+            init() {
+                this.$watch('note1', () => this.recalc());
+                this.$watch('octave1', () => this.recalc());
+                this.$watch('note2', () => this.recalc());
+                this.recalc();
+            }
+        };
+    }
+    </script>
 
     <!-- Delete Practice -->
     <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">

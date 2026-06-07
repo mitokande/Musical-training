@@ -4,9 +4,8 @@
     <div id="output" style="width: 400px; height: 200px;"></div>
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <script>
-        console.log("VexFlow Build:", Vex.Flow.BUILD);
 
-        const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
+        const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
 
         // Create an SVG renderer and attach it to the DIV element named "output".
         const div = document.getElementById("output");
@@ -28,9 +27,8 @@
         stave.setContext(context).draw();
 
         // Create the notes
-        const notesFromParams = "{{ $target }}";
+        const notesFromParams = @json($target);
         notesParsed = notesFromParams.split(',');
-        console.log(notesParsed);
         duration = notesParsed.length > 1 ? "h" : "1";
         const notes = notesParsed.map(note => new StaveNote({ keys: [note ], duration: duration }));
 
@@ -52,6 +50,7 @@
         // Create a voice in 4/4 and add above notes
         const voice = new Voice({ numBeats: 2, beatValue: 2 });
         voice.addTickables(notes);
+        Accidental.applyAccidentals([voice], 'C');
 
         // Format and justify the notes to 400 pixels.
         new Formatter().joinVoices([voice]).format([voice], 300);

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="55%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square (dark) -->
+  <rect width="200" height="200" rx="44" fill="#1f2937"/>
+
+  <!-- Stylized H with wave crossbar -->
+  <rect x="34" y="44" width="34" height="112" rx="12" fill="url(#grad)"/>
+  <rect x="132" y="44" width="34" height="112" rx="12" fill="url(#grad)"/>
+  <path d="M68 100 Q84 68 100 100 Q116 132 132 100" stroke="url(#grad)" stroke-width="22" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

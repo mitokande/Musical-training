@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Learning Path - {{ config('app.name', 'Ear Training Studio') }}</title>
+    <title>Learning Path - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,10 +15,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.460.0"></script>
 
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -133,235 +133,157 @@
         </div>
 
         <!-- Filter Tabs -->
-        @php
-            // Get distinct types from practices
-            $practiceTypes = collect($practices)->pluck('type')->unique()->filter()->values()->toArray();
-            
-            // Define icons for each type
-            $typeIcons = [
-                'Recognition' => 'ear',
-                'Dictation' => 'pencil',
-                'Theory' => 'book-open',
-                'Rhythm' => 'drum',
-                'Intervals' => 'git-branch',
-                'Scales' => 'waves',
-                'Chords' => 'layers',
-                'default' => 'music',
-            ];
-        @endphp
-        
-        <div class="flex flex-wrap gap-2 mb-8">
-            <!-- All Modules Tab -->
-            <button class="filter-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
+        {{-- Main category tabs --}}
+        <div class="flex flex-wrap gap-2 mb-3" id="main-filter-tabs">
+            <button class="filter-tab main-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
                 <i data-lucide="music" class="w-4 h-4"></i>
                 All Modules
             </button>
-            
-            <!-- Dynamic Type Tabs -->
-            @foreach($practiceTypes as $type)
-                <button class="filter-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="{{ Str::slug($type) }}">
-                    <i data-lucide="{{ $typeIcons[$type] ?? $typeIcons['default'] }}" class="w-4 h-4"></i>
-                    {{ $type }}
-                </button>
-            @endforeach
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="intervals">
+                <i data-lucide="git-branch" class="w-4 h-4"></i>
+                Intervals
+            </button>
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="scale-practice">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                Scales &amp; Modes
+            </button>
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="chord-practice">
+                <i data-lucide="star" class="w-4 h-4"></i>
+                Chords
+            </button>
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="rhythm-practice">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                Rhythm
+            </button>
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="melodic-dictation">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Melodic Dictation
+            </button>
+            <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="single-note-practice">
+                <i data-lucide="music-2" class="w-4 h-4"></i>
+                Single Note
+            </button>
         </div>
+
+        {{-- Interval sub-tabs (hidden by default) --}}
+        <div id="interval-subtabs" class="hidden flex flex-wrap gap-2 mb-5 pl-3 border-l-2 border-purple-300">
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-purple-50 text-purple-700 border border-purple-200" data-sub-filter="intervals-all">
+                All Intervals
+            </button>
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="melodic-interval-practice">
+                Melodic Intervals
+            </button>
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-direction-practice">
+                Intervals Direction
+            </button>
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="harmonic-interval-practice">
+                Harmonic Intervals
+            </button>
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-construction-practice">
+                Intervals Construction
+            </button>
+            <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-comparison-practice">
+                Interval Comparison
+            </button>
+        </div>
+
+        {{-- spacer when subtabs hidden --}}
+        <div id="filter-spacer" class="mb-5"></div>
 
         <!-- Module Cards Grid -->
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            @forelse($practices as $practice)
+
+            {{-- LP Exercise Cards --}}
+            @php
+            $catToSlug = [
+                'melodic-intervals'     => 'melodic-interval-practice',
+                'interval-direction'    => 'interval-direction-practice',
+                'harmonic-intervals'    => 'harmonic-interval-practice',
+                'interval-comparison'   => 'interval-comparison-practice',
+                'interval-construction' => 'interval-construction-practice',
+                'single-note'           => 'single-note-practice',
+                'scales-modes'          => 'scale-practice',
+                'chords'                => 'chord-practice',
+                'rhythm'                => 'rhythm-practice',
+                'melodic-dictation'     => 'melodic-dictation',
+            ];
+            $lpSlugColors = [
+                'single-note-practice'           => ['icon' => '#7c3aed', 'band' => 'linear-gradient(90deg,#7c3aed,#a855f7)', 'bar' => 'linear-gradient(90deg,#7c3aed,#a855f7)', 'pct' => '#7c3aed'],
+                'interval-direction-practice'    => ['icon' => '#2563eb', 'band' => 'linear-gradient(90deg,#2563eb,#3b82f6)', 'bar' => 'linear-gradient(90deg,#2563eb,#3b82f6)', 'pct' => '#2563eb'],
+                'interval-comparison-practice'   => ['icon' => '#4f46e5', 'band' => 'linear-gradient(90deg,#4f46e5,#7c3aed)', 'bar' => 'linear-gradient(90deg,#4f46e5,#7c3aed)', 'pct' => '#4f46e5'],
+                'melodic-interval-practice'      => ['icon' => '#0d9488', 'band' => 'linear-gradient(90deg,#0d9488,#14b8a6)', 'bar' => 'linear-gradient(90deg,#0d9488,#14b8a6)', 'pct' => '#0d9488'],
+                'harmonic-interval-practice'     => ['icon' => '#059669', 'band' => 'linear-gradient(90deg,#059669,#10b981)', 'bar' => 'linear-gradient(90deg,#059669,#10b981)', 'pct' => '#059669'],
+                'interval-construction-practice' => ['icon' => '#0284c7', 'band' => 'linear-gradient(90deg,#0284c7,#06b6d4)', 'bar' => 'linear-gradient(90deg,#0284c7,#06b6d4)', 'pct' => '#0284c7'],
+                'chord-practice'                 => ['icon' => '#d97706', 'band' => 'linear-gradient(90deg,#d97706,#f59e0b)', 'bar' => 'linear-gradient(90deg,#d97706,#f59e0b)', 'pct' => '#d97706'],
+                'scale-practice'                 => ['icon' => '#16a34a', 'band' => 'linear-gradient(90deg,#16a34a,#22c55e)', 'bar' => 'linear-gradient(90deg,#16a34a,#22c55e)', 'pct' => '#16a34a'],
+                'rhythm-practice'                => ['icon' => '#dc2626', 'band' => 'linear-gradient(90deg,#dc2626,#ec4899)', 'bar' => 'linear-gradient(90deg,#dc2626,#ec4899)', 'pct' => '#dc2626'],
+                'melodic-dictation'              => ['icon' => '#ea580c', 'band' => 'linear-gradient(90deg,#ea580c,#f97316)', 'bar' => 'linear-gradient(90deg,#ea580c,#f97316)', 'pct' => '#ea580c'],
+            ];
+            $levelLabels = ['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced'];
+            $levelColors = ['beginner' => 'bg-green-100 text-green-700', 'intermediate' => 'bg-yellow-100 text-yellow-700', 'advanced' => 'bg-red-100 text-red-700'];
+            @endphp
+
+            @foreach($lpExercises as $ex)
                 @php
-                    // Define icon colors based on practice type
-                    $iconColors = [
-                        'Recognition' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600'],
-                        'Dictation' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-600'],
-                        'Theory' => ['bg' => 'bg-cyan-100', 'text' => 'text-cyan-600'],
-                        'Rhythm' => ['bg' => 'bg-red-100', 'text' => 'text-red-600'],
-                        'default' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600'],
-                    ];
-                    $colors = $iconColors[$practice['type']] ?? $iconColors['default'];
-                    $isPremium = $practice['is_premium'] == '1' || $practice['is_premium'] == 1;
+                    $catSlug = $ex->category->slug ?? '';
+                    $filterSlug = $catToSlug[$catSlug] ?? $catSlug;
+                    $col = $lpSlugColors[$filterSlug] ?? ['icon' => '#9333ea', 'band' => 'linear-gradient(90deg,#9333ea,#7c3aed)', 'bar' => 'linear-gradient(90deg,#9333ea,#c084fc)', 'pct' => '#9333ea'];
+                    $prog = $lpProgress[$ex->id] ?? null;
+                    $progPct = $prog ? (int) $prog->score : 0;
+                    $isCompleted = $prog && $prog->completed;
                 @endphp
+                <div class="module-card lp-card card relative overflow-hidden" data-type="{{ $filterSlug }}" data-slug="{{ $filterSlug }}" data-exercise-slug="{{ $ex->slug }}">
+                    <div class="h-1.5 w-full" style="background: {{ $col['band'] }}"></div>
+                    <div class="p-6">
+                        @if($isCompleted)
+                            <div class="absolute top-4 right-4">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                    <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                    Done
+                                </span>
+                            </div>
+                        @endif
 
-                <div class="module-card card p-6 relative" data-type="{{ Str::slug($practice['type']) }}">
-                    @if($isPremium)
-                        <div class="absolute top-4 right-4">
-                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                <i data-lucide="crown" class="w-3 h-3"></i>
-                                Premium
-                            </span>
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ $col['icon'] }}">
+                                <i data-lucide="music" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Lesson {{ $ex->sort_order }}</span>
                         </div>
-                    @endif
 
-                    <div class="w-12 h-12 rounded-xl {{ $colors['bg'] }} flex items-center justify-center mb-4">
-                        <i data-lucide="music" class="w-6 h-6 {{ $colors['text'] }}"></i>
-                    </div>
+                        <h3 class="font-bold text-gray-900 mb-1 text-sm leading-snug">{{ $ex->getLocalizedTitle() }}</h3>
+                        <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ $ex->getLocalizedDescription() }}</p>
 
-                    <h3 class="font-bold text-gray-900 mb-1">{{ $practice['name'] }}</h3>
-                    <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ $practice['description'] }}</p>
-                    
-                    <div class="flex items-center justify-between text-sm mb-3">
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 text-xs mb-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded-full font-semibold {{ $levelColors[$ex->level] ?? 'bg-gray-100 text-gray-600' }}">
+                                {{ $levelLabels[$ex->level] ?? $ex->level }}
+                            </span>
                             <span class="flex items-center gap-1 text-gray-500">
-                                <i data-lucide="clock" class="w-4 h-4"></i>
-                                {{ $practice['type'] }}
+                                <i data-lucide="clock" class="w-3 h-3"></i>
+                                ~{{ $ex->estimated_duration_minutes }} min
                             </span>
+                            @if($progPct > 0)
+                                <span class="ml-auto font-semibold" style="color: {{ $col['pct'] }}">{{ $progPct }}%</span>
+                            @endif
                         </div>
-                        <span class="text-gray-400">{{ \App\Http\Controllers\PracticeController::getPracticeProgressByUser($practice['slug'])}}%</span>
-                    </div>
-                    
-                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">
-                        <div class="progress-bar h-1.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                    
-                    @if($isPremium)
-                        <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 border border-gray-200">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                            Unlock with Premium
-                        </button>
-                    @else
-                        <a href="/practice/{{ $practice['slug'] }}" class="w-full btn-primary text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
-                            <i data-lucide="play" class="w-4 h-4"></i>
-                            Start Module
+
+                        <div class="w-full bg-gray-100 rounded-full h-1 mb-3">
+                            <div class="h-1 rounded-full" style="width: {{ $progPct }}%; background: {{ $col['bar'] }}"></div>
+                        </div>
+
+                        <a href="{{ route('learning-path.show', $ex->slug) }}"
+                           class="w-full btn-primary text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                            {{ $isCompleted ? 'Practice Again' : 'Start Lesson' }}
                         </a>
-                    @endif
-                </div>
-            @empty
-                <div class="col-span-full text-center py-12">
-                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="music" class="w-8 h-8 text-gray-400"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No practices available</h3>
-                    <p class="text-gray-500">Check back later for new ear training exercises.</p>
                 </div>
-            @endforelse
+            @endforeach
 
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                <!-- Brand -->
-                <div class="col-span-2 md:col-span-4 lg:col-span-1">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
-                            <i data-lucide="music" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span class="font-bold text-lg text-white">Ear Training Studio</span>
-                    </div>
-                    <p class="text-sm mb-4">
-                        An AI-powered ear training platform for musicians, students, and educators. Master your musical ear with personalized exercises.
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="youtube" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="instagram" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        </a>
-                        <a href="#" class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors">
-                            <i data-lucide="twitter" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Platform -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Platform</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Learning Path</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Quick Drills</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Pricing & Plans</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Search Content</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">All Resources</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Articles</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Documents</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Videos</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">FAQ & Help Center</a></li>
-                    </ul>
-                </div>
-
-                <!-- Company -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Company</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy & Terms</a></li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="mail" class="w-4 h-4"></i>
-                            <span>support@eartraining.com</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <span>San Francisco, CA</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- App Download & Search -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-3">Get the App (Coming Soon)</p>
-                        <div class="flex items-center gap-3">
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="apple" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">Download on the</p>
-                                    <p class="text-sm font-semibold text-white">App Store</p>
-                                </div>
-                            </a>
-                            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i data-lucide="smartphone" class="w-5 h-5"></i>
-                                <div class="text-left">
-                                    <p class="text-[10px] text-gray-400">GET IT ON</p>
-                                    <p class="text-sm font-semibold text-white">Google Play</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" placeholder="Search content..." class="w-64 bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        </div>
-                        <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                            <i data-lucide="globe" class="w-4 h-4"></i>
-                            English
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Copyright -->
-            <div class="border-t border-gray-800 mt-8 pt-8">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-sm text-gray-500">© {{ date('Y') }} Ear Training Studio. All rights reserved.</p>
-                    <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-                        <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.footer')
 
     <!-- Initialize Lucide Icons -->
     <script>
@@ -369,27 +291,70 @@
         
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const filterTabs = document.querySelectorAll('.filter-tab');
-            const moduleCards = document.querySelectorAll('.module-card');
-            
-            filterTabs.forEach(tab => {
+            const mainTabs       = document.querySelectorAll('.main-tab');
+            const subTabs        = document.querySelectorAll('.sub-tab');
+            const moduleCards    = document.querySelectorAll('.module-card');
+            const intervalPanel  = document.getElementById('interval-subtabs');
+            const filterSpacer   = document.getElementById('filter-spacer');
+
+            const intervalSlugs = [
+                'melodic-interval-practice',
+                'interval-direction-practice',
+                'harmonic-interval-practice',
+                'interval-construction-practice',
+                'interval-comparison-practice',
+            ];
+
+            function setMainActive(el) {
+                mainTabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.classList.add('text-gray-600', 'bg-white', 'border', 'border-gray-200');
+                });
+                el.classList.add('active');
+                el.classList.remove('text-gray-600', 'bg-white', 'border', 'border-gray-200');
+            }
+
+            function setSubActive(el) {
+                subTabs.forEach(s => {
+                    s.classList.remove('bg-purple-50', 'text-purple-700', 'border-purple-200');
+                    s.classList.add('text-gray-600', 'bg-white', 'border-gray-200');
+                });
+                el.classList.add('bg-purple-50', 'text-purple-700', 'border-purple-200');
+                el.classList.remove('text-gray-600', 'bg-white', 'border-gray-200');
+            }
+
+            mainTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     const filter = this.dataset.filter;
-                    
-                    // Update active tab styling
-                    filterTabs.forEach(t => {
-                        t.classList.remove('active');
-                        t.classList.add('text-gray-600', 'bg-white', 'border', 'border-gray-200');
-                    });
-                    this.classList.add('active');
-                    this.classList.remove('text-gray-600', 'bg-white', 'border', 'border-gray-200');
-                    
-                    // Filter cards
+                    setMainActive(this);
+
+                    if (filter === 'intervals') {
+                        intervalPanel.classList.remove('hidden');
+                        filterSpacer.classList.add('hidden');
+                        // Reset sub-tabs to "All Intervals"
+                        setSubActive(subTabs[0]);
+                        moduleCards.forEach(card => {
+                            card.style.display = intervalSlugs.includes(card.dataset.slug) ? '' : 'none';
+                        });
+                    } else {
+                        intervalPanel.classList.add('hidden');
+                        filterSpacer.classList.remove('hidden');
+                        moduleCards.forEach(card => {
+                            card.style.display = (filter === 'all' || card.dataset.slug === filter) ? '' : 'none';
+                        });
+                    }
+                });
+            });
+
+            subTabs.forEach(sub => {
+                sub.addEventListener('click', function() {
+                    const subFilter = this.dataset.subFilter;
+                    setSubActive(this);
                     moduleCards.forEach(card => {
-                        if (filter === 'all' || card.dataset.type === filter) {
-                            card.style.display = '';
+                        if (subFilter === 'intervals-all') {
+                            card.style.display = intervalSlugs.includes(card.dataset.slug) ? '' : 'none';
                         } else {
-                            card.style.display = 'none';
+                            card.style.display = card.dataset.slug === subFilter ? '' : 'none';
                         }
                     });
                 });

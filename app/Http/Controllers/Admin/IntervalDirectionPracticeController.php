@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\IntervalDirectionPractice;
 use App\Models\Practice;
+use App\Services\MusicTheoryService;
 use Illuminate\Http\Request;
 
 class IntervalDirectionPracticeController extends Controller
@@ -33,12 +34,20 @@ class IntervalDirectionPracticeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'clef' => 'required|string|in:treble,alto,bass',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'direction' => 'required|string|in:ascending,descending',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'clef'        => 'required|string|in:treble,alto,bass',
+            'note1'       => 'required|string|max:10',
+            'note2'       => 'required|string|max:10',
+            'octave'      => 'required|string|in:2,3,4,5,6',
+            'note2_octave'=> 'nullable|integer|min:2|max:8',
         ]);
+
+        // Derive direction from actual pitches — never accept it as a form input
+        $music = app(MusicTheoryService::class);
+        $o1    = (int) $validated['octave'];
+        $o2    = (int) ($validated['note2_octave'] ?? $o1);
+        $validated['direction']         = $music->getDirection($validated['note1'], $o1, $validated['note2'], $o2);
+        $validated['note2_octave']      = $o2;
+        $validated['validation_status'] = $music->validateQuestionConsistency($validated, 'interval-direction-practice')['status'];
 
         IntervalDirectionPractice::create($validated);
 
@@ -60,12 +69,19 @@ class IntervalDirectionPracticeController extends Controller
     public function update(Request $request, IntervalDirectionPractice $interval_direction)
     {
         $validated = $request->validate([
-            'clef' => 'required|string|in:treble,alto,bass',
-            'note1' => 'required|string|max:10',
-            'note2' => 'required|string|max:10',
-            'direction' => 'required|string|in:ascending,descending',
-            'octave' => 'required|string|in:2,3,4,5,6',
+            'clef'        => 'required|string|in:treble,alto,bass',
+            'note1'       => 'required|string|max:10',
+            'note2'       => 'required|string|max:10',
+            'octave'      => 'required|string|in:2,3,4,5,6',
+            'note2_octave'=> 'nullable|integer|min:2|max:8',
         ]);
+
+        $music = app(MusicTheoryService::class);
+        $o1    = (int) $validated['octave'];
+        $o2    = (int) ($validated['note2_octave'] ?? $o1);
+        $validated['direction']         = $music->getDirection($validated['note1'], $o1, $validated['note2'], $o2);
+        $validated['note2_octave']      = $o2;
+        $validated['validation_status'] = $music->validateQuestionConsistency($validated, 'interval-direction-practice')['status'];
 
         $interval_direction->update($validated);
 

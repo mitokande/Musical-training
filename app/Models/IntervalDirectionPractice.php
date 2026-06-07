@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class IntervalDirectionPractice extends Model
 {
     protected $fillable = [
-        'clef',
-        'note1',
-        'note2',
-        'direction',
-        'octave',
+        'clef', 'note1', 'note2', 'direction', 'octave', 'note2_octave',
+        'backup_data', 'needs_review', 'validation_status',
     ];
+
+    protected $casts = ['backup_data' => 'array', 'needs_review' => 'boolean'];
 
     public static function schema() {
         return [

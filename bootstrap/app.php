@@ -13,6 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'teacher' => \App\Http\Middleware\TeacherMiddleware::class,
+            'school' => \App\Http\Middleware\SchoolMiddleware::class,
+            'plan' => \App\Http\Middleware\CheckPlanFeature::class,
+            'track.exercise' => \App\Http\Middleware\TrackExerciseUsage::class,
+        ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\NoIndex::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

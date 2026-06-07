@@ -28,12 +28,16 @@
 
             <!-- Content -->
             <div class="p-8">
-                <!-- VexFlow Note Display - Visible from start -->
-                <div id="noteDisplayContainer" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8">
-                    <div class="flex flex-col items-center">
-                        <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;" 
-                             data-notes="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave . ',' . strtolower($currentPractice->note2) . '/' . $currentPractice->octave }}">
-                        </div>
+                <!-- Exercise title -->
+                <p class="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Harmonic Interval</p>
+
+                <!-- VexFlow Note Display -->
+                <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8" style="min-height:130px;">
+                    <div id="output"
+                         style="width:100%; height:180px; display:flex; justify-content:center;"
+                         data-note1="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave }}"
+                         data-note2="{{ strtolower($currentPractice->note2) . '/' . ($currentPractice->note2_octave ?? $currentPractice->octave) }}"
+                         data-clef="{{ $clef }}">
                     </div>
                 </div>
 
@@ -41,17 +45,17 @@
                 <div class="card p-6 mb-8">
                     <div class="flex flex-col items-center">
                         <div class="flex">
-                            <button 
-                            id="playButton" 
+                            <button
+                            id="playButton"
                             class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                            data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2) . $currentPractice->octave }}"
+                            data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2) . ($currentPractice->note2_octave ?? $currentPractice->octave) }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play Interval
                         </button>
                         @if ($currentPracticeIndex < (count($practices) - 1))
-                            <button 
-                                id="nextPracticeBtn" 
+                            <button
+                                id="nextPracticeBtn"
                                 wire:click="getNextPractice"
                                 class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
@@ -61,7 +65,7 @@
                                 Next
                             </button>
                         @else
-                            <a 
+                            <a
                                 href="/learn"
                                 id="nextPracticeBtn"
                                 class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
@@ -77,52 +81,31 @@
                     </div>
                 </div>
 
-                <!-- Answer Options - Interval Types -->
-                <div id="answerOptions" class="grid grid-cols-3 sm:grid-cols-4 gap-3" 
+                <!-- Answer Options -->
+                <div id="answerOptions" class="grid grid-cols-2 gap-3"
                      data-target="{{ $currentPractice->interval }}"
                      data-practice-id="{{ $currentPractice->id }}">
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="minor 2nd">
-                        Minor 2nd
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="major 2nd">
-                        Major 2nd
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="minor 3rd">
-                        Minor 3rd
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="major 3rd">
-                        Major 3rd
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="perfect 4th">
-                        Perfect 4th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="tritone">
-                        Tritone
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="perfect 5th">
-                        Perfect 5th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="minor 6th">
-                        Minor 6th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="major 6th">
-                        Major 6th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="minor 7th">
-                        Minor 7th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="major 7th">
-                        Major 7th
-                    </button>
-                    <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm" data-answer="perfect octave">
-                        Perfect Octave
-                    </button>
+                    @php
+                        $displayOptions = !empty($intervalOptions) ? $intervalOptions : (function() use ($currentPractice) {
+                            $all = ['Minor 2nd','Major 2nd','Minor 3rd','Major 3rd','Perfect 4th','Perfect 5th','Minor 6th','Major 6th','Minor 7th','Major 7th','Perfect Octave'];
+                            $correct = $currentPractice->interval;
+                            $others = array_values(array_filter($all, fn($i) => strtolower($i) !== strtolower($correct)));
+                            shuffle($others);
+                            $opts = array_merge([$correct], array_slice($others, 0, 3));
+                            shuffle($opts);
+                            return $opts;
+                        })();
+                    @endphp
+                    @foreach ($displayOptions as $option)
+                        <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm"
+                                data-answer="{{ strtolower($option) }}">{{ $option }}</button>
+                    @endforeach
                 </div>
 
                 <!-- Feedback Message -->
                 <div id="feedbackMessage" class="mt-4 p-4 rounded-lg text-center font-medium hidden"></div>
             </div>
-            
+
         </div>
 
         <!-- XP & Score -->
@@ -135,145 +118,107 @@
             <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
         </div>
 
-        
+
         <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
-            // Define global init function
+            // ── VexFlow helpers ──────────────────────────────────────────────────────
+            function vfStemDirH(noteKey, clef) {
+                const m = noteKey.match(/^([a-g])(#{1,2}|b{1,2}|x)?\/(\d+)$/i);
+                if (!m) return 1;
+                const letterSt = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+                let st = letterSt[m[1].toLowerCase()] ?? 0;
+                const acc = (m[2] || '').toLowerCase();
+                if (acc === '#') st += 1;
+                else if (acc === '##' || acc === 'x') st += 2;
+                else if (acc === 'b') st -= 1;
+                else if (acc === 'bb') st -= 2;
+                const midi = (parseInt(m[3]) + 1) * 12 + st;
+                const mid = clef === 'bass' ? 50 : 71;
+                return midi >= mid ? -1 : 1;
+            }
+
+            // Draw either just bottom note (showBoth=false) or both as chord (showBoth=true)
+            function drawHarmonicStave(note1Key, note2Key, showBoth, clef) {
+                const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
+                const div = document.getElementById('output');
+                if (!div) return;
+                div.innerHTML = '';
+                const renderer = new Renderer(div, Renderer.Backends.SVG);
+                renderer.resize(490, 180);
+                const context = renderer.getContext();
+                const stave = new Stave(10, 30, 464);
+                stave.addClef(clef || 'treble');
+                stave.setNoteStartX(stave.getNoteStartX() + 100);
+                stave.setContext(context).draw();
+
+                // For stem direction: use the topmost note
+                const topKey = showBoth ? note2Key : note1Key;
+                const sd = vfStemDirH(topKey, clef);
+                const keys = showBoth ? [note1Key, note2Key] : [note1Key];
+                const chord = new StaveNote({ keys, duration: 'w', stem_direction: sd });
+
+                const voice = new Voice({ numBeats: 4, beatValue: 4 });
+                voice.addTickables([chord]);
+                Accidental.applyAccidentals([voice], 'C');
+                new Formatter().joinVoices([voice]).format([voice], 200);
+                voice.draw(context, stave);
+            }
+
             window.initPracticeHarmonicInterval = function() {
-                // Initialize VexFlow
-                if (typeof Vex !== 'undefined') {
-                    console.log("VexFlow Build:", Vex.Flow.BUILD);
-                    const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
-            
-                    const div = document.getElementById("output");
-                    if (div) {
-                        div.innerHTML = '';
-                        const renderer = new Renderer(div, Renderer.Backends.SVG);
-                        renderer.resize(300, 180);
-                        const context = renderer.getContext();
-                        const stave = new Stave(10, 30, 280);
-                        stave.addClef("treble");
-                        stave.setContext(context).draw();
-                        
-                        const notesFromParams = div.dataset.notes;
-                        if (notesFromParams) {
-                            const notesParsed = notesFromParams.split(',');
-                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "h" }));
-                            const voice = new Voice({ numBeats: 2, beatValue: 2 });
-                            voice.addTickables(notes);
-                            new Formatter().joinVoices([voice]).format([voice], 220);
-                            voice.draw(context, stave);
-                        }
-                    }
+                window._practiceGen = (window._practiceGen || 0) + 1;
+                const myGen = window._practiceGen;
+
+                const div = document.getElementById('output');
+                const clef     = div ? (div.dataset.clef  || 'treble') : 'treble';
+                const note1Key = div ? div.dataset.note1 : '';
+                const note2Key = div ? div.dataset.note2 : '';
+
+                if (typeof Vex !== 'undefined' && note1Key) {
+                    drawHarmonicStave(note1Key, note2Key, false, clef);
                 }
 
-                // Initialize Interactions
-                const playButton = document.getElementById('playButton');
-                const playStatus = document.getElementById('playStatus');
-                const nextButton = document.getElementById('nextPracticeBtn');
+                const playButton    = document.getElementById('playButton');
+                const playStatus    = document.getElementById('playStatus');
+                const nextButton    = document.getElementById('nextPracticeBtn');
                 const answerOptions = document.getElementById('answerOptions');
                 const answerButtons = document.querySelectorAll('.answer-btn');
                 const feedbackMessage = document.getElementById('feedbackMessage');
-                
-                if (playButton && answerOptions) {
-                    const target = answerOptions.dataset.target;
-                    const practiceId = answerOptions.dataset.practiceId;
-                    let currentAudios = [];
-                    let isAnswered = false;
 
-                    // Re-initialize icons
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
-                    }
-                    
-                    // Play button click handler - plays notes SIMULTANEOUSLY (harmonic)
-                    playButton.onclick = function() {
-                        const notes = this.dataset.note;
-                        const notesParsed = notes.split(',');
-                        const audioUrl1 = `https://mithatck.com/music/api/note.php?note=${notesParsed[0]}&duration=2`;
-                        const audioUrl2 = `https://mithatck.com/music/api/note.php?note=${notesParsed[1]}&duration=2`;
-                        
-                        // Stop any currently playing audio
-                        currentAudios.forEach(audio => {
-                            audio.pause();
-                            audio.currentTime = 0;
-                        });
-                        currentAudios = [];
-                        
-                        // Update button state
+                if (playButton && answerOptions) {
+                    const target     = answerOptions.dataset.target;
+                    const practiceId = answerOptions.dataset.practiceId;
+                    let isAnswered   = false;
+
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                    playButton.onclick = async function() {
+                        await Tone.start();
+                        const notes = this.dataset.note.split(',');
                         playButton.disabled = true;
-                        playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Loading...';
-                        playStatus.textContent = 'Loading audio...';
+                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                        playStatus.textContent = 'Playing harmonic interval...';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
-                        
-                        // Create audio objects
-                        const audio1 = new Audio(audioUrl1);
-                        const audio2 = new Audio(audioUrl2);
-                        currentAudios = [audio1, audio2];
-                        
-                        let loadedCount = 0;
-                        let endedCount = 0;
-        
-                        const handleError = () => {
+                        window.HarmonivaAudio.playSimultaneous(notes, 2);
+                        setTimeout(() => {
+                            if (window._practiceGen !== myGen) return;
                             playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Retry';
-                            playStatus.textContent = 'Error loading audio. Try again.';
+                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                            playStatus.textContent = 'Click to play again';
                             if (typeof lucide !== 'undefined') lucide.createIcons();
-                        };
-                        
-                        const handleLoaded = () => {
-                            loadedCount++;
-                            if (loadedCount === 2) {
-                                // Both loaded, play simultaneously
-                                playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                                playStatus.textContent = 'Playing harmonic interval...';
-                                if (typeof lucide !== 'undefined') lucide.createIcons();
-                                audio1.play();
-                                audio2.play();
-                            }
-                        };
-                        
-                        const handleEnded = () => {
-                            endedCount++;
-                            if (endedCount === 2) {
-                                // Both finished
-                                playButton.disabled = false;
-                                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                                playStatus.textContent = 'Click to play again';
-                                if (typeof lucide !== 'undefined') lucide.createIcons();
-                            }
-                        };
-                        
-                        audio1.addEventListener('canplaythrough', handleLoaded, { once: true });
-                        audio2.addEventListener('canplaythrough', handleLoaded, { once: true });
-                        
-                        audio1.addEventListener('ended', handleEnded);
-                        audio2.addEventListener('ended', handleEnded);
-                        
-                        audio1.addEventListener('error', handleError);
-                        audio2.addEventListener('error', handleError);
-                        
-                        // Start loading both
-                        audio1.load();
-                        audio2.load();
+                        }, 2500);
                     };
-                    
-                    // Answer button click handlers
+
                     answerButtons.forEach(btn => {
                         btn.onclick = async function() {
-                            // Prevent multiple answers
                             if (isAnswered) return;
-                            
+
                             const answer = this.dataset.answer;
                             const originalContent = this.innerHTML;
-                            
-                            // Disable all buttons while checking
+
                             answerButtons.forEach(b => b.disabled = true);
-                            
-                            // Show loading state on clicked button
                             this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i>';
                             if (typeof lucide !== 'undefined') lucide.createIcons();
-                            
+
                             try {
                                 const response = await fetch('/api/practice/check-answer', {
                                     method: 'POST',
@@ -282,26 +227,27 @@
                                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                                     },
                                     body: JSON.stringify({
-                                        practice_id: 5, // Harmonic Interval Practice ID
-                                        answer: answer,
-                                        target: target.toLowerCase()
+                                        practice_id: 5,
+                                        question_id: parseInt(practiceId),
+                                        answer: answer
                                     })
                                 });
-                                
+
                                 const data = await response.json();
-                                
                                 isAnswered = true;
-                                
-                                // Toggle buttons: Hide Play, Show Next
+
+                                // Reveal second note after answer
+                                if (typeof Vex !== 'undefined' && note1Key && note2Key) {
+                                    drawHarmonicStave(note1Key, note2Key, true, clef);
+                                }
+
                                 if (playButton) playButton.classList.add('hidden');
                                 if (playStatus) playStatus.classList.add('hidden');
                                 if (nextButton) nextButton.classList.remove('hidden');
 
-                                // Reset button text
                                 this.innerHTML = originalContent;
-                                
+
                                 if (data.is_correct) {
-                                    // Correct answer
                                     this.classList.add('correct');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-green-700');
@@ -309,15 +255,13 @@
                                     feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
-                                    // Incorrect answer
                                     this.classList.add('incorrect');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-red-700');
                                     feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target}.`;
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
-                                    
-                                    // Highlight correct answer
+
                                     answerButtons.forEach(b => {
                                         if (b.dataset.answer.toLowerCase() === target.toLowerCase()) {
                                             b.classList.add('correct');
@@ -326,31 +270,26 @@
                                         }
                                     });
                                 }
-                                
-                                // Update score displays if they exist
+
                                 if (data.xp !== undefined) {
-                                    const xpElement = document.getElementById('xpEarned');
-                                    if (xpElement) xpElement.textContent = data.xp;
+                                    const el = document.getElementById('xpEarned');
+                                    if (el) el.textContent = data.xp;
                                 }
                                 if (data.correctCount !== undefined) {
-                                    const correctElement = document.getElementById('correctCount');
-                                    const scoreCorrect = document.getElementById('scoreCorrect');
-                                    if (correctElement) correctElement.textContent = data.correctCount;
-                                    if (scoreCorrect) scoreCorrect.textContent = data.correctCount;
+                                    const el = document.getElementById('scoreCorrect');
+                                    if (el) el.textContent = data.correctCount;
                                 }
                                 if (data.totalCount !== undefined) {
-                                    const scoreTotal = document.getElementById('scoreTotal');
-                                    if (scoreTotal) scoreTotal.textContent = data.totalCount;
+                                    const el = document.getElementById('scoreTotal');
+                                    if (el) el.textContent = data.totalCount;
                                 }
-                                
+
                             } catch (error) {
                                 console.error('Error checking answer:', error);
                                 this.innerHTML = originalContent;
                                 feedbackMessage.textContent = 'Error checking answer. Please try again.';
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
-                                
-                                // Re-enable buttons on error
                                 answerButtons.forEach(b => b.disabled = false);
                                 isAnswered = false;
                             }
@@ -359,23 +298,16 @@
                 }
             };
 
-            // Run on initial load
             document.addEventListener('livewire:init', function() {
                 window.initPracticeHarmonicInterval();
-                
-                // Re-run when practice is updated (Next clicked)
                 Livewire.on('practice-updated', () => {
-                    // Small delay to ensure DOM is updated
-                    setTimeout(() => {
-                        window.initPracticeHarmonicInterval();
-                    }, 50);
+                    setTimeout(() => window.initPracticeHarmonicInterval(), 50);
                 });
             });
-            
-            // Fallback for non-Livewire loads (standard page load)
+
             document.addEventListener('DOMContentLoaded', function() {
                 if (typeof Livewire === 'undefined') {
-                     window.initPracticeHarmonicInterval();
+                    window.initPracticeHarmonicInterval();
                 }
             });
         </script>
