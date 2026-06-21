@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, LogsActivity;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, LogsActivity, Notifiable;
 
     protected $fillable = [
         'name',
@@ -86,12 +88,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isSuspended(): bool
     {
-        return !is_null($this->suspended_at);
+        return ! is_null($this->suspended_at);
     }
 
     public function hasPassword(): bool
     {
-        return !is_null($this->password);
+        return ! is_null($this->password);
     }
 
     public function canAccess(string $feature): bool
@@ -213,6 +215,64 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ExerciseSession::class);
     }
 
+    // --- Social: following / feed ---
+
+    public static function booted(): void
+    {
+        static::created(function (User $user) {
+            FeedItem::recordNewMember($user);
+        });
+    }
+
+    /** Users that this user follows. */
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id')
+            ->withTimestamps();
+    }
+
+    /** Users that follow this user. */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id')
+            ->withTimestamps();
+    }
+
+    public function feedItems(): HasMany
+    {
+        return $this->hasMany(FeedItem::class);
+    }
+
+    public function isFollowing(User $user): bool
+    {
+        return $this->following()->whereKey($user->id)->exists();
+    }
+
+    public function follow(User $user): void
+    {
+        if ($user->id === $this->id || $this->isFollowing($user)) {
+            return;
+        }
+
+        $this->following()->attach($user->id);
+        FeedItem::recordFollow($this, $user);
+    }
+
+    public function unfollow(User $user): void
+    {
+        $this->following()->detach($user->id);
+    }
+
+    public function followersCount(): int
+    {
+        return $this->followers()->count();
+    }
+
+    public function followingCount(): int
+    {
+        return $this->following()->count();
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -226,13 +286,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getProfileCompletenessAttribute(): int
     {
         $fields = ['name', 'phone', 'country', 'city', 'avatar_url'];
-        $filled = collect($fields)->filter(fn ($f) => !empty($this->$f))->count();
+        $filled = collect($fields)->filter(fn ($f) => ! empty($this->$f))->count();
 
         $profile = $this->profile;
         $profileFields = ['primary_instrument', 'musical_level', 'education_status', 'bio'];
         $profileFilled = 0;
         if ($profile) {
-            $profileFilled = collect($profileFields)->filter(fn ($f) => !empty($profile->$f))->count();
+            $profileFilled = collect($profileFields)->filter(fn ($f) => ! empty($profile->$f))->count();
         }
 
         $total = count($fields) + count($profileFields);
@@ -246,9 +306,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $missing = [];
         $labels = [
             'avatar_url' => __('app.profile.missing_avatar'),
-            'phone'      => __('app.profile.missing_phone'),
-            'country'    => __('app.profile.missing_country'),
-            'city'       => __('app.profile.missing_city'),
+            'phone' => __('app.profile.missing_phone'),
+            'country' => __('app.profile.missing_country'),
+            'city' => __('app.profile.missing_city'),
         ];
 
         foreach ($labels as $field => $label) {
@@ -260,13 +320,13 @@ class User extends Authenticatable implements MustVerifyEmail
         $profile = $this->profile;
         $profileLabels = [
             'primary_instrument' => __('app.profile.missing_instrument'),
-            'musical_level'      => __('app.profile.missing_level'),
-            'education_status'   => __('app.profile.missing_education'),
-            'bio'                => __('app.profile.missing_bio'),
+            'musical_level' => __('app.profile.missing_level'),
+            'education_status' => __('app.profile.missing_education'),
+            'bio' => __('app.profile.missing_bio'),
         ];
 
         foreach ($profileLabels as $field => $label) {
-            if (!$profile || empty($profile->$field)) {
+            if (! $profile || empty($profile->$field)) {
                 $missing[] = $label;
             }
         }
@@ -285,8 +345,9 @@ class User extends Authenticatable implements MustVerifyEmail
             if (str_starts_with($this->avatar_url, 'pub:')) {
                 return asset(substr($this->avatar_url, 4));
             }
+
             // Legacy: storage symlink path
-            return asset('storage/' . $this->avatar_url);
+            return asset('storage/'.$this->avatar_url);
         }
 
         return '';
@@ -294,6 +355,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasAvatar(): bool
     {
-        return !empty($this->avatar_url);
+        return ! empty($this->avatar_url);
     }
 }

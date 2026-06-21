@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FeedItem;
 use App\Models\GameScore;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,7 +10,8 @@ use Illuminate\Support\Facades\Auth;
 class GameController extends Controller
 {
     const GUEST_PLAYS_PER_TYPE = 1;
-    const GUEST_PLAYS_TOTAL    = 3;
+
+    const GUEST_PLAYS_TOTAL = 3;
 
     public const GAMES = [
         'note-rush' => [
@@ -87,7 +89,7 @@ class GameController extends Controller
                 $scores[$slug] = GameScore::personalBest($user->id, $slug);
             }
             $perTypeLimit = $user->getPlanLimit('games_daily_plays_per_type');
-            $totalLimit   = $user->getPlanLimit('games_daily_plays_total');
+            $totalLimit = $user->getPlanLimit('games_daily_plays_total');
             $canAccessLeaderboard = $user->getPlanLimit('games_leaderboard');
         }
 
@@ -103,23 +105,23 @@ class GameController extends Controller
         $user = Auth::user();
         $game = self::GAMES[$slug];
 
-        $personalBestRecord   = null;
-        $personalBest         = 0;
-        $perTypeLimit         = null;
-        $totalLimit           = null;
+        $personalBestRecord = null;
+        $personalBest = 0;
+        $perTypeLimit = null;
+        $totalLimit = null;
         $canAccessLeaderboard = false;
-        $dailyPlaysUsed       = 0;
-        $totalPlaysUsed       = 0;
-        $canPlay              = true;
-        $weeklyLeaderboard    = collect();
-        $allTimeLeaderboard   = collect();
-        $userWeeklyRank       = null;
+        $dailyPlaysUsed = 0;
+        $totalPlaysUsed = 0;
+        $canPlay = true;
+        $weeklyLeaderboard = collect();
+        $allTimeLeaderboard = collect();
+        $userWeeklyRank = null;
 
         if ($user) {
             $personalBestRecord = GameScore::personalBest($user->id, $slug);
-            $personalBest       = $personalBestRecord?->score ?? 0;
-            $perTypeLimit       = $user->getPlanLimit('games_daily_plays_per_type');
-            $totalLimit         = $user->getPlanLimit('games_daily_plays_total');
+            $personalBest = $personalBestRecord?->score ?? 0;
+            $perTypeLimit = $user->getPlanLimit('games_daily_plays_per_type');
+            $totalLimit = $user->getPlanLimit('games_daily_plays_total');
             $canAccessLeaderboard = $user->getPlanLimit('games_leaderboard');
 
             if ($perTypeLimit !== -1) {
@@ -152,12 +154,12 @@ class GameController extends Controller
                 : null;
         } else {
             // Guest: session-based tracking (one-time, not daily)
-            $guestPlays     = session('guest_game_plays', []);
+            $guestPlays = session('guest_game_plays', []);
             $dailyPlaysUsed = $guestPlays[$slug] ?? 0;
             $totalPlaysUsed = array_sum($guestPlays);
-            $perTypeLimit   = self::GUEST_PLAYS_PER_TYPE;
-            $totalLimit     = self::GUEST_PLAYS_TOTAL;
-            $canPlay        = $dailyPlaysUsed < $perTypeLimit && $totalPlaysUsed < $totalLimit;
+            $perTypeLimit = self::GUEST_PLAYS_PER_TYPE;
+            $totalLimit = self::GUEST_PLAYS_TOTAL;
+            $canPlay = $dailyPlaysUsed < $perTypeLimit && $totalPlaysUsed < $totalLimit;
         }
 
         $scoreUrl = $user
@@ -176,17 +178,17 @@ class GameController extends Controller
     {
         abort_unless(array_key_exists($slug, self::GAMES), 404);
 
-        $guestPlays          = session('guest_game_plays', []);
-        $guestPlays[$slug]   = ($guestPlays[$slug] ?? 0) + 1;
+        $guestPlays = session('guest_game_plays', []);
+        $guestPlays[$slug] = ($guestPlays[$slug] ?? 0) + 1;
         session(['guest_game_plays' => $guestPlays]);
 
         $playsThisType = $guestPlays[$slug];
-        $totalPlays    = array_sum($guestPlays);
-        $canPlayAgain  = $playsThisType < self::GUEST_PLAYS_PER_TYPE
+        $totalPlays = array_sum($guestPlays);
+        $canPlayAgain = $playsThisType < self::GUEST_PLAYS_PER_TYPE
                          && $totalPlays < self::GUEST_PLAYS_TOTAL;
 
         return response()->json([
-            'success'        => true,
+            'success' => true,
             'can_play_again' => $canPlayAgain,
         ]);
     }
@@ -198,7 +200,7 @@ class GameController extends Controller
         $user = Auth::user();
 
         $perTypeLimit = $user->getPlanLimit('games_daily_plays_per_type');
-        $totalLimit   = $user->getPlanLimit('games_daily_plays_total');
+        $totalLimit = $user->getPlanLimit('games_daily_plays_total');
 
         // Server-side per-type limit enforcement
         if ($perTypeLimit !== -1) {
@@ -209,8 +211,8 @@ class GameController extends Controller
 
             if ($playsToday >= $perTypeLimit) {
                 return response()->json([
-                    'success'        => false,
-                    'limit_reached'  => true,
+                    'success' => false,
+                    'limit_reached' => true,
                     'can_play_again' => false,
                 ]);
             }
@@ -224,31 +226,36 @@ class GameController extends Controller
 
             if ($totalToday >= $totalLimit) {
                 return response()->json([
-                    'success'        => false,
-                    'limit_reached'  => true,
+                    'success' => false,
+                    'limit_reached' => true,
                     'can_play_again' => false,
                 ]);
             }
         }
 
         $validated = $request->validate([
-            'score'         => 'required|integer|min:0',
-            'max_streak'    => 'required|integer|min:0',
+            'score' => 'required|integer|min:0',
+            'max_streak' => 'required|integer|min:0',
             'level_reached' => 'required|integer|min:1',
-            'metadata'      => 'nullable|array',
+            'metadata' => 'nullable|array',
         ]);
 
         $gameScore = GameScore::create([
-            'user_id'       => $user->id,
-            'game_slug'     => $slug,
-            'score'         => $validated['score'],
-            'max_streak'    => $validated['max_streak'],
+            'user_id' => $user->id,
+            'game_slug' => $slug,
+            'score' => $validated['score'],
+            'max_streak' => $validated['max_streak'],
             'level_reached' => $validated['level_reached'],
-            'metadata'      => $validated['metadata'] ?? null,
+            'metadata' => $validated['metadata'] ?? null,
         ]);
 
         $personalBest = GameScore::personalBest($user->id, $slug);
-        $isNewBest    = $personalBest->id === $gameScore->id;
+        $isNewBest = $personalBest->id === $gameScore->id;
+
+        // Share a "new personal best" achievement to the social feed.
+        if ($isNewBest && $gameScore->score > 0) {
+            FeedItem::recordGameHighScore($user, $slug, self::GAMES[$slug]['name'], $gameScore->score);
+        }
 
         // Determine if the user can play again (check both limits after saving)
         $canPlayAgain = true;
@@ -273,9 +280,9 @@ class GameController extends Controller
         }
 
         return response()->json([
-            'success'        => true,
-            'is_new_best'    => $isNewBest,
-            'personal_best'  => $personalBest->score,
+            'success' => true,
+            'is_new_best' => $isNewBest,
+            'personal_best' => $personalBest->score,
             'can_play_again' => $canPlayAgain,
         ]);
     }

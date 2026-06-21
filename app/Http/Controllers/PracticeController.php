@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\ChordPractice;
 use App\Models\DailyExerciseCount;
+use App\Models\FeedItem;
+use App\Models\HarmonicIntervalPractice;
 use App\Models\IntervalComparisonPractice;
+use App\Models\IntervalConstructionPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\MelodicDictationPractice;
 use App\Models\MelodicIntervalPractice;
-use App\Models\HarmonicIntervalPractice;
-use App\Models\IntervalConstructionPractice;
 use App\Models\Practice;
 use App\Models\RhythmPractice;
 use App\Models\ScalePractice;
@@ -19,6 +20,7 @@ use App\Models\UserLearningPathProgress;
 use App\Models\UserPractice;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PracticeController extends Controller
@@ -50,27 +52,30 @@ class PracticeController extends Controller
         'interval-construction-practice' => 6,
     ];
 
-    public function getSingleNotePractices() {
+    public function getSingleNotePractices()
+    {
         $singleNotePractices = SingleNotePractice::all();
+
         return response()->json($singleNotePractices);
     }
 
     // Slug-based routing for new practice types
     protected static array $slugModels = [
-        'chord-practice'    => ChordPractice::class,
-        'scale-practice'    => ScalePractice::class,
-        'rhythm-practice'   => RhythmPractice::class,
+        'chord-practice' => ChordPractice::class,
+        'scale-practice' => ScalePractice::class,
+        'rhythm-practice' => RhythmPractice::class,
         'melodic-dictation' => MelodicDictationPractice::class,
     ];
 
     protected static array $slugTargetFields = [
-        'chord-practice'    => 'chord_type',
-        'scale-practice'    => 'scale_type',
-        'rhythm-practice'   => 'note_values',
+        'chord-practice' => 'chord_type',
+        'scale-practice' => 'scale_type',
+        'rhythm-practice' => 'note_values',
         'melodic-dictation' => 'notes',
     ];
 
-    public function checkAnswer(Request $request) {
+    public function checkAnswer(Request $request)
+    {
         // Exercise-setup free practice (generated questions, no DB IDs) — check first
         // so a stale learning_path_session cannot override the current exercise.
         $ep = session('exercise_practice_session');
@@ -110,7 +115,7 @@ class PracticeController extends Controller
         $modelClass = self::$practiceModels[$practiceId];
         $question = $modelClass::find($questionId);
 
-        if (!$question) {
+        if (! $question) {
             return response()->json(['error' => 'Question not found'], 404);
         }
 
@@ -121,7 +126,7 @@ class PracticeController extends Controller
         if ($practiceId === 2) {
             $octave1 = (int) ($question->octave ?? 4);
             $octave2 = (int) ($question->note2_octave ?? $octave1);
-            $target  = app(MusicTheoryService::class)->getDirection($question->note1, $octave1, $question->note2, $octave2);
+            $target = app(MusicTheoryService::class)->getDirection($question->note1, $octave1, $question->note2, $octave2);
         }
 
         // For interval construction: accept enharmonic equivalents
@@ -141,14 +146,21 @@ class PracticeController extends Controller
                 ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
             );
             $userPractice->total_questions++;
-            if ($isCorrect) { $userPractice->correct_answers++; }
-            else { $userPractice->incorrect_answers++; }
+            if ($isCorrect) {
+                $userPractice->correct_answers++;
+            } else {
+                $userPractice->incorrect_answers++;
+            }
             $userPractice->score = $userPractice->total_questions > 0
                 ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
             $userPractice->save();
-            DailyExerciseCount::incrementCount($userId, $practiceId);
+            $daily = DailyExerciseCount::incrementCount($userId, $practiceId);
+            // On the first activity of a new day, check for a streak milestone.
+            if ($daily->wasRecentlyCreated && ($actor = auth()->user())) {
+                FeedItem::checkStreakAchievement($actor);
+            }
             $correctCount = $userPractice->correct_answers;
-            $totalCount   = $userPractice->total_questions;
+            $totalCount = $userPractice->total_questions;
         }
 
         $this->recordIntervalStat($practiceId, $question->getAttributes(), $isCorrect);
@@ -168,7 +180,7 @@ class PracticeController extends Controller
      */
     protected function recordIntervalStat(?int $practiceId, array $data, bool $isCorrect): void
     {
-        if (!$practiceId) {
+        if (! $practiceId) {
             return;
         }
 
@@ -187,7 +199,7 @@ class PracticeController extends Controller
         }
     }
 
-    protected function checkLPAnswer(Request $request, array $lp, int $idx): \Illuminate\Http\JsonResponse
+    protected function checkLPAnswer(Request $request, array $lp, int $idx): JsonResponse
     {
         $request->validate(['answer' => 'required|string|max:1000']);
 
@@ -196,28 +208,28 @@ class PracticeController extends Controller
 
         /** @var LearningPathQuestionGenerator $generator */
         $generator = app(LearningPathQuestionGenerator::class);
-        $correct   = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
-        $answer    = trim($request->answer);
+        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
+        $answer = trim($request->answer);
 
-        $normalizedAnswer  = strtolower(preg_replace('/\s+/', '', $answer));
+        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
         $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
-        if (!$isCorrect && $practiceType === 'interval-construction-practice') {
+        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 
         $progress = UserLearningPathProgress::firstOrCreate(
             [
-                'user_id'                   => auth()->id(),
+                'user_id' => auth()->id(),
                 'learning_path_exercise_id' => $lp['exercise_id'],
             ],
             [
                 'question_count_attempted' => $lp['question_count'],
-                'total_questions'          => 0,
-                'correct_answers'          => 0,
-                'score'                    => 0,
-                'completed'                => false,
+                'total_questions' => 0,
+                'correct_answers' => 0,
+                'score' => 0,
+                'completed' => false,
             ]
         );
 
@@ -232,7 +244,7 @@ class PracticeController extends Controller
 
         $isLast = ($idx + 1) >= $lp['question_count'];
         if ($isLast) {
-            $progress->completed    = true;
+            $progress->completed = true;
             $progress->completed_at = now();
             session()->forget('learning_path_session');
         }
@@ -242,17 +254,17 @@ class PracticeController extends Controller
         $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
 
         return response()->json([
-            'is_correct'    => $isCorrect,
+            'is_correct' => $isCorrect,
             'correctAnswer' => $correct,
-            'xp'            => $progress->correct_answers * 10,
-            'correctCount'  => $progress->correct_answers,
-            'totalCount'    => $progress->total_questions,
-            'completed'     => $isLast,
-            'score'         => $progress->score,
+            'xp' => $progress->correct_answers * 10,
+            'correctCount' => $progress->correct_answers,
+            'totalCount' => $progress->total_questions,
+            'completed' => $isLast,
+            'score' => $progress->score,
         ]);
     }
 
-    protected function checkExercisePracticeAnswer(Request $request, array $ep, int $idx): \Illuminate\Http\JsonResponse
+    protected function checkExercisePracticeAnswer(Request $request, array $ep, int $idx): JsonResponse
     {
         $request->validate(['answer' => 'required|string|max:1000']);
 
@@ -260,22 +272,22 @@ class PracticeController extends Controller
         $practiceType = $ep['practice_type'];
 
         $generator = app(LearningPathQuestionGenerator::class);
-        $correct   = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
-        $answer    = trim($request->answer);
+        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
+        $answer = trim($request->answer);
 
-        $normalizedAnswer  = strtolower(preg_replace('/\s+/', '', $answer));
+        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
         $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
         // For interval construction: also accept enharmonic equivalents
-        if (!$isCorrect && $practiceType === 'interval-construction-practice') {
+        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 
         $correctCount = 0;
         $totalCount = 0;
         if ($userId = auth()->id()) {
-            $practiceId   = Practice::where('slug', $practiceType)->value('id');
+            $practiceId = Practice::where('slug', $practiceType)->value('id');
             $userPractice = UserPractice::firstOrCreate(
                 ['user_id' => $userId, 'practice_id' => $practiceId],
                 ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
@@ -290,7 +302,7 @@ class PracticeController extends Controller
                 ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
             $userPractice->save();
             $correctCount = $userPractice->correct_answers;
-            $totalCount   = $userPractice->total_questions;
+            $totalCount = $userPractice->total_questions;
         }
 
         $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
@@ -303,11 +315,11 @@ class PracticeController extends Controller
         }
 
         return response()->json([
-            'is_correct'    => $isCorrect,
+            'is_correct' => $isCorrect,
             'correctAnswer' => $correct,
-            'xp'            => $correctCount * 10,
-            'correctCount'  => $correctCount,
-            'totalCount'    => $totalCount,
+            'xp' => $correctCount * 10,
+            'correctCount' => $correctCount,
+            'totalCount' => $totalCount,
         ]);
     }
 
@@ -315,13 +327,13 @@ class PracticeController extends Controller
     {
         $request->validate([
             'question_id' => 'required|integer',
-            'answer'      => 'required|string|max:1000',
+            'answer' => 'required|string|max:1000',
         ]);
 
         $modelClass = self::$slugModels[$slug];
-        $question   = $modelClass::find($request->question_id);
+        $question = $modelClass::find($request->question_id);
 
-        if (!$question) {
+        if (! $question) {
             return response()->json(['error' => 'Question not found'], 404);
         }
 
@@ -347,59 +359,71 @@ class PracticeController extends Controller
                     ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
                 );
                 $userPractice->total_questions++;
-                if ($isCorrect) { $userPractice->correct_answers++; }
-                else { $userPractice->incorrect_answers++; }
+                if ($isCorrect) {
+                    $userPractice->correct_answers++;
+                } else {
+                    $userPractice->incorrect_answers++;
+                }
                 $userPractice->score = $userPractice->total_questions > 0
                     ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
                 $userPractice->save();
                 $correctCount = $userPractice->correct_answers;
-                $totalCount   = $userPractice->total_questions;
+                $totalCount = $userPractice->total_questions;
             }
         }
 
         return response()->json([
-            'is_correct'   => $isCorrect,
-            'correctAnswer'=> $target,
-            'xp'           => $correctCount * 10,
+            'is_correct' => $isCorrect,
+            'correctAnswer' => $target,
+            'xp' => $correctCount * 10,
             'correctCount' => $correctCount,
-            'totalCount'   => $totalCount,
+            'totalCount' => $totalCount,
         ]);
     }
 
-    public static function getProgressByPracticeId(int $practiceId) {
+    public static function getProgressByPracticeId(int $practiceId)
+    {
         $userId = auth()->user()->id;
+
         return UserPractice::where('user_id', $userId)
             ->where('practice_id', $practiceId)
             ->get();
     }
 
-    public static function getIntervalDirectionProgress() {
+    public static function getIntervalDirectionProgress()
+    {
         return self::getProgressByPracticeId(2);
     }
 
-    public static function getSingleNoteProgress() {
+    public static function getSingleNoteProgress()
+    {
         return self::getProgressByPracticeId(1);
     }
 
-    public static function getIntervalComparisonProgress() {
+    public static function getIntervalComparisonProgress()
+    {
         return self::getProgressByPracticeId(3);
     }
 
-    public static function getMelodicIntervalProgress() {
+    public static function getMelodicIntervalProgress()
+    {
         return self::getProgressByPracticeId(4);
     }
 
-    public static function getHarmonicIntervalProgress() {
+    public static function getHarmonicIntervalProgress()
+    {
         return self::getProgressByPracticeId(5);
     }
 
-    public static function getIntervalConstructionProgress() {
+    public static function getIntervalConstructionProgress()
+    {
         return self::getProgressByPracticeId(6);
     }
 
-    public static function getPracticeProgressByUser($slug) {
+    public static function getPracticeProgressByUser($slug)
+    {
         $practiceId = self::$slugToPracticeId[$slug] ?? null;
-        if (!$practiceId) {
+        if (! $practiceId) {
             return 0;
         }
 
@@ -417,6 +441,7 @@ class PracticeController extends Controller
         }
 
         $progress = min(($solved / $totalCount) * 100, 100);
+
         return round($progress, 1);
     }
 }

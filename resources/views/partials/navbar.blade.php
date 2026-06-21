@@ -34,8 +34,12 @@
                         ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
                         ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
                         ['href' => '/progress', 'label' => __('app.nav.progress'), 'icon' => 'trending-up', 'key' => 'progress'],
+                        ['href' => '/feed', 'label' => __('app.nav.feed'), 'icon' => 'rss', 'key' => 'feed'],
                     ];
                     $currentActive = $active ?? '';
+                    $unreadMessages = Auth::check()
+                        ? \App\Models\Message::where('receiver_id', Auth::id())->where('type', 'message')->unread()->count()
+                        : 0;
                 @endphp
                 
                 @foreach($navItems as $item)
@@ -48,6 +52,18 @@
                         {{ $item['label'] }}
                     </a>
                 @endforeach
+
+                @auth
+                    <a href="/messages"
+                       class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                              {{ $currentActive === 'messages' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        {{ __('app.nav.messages') }}
+                        @if($unreadMessages > 0)
+                            <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
+                        @endif
+                    </a>
+                @endauth
 
                 @if(Auth::check() && (Auth::user()->isTeacher() || Auth::user()->isSchool()))
                     <a href="{{ route('articles.index') }}"
@@ -236,6 +252,18 @@
                     {{ $item['label'] }}
                 </a>
             @endforeach
+
+            @auth
+                <a href="/messages"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                          {{ $currentActive === 'messages' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
+                    <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                    {{ __('app.nav.messages') }}
+                    @if($unreadMessages > 0)
+                        <span class="ml-auto bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
+                    @endif
+                </a>
+            @endauth
 
             @if(Auth::check() && Auth::user()->isTeacher() || Auth::check() && Auth::user()->isSchool())
                 <a href="{{ route('articles.index') }}"

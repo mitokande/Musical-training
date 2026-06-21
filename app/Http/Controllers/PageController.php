@@ -14,6 +14,7 @@ use App\Models\Practice;
 use App\Models\RhythmPractice;
 use App\Models\ScalePractice;
 use App\Models\SingleNotePractice;
+use App\Models\User;
 use App\Models\UserLearningPathProgress;
 use App\Models\UserPractice;
 use App\Services\LearningPathQuestionGenerator;
@@ -26,6 +27,37 @@ use Illuminate\Support\Facades\Auth;
 class PageController extends Controller
 {
     //
+
+    public function feedView()
+    {
+        return view('feed');
+    }
+
+    public function messagesView(Request $request)
+    {
+        return view('messages', ['to' => $request->query('to')]);
+    }
+
+    public function publicProfile(string $username)
+    {
+        $profileUser = User::with('profile')->where('username', $username)->firstOrFail();
+
+        $userPractices = UserPractice::where('user_id', $profileUser->id)->get();
+        $totalSessions = $userPractices->count();
+        $totalQuestions = $userPractices->sum('total_questions');
+        $totalCorrect = $userPractices->sum('correct_answers');
+        $overallAccuracy = $totalQuestions > 0
+            ? round(($totalCorrect / $totalQuestions) * 100, 1)
+            : 0;
+
+        return view('public-profile', [
+            'profileUser' => $profileUser,
+            'followersCount' => $profileUser->followersCount(),
+            'followingCount' => $profileUser->followingCount(),
+            'totalSessions' => $totalSessions,
+            'overallAccuracy' => $overallAccuracy,
+        ]);
+    }
 
     public function learnView()
     {

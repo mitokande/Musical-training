@@ -158,6 +158,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/questionnaire', [ProfileController::class, 'storeQuestionnaire'])->name('profile.questionnaire.store');
 });
 
+// Social: Feed, Messaging, Public Profiles
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/feed', [PageController::class, 'feedView'])->name('feed');
+    Route::get('/messages', [PageController::class, 'messagesView'])->name('messages');
+    Route::get('/u/{username}', [PageController::class, 'publicProfile'])->name('profile.public');
+});
+
 Route::get('/api/ai/generate-interval-direction-practice', [AIController::class, 'generateIntervalDirectionPractice'])->middleware(['auth', 'throttle:10,1'])->name('api.ai.generate-interval-direction-practice');
 
 // Teacher Routes
