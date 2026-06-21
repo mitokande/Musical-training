@@ -972,6 +972,8 @@ return [
         'final_score'         => 'Endpunktzahl',
         'new_personal_best'   => 'Neuer persönlicher Rekord!',
         'plays_used'          => ':used/:limit Spiele heute genutzt',
+        'plays_used_total'    => ':used/:total heute insgesamt',
+        'daily_limit_guest_desc' => 'Du hast deine Probespiele verwendet. Melde dich kostenlos an, um weiterzuspielen!',
         'play_now'            => 'Jetzt spielen',
         'no_plays_yet'        => 'Noch keine Spiele',
         'best'                => 'Rekord',

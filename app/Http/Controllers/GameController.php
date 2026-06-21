@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 
 class GameController extends Controller
 {
+    const GUEST_PLAYS_PER_TYPE = 1;
+    const GUEST_PLAYS_TOTAL    = 3;
+
     public const GAMES = [
         'note-rush' => [
             'name' => 'Note Rush',
@@ -75,20 +78,22 @@ class GameController extends Controller
     {
         $user = Auth::user();
         $scores = [];
-        $dailyLimit = null;
+        $perTypeLimit = null;
+        $totalLimit = null;
         $canAccessLeaderboard = false;
 
         if ($user) {
             foreach (array_keys(self::GAMES) as $slug) {
                 $scores[$slug] = GameScore::personalBest($user->id, $slug);
             }
-            $dailyLimit = $user->getPlanLimit('games_daily_plays');
+            $perTypeLimit = $user->getPlanLimit('games_daily_plays_per_type');
+            $totalLimit   = $user->getPlanLimit('games_daily_plays_total');
             $canAccessLeaderboard = $user->getPlanLimit('games_leaderboard');
         }
 
         $globalLeaderboard = GameScore::globalLeaderboard(20);
 
-        return view('games.index', compact('scores', 'dailyLimit', 'canAccessLeaderboard', 'globalLeaderboard'));
+        return view('games.index', compact('scores', 'perTypeLimit', 'totalLimit', 'canAccessLeaderboard', 'globalLeaderboard'));
     }
 
     public function show(string $slug)
@@ -98,28 +103,40 @@ class GameController extends Controller
         $user = Auth::user();
         $game = self::GAMES[$slug];
 
-        $personalBestRecord = null;
-        $personalBest = 0;
-        $dailyLimit = null;
+        $personalBestRecord   = null;
+        $personalBest         = 0;
+        $perTypeLimit         = null;
+        $totalLimit           = null;
         $canAccessLeaderboard = false;
-        $dailyPlaysUsed = 0;
-        $canPlay = true;
-        $weeklyLeaderboard = collect();
-        $allTimeLeaderboard = collect();
-        $userWeeklyRank = null;
+        $dailyPlaysUsed       = 0;
+        $totalPlaysUsed       = 0;
+        $canPlay              = true;
+        $weeklyLeaderboard    = collect();
+        $allTimeLeaderboard   = collect();
+        $userWeeklyRank       = null;
 
         if ($user) {
             $personalBestRecord = GameScore::personalBest($user->id, $slug);
-            $personalBest = $personalBestRecord?->score ?? 0;
-            $dailyLimit = $user->getPlanLimit('games_daily_plays');
+            $personalBest       = $personalBestRecord?->score ?? 0;
+            $perTypeLimit       = $user->getPlanLimit('games_daily_plays_per_type');
+            $totalLimit         = $user->getPlanLimit('games_daily_plays_total');
             $canAccessLeaderboard = $user->getPlanLimit('games_leaderboard');
 
-            if ($dailyLimit !== null && $dailyLimit !== -1) {
+            if ($perTypeLimit !== -1) {
                 $dailyPlaysUsed = GameScore::where('user_id', $user->id)
                     ->where('game_slug', $slug)
                     ->whereDate('created_at', today())
                     ->count();
-                $canPlay = $dailyPlaysUsed < $dailyLimit;
+                $canPlay = $dailyPlaysUsed < $perTypeLimit;
+            }
+
+            if ($totalLimit !== -1) {
+                $totalPlaysUsed = GameScore::where('user_id', $user->id)
+                    ->whereDate('created_at', today())
+                    ->count();
+                if ($canPlay) {
+                    $canPlay = $totalPlaysUsed < $totalLimit;
+                }
             }
 
             $weeklyLeaderboard = $canAccessLeaderboard
@@ -133,14 +150,45 @@ class GameController extends Controller
             $userWeeklyRank = $canAccessLeaderboard
                 ? GameScore::userRank($user->id, $slug, weekly: true)
                 : null;
+        } else {
+            // Guest: session-based tracking (one-time, not daily)
+            $guestPlays     = session('guest_game_plays', []);
+            $dailyPlaysUsed = $guestPlays[$slug] ?? 0;
+            $totalPlaysUsed = array_sum($guestPlays);
+            $perTypeLimit   = self::GUEST_PLAYS_PER_TYPE;
+            $totalLimit     = self::GUEST_PLAYS_TOTAL;
+            $canPlay        = $dailyPlaysUsed < $perTypeLimit && $totalPlaysUsed < $totalLimit;
         }
+
+        $scoreUrl = $user
+            ? route('games.score', $slug)
+            : route('games.guest-track', $slug);
 
         return view('games.show', compact(
             'slug', 'game', 'personalBest', 'personalBestRecord',
-            'dailyLimit', 'dailyPlaysUsed', 'canPlay',
-            'canAccessLeaderboard',
+            'perTypeLimit', 'totalLimit', 'dailyPlaysUsed', 'totalPlaysUsed', 'canPlay',
+            'canAccessLeaderboard', 'scoreUrl',
             'weeklyLeaderboard', 'allTimeLeaderboard', 'userWeeklyRank'
         ));
+    }
+
+    public function trackGuestPlay(Request $request, string $slug)
+    {
+        abort_unless(array_key_exists($slug, self::GAMES), 404);
+
+        $guestPlays          = session('guest_game_plays', []);
+        $guestPlays[$slug]   = ($guestPlays[$slug] ?? 0) + 1;
+        session(['guest_game_plays' => $guestPlays]);
+
+        $playsThisType = $guestPlays[$slug];
+        $totalPlays    = array_sum($guestPlays);
+        $canPlayAgain  = $playsThisType < self::GUEST_PLAYS_PER_TYPE
+                         && $totalPlays < self::GUEST_PLAYS_TOTAL;
+
+        return response()->json([
+            'success'        => true,
+            'can_play_again' => $canPlayAgain,
+        ]);
     }
 
     public function storeScore(Request $request, string $slug)
@@ -149,15 +197,32 @@ class GameController extends Controller
 
         $user = Auth::user();
 
-        // Server-side daily limit enforcement
-        $dailyLimit = $user->getPlanLimit('games_daily_plays');
-        if ($dailyLimit !== null && $dailyLimit !== -1) {
+        $perTypeLimit = $user->getPlanLimit('games_daily_plays_per_type');
+        $totalLimit   = $user->getPlanLimit('games_daily_plays_total');
+
+        // Server-side per-type limit enforcement
+        if ($perTypeLimit !== -1) {
             $playsToday = GameScore::where('user_id', $user->id)
                 ->where('game_slug', $slug)
                 ->whereDate('created_at', today())
                 ->count();
 
-            if ($playsToday >= $dailyLimit) {
+            if ($playsToday >= $perTypeLimit) {
+                return response()->json([
+                    'success'        => false,
+                    'limit_reached'  => true,
+                    'can_play_again' => false,
+                ]);
+            }
+        }
+
+        // Server-side total limit enforcement
+        if ($totalLimit !== -1) {
+            $totalToday = GameScore::where('user_id', $user->id)
+                ->whereDate('created_at', today())
+                ->count();
+
+            if ($totalToday >= $totalLimit) {
                 return response()->json([
                     'success'        => false,
                     'limit_reached'  => true,
@@ -185,14 +250,26 @@ class GameController extends Controller
         $personalBest = GameScore::personalBest($user->id, $slug);
         $isNewBest    = $personalBest->id === $gameScore->id;
 
-        // Calculate remaining plays after this save
+        // Determine if the user can play again (check both limits after saving)
         $canPlayAgain = true;
-        if ($dailyLimit !== null && $dailyLimit !== -1) {
+
+        if ($perTypeLimit !== -1) {
             $playsNow = GameScore::where('user_id', $user->id)
                 ->where('game_slug', $slug)
                 ->whereDate('created_at', today())
                 ->count();
-            $canPlayAgain = $playsNow < $dailyLimit;
+            if ($playsNow >= $perTypeLimit) {
+                $canPlayAgain = false;
+            }
+        }
+
+        if ($canPlayAgain && $totalLimit !== -1) {
+            $totalNow = GameScore::where('user_id', $user->id)
+                ->whereDate('created_at', today())
+                ->count();
+            if ($totalNow >= $totalLimit) {
+                $canPlayAgain = false;
+            }
         }
 
         return response()->json([

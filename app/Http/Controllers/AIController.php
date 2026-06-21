@@ -85,6 +85,20 @@ class AIController extends Controller
 
         $practiceTypes = Practice::whereIn('id', $validated['exercise_types'])->get();
 
+        // Melodic Dictation alone gets its own dedicated practice page (the AI
+        // clone of the Exercise Setup dictation flow). The Livewire component
+        // generates the questions from question count + difficulty itself.
+        // When mixed with other types it stays in the generic flow below.
+        if ($practiceTypes->count() === 1 && $practiceTypes->first()->slug === 'melodic-dictation') {
+            session(['ai_dictation_settings' => [
+                'question_count' => (int) $validated['num_questions'],
+                'difficulty' => $validated['difficulty'],
+            ]]);
+            session()->forget(['learning_path_session', 'exercise_settings']);
+
+            return redirect()->route('practice.ai.dictation');
+        }
+
         // Types handled via OpenAI structured output
         $aiPracticeClasses = [
             'single-note-practice' => SingleNotePractice::class,
@@ -304,7 +318,7 @@ class AIController extends Controller
      */
     private function rhythmPaletteForDifficulty(string $difficulty): array
     {
-        $rests = ['half_rest', 'quarter_rest', 'eighth_rest'];
+        $rests = ['whole_rest', 'half_rest', 'quarter_rest', 'eighth_rest'];
 
         return match ($difficulty) {
             'easy' => array_merge(['whole', 'half', 'dotted-half', 'quarter', 'eighth'], $rests),

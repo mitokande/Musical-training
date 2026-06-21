@@ -60,7 +60,8 @@
                     <div id="output"
                          style="width:100%; height:160px; display:flex; justify-content:center;"
                          data-note1="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave }}"
-                         data-note2="{{ strtolower($currentPractice->note2) . '/' . $constructNote2Oct }}">
+                         data-note2="{{ strtolower($currentPractice->note2) . '/' . $constructNote2Oct }}"
+                         data-clef="{{ $clef ?? 'treble' }}">
                     </div>
                 </div>
 
@@ -69,7 +70,7 @@
                     <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Your task</p>
                     <p class="text-sm sm:text-base font-semibold text-gray-700">
                         Build a <span class="text-purple-700 font-bold">{{ $currentPractice->interval }}</span>
-                        above <span class="text-purple-700 font-bold">{{ strtoupper($currentPractice->note1) }}</span>
+                        {{ ($currentPractice->direction ?? 'ascending') === 'descending' ? 'below' : 'above' }} <span class="text-purple-700 font-bold">{{ strtoupper($currentPractice->note1) }}</span>
                     </p>
                 </div>
 
@@ -143,7 +144,7 @@
                     @endphp
                     @foreach ($displayNoteOptions as $note)
                         <button class="answer-btn bg-white border border-gray-200 rounded-xl p-4 text-center font-bold text-gray-700 hover:shadow-md transition-all text-lg hover:border-purple-400 hover:bg-purple-50"
-                                data-answer="{{ $note }}">{{ $note }}</button>
+                                data-answer="{{ $note }}">{{ str_replace('##', 'x', $note) }}</button>
                     @endforeach
                 </div>
 
@@ -158,7 +159,7 @@
         <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             // ── VexFlow helpers ──────────────────────────────────────────────────────
-            function vfStemDirC(noteKey) {
+            function vfStemDirC(noteKey, clef) {
                 const m = noteKey.match(/^([a-g])(#{1,2}|b{1,2}|x)?\/(\d+)$/i);
                 if (!m) return 1;
                 const letterSt = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
@@ -169,7 +170,9 @@
                 else if (acc === 'b') st -= 1;
                 else if (acc === 'bb') st -= 2;
                 const midi = (parseInt(m[3]) + 1) * 12 + st;
-                return midi >= 71 ? -1 : 1; // Treble clef middle line B4=71
+                // Middle line: treble B4=71, bass D3=50, alto C4=60
+                const mid = clef === 'bass' ? 50 : (clef === 'alto' ? 60 : 71);
+                return midi >= mid ? -1 : 1;
             }
 
             // Convert note name like 'Db' to VexFlow key like 'db'
@@ -187,23 +190,24 @@
                 const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
                 const div = document.getElementById('output');
                 if (!div) return;
+                const clef = div.dataset.clef || 'treble';
                 div.innerHTML = '';
                 const renderer = new Renderer(div, Renderer.Backends.SVG);
                 renderer.resize(490, 160);
                 const context = renderer.getContext();
                 const stave = new Stave(10, 20, 464);
-                stave.addClef('treble');
+                stave.addClef(clef);
                 stave.setNoteStartX(stave.getNoteStartX() + 100);
                 stave.setContext(context).draw();
 
                 if (showBoth) {
-                    const sd1 = vfStemDirC(note1Key);
-                    const sd2 = vfStemDirC(note2Key);
                     // Use top note for overall stem direction
-                    const sdTop = vfStemDirC(note2Key);
+                    const sdTop = vfStemDirC(note2Key, clef);
+                    // clef must be passed so VexFlow positions the notes on the
+                    // correct staff line for bass/alto (defaults to treble otherwise)
                     const notes = [
-                        new StaveNote({ keys: [note1Key], duration: 'h', stem_direction: sdTop }),
-                        new StaveNote({ keys: [note2Key], duration: 'h', stem_direction: sdTop }),
+                        new StaveNote({ keys: [note1Key], duration: 'h', stem_direction: sdTop, clef: clef }),
+                        new StaveNote({ keys: [note2Key], duration: 'h', stem_direction: sdTop, clef: clef }),
                     ];
                     const voice = new Voice({ numBeats: 2, beatValue: 2 });
                     voice.addTickables(notes);
@@ -211,8 +215,8 @@
                     new Formatter().joinVoices([voice]).format([voice], 200);
                     voice.draw(context, stave);
                 } else {
-                    const sd = vfStemDirC(note1Key);
-                    const note = new StaveNote({ keys: [note1Key], duration: 'w', stem_direction: sd });
+                    const sd = vfStemDirC(note1Key, clef);
+                    const note = new StaveNote({ keys: [note1Key], duration: 'w', stem_direction: sd, clef: clef });
                     const voice = new Voice({ numBeats: 4, beatValue: 4 });
                     voice.addTickables([note]);
                     Accidental.applyAccidentals([voice], 'C');
@@ -327,7 +331,7 @@
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
                                     this.classList.add('border-red-400', 'bg-red-50', 'text-red-700');
-                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target}.`;
+                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target.replace('##', 'x')}.`;
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                     answerButtons.forEach(b => {

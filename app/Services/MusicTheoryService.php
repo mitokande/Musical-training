@@ -24,10 +24,12 @@ class MusicTheoryService
     ];
 
     // Note name → chromatic index 0-11
+    // E#/Fb included (no octave wrap); B#/Cb deliberately excluded — their
+    // chromatic index would land in the wrong octave for midiNumber().
     public const NOTE_SEMITONES = [
         'C' => 0, 'C#' => 1, 'Db' => 1,
         'D' => 2, 'D#' => 3, 'Eb' => 3,
-        'E' => 4,
+        'E' => 4, 'E#' => 5, 'Fb' => 4,
         'F' => 5, 'F#' => 6, 'Gb' => 6,
         'G' => 7, 'G#' => 8, 'Ab' => 8,
         'A' => 9, 'A#' => 10, 'Bb' => 10,
@@ -78,6 +80,14 @@ class MusicTheoryService
         'Minor 7th' => 7,
         'Major 7th' => 7,
         'Perfect Octave' => 8,
+    ];
+
+    // Clef → inclusive playable pitch range [lowest, highest] for interval
+    // exercises. Notes outside this range must never be generated.
+    public const CLEF_RANGES = [
+        'treble' => ['G3', 'E5'],
+        'bass' => ['C2', 'C4'],
+        'alto' => ['C3', 'C5'],
     ];
 
     // Letters in diatonic order and their natural semitone offsets from C
@@ -306,11 +316,47 @@ class MusicTheoryService
             return $this->noteAboveByInterval($note, $octave, $intervalName);
         }
 
-        if (preg_match('/(##|bb|x)$/i', $diatonic['note'])) {
+        // Case-sensitive: 'Bb' (B-flat) must not match the double-flat 'bb'
+        if (preg_match('/(##|bb|x)$/', $diatonic['note'])) {
             return $this->noteAboveByInterval($note, $octave, $intervalName) ?? $diatonic;
         }
 
         return $diatonic;
+    }
+
+    /**
+     * Inclusive MIDI range [min, max] for a clef per CLEF_RANGES.
+     * Unknown clefs fall back to treble.
+     */
+    public function clefRangeMidi(string $clef): array
+    {
+        [$lo, $hi] = self::CLEF_RANGES[$clef] ?? self::CLEF_RANGES['treble'];
+        $loParsed = $this->parseNoteOctave($lo);
+        $hiParsed = $this->parseNoteOctave($hi);
+
+        return [
+            $this->midiNumber($loParsed['note'], $loParsed['octave']),
+            $this->midiNumber($hiParsed['note'], $hiParsed['octave']),
+        ];
+    }
+
+    /**
+     * Preferred display spelling for the note a named interval BELOW $note.
+     * Diatonic letter-name counting (so a Perfect 4th below C is G, a Minor
+     * 2nd below E is D#); spellNote already falls back to a readable
+     * single-accidental spelling when a double accidental would result.
+     */
+    public function preferredNoteBelowByInterval(string $note, int $octave, string $intervalName): ?array
+    {
+        $degree = self::INTERVAL_DEGREES[$intervalName] ?? null;
+        $semitones = self::INTERVAL_SEMITONES[$intervalName] ?? null;
+
+        if ($degree === null || $semitones === null) {
+            return $this->noteBelowByInterval($note, $octave, $intervalName);
+        }
+
+        return $this->spellNote($note, $octave, -($degree - 1), -$semitones)
+            ?? $this->noteBelowByInterval($note, $octave, $intervalName);
     }
 
     /**

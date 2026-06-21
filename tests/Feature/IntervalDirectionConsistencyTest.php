@@ -16,7 +16,7 @@ class IntervalDirectionConsistencyTest extends TestCase
     {
         parent::setUp();
         $this->music     = new MusicTheoryService();
-        $this->generator = new LearningPathQuestionGenerator($this->music);
+        $this->generator = app(LearningPathQuestionGenerator::class);
     }
 
     public function test_generated_interval_direction_questions_have_consistent_direction(): void

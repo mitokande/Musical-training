@@ -295,6 +295,13 @@ class PracticeController extends Controller
 
         $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
 
+        // Clear the session once the final question is answered so a finished
+        // exercise-setup run cannot linger and hijack later answer checks
+        // (this branch is evaluated before LP/DB lookup in checkAnswer()).
+        if (($idx + 1) >= ($ep['question_count'] ?? count($ep['questions']))) {
+            session()->forget('exercise_practice_session');
+        }
+
         return response()->json([
             'is_correct'    => $isCorrect,
             'correctAnswer' => $correct,

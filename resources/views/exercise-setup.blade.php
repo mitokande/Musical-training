@@ -46,17 +46,17 @@
         .toggle-btn.active { background:linear-gradient(135deg,#1e293b,#334155); color:white; border-color:#475569; box-shadow:0 3px 10px rgb(30 41 59/0.3); }
         .interval-chip { transition:all 0.15s; }
         .interval-chip.selected { background:linear-gradient(135deg,#1e293b,#334155); color:white; border-color:#475569; box-shadow:0 2px 8px rgb(30 41 59/0.3); transform:scale(1.05); }
-        .clef-btn { transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; flex:1; padding:0.5rem; border-radius:0.75rem; border:1px solid #e5e7eb; font-size:0.75rem; font-weight:600; cursor:pointer; min-height:0; }
+        .clef-btn { transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; flex:1; padding:0.5rem; border-radius:0.75rem; border:1px solid #e5e7eb; font-size:0.75rem; font-weight:600; cursor:pointer; min-height:0; background:white; }
         .clef-btn:hover { border-color:#94a3b8; background:#f8fafc; }
         .clef-btn.active { background:linear-gradient(135deg,#1e293b,#334155); color:white; border-color:#475569; box-shadow:0 3px 10px rgb(30 41 59/0.3); }
-        .clef-symbol { font-size:2.75rem; line-height:1; }
+        .clef-symbol { font-size:2rem; line-height:1; }
         .premium-lock { position:relative; }
         .premium-lock::after { content:''; position:absolute; inset:0; border-radius:8px; background:rgba(255,255,255,0.6); }
         input[type="range"] { accent-color:#334155; }
         .summary-badge { display:inline-flex; align-items:center; background:linear-gradient(135deg,#f8fafc,#f1f5f9); color:#334155; font-weight:700; padding:2px 10px; border-radius:999px; font-size:0.8rem; border:1px solid #cbd5e1; }
-        .start-btn { background:linear-gradient(135deg,#16a34a 0%,#22c55e 100%); transition:all 0.3s; }
-        .start-btn:hover { background:linear-gradient(135deg,#15803d 0%,#16a34a 100%); transform:translateY(-2px); box-shadow:0 12px 28px -6px rgb(22 163 74/0.5); }
-        @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgb(22 163 74/0.4)} 50%{box-shadow:0 0 0 8px rgb(22 163 74/0)} }
+        .start-btn { background:linear-gradient(135deg,#166534 0%,#15803d 100%); transition:all 0.3s; }
+        .start-btn:hover { background:linear-gradient(135deg,#14532d 0%,#166534 100%); transform:translateY(-2px); box-shadow:0 12px 28px -6px rgb(22 101 52/0.5); }
+        @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgb(22 101 52/0.4)} 50%{box-shadow:0 0 0 8px rgb(22 101 52/0)} }
         .start-btn:not(:hover) { animation:pulse-ring 2.5s ease-in-out infinite; }
         @media(max-width:768px) {
             .three-col { flex-direction:column; }
@@ -136,7 +136,7 @@
                     </div>
                     <p class="text-white/80 text-sm sm:text-base">{{ __('app.exercises.setup_subtitle') }}</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                     @if($isPremium)
                         <button wire:target="getAiRecommendation"
                                 onclick="document.querySelector('[wire\\\\:id]').__livewire.call('getAiRecommendation')"
@@ -153,10 +153,6 @@
                     <button @click="showSavePlanModal = true"
                         class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2 transition-colors border border-white/30 text-sm">
                         <i data-lucide="bookmark" class="w-4 h-4"></i> {{ __('app.exercises.save_plan') }}
-                    </button>
-                    <button @click="startExercise()"
-                        class="bg-green-500 hover:bg-green-400 text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition-colors text-sm shadow-lg">
-                        <i data-lucide="play" class="w-4 h-4"></i> {{ __('app.exercises.start') }}
                     </button>
                 </div>
             </div>
@@ -176,11 +172,11 @@
     @endif
 
     <!-- ===== MAIN LAYOUT ===== -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div class="flex gap-6 three-col">
 
             <!-- ===== LEFT: Category Selector ===== -->
-            <div class="w-72 flex-shrink-0 space-y-2 sidebar-col">
+            <div class="w-72 flex-shrink-0 sidebar-col">
                 <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide px-1 mb-3">{{ __('app.exercises.category_select') }}</h2>
 
                 @php
@@ -207,18 +203,20 @@
                 ];
                 @endphp
 
+                <div class="grid grid-cols-2 md:grid-cols-1 gap-2">
                 @foreach($categories as $cat)
                 @php $c = $colorMap[$cat['color']]; @endphp
-                <div class="category-card card p-3 flex items-center gap-3 border-2 border-transparent"
+                <div class="category-card card p-3 flex items-center gap-2 md:gap-3 border-2 border-transparent"
                      :class="selectedCategory === '{{ $cat['key'] }}' ? 'active' : ''"
                      @click="selectedCategory = '{{ $cat['key'] }}'">
-                    <div class="cat-icon w-9 h-9 rounded-xl {{ $c['bg'] }} {{ $c['text'] }} flex items-center justify-center flex-shrink-0 transition-all">
+                    <div class="cat-icon w-8 h-8 md:w-9 md:h-9 rounded-xl {{ $c['bg'] }} {{ $c['text'] }} flex items-center justify-center flex-shrink-0 transition-all">
                         <i data-lucide="{{ $cat['icon'] }}" class="w-4 h-4"></i>
                     </div>
-                    <span class="text-sm font-medium text-gray-900">{{ $cat['label'] }}</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 ml-auto" :class="selectedCategory === '{{ $cat['key'] }}' ? 'text-purple-600' : ''"></i>
+                    <span class="text-sm font-medium text-gray-900 leading-tight">{{ $cat['label'] }}</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 ml-auto hidden md:block" :class="selectedCategory === '{{ $cat['key'] }}' ? 'text-purple-600' : ''"></i>
                 </div>
                 @endforeach
+                </div>
             </div>
 
             <!-- ===== CENTER: Settings Panel (45%) ===== -->
@@ -232,9 +230,32 @@
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('app.exercises.chord_types_label') }}</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.exercises.chord_types_label') }}</label>
+
+                        <!-- Triads & Sus -->
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Triads &amp; Sus</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            @foreach(['Major','Minor','Diminished','Augmented','Sus2','Sus4'] as $chord)
+                                <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
+                                        :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
+                                        @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
+                            @endforeach
+                        </div>
+
+                        <!-- 7th Chords -->
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">7th Chords</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            @foreach(['Major 7th','Dominant 7th','Minor 7th','Minor Major 7th','Half-Diminished 7th','Diminished 7th','Augmented 7th'] as $chord)
+                                <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
+                                        :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
+                                        @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
+                            @endforeach
+                        </div>
+
+                        <!-- Color Chords -->
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Color Chords</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach(['Major','Minor','Diminished','Augmented','Dominant 7th','Major 7th','Minor 7th','Half Diminished','Diminished 7th','Augmented 7th'] as $chord)
+                            @foreach(['Major 6th','Minor 6th','Add9','Minor Add9'] as $chord)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
                                         :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
                                         @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
@@ -263,7 +284,7 @@
                                 <p class="text-xs text-gray-500 leading-snug">{{ __('app.exercises.inversions_desc') }}</p>
                                 <button @click="includeInversions = !includeInversions"
                                     class="relative flex-shrink-0 ml-3 w-12 h-6 rounded-full transition-colors"
-                                    :class="includeInversions ? 'bg-slate-700' : 'bg-gray-300'">
+                                    :class="includeInversions ? 'bg-green-800' : 'bg-gray-300'">
                                     <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
                                           :class="includeInversions ? 'translate-x-6' : 'translate-x-0'"></span>
                                 </button>
@@ -282,20 +303,28 @@
                     <!-- Mode Selector -->
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Rhythm Mode</label>
-                        <div class="flex gap-2">
-                            <button class="flex-1 py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-2"
-                                    :class="rhythmMode === 'dictation' ? 'bg-red-600 text-white border-red-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-red-300'"
+                        <div class="grid grid-cols-3 gap-2">
+                            <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
+                                    :class="rhythmMode === 'dictation' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
                                     @click="rhythmMode = 'dictation'">
                                 <i data-lucide="headphones" class="w-4 h-4"></i>
-                                Rhythm Dictation
+                                Recognition
                             </button>
-                            <button class="flex-1 py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-2"
-                                    :class="rhythmMode === 'reading' ? 'bg-red-600 text-white border-red-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-red-300'"
+                            <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
+                                    :class="rhythmMode === 'build' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
+                                    @click="rhythmMode = 'build'">
+                                <i data-lucide="pencil-ruler" class="w-4 h-4"></i>
+                                Dictation
+                            </button>
+                            <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
+                                    :class="rhythmMode === 'reading' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
                                     @click="rhythmMode = 'reading'">
                                 <i data-lucide="music" class="w-4 h-4"></i>
-                                Rhythmic Reading
+                                Reading
                             </button>
                         </div>
+                        <p class="text-xs text-gray-500 mt-2"
+                           x-text="rhythmMode === 'build' ? 'Listen with the metronome, then rebuild the rhythm note-by-note on a staff.' : (rhythmMode === 'reading' ? 'Tap the rhythm you see on the staff in time with the metronome.' : 'Listen, then pick the rhythm pattern you heard.')"></p>
                     </div>
 
                     <!-- Time Signature -->
@@ -305,191 +334,292 @@
                             @foreach(['2/4','3/4','4/4','6/8','9/8','2/2','3/2','4/2'] as $ts)
                                 <button class="py-2 text-sm font-bold rounded-xl border transition-all"
                                         :class="timeSignature === '{{ $ts }}' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                        @click="timeSignature = '{{ $ts }}'">{{ $ts }}</button>
+                                        @click="setTimeSignature('{{ $ts }}')">{{ $ts }}</button>
                             @endforeach
                         </div>
+                        <p x-show="['2/2','3/2','4/2'].includes(timeSignature)"
+                           class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mt-2">
+                            Beat = half note. Tempo set to 50 bpm (half-note beats/min).
+                        </p>
                     </div>
 
-                    <!-- Note Values -->
+                    <!-- Note Values + Playback (two-column layout) -->
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.exercises.note_values') }}</label>
 
-                        <!-- Row 1: Main note values as 80×80 symbol boxes -->
-                        <div class="flex gap-2 flex-wrap mb-3">
-                            <!-- Whole Note -->
-                            <button class="w-20 h-20 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 flex-shrink-0"
-                                    :class="noteValues.includes('whole') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-red-300'"
-                                    @click="toggleNoteValue('whole')">
-                                <svg viewBox="0 0 38 20" width="38" height="20"><ellipse cx="19" cy="10" rx="16" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>
-                                <span class="text-xs font-bold">Whole</span>
-                            </button>
-                            <!-- Half Note -->
-                            <button class="w-20 h-20 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 flex-shrink-0"
-                                    :class="noteValues.includes('half') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-red-300'"
-                                    @click="toggleNoteValue('half')">
-                                <svg viewBox="0 0 28 44" width="22" height="35">
-                                    <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="none" stroke="currentColor" stroke-width="2.5" transform="rotate(-15 12 34)"/>
-                                    <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
-                                </svg>
-                                <span class="text-xs font-bold">Half</span>
-                            </button>
-                            <!-- Quarter Note -->
-                            <button class="w-20 h-20 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 flex-shrink-0"
-                                    :class="noteValues.includes('quarter') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-red-300'"
-                                    @click="toggleNoteValue('quarter')">
-                                <svg viewBox="0 0 28 44" width="22" height="35">
-                                    <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
-                                    <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
-                                </svg>
-                                <span class="text-xs font-bold">Quarter</span>
-                            </button>
-                            <!-- Eighth Note -->
-                            <button class="w-20 h-20 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 flex-shrink-0"
-                                    :class="noteValues.includes('eighth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-red-300'"
-                                    @click="toggleNoteValue('eighth')">
-                                <svg viewBox="0 0 32 44" width="24" height="35">
-                                    <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
-                                    <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
-                                    <path d="M21.5 6 C28 10 28 18 21.5 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                                </svg>
-                                <span class="text-xs font-bold">Eighth</span>
-                            </button>
-                            <!-- Sixteenth Note -->
-                            <button class="w-20 h-20 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 flex-shrink-0"
-                                    :class="noteValues.includes('sixteenth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-red-300'"
-                                    @click="toggleNoteValue('sixteenth')">
-                                <svg viewBox="0 0 32 44" width="24" height="35">
-                                    <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
-                                    <line x1="21.5" y1="29" x2="21.5" y2="4" stroke="currentColor" stroke-width="2.5"/>
-                                    <path d="M21.5 4 C28 8 28 16 21.5 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                                    <path d="M21.5 13 C28 17 28 25 21.5 29" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                                </svg>
-                                <span class="text-xs font-bold">16th</span>
-                            </button>
-                        </div>
+                        <div class="flex gap-3 items-stretch">
 
-                        <!-- Row 2: Special options (responsive width, 80px height) -->
-                        <div class="flex gap-2 flex-wrap">
-                            <button class="h-20 px-5 rounded-xl border-2 transition-all flex items-center justify-center text-sm font-bold"
-                                    style="min-width:150px;"
-                                    :class="rhythmRests ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-red-300'"
-                                    @click="rhythmRests = !rhythmRests">
-                                Rests
-                            </button>
-                            <button class="h-20 px-5 rounded-xl border-2 transition-all flex items-center justify-center text-sm font-bold"
-                                    style="min-width:150px;"
-                                    :class="rhythmDotted ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-red-300'"
-                                    @click="rhythmDotted = !rhythmDotted">
-                                Dotted Notes
-                            </button>
-                            <button class="h-20 px-5 rounded-xl border-2 transition-all flex items-center justify-center text-sm font-bold"
-                                    style="min-width:150px;"
-                                    :class="rhythmTriplets ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-100 bg-gray-50 text-gray-700 hover:border-red-300'"
-                                    @click="rhythmTriplets = !rhythmTriplets">
-                                Triplets
-                            </button>
-                        </div>
-                    </div>
+                            <!-- LEFT: Note values segment with background -->
+                            <div class="flex-shrink-0 bg-gray-100 rounded-xl p-3 flex flex-col gap-2">
+                                <!-- Row 1: 5 note symbols -->
+                                <div class="flex gap-2">
+                                    <!-- Whole Note -->
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="noteValues.includes('whole') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="toggleNoteValue('whole')">
+                                        <svg viewBox="0 0 38 20" width="30" height="16"><ellipse cx="19" cy="10" rx="16" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+                                    </button>
+                                    <!-- Half Note -->
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="noteValues.includes('half') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="toggleNoteValue('half')">
+                                        <svg viewBox="0 0 28 44" width="17" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="none" stroke="currentColor" stroke-width="2.5" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                        </svg>
+                                    </button>
+                                    <!-- Quarter Note -->
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="noteValues.includes('quarter') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="toggleNoteValue('quarter')">
+                                        <svg viewBox="0 0 28 44" width="17" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                        </svg>
+                                    </button>
+                                    <!-- Eighth Note -->
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="noteValues.includes('eighth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="toggleNoteValue('eighth')">
+                                        <svg viewBox="0 0 32 44" width="18" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                            <path d="M21.5 6 C28 10 28 18 21.5 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    <!-- Sixteenth Note -->
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="noteValues.includes('sixteenth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="toggleNoteValue('sixteenth')">
+                                        <svg viewBox="0 0 32 44" width="18" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="4" stroke="currentColor" stroke-width="2.5"/>
+                                            <path d="M21.5 4 C28 8 28 16 21.5 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                            <path d="M21.5 13 C28 17 28 25 21.5 29" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Row 2: Modifiers — fill full width of segment -->
+                                <div class="flex gap-2">
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="rhythmRests ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="rhythmRests = !rhythmRests">
+                                        Rests
+                                    </button>
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="rhythmDotted ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="rhythmDotted = !rhythmDotted">
+                                        Dotted
+                                    </button>
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="rhythmTriplets ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
+                                            @click="rhythmTriplets = !rhythmTriplets">
+                                        Triplets
+                                    </button>
+                                </div>
+                            </div>
 
-                    <!-- Tempo -->
-                    <div class="mb-5">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tempo: <span class="text-red-600" x-text="tempo"></span> BPM</label>
-                        <input type="range" min="40" max="160" step="10" x-model.number="tempo" class="w-full h-2 rounded-lg">
-                        <div class="flex justify-between text-xs text-gray-400 mt-1"><span>40</span><span>100</span><span>160</span></div>
-                    </div>
+                            <!-- RIGHT: Metronome + Tempo stacked -->
+                            <div class="flex-1 flex flex-col gap-2 min-w-[130px]">
+                                <!-- Metronome — aligned with Row 1 -->
+                                <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl" style="height:56px">
+                                    <p class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                                        <i data-lucide="activity" class="w-4 h-4 text-red-600"></i>
+                                        Metronome
+                                    </p>
+                                    <button @click="metronome = !metronome"
+                                        class="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
+                                        :class="metronome ? 'bg-green-800' : 'bg-gray-300'">
+                                        <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                                              :class="metronome ? 'translate-x-5' : 'translate-x-0'"></span>
+                                    </button>
+                                </div>
+                                <!-- Tempo — aligned with Row 2 -->
+                                <div class="flex-1 px-3 py-2 bg-gray-50 rounded-xl flex flex-col justify-center">
+                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">Tempo: <span class="text-red-600" x-text="tempo"></span> BPM</p>
+                                    <input type="range" min="40" max="160" step="10" x-model.number="tempo" class="w-full h-1.5 rounded-lg">
+                                    <div class="flex justify-between text-xs text-gray-400 mt-1"><span>40</span><span>160</span></div>
+                                </div>
+                            </div>
 
-                    <!-- Metronome -->
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                <i data-lucide="activity" class="w-4 h-4 text-red-600"></i>
-                                Metronome
-                            </p>
-                            <p class="text-xs text-gray-500">Plays a click-track before and alongside the rhythm</p>
                         </div>
-                        <button @click="metronome = !metronome"
-                            class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                            :class="metronome ? 'bg-red-500' : 'bg-gray-300'">
-                            <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                                  :class="metronome ? 'translate-x-6' : 'translate-x-0'"></span>
-                        </button>
                     </div>
                 </div>
 
                 <!-- Melodic Dictation Settings — shown BEFORE general settings when dictation selected -->
-                <div class="card p-6" x-show="selectedCategory === 'melodic-dictation'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'melodic-dictation'" x-cloak>
                     <div class="card-header card-header-pink flex items-center gap-2">
                         <i data-lucide="pencil-line" class="w-5 h-5 text-pink-700"></i>
                         <h2 class="text-base font-bold text-pink-900">{{ __('app.exercises.dictation_settings') }}</h2>
                     </div>
 
-                    <!-- Measure Count | Listen Count | Answer Mode — 3 columns -->
+                    <!-- Time Signature -->
                     <div class="mb-5">
-                        <div class="flex gap-3">
-                            <!-- Col 1: Measure Count — 3 options stacked -->
-                            <div class="flex-1 flex flex-col">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.exercises.measure_count') }}</label>
-                                <div class="flex flex-col gap-1.5 h-24">
-                                    @foreach([2 => __('app.exercises.measures_2'), 4 => __('app.exercises.measures_4'), 8 => __('app.exercises.measures_8')] as $val => $label)
-                                        <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
-                                                :class="dictationBars === {{ $val }} ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                                @click="dictationBars = {{ $val }}">{{ $label }}</button>
-                                    @endforeach
-                                </div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.exercises.time_sig_label') }}</label>
+                        <div class="bg-gray-100 rounded-xl p-2">
+                            <div class="grid grid-cols-4 grid-rows-2 gap-1.5">
+                                @foreach(['2/4','3/4','4/4','6/8','9/8','2/2','3/2','4/2'] as $ts)
+                                    <button class="py-2.5 text-xs font-bold rounded-xl border transition-all"
+                                            :class="dictationTimeSignature === '{{ $ts }}' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 bg-white text-gray-600 hover:border-slate-400'"
+                                            @click="dictationTimeSignature = '{{ $ts }}'">{{ $ts }}</button>
+                                @endforeach
                             </div>
-                            <!-- Col 2: Listen Count — 2×2 grid -->
-                            <div class="flex-1 flex flex-col">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Listen Count</label>
-                                <div class="grid grid-cols-2 grid-rows-2 gap-1.5 h-24">
-                                    @foreach(['1' => '1×', '2' => '2×', '3' => '3×', 'unlimited' => '∞'] as $val => $label)
-                                        <button class="text-sm font-medium rounded-xl border transition-all"
-                                                :class="dictationListenCount === '{{ $val }}' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                                @click="dictationListenCount = '{{ $val }}'">{{ $label }}</button>
-                                    @endforeach
-                                </div>
-                            </div>
-                            <!-- Col 3: Answer Mode — 2 options stacked -->
-                            <div class="flex-1 flex flex-col">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Answer Mode</label>
-                                <div class="flex flex-col gap-1.5 h-24">
-                                    <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
-                                            :class="dictationAnswerMode === 'keyboard' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                            @click="dictationAnswerMode = 'keyboard'">
-                                        ⌨️ Type Notes
+                        </div>
+                    </div>
+
+                    <!-- Clef + Mode + Key Signature -->
+                    <div class="mb-5">
+                        <div class="flex gap-2 items-stretch">
+                            <!-- Col 1: Clef (~34%) -->
+                            <div class="flex flex-col" style="width:34%">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.exercises.clef') }}</label>
+                                <div class="bg-gray-100 rounded-xl p-2 flex gap-1.5 flex-1" style="min-height:99px;">
+                                    <button class="clef-btn flex-1" :class="clef === 'treble' ? 'active' : ''" @click="clef = 'treble'">
+                                        <span class="clef-symbol">𝄞</span>
                                     </button>
-                                    <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
-                                            :class="dictationAnswerMode === 'choices' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                            @click="dictationAnswerMode = 'choices'">
-                                        🎹 Select Notes
+                                    <button class="clef-btn flex-1" :class="clef === 'bass' ? 'active' : ''" @click="clef = 'bass'">
+                                        <span class="clef-symbol">𝄢</span>
+                                    </button>
+                                    <button class="clef-btn flex-1" :class="clef === 'alto' ? 'active' : ''" @click="clef = 'alto'">
+                                        <span class="clef-symbol">𝄡</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Col 2: Major / Minor (~18%) -->
+                            <div class="flex flex-col" style="width:18%">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mode</label>
+                                <div class="bg-gray-100 rounded-xl p-2 flex flex-col gap-1.5 flex-1" style="min-height:99px;">
+                                    <button class="flex-1 text-xs font-bold rounded-xl border-2 transition-all"
+                                            :class="dictationMode === 'major' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 bg-white text-gray-600 hover:border-slate-400'"
+                                            @click="dictationMode = 'major'">Major</button>
+                                    <button class="flex-1 text-xs font-bold rounded-xl border-2 transition-all"
+                                            :class="dictationMode === 'minor' ? 'bg-pink-600 text-white border-pink-600 shadow-md' : 'border-gray-200 bg-white text-gray-600 hover:border-pink-400'"
+                                            @click="dictationMode = 'minor'">Minor</button>
+                                </div>
+                            </div>
+                            <!-- Col 3: Key Signature (flex-1) -->
+                            <div class="flex-1 flex flex-col">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Key Signature</label>
+                                <div class="flex rounded-xl overflow-hidden border border-gray-200 flex-1">
+                                    <!-- Left: flat / down arrow -->
+                                    <button class="w-1/5 flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-r border-gray-200 transition-all"
+                                            @click="if(dictationKeySignatureIndex < dictationKeySignatures.length - 1) dictationKeySignatureIndex++">
+                                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-600"></i>
+                                    </button>
+                                    <!-- Center: 3 items -->
+                                    <div class="flex-1 flex flex-col divide-y divide-gray-100 overflow-hidden">
+                                        <div class="flex-1 flex items-center justify-center px-1 text-[10px] text-gray-400 text-center leading-tight"
+                                             x-text="dictationKeySignatureIndex > 0 ? dictationKeySignatures[dictationKeySignatureIndex - 1].split(' / ')[dictationMode === 'minor' ? 1 : 0].replace(' minor','').replace(' Major','') : ''"></div>
+                                        <div class="flex-1 flex items-center justify-center px-1 text-xs font-bold bg-gray-900 text-white text-center leading-tight"
+                                             x-text="dictationKeySignatures[dictationKeySignatureIndex].split(' / ')[dictationMode === 'minor' ? 1 : 0]"></div>
+                                        <div class="flex-1 flex items-center justify-center px-1 text-[10px] text-gray-400 text-center leading-tight"
+                                             x-text="dictationKeySignatureIndex < dictationKeySignatures.length - 1 ? dictationKeySignatures[dictationKeySignatureIndex + 1].split(' / ')[dictationMode === 'minor' ? 1 : 0].replace(' minor','').replace(' Major','') : ''"></div>
+                                    </div>
+                                    <!-- Right: sharp / up arrow -->
+                                    <button class="w-1/5 flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-l border-gray-200 transition-all"
+                                            @click="if(dictationKeySignatureIndex > 0) dictationKeySignatureIndex--">
+                                        <i data-lucide="chevron-up" class="w-4 h-4 text-gray-600"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                        <div>
-                            <p class="text-sm font-semibold text-gray-700">{{ __('app.exercises.include_rhythm') }}</p>
-                            <p class="text-xs text-gray-500">{{ __('app.exercises.include_rhythm_desc') }}</p>
+                    <!-- Note Values + Metronome -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.exercises.note_values') }}</label>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                            <!-- Note values + modifiers -->
+                            <div class="bg-gray-100 rounded-xl p-3 flex flex-col gap-2">
+                                <!-- Row 1: 5 note symbols -->
+                                <div class="flex gap-2">
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="dictationNoteValues.includes('whole') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="toggleDictationNoteValue('whole')">
+                                        <svg viewBox="0 0 38 20" width="30" height="16"><ellipse cx="19" cy="10" rx="16" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>
+                                    </button>
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="dictationNoteValues.includes('half') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="toggleDictationNoteValue('half')">
+                                        <svg viewBox="0 0 28 44" width="17" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="none" stroke="currentColor" stroke-width="2.5" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                        </svg>
+                                    </button>
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="dictationNoteValues.includes('quarter') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="toggleDictationNoteValue('quarter')">
+                                        <svg viewBox="0 0 28 44" width="17" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                        </svg>
+                                    </button>
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="dictationNoteValues.includes('eighth') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="toggleDictationNoteValue('eighth')">
+                                        <svg viewBox="0 0 32 44" width="18" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
+                                            <path d="M21.5 6 C28 10 28 18 21.5 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                            :class="dictationNoteValues.includes('sixteenth') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="toggleDictationNoteValue('sixteenth')">
+                                        <svg viewBox="0 0 32 44" width="18" height="27">
+                                            <ellipse cx="12" cy="34" rx="10" ry="6.5" fill="currentColor" transform="rotate(-15 12 34)"/>
+                                            <line x1="21.5" y1="29" x2="21.5" y2="4" stroke="currentColor" stroke-width="2.5"/>
+                                            <path d="M21.5 4 C28 8 28 16 21.5 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                            <path d="M21.5 13 C28 17 28 25 21.5 29" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Row 2: Modifiers -->
+                                <div class="flex gap-2">
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="dictationRests ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="dictationRests = !dictationRests">Rests</button>
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="dictationDotted ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="dictationDotted = !dictationDotted">Dotted</button>
+                                    <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
+                                            :class="dictationTriplets ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
+                                            @click="dictationTriplets = !dictationTriplets">Triplets</button>
+                                </div>
+                            </div>
+                            <!-- Metronome + Tempo -->
+                            <div class="flex-1 flex flex-col gap-2 sm:min-w-[130px]">
+                                <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl" style="height:56px">
+                                    <p class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                                        <i data-lucide="activity" class="w-4 h-4 text-pink-600"></i>
+                                        Metronome
+                                    </p>
+                                    <button @click="dictationMetronome = !dictationMetronome"
+                                        class="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
+                                        :class="dictationMetronome ? 'bg-green-800' : 'bg-gray-300'">
+                                        <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                                              :class="dictationMetronome ? 'translate-x-5' : 'translate-x-0'"></span>
+                                    </button>
+                                </div>
+                                <div class="flex-1 px-3 py-2 bg-gray-50 rounded-xl flex flex-col justify-center">
+                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">Tempo: <span class="text-pink-600" x-text="dictationTempo"></span> BPM</p>
+                                    <input type="range" min="40" max="160" step="10" x-model.number="dictationTempo" class="w-full h-1.5 rounded-lg">
+                                    <div class="flex justify-between text-xs text-gray-400 mt-1"><span>40</span><span>160</span></div>
+                                </div>
+                            </div>
                         </div>
-                        <button @click="dictationIncludeRhythm = !dictationIncludeRhythm"
-                            class="relative w-12 h-6 rounded-full transition-colors"
-                            :class="dictationIncludeRhythm ? 'bg-slate-700' : 'bg-gray-300'">
-                            <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
-                                  :class="dictationIncludeRhythm ? 'translate-x-6' : 'translate-x-0'"></span>
-                        </button>
                     </div>
                 </div>
 
                 <!-- Intervals (Melodic / Harmonic / Construction / Comparison) -->
-                <div class="card p-6" x-show="selectedCategory === 'intervals'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'intervals'" x-cloak>
                     <div class="card-header flex items-center gap-2">
                         <i data-lucide="music-2" class="w-5 h-5 text-purple-700"></i>
                         <h2 class="text-base font-bold text-purple-900">{{ __('app.exercises.interval_settings') }}</h2>
                     </div>
 
                     <!-- Interval Sub-Type Selector -->
-                    <div class="flex gap-2 mb-5">
+                    <div class="grid grid-cols-2 gap-2 mb-5">
                         <button class="flex-1 py-2 px-2 text-sm font-semibold rounded-xl border-2 transition-all text-center leading-tight"
                                 :class="intervalSubType === 'melodic-intervals' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300 bg-white'"
                                 @click="intervalSubType = 'melodic-intervals'">
@@ -527,7 +657,7 @@
                     <!-- Interval Pool -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('app.exercises.interval_pool') }} <span class="font-normal text-gray-400">{{ __('app.exercises.interval_pool_hint') }}</span></label>
-                        <div class="grid grid-cols-8 gap-1.5">
+                        <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
                             @foreach(['m2','M2','m3','M3','P4','TT','P5','m6'] as $interval)
                                 <button class="interval-chip w-full py-2 text-sm font-semibold rounded-xl border border-gray-200 hover:border-slate-400 transition-all text-center"
                                         :class="intervalPool.includes('{{ $interval }}') ? 'selected' : ''"
@@ -555,8 +685,19 @@
 
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('app.exercises.scale_types_label') }}</label>
+
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Gamlar / Scales</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            @foreach(['Major','Natural Minor','Harmonic Minor','Melodic Minor','Major Pentatonic','Minor Pentatonic','Blues Scale','Chromatic Scale','Whole Tone Scale'] as $scale)
+                                <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
+                                        :class="scaleTypes.includes('{{ $scale }}') ? 'bg-amber-500 text-white border-amber-500' : ''"
+                                        @click="toggleScaleType('{{ $scale }}')">{{ $scale }}</button>
+                            @endforeach
+                        </div>
+
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Modlar / Modes</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach(['Major','Natural Minor','Harmonic Minor','Melodic Minor','Pentatonic','Blues','Dorian','Phrygian','Lydian','Mixolydian','Locrian'] as $scale)
+                            @foreach(['Ionian','Dorian','Phrygian','Lydian','Mixolydian','Aeolian','Locrian'] as $scale)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
                                         :class="scaleTypes.includes('{{ $scale }}') ? 'bg-amber-500 text-white border-amber-500' : ''"
                                         @click="toggleScaleType('{{ $scale }}')">{{ $scale }}</button>
@@ -667,11 +808,12 @@
                     </div>
                     <div class="space-y-5">
 
-                        <!-- Clef + Octave Range -->
-                        <div x-show="selectedCategory !== 'rhythm'">
-                            <div class="flex gap-3">
-                                <!-- Clef: full-width for single-note, half-width otherwise -->
-                                <div class="flex flex-col" :class="selectedCategory === 'single-note' ? 'w-full' : 'w-1/2'">
+                        <!-- Clef — hidden for rhythm and melodic-dictation (dictation has its own clef).
+                             Clef determines the pitch range for every pitched exercise (CLEF_RANGES). -->
+                        <div x-show="selectedCategory !== 'rhythm' && selectedCategory !== 'melodic-dictation'">
+                            <div class="flex gap-3 items-start">
+                                <!-- Clef -->
+                                <div class="flex flex-col flex-1">
                                     <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.exercises.clef') }}</label>
                                     <div class="flex gap-1.5 h-20">
                                         <button class="clef-btn" :class="clef === 'treble' ? 'active' : ''" @click="clef = 'treble'">
@@ -690,107 +832,66 @@
                                         <span x-show="clef === 'bass'">Bass (Fa) — octaves 2–3</span>
                                         <span x-show="clef === 'alto'">Alto (Do) — octaves 3–4</span>
                                     </p>
+                                    <!-- Clef pitch range hint (must match MusicTheoryService::CLEF_RANGES) -->
+                                    <p class="text-xs text-gray-400 mt-1" x-show="['intervals','chords','scales'].includes(selectedCategory)" x-cloak>
+                                        <span x-show="clef === 'treble'">Treble (Sol) — G3 – E5</span>
+                                        <span x-show="clef === 'bass'">Bass (Fa) — C2 – C4</span>
+                                        <span x-show="clef === 'alto'">Alto (Do) — C3 – C5</span>
+                                    </p>
                                 </div>
-                                <!-- Octave Range: hidden for single-note (clef determines octave) -->
-                                <div class="w-1/2 flex flex-col" x-show="selectedCategory !== 'single-note'" x-cloak>
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Octave Range</label>
-                                    <div class="grid grid-cols-3 grid-rows-2 gap-1.5 h-20">
-                                        @foreach([1, 2, 3, 4, 5, 6] as $oct)
-                                            <button class="text-sm font-semibold rounded-xl border transition-all"
-                                                    :class="octaveRange.includes({{ $oct }}) ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                                    @click="toggleOctave({{ $oct }})">{{ $oct }}</button>
-                                        @endforeach
+                                <!-- Tempo — scales only -->
+                                <div class="flex flex-col w-44 relative flex-shrink-0" x-show="selectedCategory === 'scales'" x-cloak @click.outside="scaleTempoOpen = false">
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Tempo</label>
+                                    <button @click="scaleTempoOpen = !scaleTempoOpen"
+                                            class="w-full h-20 flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-xl border border-slate-700 text-white transition-all"
+                                            style="background:linear-gradient(135deg,#1e293b,#334155)">
+                                        <span class="ml-[30px]" x-text="{'slow':'Yavaş','normal':'Normal','fast':'Hızlı'}[scaleTempo]"></span>
+                                        <i data-lucide="chevron-down" class="w-5 h-5 text-white/80 transition-transform" style="stroke-width:3" :class="scaleTempoOpen ? 'rotate-180' : ''"></i>
+                                    </button>
+                                    <div x-show="scaleTempoOpen" x-transition
+                                         class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
+                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                :class="scaleTempo === 'slow' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                                @click="scaleTempo = 'slow'; scaleTempoOpen = false">Yavaş</button>
+                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                :class="scaleTempo === 'normal' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                                @click="scaleTempo = 'normal'; scaleTempoOpen = false">Normal</button>
+                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                                :class="scaleTempo === 'fast' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                                @click="scaleTempo = 'fast'; scaleTempoOpen = false">Hızlı</button>
                                     </div>
-                                    <p class="text-xs text-gray-400 mt-1">At least one must be selected.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Question Count | Difficulty | Feedback Mode -->
+                        <!-- Question Count | AI Mode | Difficulty (melodic-dictation only) -->
                         <div class="flex gap-2">
 
                             <!-- Question Count -->
-                            <div class="flex-1 relative" @click.outside="qcOpen = false">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">{{ __('app.exercises.question_count_label') }}</label>
-                                <button @click="qcOpen = !qcOpen"
-                                        class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:border-slate-400 bg-white transition-all">
-                                    <span x-text="questionCount + ' Q'"></span>
-                                    <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 transition-transform" :class="qcOpen ? 'rotate-180' : ''"></i>
-                                </button>
-                                <div x-show="qcOpen" x-transition
-                                     class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
-                                    @foreach([5 => '5 Questions', 10 => '10 Questions', 15 => '15 Questions', 20 => '20 Questions'] as $count => $label)
-                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors flex items-center justify-between"
-                                                :class="questionCount === {{ $count }} ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="{{ (!$isPremium && $count > 10) ? 'showPremiumModal = true' : 'questionCount = ' . $count . '; qcOpen = false' }}">
-                                            <span>{{ $label }}</span>
-                                            @if(!$isPremium && $count > 10)<span class="text-[10px] font-bold opacity-70">PRO</span>@endif
-                                        </button>
-                                    @endforeach
+                            <div class="flex-1 flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl gap-2">
+                                <span class="text-sm font-semibold text-gray-700 flex-shrink-0">{{ __('app.exercises.question_count_label') }}</span>
+                                <div class="relative flex-shrink-0" @click.outside="qcOpen = false">
+                                    <button @click="qcOpen = !qcOpen"
+                                            class="flex items-center justify-between gap-1.5 text-sm font-medium rounded-lg border border-gray-200 bg-white px-5 py-1 hover:border-slate-400 transition-all min-w-[90px]">
+                                        <span x-text="questionCount + ' Q'"></span>
+                                        <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 transition-transform" :class="qcOpen ? 'rotate-180' : ''"></i>
+                                    </button>
+                                    <div x-show="qcOpen" x-transition
+                                         class="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 min-w-[150px]">
+                                        @foreach([5 => '5 Questions', 10 => '10 Questions', 15 => '15 Questions', 20 => '20 Questions'] as $count => $label)
+                                            <button class="w-full text-left px-3 py-1.5 text-sm transition-colors flex items-center justify-between"
+                                                    :class="questionCount === {{ $count }} ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                                    @click="{{ (!$isPremium && $count > 10) ? 'showPremiumModal = true' : 'questionCount = ' . $count . '; qcOpen = false' }}">
+                                                <span>{{ $label }}</span>
+                                                @if(!$isPremium && $count > 10)<span class="text-[10px] font-bold opacity-70">PRO</span>@endif
+                                            </button>
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Difficulty -->
-                            <div class="flex-1 relative" @click.outside="diffOpen = false">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">{{ __('app.exercises.difficulty_label') }}</label>
-                                <button @click="diffOpen = !diffOpen"
-                                        class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:border-slate-400 bg-white transition-all capitalize">
-                                    <span x-text="difficulty"></span>
-                                    <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 transition-transform" :class="diffOpen ? 'rotate-180' : ''"></i>
-                                </button>
-                                <div x-show="diffOpen" x-transition
-                                     class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
-                                    @if($isPremium)
-                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
-                                                :class="difficulty === 'adaptive' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="difficulty = 'adaptive'; diffOpen = false">{{ __('app.exercises.difficulty_adaptive') }}</button>
-                                    @else
-                                        <button class="w-full text-left px-3 py-1.5 text-sm text-gray-400 flex items-center justify-between"
-                                                @click="showPremiumModal = true">
-                                            <span>{{ __('app.exercises.difficulty_adaptive') }}</span>
-                                            <span class="bg-slate-700 text-white text-[9px] px-1 rounded font-bold">PRO</span>
-                                        </button>
-                                    @endif
-                                    @foreach(['beginner' => __('app.exercises.difficulty_beginner'), 'intermediate' => __('app.exercises.difficulty_intermediate'), 'advanced' => __('app.exercises.difficulty_advanced')] as $val => $label)
-                                        <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
-                                                :class="difficulty === '{{ $val }}' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="difficulty = '{{ $val }}'; diffOpen = false">{{ $label }}</button>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <!-- Feedback Mode -->
-                            <div class="flex-1 relative" @click.outside="fbOpen = false">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">{{ __('app.exercises.feedback_mode') }}</label>
-                                <button @click="fbOpen = !fbOpen"
-                                        class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:border-slate-400 bg-white transition-all">
-                                    <span x-text="({'immediate': '{{ __('app.exercises.feedback_immediate') }}', 'end': '{{ __('app.exercises.feedback_end') }}'})[feedbackMode]"></span>
-                                    <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 transition-transform" :class="fbOpen ? 'rotate-180' : ''"></i>
-                                </button>
-                                <div x-show="fbOpen" x-transition
-                                     class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
-                                    <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
-                                            :class="feedbackMode === 'immediate' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                            @click="feedbackMode = 'immediate'; fbOpen = false">{{ __('app.exercises.feedback_immediate') }}</button>
-                                    <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
-                                            :class="feedbackMode === 'end' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                            @click="feedbackMode = 'end'; fbOpen = false">{{ __('app.exercises.feedback_end') }}</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Shuffle + AI Mode (side by side) -->
-                        <div class="flex gap-2">
-                            <div class="flex-1 flex items-center justify-between p-3 bg-gray-50 rounded-xl gap-2">
-                                <p class="text-sm font-semibold text-gray-700">{{ __('app.exercises.shuffle') }}</p>
-                                <button @click="randomize = !randomize"
-                                    class="relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none"
-                                    :class="randomize ? 'bg-slate-700' : 'bg-gray-300'">
-                                    <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
-                                          :class="randomize ? 'translate-x-6' : 'translate-x-0'"></span>
-                                </button>
-                            </div>
-                            <div class="flex-1 flex items-center justify-between p-3 rounded-xl border-2 transition-all gap-2"
+                            <!-- AI Mode -->
+                            <div class="flex-1 flex items-center justify-between px-3 py-2 rounded-xl border-2 transition-all gap-2"
                                  :class="aiMode ? 'border-slate-400 bg-slate-50' : 'bg-gray-50 border-transparent'">
                                 <p class="text-sm font-semibold text-gray-700 flex items-center gap-1 min-w-0">
                                     <i data-lucide="sparkles" class="w-4 h-4 text-slate-600 flex-shrink-0"></i>
@@ -802,7 +903,7 @@
                                 @if($isPremium)
                                     <button @click="aiMode = !aiMode"
                                         class="relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200"
-                                        :class="aiMode ? 'bg-slate-700' : 'bg-gray-300'">
+                                        :class="aiMode ? 'bg-green-800' : 'bg-gray-300'">
                                         <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
                                               :class="aiMode ? 'translate-x-6' : 'translate-x-0'"></span>
                                     </button>
@@ -812,6 +913,28 @@
                                         <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow"></span>
                                     </button>
                                 @endif
+                            </div>
+
+                            <!-- Difficulty — only for melodic dictation -->
+                            <div class="flex-1 relative" x-show="selectedCategory === 'melodic-dictation'" x-cloak @click.outside="diffOpen = false">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Difficulty</label>
+                                <button @click="diffOpen = !diffOpen"
+                                        class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:border-slate-400 bg-white transition-all">
+                                    <span x-text="{'beginner':'Beginner','intermediate':'Intermediate','advanced':'Advanced'}[dictationDifficulty]"></span>
+                                    <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 transition-transform" :class="diffOpen ? 'rotate-180' : ''"></i>
+                                </button>
+                                <div x-show="diffOpen" x-transition
+                                     class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
+                                    <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                            :class="dictationDifficulty === 'beginner' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                            @click="dictationDifficulty = 'beginner'; diffOpen = false">Beginner</button>
+                                    <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                            :class="dictationDifficulty === 'intermediate' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                            @click="dictationDifficulty = 'intermediate'; diffOpen = false">Intermediate</button>
+                                    <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                                            :class="dictationDifficulty === 'advanced' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
+                                            @click="dictationDifficulty = 'advanced'; diffOpen = false">Advanced</button>
+                                </div>
                             </div>
                         </div>
 
@@ -839,10 +962,6 @@
                             <span class="summary-badge" x-text="questionCount"></span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500">{{ __('app.exercises.difficulty_short') }}</span>
-                            <span class="summary-badge" x-text="difficulty"></span>
-                        </div>
-                        <div class="flex items-center justify-between">
                             <span class="text-gray-500">{{ __('app.exercises.clef') }}</span>
                             <span class="summary-badge">
                                 <span x-text="clef === 'treble' ? '𝄞 {{ __('app.exercises.treble_short') }}' : clef === 'bass' ? '𝄢 {{ __('app.exercises.bass_short') }}' : '𝄡 Alto'"></span>
@@ -863,15 +982,15 @@
                     </div>
                 </div>
 
-                <!-- Livewire: AI recommendation + Saved plans -->
-                <livewire:exercise-setup-studio />
-
                 <!-- Start Exercise Button -->
                 <button @click="startExercise()"
                     class="w-full start-btn text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-base shadow-lg">
                     <i data-lucide="play-circle" class="w-5 h-5"></i>
                     {{ __('app.exercises.start_exercise') }}
                 </button>
+
+                <!-- Livewire: AI recommendation + Saved plans -->
+                <livewire:exercise-setup-studio />
 
                 <!-- Error display -->
                 <div id="launchError" class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3"></div>
@@ -883,7 +1002,6 @@
     <form id="launchForm" action="{{ route('exercise-setup.launch') }}" method="POST" class="hidden">
         @csrf
         <input type="hidden" name="exercise_type" id="f_exercise_type">
-        <input type="hidden" name="difficulty" id="f_difficulty">
         <input type="hidden" name="question_count" id="f_question_count">
         <input type="hidden" name="ai_mode" id="f_ai_mode">
         <input type="hidden" name="settings" id="f_settings">
@@ -895,7 +1013,6 @@
             // Core state
             selectedCategory: 'intervals',
             intervalSubType: 'melodic-intervals',
-            difficulty: '{{ $isPremium ? "adaptive" : "intermediate" }}',
             questionCount: 5,
             clef: 'treble',
             replayLimit: 'unlimited',
@@ -908,7 +1025,7 @@
             // Dropdown open states
             qcOpen: false,
             diffOpen: false,
-            fbOpen: false,
+            scaleTempoOpen: false,
 
             // Interval specific
             intervalPool: ['m2','M2','m3','M3','P4','P5'],
@@ -922,6 +1039,7 @@
             // Scale specific
             scaleTypes: ['Major','Natural Minor'],
             scaleDirection: 'ascending',
+            scaleTempo: 'normal',
 
             // Rhythm specific
             rhythmMode: 'dictation',
@@ -933,19 +1051,30 @@
             tempo: 80,
             metronome: true,
 
-            // Octave range
-            octaveRange: [3, 4, 5],
-
             // Single Note specific
             singleNoteAllowedNotes: ['C'],
             singleNoteGroupSize: 2,
             singleNoteAnswerMode: 'keyboard',
 
             // Melodic dictation
+            dictationDifficulty: 'intermediate',
+            dictationMode: 'major',
             dictationBars: 2,
-            dictationIncludeRhythm: false,
-            dictationListenCount: 'unlimited',
-            dictationAnswerMode: 'keyboard',
+            dictationTimeSignature: '4/4',
+            dictationKeySignatureIndex: 7,
+            dictationKeySignatures: [
+                'C♯ Major / A♯ minor','F♯ Major / D♯ minor','B Major / G♯ minor',
+                'E Major / C♯ minor','A Major / F♯ minor','D Major / B minor','G Major / E minor',
+                'C Major / A minor',
+                'F Major / D minor','B♭ Major / G minor','E♭ Major / C minor',
+                'A♭ Major / F minor','D♭ Major / B♭ minor','G♭ Major / E♭ minor','C♭ Major / A♭ minor',
+            ],
+            dictationNoteValues: ['quarter','eighth'],
+            dictationRests: false,
+            dictationDotted: false,
+            dictationTriplets: false,
+            dictationTempo: 50,
+            dictationMetronome: true,
 
             // UI state
             mobileStep: 1, // kept for compatibility
@@ -986,26 +1115,29 @@
                 else { this.scaleTypes.splice(idx, 1); }
             },
 
+            setTimeSignature(ts) {
+                this.timeSignature = ts;
+                if (['2/2', '3/2', '4/2'].includes(ts)) {
+                    this.tempo = 50;
+                }
+            },
+
             toggleNoteValue(val) {
                 const idx = this.noteValues.indexOf(val);
                 if (idx === -1) { this.noteValues.push(val); }
                 else { this.noteValues.splice(idx, 1); }
             },
 
+            toggleDictationNoteValue(val) {
+                const idx = this.dictationNoteValues.indexOf(val);
+                if (idx === -1) { this.dictationNoteValues.push(val); }
+                else { this.dictationNoteValues.splice(idx, 1); }
+            },
+
             toggleSingleNote(note) {
                 const idx = this.singleNoteAllowedNotes.indexOf(note);
                 if (idx === -1) { this.singleNoteAllowedNotes.push(note); }
                 else if (this.singleNoteAllowedNotes.length > 1) { this.singleNoteAllowedNotes.splice(idx, 1); }
-            },
-
-            toggleOctave(oct) {
-                const idx = this.octaveRange.indexOf(oct);
-                if (idx === -1) {
-                    this.octaveRange.push(oct);
-                    this.octaveRange.sort((a, b) => a - b);
-                } else if (this.octaveRange.length > 1) {
-                    this.octaveRange.splice(idx, 1);
-                }
             },
 
             buildSettings() {
@@ -1032,7 +1164,6 @@
 
                 return {
                     question_count: this.questionCount,
-                    difficulty: this.difficulty,
                     clef: this.clef,
                     replay_limit: this.replayLimit,
                     time_limit_seconds: this.timeLimitSeconds,
@@ -1045,6 +1176,7 @@
                     include_inversions: this.includeInversions,
                     scale_types: this.scaleTypes,
                     scale_direction: this.scaleDirection,
+                    scale_tempo: this.scaleTempo,
                     time_signature: this.timeSignature,
                     note_values: finalNoteValues,
                     rhythm_mode: this.rhythmMode,
@@ -1053,11 +1185,17 @@
                     rhythm_triplets: this.rhythmTriplets,
                     tempo: this.tempo,
                     metronome: this.metronome,
-                    dictation_bars: this.dictationBars,
-                    dictation_include_rhythm: this.dictationIncludeRhythm,
-                    dictation_listen_count: this.dictationListenCount,
-                    dictation_answer_mode: this.dictationAnswerMode,
-                    octave_range: this.octaveRange,
+                    dictation_difficulty: this.dictationDifficulty,
+                    dictation_mode: this.dictationMode,
+                    dictation_bars: 2,
+                    dictation_time_signature: this.dictationTimeSignature,
+                    dictation_key_signature: this.dictationKeySignatures[this.dictationKeySignatureIndex],
+                    dictation_note_values: this.dictationNoteValues,
+                    dictation_rests: this.dictationRests,
+                    dictation_dotted: this.dictationDotted,
+                    dictation_triplets: this.dictationTriplets,
+                    dictation_tempo: this.dictationTempo,
+                    dictation_metronome: this.dictationMetronome,
                     session_name: this.sessionName,
                     single_note_allowed_notes: this.singleNoteAllowedNotes,
                     single_note_group_size: this.singleNoteGroupSize,
@@ -1069,7 +1207,6 @@
                 const settings = this.buildSettings();
                 const effectiveType = this.selectedCategory === 'intervals' ? this.intervalSubType : this.selectedCategory;
                 document.getElementById('f_exercise_type').value = effectiveType;
-                document.getElementById('f_difficulty').value = this.difficulty;
                 document.getElementById('f_question_count').value = this.questionCount;
                 document.getElementById('f_ai_mode').value = this.aiMode ? '1' : '0';
                 document.getElementById('f_settings').value = JSON.stringify(settings);
@@ -1122,12 +1259,11 @@
                 } else {
                     this.selectedCategory = cat;
                 }
-                this.difficulty = s.difficulty || 'intermediate';
                 this.questionCount = s.question_count || 10;
                 this.clef = s.clef || 'treble';
                 this.replayLimit = s.replay_limit || 'unlimited';
                 this.timeLimitSeconds = s.time_limit_seconds || 0;
-                this.feedbackMode = s.feedback_mode || 'immediate';
+                this.feedbackMode = 'immediate';
                 this.randomize = s.randomize !== undefined ? s.randomize : true;
                 this.aiMode = s.ai_mode || false;
                 this.direction = s.direction || 'mixed';
@@ -1137,6 +1273,7 @@
                 this.includeInversions = s.include_inversions || false;
                 this.scaleTypes = s.scale_types || ['Major','Natural Minor'];
                 this.scaleDirection = s.scale_direction || 'ascending';
+                this.scaleTempo = s.scale_tempo || 'normal';
                 this.timeSignature = s.time_signature || '4/4';
                 this.noteValues = (s.note_values || ['quarter','eighth']).filter(v => ['whole','half','quarter','eighth','sixteenth'].includes(v));
                 this.rhythmMode = s.rhythm_mode || 'dictation';
@@ -1145,11 +1282,20 @@
                 this.rhythmTriplets = s.rhythm_triplets || false;
                 this.tempo = s.tempo || 80;
                 this.metronome = s.metronome !== undefined ? s.metronome : true;
-                this.dictationBars = s.dictation_bars || 2;
-                this.dictationIncludeRhythm = s.dictation_include_rhythm || false;
-                this.dictationListenCount = s.dictation_listen_count || 'unlimited';
-                this.dictationAnswerMode = s.dictation_answer_mode || 'keyboard';
-                this.octaveRange = s.octave_range || [3, 4, 5];
+                this.dictationDifficulty = s.dictation_difficulty || 'intermediate';
+                this.dictationMode = s.dictation_mode || 'major';
+
+                this.dictationTimeSignature = s.dictation_time_signature || '4/4';
+                if (s.dictation_key_signature) {
+                    const idx = this.dictationKeySignatures.indexOf(s.dictation_key_signature);
+                    if (idx >= 0) this.dictationKeySignatureIndex = idx;
+                }
+                this.dictationNoteValues = s.dictation_note_values || ['quarter','eighth'];
+                this.dictationRests = s.dictation_rests || false;
+                this.dictationDotted = s.dictation_dotted || false;
+                this.dictationTriplets = s.dictation_triplets || false;
+                this.dictationTempo = s.dictation_tempo || 50;
+                this.dictationMetronome = s.dictation_metronome !== undefined ? s.dictation_metronome : true;
                 this.singleNoteAllowedNotes = s.single_note_allowed_notes || ['C'];
                 this.singleNoteGroupSize = s.single_note_group_size || 2;
                 this.singleNoteAnswerMode = s.single_note_answer_mode || 'keyboard';
@@ -1168,7 +1314,6 @@
                         this.selectedCategory = rec.exercise_type;
                     }
                 }
-                if (s.difficulty) this.difficulty = s.difficulty;
                 if (s.question_count) this.questionCount = s.question_count;
                 if (s.direction) this.direction = s.direction;
                 if (s.interval_pool) this.intervalPool = s.interval_pool;

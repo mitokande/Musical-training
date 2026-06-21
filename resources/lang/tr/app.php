@@ -977,6 +977,8 @@ return [
         'final_score'         => 'Final Skoru',
         'new_personal_best'   => 'Yeni Kişisel Rekor!',
         'plays_used'          => 'Bugün :used/:limit oyun oynandı',
+        'plays_used_total'    => ':used/:total toplam bugün',
+        'daily_limit_guest_desc' => 'Ücretsiz deneme oyunlarını kullandın. Devam etmek için ücretsiz kayıt ol!',
         'play_now'            => 'Şimdi Oyna',
         'no_plays_yet'        => 'Henüz oynanmadı',
         'best'                => 'en iyi',

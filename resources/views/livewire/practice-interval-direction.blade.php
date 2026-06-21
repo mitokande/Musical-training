@@ -28,16 +28,16 @@
             </div>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
 
                 <!-- Play Button Section -->
-                <div class="card p-8 mb-8 flex flex-col items-center">
+                <div class="card p-4 sm:p-8 mb-4 sm:mb-8 flex flex-col items-center">
                     @php $note2Oct = $currentPractice->note2_octave ?? $currentPractice->octave; @endphp
                     <p class="text-gray-500 text-sm mb-4">Listen to the two notes and decide the direction</p>
-                    <div class="flex gap-3">
+                    <div class="flex flex-wrap justify-center gap-3 mb-3">
                         <button
                             id="playButton"
-                            class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
+                            class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow"
                             data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2) . $note2Oct }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
@@ -47,7 +47,7 @@
                             <button
                                 id="nextPracticeBtn"
                                 wire:click="getNextPractice"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -58,7 +58,7 @@
                             <a
                                 href="/learn"
                                 id="nextPracticeBtn"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -78,10 +78,10 @@
                 <div id="answerOptions" class="grid grid-cols-2 gap-4"
                      data-target="{{ $derivedDirection }}"
                      data-practice-id="{{ $currentPractice->id }}">
-                    <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="ascending">
+                    <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="ascending">
                         Ascending
                     </button>
-                    <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="descending">
+                    <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="descending">
                         Descending
                     </button>
                 </div>

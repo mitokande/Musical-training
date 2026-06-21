@@ -131,16 +131,19 @@
 
     <div class="max-w-7xl mx-auto px-[5px] sm:px-6 lg:px-8 pt-5 sm:pt-[50px] pb-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-7 gap-6{{ $slug === 'note-catcher' ? ' lg:max-w-[90%] lg:mx-auto' : '' }}">
 
             <!-- Game Panel -->
             <div class="lg:col-span-5">
                 @include('partials.games.' . $slug, [
-                    'personalBest'    => $personalBest,
-                    'canPlay'         => $canPlay,
-                    'dailyLimit'      => $dailyLimit,
-                    'dailyPlaysUsed'  => $dailyPlaysUsed,
-                    'slug'            => $slug,
+                    'personalBest'   => $personalBest,
+                    'canPlay'        => $canPlay,
+                    'perTypeLimit'   => $perTypeLimit,
+                    'totalLimit'     => $totalLimit,
+                    'dailyPlaysUsed' => $dailyPlaysUsed,
+                    'totalPlaysUsed' => $totalPlaysUsed,
+                    'scoreUrl'       => $scoreUrl,
+                    'slug'           => $slug,
                 ])
             </div>
 
@@ -294,7 +297,7 @@
 
         {{-- ─── ALL-TIME TOP 30 ────────────────────────────────────────────── --}}
         @if($canAccessLeaderboard && $allTimeLeaderboard->isNotEmpty())
-        <div class="mt-8 mb-4">
+        <div class="mt-8 mb-4{{ $slug === 'note-catcher' ? ' lg:max-w-[90%] lg:mx-auto' : '' }}">
             <div class="flex items-center gap-2 mb-5">
                 <i data-lucide="list-ordered" class="w-5 h-5 text-amber-400"></i>
                 <h2 class="text-white font-bold text-base">{{ __('app.games.all_time') }} — Top 30</h2>

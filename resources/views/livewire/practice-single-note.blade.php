@@ -24,7 +24,7 @@
             </div>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
 
                 <!-- Staff -->
                 <div id="staffContainer"
@@ -41,26 +41,26 @@
 
                 <!-- Play / Next -->
                 <div class="flex flex-col items-center mb-6">
-                    <div class="flex gap-3">
+                    <div class="flex flex-wrap justify-center gap-3 mb-3">
                         <button id="playButton"
-                                class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-all">
+                                class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-all">
                             <i data-lucide="play" class="w-5 h-5"></i> Play
                         </button>
                         @if(!$isLastQuestion)
                         <button id="nextPracticeBtn" wire:click="getNextPractice"
-                                class="hidden font-semibold py-3 px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
+                                class="hidden font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
                                        bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200 hover:border-blue-400">
                             <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
                         </button>
                         @else
                         <a id="nextPracticeBtn" href="/learn"
-                           class="hidden font-semibold py-3 px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
+                           class="hidden font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
                                   bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200 hover:border-blue-400">
                             <i data-lucide="check" class="w-5 h-5"></i> Finish
                         </a>
                         @endif
                     </div>
-                    <p id="playStatus" class="text-sm text-gray-500 mt-3">Press Play to hear the note(s), then answer below</p>
+                    <p id="playStatus" class="text-sm text-gray-500">Press Play to hear the note(s), then answer below</p>
                 </div>
 
                 <!-- Piano Keyboard Answer -->
@@ -75,6 +75,10 @@
 
                     <!-- Keyboard -->
                     <div class="relative mx-auto select-none" style="max-width:480px;height:116px;">
+                        <!-- Octave indicator — shows which octave the current question is in -->
+                        <span id="keyboardOctaveLabel"
+                              class="absolute top-1 left-1 z-20 text-xs font-bold text-indigo-600 bg-white/90 rounded px-1.5 py-0.5 ring-1 ring-indigo-200"
+                              style="pointer-events:none;visibility:hidden;">Oct 4</span>
                         <!-- White keys -->
                         <div class="flex h-full" style="gap:2px;">
                             @foreach(['C','D','E','F','G','A','B'] as $note)
@@ -128,6 +132,14 @@
                         @endfor
                     </div>
                     @endif
+
+                    <!-- Delete last note -->
+                    <div class="flex justify-center mt-3">
+                        <button id="deleteLastNoteBtn"
+                                class="hidden text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-200 hover:bg-red-50 transition-all">
+                            <i data-lucide="delete" class="w-3 h-3"></i> Delete last note
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Feedback -->
@@ -159,6 +171,7 @@
             const nextButton     = document.getElementById('nextPracticeBtn');
             const feedbackMsg    = document.getElementById('feedbackMessage');
             const pianoKeys      = document.querySelectorAll('.piano-answer-key');
+            const deleteBtn      = document.getElementById('deleteLastNoteBtn');
 
             if (!outputDiv || !playButton) return;
 
@@ -166,22 +179,27 @@
             const clef         = outputDiv.dataset.clef || 'treble';
             const groupTargets = JSON.parse(outputDiv.dataset.groupTargets || '[]');
 
-            // Clef-specific display octave and reference note.
-            // clefOctave: the octave used when rendering the user's answer on the staff.
-            // refVF / refTone: the anchor reference note played first.
-            //
-            // Sol  (Treble): staff E4–F5, ref = C4 (1 ledger below, middle C)
-            // Fa   (Bass)  : staff G2–A3, ref = C3 (2nd space, clearly on staff)
-            // Do   (Alto)  : staff F3–G4, C4 = middle line, ref = C4
+            // Clef-specific fallback display octave.
             const clefConfig = {
-                treble: { octave: '4', refVF: 'c/4', refTone: 'C4' },
-                bass:   { octave: '2', refVF: 'c/3', refTone: 'C3' },
-                alto:   { octave: '4', refVF: 'c/4', refTone: 'C4' },
+                treble: { octave: '4' },
+                bass:   { octave: '2' },
+                alto:   { octave: '4' },
             };
             const cfg        = clefConfig[clef] || clefConfig.treble;
             const clefOctave = cfg.octave;
-            const refNoteVF  = cfg.refVF;
-            const refNoteTone= cfg.refTone;
+
+            // Pick a random reference note (natural, different from the target)
+            // in the same octave as the first question's target note.
+            const naturalPool  = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+            const firstTarget  = groupTargets[0] || '';
+            const targetOctave = firstTarget.split('/')[1] || clefOctave;
+            const targetLetter = ((firstTarget.split('/')[0] || 'c').charAt(0)).toUpperCase();
+            const refCandidates = naturalPool.filter(n => n !== targetLetter);
+            const refLetter    = refCandidates.length
+                ? refCandidates[Math.floor(Math.random() * refCandidates.length)]
+                : 'C';
+            const refNoteVF   = refLetter.toLowerCase() + '/' + targetOctave;
+            const refNoteTone = refLetter + targetOctave;
 
             // 40 BPM — 1 beat = 1500ms
             const BPM_MS = 1500;
@@ -225,8 +243,10 @@
                 const { ctx, stave, w } = buildStave(145, 25);
 
                 const items = [{ key: refNoteVF, color: '#6366f1' }];
-                answers.forEach(ans => {
-                    items.push({ key: ans.toLowerCase() + '/' + clefOctave, color: '#475569' });
+                answers.forEach((ans, i) => {
+                    // Use the question's octave, not the fixed keyboard display octave
+                    const qOctave = (groupTargets[i] || '').split('/')[1] || clefOctave;
+                    items.push({ key: ans.toLowerCase() + '/' + qOctave, color: '#475569' });
                 });
 
                 const notes = items.map(({ key, color }) => mkNote(key, color));
@@ -267,10 +287,12 @@
                 vA.push(mkNote(refNoteVF, '#6366f1'));
 
                 answers.forEach((ans, i) => {
-                    const tgtVF   = groupTargets[i] || (ans.toLowerCase() + '/' + clefOctave);
-                    const tgtName = tgtVF.split('/')[0];
-                    const isRight = ans.toLowerCase() === tgtName.toLowerCase();
-                    vA.push(mkNote(ans.toLowerCase() + '/' + clefOctave,
+                    const tgtVF    = groupTargets[i] || (ans.toLowerCase() + '/' + clefOctave);
+                    const tgtName  = tgtVF.split('/')[0];
+                    const tgtOctave = tgtVF.split('/')[1] || clefOctave;
+                    const isRight  = ans.toLowerCase() === tgtName.toLowerCase();
+                    // Render user answer at the question's octave, not the keyboard's fixed octave
+                    vA.push(mkNote(ans.toLowerCase() + '/' + tgtOctave,
                                    isRight ? '#16a34a' : '#dc2626'));
                 });
 
@@ -348,6 +370,15 @@
                 dot.className = 'w-3 h-3 rounded-full transition-all ' + (c[state] || 'bg-gray-200');
             }
 
+            /** Update the octave badge on the keyboard to match the current unanswered question's octave. */
+            function updateOctaveLabel() {
+                const label = document.getElementById('keyboardOctaveLabel');
+                if (!label) return;
+                const idx = Math.min(answerCount, groupTargets.length - 1);
+                const oct = (groupTargets[idx] || '').split('/')[1] || clefOctave;
+                label.textContent = 'Oct ' + oct;
+            }
+
             function resetKeyStyles() {
                 pianoKeys.forEach(k => {
                     k.classList.remove('bg-indigo-100', 'border-indigo-500');
@@ -368,6 +399,8 @@
                 renderPreview([]);
                 for (let i = 0; i < groupSize; i++) dotSet(i, 'empty');
                 resetKeyStyles();
+                updateOctaveLabel();
+                if (deleteBtn) deleteBtn.classList.add('hidden');
             }
 
             function evaluate() {
@@ -389,7 +422,10 @@
                     feedbackMsg.textContent = '✓ Correct! Well done!';
                     feedbackMsg.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                 } else {
-                    const correctList = groupTargets.map(t => t.split('/')[0].toUpperCase()).join(', ');
+                    const correctList = groupTargets.map(t => {
+                        const [n, o] = t.split('/');
+                        return n.toUpperCase() + (o || '');
+                    }).join(', ');
                     feedbackMsg.textContent = '✗ Incorrect. Correct: ' + correctList;
                     feedbackMsg.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                 }
@@ -398,6 +434,7 @@
                 playButton.classList.add('hidden');
                 if (playStatus) playStatus.classList.add('hidden');
                 if (nextButton) nextButton.classList.remove('hidden');
+                if (deleteBtn) deleteBtn.classList.add('hidden');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 // Server record
@@ -417,6 +454,7 @@
 
             // Initial render (reference note only)
             renderPreview([]);
+            updateOctaveLabel();
 
             // ── Piano key clicks ─────────────────────────────────────────
             pianoKeys.forEach(key => {
@@ -428,6 +466,12 @@
                     userAnswers.push(note);
                     dotSet(answerCount, 'pending');
                     answerCount++;
+                    updateOctaveLabel();
+                    if (deleteBtn) deleteBtn.classList.remove('hidden');
+
+                    // Play the selected note's sound
+                    const pressedOctave = (groupTargets[answerCount - 1] || firstTarget || '').split('/')[1] || clefOctave;
+                    window.HarmonivaAudio.playNote(note + pressedOctave, 0.8);
 
                     // Flash
                     const isBlack = note.includes('#');
@@ -458,7 +502,9 @@
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 if (playStatus) playStatus.textContent = 'Playing…';
 
-                resetAll();
+                // On first play only: clear any stale state.
+                // On replay: keep the user's existing answers on the staff.
+                if (!playedOnce) resetAll();
 
                 // 1. Reference note (40 BPM = 1.5s)
                 await window.HarmonivaAudio.playNote(refNoteTone, BPM_MS / 1000);
@@ -487,6 +533,28 @@
                 playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 if (playStatus) playStatus.textContent = 'Now click the piano keys to answer';
+            });
+
+            // ── Delete last note ──────────────────────────────────────────
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function () {
+                    if (isAnswered || answerCount <= 0) return;
+                    userAnswers.pop();
+                    answerCount--;
+                    dotSet(answerCount, 'empty');
+                    updateOctaveLabel();
+                    renderPreview(userAnswers);
+                    if (answerCount === 0) deleteBtn.classList.add('hidden');
+                });
+            }
+
+            // Backspace keyboard shortcut for delete
+            document.addEventListener('keydown', function onKeyDown(e) {
+                if (e.key === 'Backspace' && !isAnswered && answerCount > 0) {
+                    e.preventDefault();
+                    deleteBtn?.click();
+                }
+                if (isAnswered) document.removeEventListener('keydown', onKeyDown);
             });
 
             if (typeof lucide !== 'undefined') lucide.createIcons();

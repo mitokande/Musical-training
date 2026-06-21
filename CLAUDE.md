@@ -43,13 +43,15 @@ rhythm-practice                 → <livewire:practice-rhythm>
 melodic-dictation               → <livewire:practice-melodic-dictation>
 ```
 
-### Three practice entry points
+### Four practice entry points
 
 1. **Direct navigation** — `/practice/{slug}` loads all DB records, no session. Livewire `mount()` calls `$this->serializePractices($practices)`.
 
 2. **Learning Path** — `/learn-exercise/{slug}` (detail page) → POST `start` → `LearningPathController::start()` generates questions via `LearningPathQuestionGenerator`, stores them in `session('learning_path_session')`, redirects to `/practice/{slug}`. `PageController::practiceView()` detects the session and passes generated questions instead of DB records.
 
 3. **Exercise Setup Studio** — `/exercise-setup` → POST `launch` → `ExerciseSetupController::launch()` stores config in `session('exercise_settings')`, clears any stale `learning_path_session`, redirects to `/practice/{slug}`. Each Livewire component's `mount()` reads/forgets `exercise_settings`, calls `LearningPathQuestionGenerator`, stores results in `session('exercise_practice_session')`.
+
+4. **AI Assisted Exercises** — `/ai-exercises` → POST `generate` → `AIController::generatePractices()`. Generic path: questions go to `session('ai_practice_questions')` → `/practice-ai` → `practice-mixed` view. Special case: when **only** `melodic-dictation` is selected, the controller stores `session('ai_dictation_settings')` (question_count + difficulty) and redirects to `/practice-ai/melodic-dictation`, which renders `practice-ai-dictation.blade.php` + `PracticeAiMelodicDictation`. That component **extends** `PracticeMelodicDictation` (same engine: beat-pattern rhythm + `TonalMelodyGenerator`), auto-derives key/time-signature/tempo/note-value pool from the difficulty (easy→beginner, medium/adaptive→intermediate, hard→advanced), and stores `session('exercise_practice_session')` so answer checking is shared. Its blade `practice-ai-melodic-dictation.blade.php` is a re-skinned (indigo/AI theme) clone of `practice-melodic-dictation.blade.php` — keep their JS/structure in sync when editing either.
 
 ### Answer checking priority in PracticeController::checkAnswer()
 
@@ -84,6 +86,10 @@ Key methods:
 | `single-note-practice` | `allowed_notes`, `octave_range`, `distractor_count` |
 
 Interval name abbreviations (`m2`, `M2`, `TT`, `8ve`, etc.) from exercise-setup are **not** understood by the generator — they must be mapped to full names (`Minor 2nd`, `Major 2nd`, `Tritone`, `Perfect Octave`) in the Livewire component before passing to the generator.
+
+### TonalMelodyGenerator (`app/Services/TonalMelodyGenerator.php`)
+
+The single canonical source of melodic-dictation melodies. Both `PracticeMelodicDictation::mount()` (Exercise Setup flow) and `LearningPathQuestionGenerator::generateMelodicDictation()` (LP flow) generate pitches through it — never generate dictation melodies inline. It enforces tonal/pedagogical rules per difficulty (`beginner`/`intermediate`/`advanced`): diatonic note pool in the selected key, start on a tonic-triad degree, level-based ending (beginner always tonic), ≥70% steps/thirds, per-level leap size/count caps, no consecutive leaps, contrary-motion leap resolution, and per-level range caps (beginner: M6, intermediate: octave, advanced: M10). `generateMelody()` retries a weighted random walk until `validateMelody()` passes, then falls back to a stepwise line that is valid by construction. Rules are covered by `tests/Unit/TonalMelodyGeneratorTest.php` (run with `./vendor/bin/phpunit tests/Unit/TonalMelodyGeneratorTest.php`).
 
 ### HandlesPracticeData trait (`app/Livewire/Concerns/HandlesPracticeData.php`)
 

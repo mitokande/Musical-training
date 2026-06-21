@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class MelodicDictationPractice extends Model
 {
     protected $fillable = [
-        'notes', 'bars', 'clef', 'key_signature', 'tempo', 'include_rhythm',
+        'notes', 'note_values', 'bars', 'clef', 'key_signature', 'time_signature', 'tonic', 'tempo', 'include_rhythm',
     ];
 
     protected $casts = [
         'notes' => 'array',
+        'note_values' => 'array',
         'include_rhythm' => 'boolean',
     ];
 

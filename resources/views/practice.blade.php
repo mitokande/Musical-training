@@ -211,6 +211,15 @@
             totalMs(notes, delayMs) {
                 return (notes.length - 1) * (delayMs ?? 400) + 2000;
             },
+            // Sample-accurate scheduling helpers (used by the rhythm-dictation builder):
+            // prepare() loads the sampler, now() returns the shared audio clock, and
+            // playNoteAt() fires a note at an absolute time on that clock.
+            async prepare() { await ensureReady(); },
+            now() { return Tone.now(); },
+            playNoteAt(note, duration, time) {
+                if (!sampler) return;
+                sampler.triggerAttackRelease(note, duration ?? 1, time);
+            },
             stop() { if (sampler) sampler.releaseAll(); }
         };
     })();

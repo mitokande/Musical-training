@@ -27,12 +27,12 @@
             </div>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 <!-- Exercise title -->
                 <p class="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Harmonic Interval</p>
 
                 <!-- VexFlow Note Display -->
-                <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8" style="min-height:130px;">
+                <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-4 sm:mb-8" style="min-height:130px;">
                     <div id="output"
                          style="width:100%; height:180px; display:flex; justify-content:center;"
                          data-note1="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave }}"
@@ -42,12 +42,12 @@
                 </div>
 
                 <!-- Play Button Section -->
-                <div class="card p-6 mb-8">
+                <div class="card p-4 sm:p-6 mb-4 sm:mb-8">
                     <div class="flex flex-col items-center">
-                        <div class="flex">
+                        <div class="flex flex-wrap justify-center gap-3 mb-3">
                             <button
                             id="playButton"
-                            class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
+                            class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow"
                             data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2) . ($currentPractice->note2_octave ?? $currentPractice->octave) }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
@@ -57,7 +57,7 @@
                             <button
                                 id="nextPracticeBtn"
                                 wire:click="getNextPractice"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -68,7 +68,7 @@
                             <a
                                 href="/learn"
                                 id="nextPracticeBtn"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -133,7 +133,8 @@
                 else if (acc === 'b') st -= 1;
                 else if (acc === 'bb') st -= 2;
                 const midi = (parseInt(m[3]) + 1) * 12 + st;
-                const mid = clef === 'bass' ? 50 : 71;
+                // Middle line: treble B4=71, bass D3=50, alto C4=60
+                const mid = clef === 'bass' ? 50 : (clef === 'alto' ? 60 : 71);
                 return midi >= mid ? -1 : 1;
             }
 
@@ -155,7 +156,9 @@
                 const topKey = showBoth ? note2Key : note1Key;
                 const sd = vfStemDirH(topKey, clef);
                 const keys = showBoth ? [note1Key, note2Key] : [note1Key];
-                const chord = new StaveNote({ keys, duration: 'w', stem_direction: sd });
+                // clef must be passed so VexFlow positions the notes on the
+                // correct staff line for bass/alto (defaults to treble otherwise)
+                const chord = new StaveNote({ keys, duration: 'w', stem_direction: sd, clef: clef || 'treble' });
 
                 const voice = new Voice({ numBeats: 4, beatValue: 4 });
                 voice.addTickables([chord]);

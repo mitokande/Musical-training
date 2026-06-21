@@ -126,10 +126,10 @@
 
             {{-- Free plan notice (only for users who can upgrade) --}}
             @auth
-                @if($dailyLimit !== -1 && auth()->user()->plan === 'free')
+                @if($perTypeLimit !== null && $perTypeLimit !== -1 && auth()->user()->plan === 'free')
                 <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/8 border border-amber-500/18 text-amber-300/80 text-xs font-medium">
                     <i data-lucide="clock" class="w-3.5 h-3.5 flex-shrink-0"></i>
-                    {{ __('app.games.free_plan_limit', ['limit' => $dailyLimit]) }}
+                    {{ __('app.games.free_plan_limit', ['limit' => $perTypeLimit]) }}
                     <span class="text-white/30">·</span>
                     <a href="{{ route('profile.edit') }}" class="underline decoration-dotted hover:text-amber-200 transition-colors">{{ __('app.games.upgrade_unlimited') }}</a>
                 </div>

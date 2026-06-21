@@ -977,6 +977,8 @@ return [
         'final_score'         => 'Final Score',
         'new_personal_best'   => 'New Personal Best!',
         'plays_used'          => ':used/:limit plays used today',
+        'plays_used_total'    => ':used/:total total today',
+        'daily_limit_guest_desc' => "You've used your free trial plays. Sign up free to continue!",
         'play_now'            => 'Play Now',
         'no_plays_yet'        => 'No plays yet',
         'best'                => 'best',

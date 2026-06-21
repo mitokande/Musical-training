@@ -1,54 +1,45 @@
 {{-- Note Catcher game partial --}}
 
-@if(!$canPlay && $dailyLimit !== -1)
+@if(!$canPlay)
     <div class="game-surface rounded-2xl p-10 text-center">
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5">
             <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
         </div>
         <h2 class="text-white text-xl font-bold mb-2">{{ __('app.games.daily_limit_title') }}</h2>
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
-            @auth
-                @if(auth()->user()->plan === 'free')
-                    {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-                @else
-                    {{ __('app.games.daily_limit_premium_desc', ['limit' => $dailyLimit]) }}
-                @endif
+            @guest
+                {{ __('app.games.daily_limit_guest_desc') }}
             @else
-                {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-            @endauth
+                {{ __('app.games.daily_limit_desc', ['limit' => $perTypeLimit]) }}
+            @endguest
         </p>
-        @auth
+        @guest
+            <a href="{{ route('register') }}"
+               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
+                {{ __('app.popup.sign_up') }}
+            </a>
+        @else
             @if(auth()->user()->plan === 'free')
             <a href="{{ route('profile.edit') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>
-            @else
-            <a href="{{ route('games.index') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-white/8 border border-white/12 text-white/70 font-semibold text-sm hover:bg-white/12 transition-all">
-                ← {{ __('app.nav.games') }}
-            </a>
             @endif
-        @else
-            <a href="{{ route('register') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
-                {{ __('app.popup.sign_up') }}
-            </a>
-        @endauth
+        @endguest
     </div>
 @else
 
-<div x-data="noteCatcherGame()" x-init="onInit()" class="game-surface rounded-2xl overflow-hidden"
+<div x-data="noteCatcherGame()" x-init="onInit()" class="game-surface rounded-2xl overflow-hidden sm:max-w-[85%] sm:mx-auto lg:max-w-none"
      @keydown.arrow-left.window="moveLeft()" @keydown.arrow-right.window="moveRight()">
 
     {{-- Header --}}
-    <div class="bg-gradient-to-r from-violet-500/20 to-purple-600/20 border-b border-white/10 py-4 px-5 sm:p-5">
+    <div class="bg-gradient-to-r from-violet-500/20 to-purple-600/20 border-b border-white/10 py-3 px-4 sm:p-5">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="{{ route('games.index') }}" class="w-10 h-10 rounded-xl bg-white border border-white/20 flex items-center justify-center text-red-600 font-bold hover:bg-white/90 transition-all flex-shrink-0">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </a>
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center">
+                <div class="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 items-center justify-center flex-shrink-0">
                     <i data-lucide="move-horizontal" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
@@ -58,23 +49,31 @@
                 </div>
             </div>
             <div class="flex items-center gap-3 sm:gap-4">
-                {{-- Hearts: desktop only (inline) --}}
+                {{-- Kalpler: sadece desktop --}}
                 <div class="hidden sm:flex items-center gap-0.5">
                     <template x-for="i in 3" :key="i">
                         <span class="text-2xl" :class="i<=lives?'text-red-500':'opacity-40 text-rose-800'">❤</span>
                     </template>
                 </div>
-                <div class="text-center">
-                    <div class="text-white/40 text-xs">Score</div>
-                    <div class="text-white font-black text-xl tabular-nums" x-text="score"></div>
-                    {{-- Hearts: mobile only (below score) --}}
-                    <div class="flex items-center justify-center gap-0.5 mt-0.5 sm:hidden">
+                {{-- Score + Streak + kalpler (mobil) --}}
+                <div class="flex flex-col items-center gap-1 bg-white/[0.06] rounded-xl px-3 py-1.5 sm:flex-row sm:items-center sm:bg-transparent sm:rounded-none sm:p-0 sm:gap-4">
+                    <div class="flex items-start gap-3 sm:gap-4">
+                        <div class="text-center">
+                            <div class="text-white/40 text-[10px] sm:text-xs">Score</div>
+                            <div class="text-white font-black text-base sm:text-xl tabular-nums" x-text="score"></div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-white/40 text-[10px] sm:text-xs" x-text="str.streak"></div>
+                            <div class="font-black text-base sm:text-xl tabular-nums" :class="streak>0?'text-violet-400':'text-white/30'" x-text="streak"></div>
+                        </div>
+                    </div>
+                    {{-- Kalpler: sadece mobil, ikisinin altında hizalı --}}
+                    <div class="flex items-center gap-0.5 sm:hidden">
                         <template x-for="i in 3" :key="'m'+i">
-                            <span class="text-lg" :class="i<=lives?'text-red-500':'opacity-40 text-rose-800'">❤</span>
+                            <span class="text-sm" :class="i<=lives?'text-red-500':'opacity-40 text-rose-800'">❤</span>
                         </template>
                     </div>
                 </div>
-                <div class="text-center"><div class="text-white/40 text-xs" x-text="str.streak">Streak</div><div class="font-black text-xl tabular-nums" :class="streak>0?'text-violet-400':'text-white/30'" x-text="streak"></div></div>
             </div>
         </div>
     </div>
@@ -122,18 +121,11 @@
     {{-- Playing --}}
     <div x-show="gameState==='playing' || gameState==='gameover'">
 
-        {{-- Main area with arrow buttons on sides --}}
-        <div class="flex items-stretch" style="background:#05080f;">
-
-            {{-- Left arrow --}}
-            <button @click="moveLeft()" :disabled="gameState!=='playing'"
-                    class="flex items-center justify-center w-12 sm:w-16 flex-shrink-0 text-white/30 hover:text-white hover:bg-white/5 active:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-default border-r border-white/5"
-                    style="touch-action:manipulation;">
-                <i data-lucide="chevron-left" class="w-8 h-8"></i>
-            </button>
+        {{-- Main area --}}
+        <div style="background:#05080f;">
 
             {{-- Game field --}}
-            <div class="relative flex-1 overflow-hidden select-none" style="height:340px;" x-ref="field">
+            <div class="relative overflow-hidden select-none" style="height:340px;" x-ref="field">
                 {{-- Column guides --}}
                 <template x-for="(pct,i) in colPct" :key="i">
                     <div class="absolute top-0 bottom-0 w-px"
@@ -191,22 +183,16 @@
                 </div>
             </div>
 
-            {{-- Right arrow --}}
-            <button @click="moveRight()" :disabled="gameState!=='playing'"
-                    class="flex items-center justify-center w-12 sm:w-16 flex-shrink-0 text-white/30 hover:text-white hover:bg-white/5 active:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-default border-l border-white/5"
-                    style="touch-action:manipulation;">
-                <i data-lucide="chevron-right" class="w-8 h-8"></i>
-            </button>
         </div>
 
         {{-- Piano keyboard --}}
-        <div class="relative" style="height:88px;background:#0a0d14;border-top:1px solid rgba(255,255,255,0.06);">
+        <div class="relative" style="height:98px;background:#0a0d14;border-top:1px solid rgba(255,255,255,0.06);">
             <div class="flex h-full">
                 <template x-for="(wk,i) in whiteKeys" :key="wk.note">
                     <div class="flex-1 relative flex flex-col items-center justify-end pb-1.5 border-r border-black/30"
                          :class="[
                              'rounded-b-lg border-b border-black/20',
-                             i===currentCol && gameState==='playing' ? 'bg-violet-200' : 'bg-white/88'
+                             i===currentCol && gameState==='playing' ? 'bg-violet-200' : 'bg-white'
                          ]"
                          style="min-width:0;">
                         <span class="text-gray-600 text-xs font-bold" x-text="wk.label"></span>
@@ -218,17 +204,37 @@
                      :style="'left:'+bk.leftPct+'%;top:0;width:8.5%;height:56%'"></div>
             </template>
         </div>
+
+        {{-- Navigation buttons below piano --}}
+        <div class="flex" style="gap:5px;padding:5px;background:#0a0d14;">
+            <button @click="moveLeft()" :disabled="gameState!=='playing'"
+                    class="flex-1 flex items-center justify-center text-white hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:cursor-default"
+                    style="min-height:65px;touch-action:manipulation;border-radius:10px;background:linear-gradient(135deg,rgba(139,92,246,0.60),rgba(109,40,217,0.50));border:1px solid rgba(167,139,250,0.55);box-shadow:0 3px 14px rgba(139,92,246,0.30),inset 0 1px 0 rgba(255,255,255,0.10);">
+                <i data-lucide="chevron-left" class="w-9 h-9" style="stroke-width:2.5;"></i>
+            </button>
+            <button @click="moveRight()" :disabled="gameState!=='playing'"
+                    class="flex-1 flex items-center justify-center text-white hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:cursor-default"
+                    style="min-height:65px;touch-action:manipulation;border-radius:10px;background:linear-gradient(135deg,rgba(109,40,217,0.50),rgba(139,92,246,0.60));border:1px solid rgba(167,139,250,0.55);box-shadow:0 3px 14px rgba(139,92,246,0.30),inset 0 1px 0 rgba(255,255,255,0.10);">
+                <i data-lucide="chevron-right" class="w-9 h-9" style="stroke-width:2.5;"></i>
+            </button>
+        </div>
     </div>
 
-    @if($dailyLimit !== -1)
-    <div class="px-6 pb-4 text-center text-white/20 text-xs">{{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $dailyLimit]) }}</div>
+</div>
+
+@if($perTypeLimit !== null && $perTypeLimit !== -1)
+<div class="pt-2 pb-1 text-center text-white/25 text-xs">
+    {{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $perTypeLimit]) }}
+    @if($totalLimit !== null && $totalLimit !== -1)
+     · {{ __('app.games.plays_used_total', ['used' => $totalPlaysUsed, 'total' => $totalLimit]) }}
     @endif
 </div>
+@endif
 
 <script>
 function noteCatcherGame() {
     const PERSONAL_BEST = {{ (int)$personalBest }};
-    const SCORE_URL = @json(route('games.score', 'note-catcher'));
+    const SCORE_URL = @json($scoreUrl);
     const STR = window.GAME_STRINGS || {};
 
     const NOTES = ['C4','D4','E4','F4','G4','A4','B4'];

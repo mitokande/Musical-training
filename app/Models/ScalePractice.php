@@ -42,12 +42,19 @@ class ScalePractice extends Model
             'Natural Minor' => [0, 2, 3, 5, 7, 8, 10, 12],
             'Harmonic Minor' => [0, 2, 3, 5, 7, 8, 11, 12],
             'Melodic Minor' => [0, 2, 3, 5, 7, 9, 11, 12],
+            'Ionian' => [0, 2, 4, 5, 7, 9, 11, 12],
             'Dorian' => [0, 2, 3, 5, 7, 9, 10, 12],
             'Phrygian' => [0, 1, 3, 5, 7, 8, 10, 12],
             'Lydian' => [0, 2, 4, 6, 7, 9, 11, 12],
             'Mixolydian' => [0, 2, 4, 5, 7, 9, 10, 12],
             'Aeolian' => [0, 2, 3, 5, 7, 8, 10, 12],
             'Locrian' => [0, 1, 3, 5, 6, 8, 10, 12],
+            'Major Pentatonic' => [0, 2, 4, 7, 9, 12],
+            'Minor Pentatonic' => [0, 3, 5, 7, 10, 12],
+            'Blues Scale'      => [0, 3, 5, 6, 7, 10, 12],
+            'Chromatic Scale'  => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            'Whole Tone Scale' => [0, 2, 4, 6, 8, 10, 12],
+            // legacy aliases
             'Pentatonic' => [0, 2, 4, 7, 9, 12],
             'Blues' => [0, 3, 5, 6, 7, 10, 12],
         ];
@@ -62,8 +69,14 @@ class ScalePractice extends Model
     public static function scaleLetterSteps(): array
     {
         return [
-            'Pentatonic' => [0, 1, 2, 4, 5, 7],     // major pentatonic: 1 2 3 5 6 8
-            'Blues' => [0, 2, 3, 4, 4, 6, 7],   // minor blues: 1 b3 4 b5 5 b7 8
+            'Major Pentatonic' => [0, 1, 2, 4, 5, 7],
+            'Minor Pentatonic' => [0, 2, 3, 4, 6, 7],
+            'Blues Scale'      => [0, 2, 3, 4, 4, 6, 7],
+            'Chromatic Scale'  => [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7],
+            'Whole Tone Scale' => [0, 1, 2, 3, 4, 5, 7],
+            // legacy aliases
+            'Pentatonic' => [0, 1, 2, 4, 5, 7],
+            'Blues' => [0, 2, 3, 4, 4, 6, 7],
         ];
     }
 

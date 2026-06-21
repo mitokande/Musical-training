@@ -27,7 +27,7 @@
             </div>
 
             <!-- Content -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 <!-- Question -->
                 <!-- Two Intervals Visual Display -->
                 @php
@@ -38,34 +38,36 @@
                     $intervalBNote0 = strtolower(trim($intervalBNotes[0] ?? ''));
                     $intervalBNote1 = strtolower(trim($intervalBNotes[1] ?? $intervalBNotes[0] ?? ''));
                     $octave = $currentPractice->octave ?? '4';
+                    $cmpClef = $currentPractice->clef ?? 'treble';
                 @endphp
 
                 <div id="noteDisplayContainer" class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8 hidden">
                     <div class="flex flex-col items-center">
                         <div id="output" style="width: 100%; height: 180px; display: flex; justify-content: center;"
-                             data-notes="{{ $intervalANote0 . '/' . $octave . ',' . $intervalANote1 . '/' . $octave . ',' . $intervalBNote0 . '/' . $octave . ',' . $intervalBNote1 . '/' . $octave }}">
+                             data-notes="{{ $intervalANote0 . '/' . $octave . ',' . $intervalANote1 . '/' . $octave . ',' . $intervalBNote0 . '/' . $octave . ',' . $intervalBNote1 . '/' . $octave }}"
+                             data-clef="{{ $cmpClef }}">
                         </div>
                     </div>
                 </div>
 
                 <!-- Play Button Section -->
-                <div class="card p-6 mb-8">
+                <div class="card p-4 sm:p-6 mb-4 sm:mb-8">
                     <div class="flex flex-col items-center">
-                        <div class="flex">
-                            <button 
-                            id="playButton" 
-                            class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                            data-interval-a="{{ strtoupper($intervalANote0) . $octave . ',' . strtoupper($intervalANote1) . $octave }}"
-                            data-interval-b="{{ strtoupper($intervalBNote0) . $octave . ',' . strtoupper($intervalBNote1) . $octave }}"
+                        <div class="flex flex-wrap justify-center gap-3 mb-3">
+                            <button
+                            id="playButton"
+                            class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow"
+                            data-interval-a="{{ ucfirst($intervalANote0) . $octave . ',' . ucfirst($intervalANote1) . $octave }}"
+                            data-interval-b="{{ ucfirst($intervalBNote0) . $octave . ',' . ucfirst($intervalBNote1) . $octave }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
                             Play Both Intervals
                         </button>
                         @if ($currentPracticeIndex < (count($practices) - 1))
-                            <button 
-                                id="nextPracticeBtn" 
+                            <button
+                                id="nextPracticeBtn"
                                 wire:click="getNextPractice"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -73,10 +75,10 @@
                                 Next
                             </button>
                         @else
-                            <a 
+                            <a
                                 href="/learn"
                                 id="nextPracticeBtn"
-                                class="font-semibold py-3 px-8 rounded-lg hidden flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
+                                class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"
                                 style="border-width: 2px;"
                             >
@@ -90,14 +92,14 @@
                 </div>
 
                 <!-- Answer Options -->
-                <div id="answerOptions" class="grid grid-cols-2 gap-4" 
+                <div id="answerOptions" class="grid grid-cols-2 gap-4"
                      data-target="{{ $currentPractice->target }}"
                      data-practice-id="{{ $currentPractice->id }}">
-                    <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="a">
+                    <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="a">
                         <!-- <span class="text-2xl mb-2 block">A</span> -->
                         <span class="text-md text-gray-500">Interval A is larger</span>
                     </button>
-                    <button class="answer-btn card p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="b">
+                    <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="b">
                         <!-- <span class="text-2xl mb-2 block">B</span> -->
                         <span class="text-md text-gray-500">Interval B is larger</span>
                     </button>
@@ -122,7 +124,7 @@
         
         <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
-            function vfStemDirCmp(noteKey) {
+            function vfStemDirCmp(noteKey, clef) {
                 const m = noteKey.match(/^([a-g])(#{1,2}|b{1,2}|x)?\/(\d+)$/i);
                 if (!m) return 1;
                 const letterSt = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
@@ -133,7 +135,9 @@
                 else if (acc === 'b') st -= 1;
                 else if (acc === 'bb') st -= 2;
                 const midi = (parseInt(m[3]) + 1) * 12 + st;
-                return midi >= 71 ? -1 : 1;
+                // Middle line: treble B4=71, bass D3=50, alto C4=60
+                const mid = clef === 'bass' ? 50 : (clef === 'alto' ? 60 : 71);
+                return midi >= mid ? -1 : 1;
             }
 
             // Define global init function
@@ -146,12 +150,13 @@
 
                     const div = document.getElementById("output");
                     if (div) {
+                        const cmpClef = div.dataset.clef || 'treble';
                         div.innerHTML = '';
                         const renderer = new Renderer(div, Renderer.Backends.SVG);
                         renderer.resize(568, 180);
                         const context = renderer.getContext();
                         const stave = new Stave(10, 30, 542);
-                        stave.addClef("treble");
+                        stave.addClef(cmpClef);
                         stave.setNoteStartX(stave.getNoteStartX() + 100);
                         stave.setContext(context).draw();
 
@@ -159,8 +164,10 @@
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
                             const notes = notesParsed.map(note => {
-                                const sd = vfStemDirCmp(note);
-                                return new StaveNote({ keys: [note], duration: 'q', stem_direction: sd });
+                                const sd = vfStemDirCmp(note, cmpClef);
+                                // clef must be passed so VexFlow positions the note on the
+                                // correct staff line for bass/alto (defaults to treble otherwise)
+                                return new StaveNote({ keys: [note], duration: 'q', stem_direction: sd, clef: cmpClef });
                             });
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables(notes);
@@ -179,6 +186,11 @@
                 const answerButtons = document.querySelectorAll('.answer-btn');
                 const feedbackMessage = document.getElementById('feedbackMessage');
                 
+                // Pre-warm: start loading audio samples so they're ready on first click
+                if (window.HarmonivaAudio && window.HarmonivaAudio.prepare) {
+                    window.HarmonivaAudio.prepare().catch(() => {});
+                }
+
                 if (playButton && answerOptions) {
                     const target = answerOptions.dataset.target;
                     const practiceId = answerOptions.dataset.practiceId;
@@ -190,13 +202,15 @@
 
                     // Play button click handler - plays interval A then pause then interval B
                     playButton.onclick = async function() {
-                        await Tone.start();
                         const intervalA = this.dataset.intervalA.split(',');
                         const intervalB = this.dataset.intervalB.split(',');
                         playButton.disabled = true;
                         playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
                         playStatus.textContent = 'Playing Interval A...';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
+                        // Must await sampler ready before starting timers; otherwise both
+                        // playSequential calls race through ensureReady() and land on the same Tone.now().
+                        await window.HarmonivaAudio.prepare();
                         // Play interval A (2 sequential notes)
                         window.HarmonivaAudio.playSequential(intervalA, 700, 1);
                         // After ~2s play interval B

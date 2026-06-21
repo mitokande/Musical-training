@@ -1,41 +1,32 @@
 {{-- Note Rush game partial --}}
-{{-- Variables: $personalBest (int), $canPlay (bool), $dailyLimit (int), $dailyPlaysUsed (int), $slug (string) --}}
+{{-- Variables: $personalBest, $canPlay, $perTypeLimit, $totalLimit, $dailyPlaysUsed, $totalPlaysUsed, $scoreUrl, $slug --}}
 
-@if(!$canPlay && $dailyLimit !== -1)
+@if(!$canPlay)
     <div class="game-surface rounded-2xl p-10 text-center">
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5">
             <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
         </div>
         <h2 class="text-white text-xl font-bold mb-2">{{ __('app.games.daily_limit_title') }}</h2>
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
-            @auth
-                @if(auth()->user()->plan === 'free')
-                    {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-                @else
-                    {{ __('app.games.daily_limit_premium_desc', ['limit' => $dailyLimit]) }}
-                @endif
+            @guest
+                {{ __('app.games.daily_limit_guest_desc') }}
             @else
-                {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-            @endauth
+                {{ __('app.games.daily_limit_desc', ['limit' => $perTypeLimit]) }}
+            @endguest
         </p>
-        @auth
+        @guest
+            <a href="{{ route('register') }}"
+               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
+                {{ __('app.popup.sign_up') }}
+            </a>
+        @else
             @if(auth()->user()->plan === 'free')
             <a href="{{ route('profile.edit') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>
-            @else
-            <a href="{{ route('games.index') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-white/8 border border-white/12 text-white/70 font-semibold text-sm hover:bg-white/12 transition-all">
-                ← {{ __('app.nav.games') }}
-            </a>
             @endif
-        @else
-            <a href="{{ route('register') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
-                {{ __('app.popup.sign_up') }}
-            </a>
-        @endauth
+        @endguest
     </div>
 @else
 
@@ -165,9 +156,12 @@
 
     </div>
 
-    @if($dailyLimit !== -1)
+    @if($perTypeLimit !== null && $perTypeLimit !== -1)
     <div class="px-6 pb-4 text-center text-white/20 text-xs">
-        {{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $dailyLimit]) }}
+        {{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $perTypeLimit]) }}
+        @if($totalLimit !== null && $totalLimit !== -1)
+         · {{ __('app.games.plays_used_total', ['used' => $totalPlaysUsed, 'total' => $totalLimit]) }}
+        @endif
     </div>
     @endif
 </div>
@@ -175,7 +169,7 @@
 <script>
 function noteRushGame() {
     const PERSONAL_BEST = {{ (int)$personalBest }};
-    const SCORE_URL = @json(route('games.score', 'note-rush'));
+    const SCORE_URL = @json($scoreUrl);
     const STR = window.GAME_STRINGS || {};
 
     return {

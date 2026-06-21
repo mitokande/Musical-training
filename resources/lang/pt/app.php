@@ -972,6 +972,8 @@ return [
         'final_score'         => 'Pontuação final',
         'new_personal_best'   => 'Novo recorde pessoal!',
         'plays_used'          => ':used/:limit jogadas usadas hoje',
+        'plays_used_total'    => ':used/:total total hoje',
+        'daily_limit_guest_desc' => 'Você usou suas jogadas gratuitas de teste. Registre-se gratuitamente para continuar!',
         'play_now'            => 'Jogar agora',
         'no_plays_yet'        => 'Sem jogadas ainda',
         'best'                => 'melhor',

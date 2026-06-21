@@ -429,6 +429,7 @@
                     default              => 'melodic',
                 };
             @endphp
+            @if($type !== 'rhythm')
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col items-center gap-2">
                 <div class="flex items-center gap-3">
                         <button
@@ -499,6 +500,7 @@
                 </div>
                 <p id="playStatus" class="text-xs text-gray-400">Listen to the note, then select your answer</p>
             </div>
+            @endif
 
             <!-- Answer Options - Dynamic based on type -->
             @if($type === 'single_note')
@@ -677,49 +679,104 @@
                         $rhythmAllowed = ['whole','half','quarter','eighth','sixteenth','dotted-half','dotted-quarter','dotted-eighth','half_rest','quarter_rest','eighth_rest'];
                     }
                 @endphp
-                {{-- Compact time-signature / tempo line (sits below Play, above the note buttons) --}}
-                <div class="text-center text-sm text-gray-500 mb-2">
-                    <span class="text-lg font-bold text-gray-800">{{ $practice['time_signature'] ?? '4/4' }}</span>
-                    <span class="mx-1">·</span>{{ $practice['tempo'] ?? 80 }} BPM
-                    <span class="mx-1">·</span>{{ $practice['bars'] ?? 1 }} bar(s)
-                </div>
-                <p class="text-sm text-gray-500 mb-3 text-center">Click the notes below to rebuild the rhythm you heard.</p>
-                {{-- Bar-fill meter --}}
-                <div class="max-w-xs mx-auto mb-4">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-medium text-gray-500">Bar</span>
-                        <span id="rhythmFillLabel" class="text-xs font-semibold text-gray-600">0 / 0 beats</span>
+
+                {{-- ── Info / Play card: LEFT = compact info (~38%), RIGHT = play button (~62%) ── --}}
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <div class="flex flex-row gap-4">
+
+                        {{-- LEFT: time sig (20% smaller) + bar-fill meter (20% larger) --}}
+                        <div class="flex flex-col gap-2 justify-center" style="width:38%">
+                            {{-- Time sig / tempo / bars — 20% smaller (text-sm vs original text-lg) --}}
+                            <div class="text-xs text-gray-500">
+                                <span class="text-sm font-bold text-gray-800">{{ $practice['time_signature'] ?? '4/4' }}</span>
+                                <span class="mx-1" style="color:#d1d5db">·</span>{{ $practice['tempo'] ?? 80 }} BPM
+                                <span class="mx-1" style="color:#d1d5db">·</span>{{ $practice['bars'] ?? 1 }} bar(s)
+                            </div>
+                            {{-- Bar-fill meter — 20% larger (text-sm labels, h-3 bar vs original text-xs, h-2) --}}
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600 mb-1">Bar &nbsp;&nbsp;<span id="rhythmFillLabel" class="font-bold">0 / 0 beats</span></p>
+                                <div class="h-3 rounded-full bg-gray-200 overflow-hidden" style="width:80%">
+                                    <div id="rhythmFillBar" class="h-full rounded-full bg-amber-400 transition-all duration-200" style="width:0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- RIGHT: Play button — 52% width (10% narrower = button shifts ~10% left) --}}
+                        <div class="flex flex-col items-center justify-center gap-2" style="width:52%; border-left:1px solid #e5e7eb; padding-left:1rem;">
+                            <div class="flex items-center gap-3">
+                                <button
+                                    id="playButton"
+                                    class="btn-primary text-white font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-base"
+                                    data-note="{{ $playNote }}"
+                                    data-tempo="{{ $practice['tempo'] ?? 80 }}"
+                                    data-time-sig="{{ $practice['time_signature'] ?? '4/4' }}"
+                                    data-type="rhythm"
+                                    data-play-mode="rhythm"
+                                >
+                                    <i data-lucide="play" class="w-5 h-5"></i>
+                                    Play Rhythm
+                                </button>
+                                @if ($currentPracticeIndex < ($totalQuestions - 1))
+                                    <button
+                                        id="nextPracticeBtn"
+                                        wire:click="getNextPractice"
+                                        class="hidden font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
+                                    >
+                                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                        Next
+                                    </button>
+                                @else
+                                    <button
+                                        wire:click="generateCoachNotes"
+                                        wire:loading.attr="disabled"
+                                        id="finishPracticeBtn"
+                                        class="hidden font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm bg-green-100 text-green-700 border-2 border-green-300 hover:bg-green-200 disabled:opacity-70"
+                                    >
+                                        <span wire:loading.remove wire:target="generateCoachNotes">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                        </span>
+                                        <svg wire:loading wire:target="generateCoachNotes" class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span wire:loading.remove wire:target="generateCoachNotes">Finish</span>
+                                        <span wire:loading wire:target="generateCoachNotes">Generating AI Feedback...</span>
+                                    </button>
+                                @endif
+                            </div>
+                            <p id="playStatus" class="text-xs text-gray-400 text-center">Listen to the note, then select your answer</p>
+                        </div>
                     </div>
-                    <div class="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
-                        <div id="rhythmFillBar" class="h-full rounded-full bg-amber-400 transition-all duration-200" style="width:0%"></div>
-                    </div>
                 </div>
-                {{-- Wrapper keeps id="answerOptions" so the shared play-button setup wires up;
-                     the builder is driven by setupRhythmBuilder() in the script below. --}}
+
+                {{-- Instruction text — below card, above palette --}}
+                <p class="text-sm text-gray-500 text-center" style="margin-top:15px; margin-bottom:15px;">Click the notes below to rebuild the rhythm you heard.</p>
+
+                {{-- Answer options wrapper + note palette + controls (all below the card) --}}
                 <div id="answerOptions"
                      data-target="{{ $rhythmAnswerTarget }}"
                      data-practice-id="{{ $practice['id'] ?? 0 }}"
                      data-type="rhythm"
                      data-allowed="{{ implode(',', $rhythmAllowed) }}"
                      data-bars="{{ $practice['bars'] ?? 1 }}">
-                    {{-- Note palette (filled by JS from RHYTHM_GLYPHS) --}}
-                    <div id="rhythmPalette" class="flex flex-wrap items-stretch justify-center gap-2 mb-4"></div>
+                    {{-- Single-row note palette — buttons filled by JS (no labels, w-12 h-12) --}}
+                    <div id="rhythmPalette" class="flex overflow-x-auto pb-1 gap-2 items-center justify-center" style="flex-wrap:nowrap;"></div>
                     {{-- Controls --}}
-                    <div class="flex flex-wrap items-center justify-center gap-2">
+                    <div class="flex flex-wrap items-center justify-center gap-2" style="margin-top:35px;">
                         <button type="button" id="rhythmPlayMineBtn"
-                                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             <i data-lucide="volume-2" class="w-4 h-4"></i> Play my rhythm
                         </button>
                         <button type="button" id="rhythmDeleteBtn"
-                                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             <i data-lucide="delete" class="w-4 h-4"></i> Delete last
                         </button>
                         <button type="button" id="rhythmClearBtn"
-                                class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
                             <i data-lucide="eraser" class="w-4 h-4"></i> Clear
                         </button>
                         <button type="button" id="rhythmCheckBtn"
-                                class="btn-primary inline-flex items-center gap-1.5 rounded-lg px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg transition-shadow disabled:opacity-40 disabled:cursor-not-allowed">
+                                class="btn-primary inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg transition-shadow disabled:opacity-40 disabled:cursor-not-allowed">
                             <i data-lucide="check" class="w-4 h-4"></i> Check
                         </button>
                     </div>
@@ -794,13 +851,11 @@
             'triplet':        { label: 'Triplet', svg: '<text x="13" y="9" font-size="9" font-weight="700" text-anchor="middle" fill="currentColor">3</text><rect x="3" y="13" width="20" height="2.4" fill="currentColor"/><rect x="3.6" y="14" width="1.6" height="14" fill="currentColor"/><rect x="12.2" y="14" width="1.6" height="14" fill="currentColor"/><rect x="20.8" y="14" width="1.6" height="14" fill="currentColor"/><ellipse cx="4.4" cy="29" rx="3.1" ry="2.2" transform="rotate(-20 4.4 29)" fill="currentColor"/><ellipse cx="13" cy="29" rx="3.1" ry="2.2" transform="rotate(-20 13 29)" fill="currentColor"/><ellipse cx="21.6" cy="29" rx="3.1" ry="2.2" transform="rotate(-20 21.6 29)" fill="currentColor"/>' },
         };
 
-        // Build the inner HTML (glyph + label) for a rhythm note value.
-        function rhythmGlyphMarkup(value, big) {
+        // Build the inner HTML (glyph only, no label) for a rhythm note value.
+        function rhythmGlyphMarkup(value) {
             const g = RHYTHM_GLYPHS[value];
             if (!g) return value;
-            const h = big ? 38 : 30;
-            return `<svg viewBox="0 0 26 40" width="${big ? 24 : 20}" height="${h}" class="block mx-auto">${g.svg}</svg>`
-                 + `<span class="block text-center ${big ? 'text-[11px] mt-1' : 'text-[10px]'} font-medium leading-none">${g.label}</span>`;
+            return `<svg viewBox="0 0 26 40" width="22" height="36" class="block mx-auto">${g.svg}</svg>`;
         }
 
         // Map a rhythm note value to a VexFlow base duration code. Dots and rests are
@@ -1097,9 +1152,9 @@
             PALETTE.forEach(v => {
                 const b = document.createElement('button');
                 b.type = 'button';
-                b.className = 'rhythm-note-btn w-14 h-16 rounded-xl bg-[#2a7898] text-white flex flex-col items-center justify-center hover:bg-[#23698a] active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed';
+                b.className = 'rhythm-note-btn w-12 h-12 rounded-xl bg-[#2a7898] text-white flex items-center justify-center hover:bg-[#23698a] active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed';
                 b.dataset.value = v;
-                b.innerHTML = rhythmGlyphMarkup(v, true);
+                b.innerHTML = rhythmGlyphMarkup(v);
                 b.onclick = () => {
                     if (answered) return;
                     // The triplet button inserts a whole triplet (three triplet-eighths).
@@ -1279,17 +1334,20 @@
                     const renderer = new Renderer(div, Renderer.Backends.SVG);
                     const notesFromParams = div.dataset.notes;
                     const noteType = div.dataset.type;
+                    // clef must also be passed to every StaveNote so VexFlow positions
+                    // notes on the correct staff line for bass/alto (defaults to treble)
+                    const noteClef = div.dataset.clef || 'treble';
 
                     if (noteType === 'interval_comparison') {
                         renderer.resize(468, 160);
                         const context = renderer.getContext();
                         const stave = new Stave(10, 30, 442);
-                        stave.addClef(div.dataset.clef || 'treble');
+                        stave.addClef(noteClef);
                         stave.setContext(context).draw();
 
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
-                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "q", auto_stem: true }));
+                            const notes = notesParsed.map(note => new StaveNote({ keys: [note], duration: "q", auto_stem: true, clef: noteClef }));
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables(notes);
                             Accidental.applyAccidentals([voice], 'C');
@@ -1313,22 +1371,22 @@
                             r.resize(546, 160);
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, 780);
-                            st.addClef(div.dataset.clef || 'treble');
+                            st.addClef(noteClef);
                             st.setNoteStartX(st.getNoteStartX() + 40);
                             st.setContext(ctx).draw();
 
                             let voice;
                             if (!showBoth) {
                                 voice = new Voice({ numBeats: 4, beatValue: 4 });
-                                voice.addTickables([new StaveNote({ keys: [note1Key], duration: "w", auto_stem: true })]);
+                                voice.addTickables([new StaveNote({ keys: [note1Key], duration: "w", auto_stem: true, clef: noteClef })]);
                             } else if (isHarmonic) {
                                 voice = new Voice({ numBeats: 4, beatValue: 4 });
-                                voice.addTickables([new StaveNote({ keys: [note1Key, note2Key], duration: "w", auto_stem: true })]);
+                                voice.addTickables([new StaveNote({ keys: [note1Key, note2Key], duration: "w", auto_stem: true, clef: noteClef })]);
                             } else {
                                 voice = new Voice({ numBeats: 2, beatValue: 2 });
                                 voice.addTickables([
-                                    new StaveNote({ keys: [note1Key], duration: "h", auto_stem: true }),
-                                    new StaveNote({ keys: [note2Key], duration: "h", auto_stem: true }),
+                                    new StaveNote({ keys: [note1Key], duration: "h", auto_stem: true, clef: noteClef }),
+                                    new StaveNote({ keys: [note2Key], duration: "h", auto_stem: true, clef: noteClef }),
                                 ]);
                             }
                             Accidental.applyAccidentals([voice], 'C');
@@ -1360,12 +1418,12 @@
                             r.resize(546, 160);
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, 780);
-                            st.addClef(div.dataset.clef || 'treble');
+                            st.addClef(noteClef);
                             st.setNoteStartX(st.getNoteStartX() + 40);
                             st.setContext(ctx).draw();
                             const keys = (showAll && allKeys.length) ? allKeys : [rootKey];
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
-                            voice.addTickables([new StaveNote({ keys, duration: "w", auto_stem: true })]);
+                            voice.addTickables([new StaveNote({ keys, duration: "w", auto_stem: true, clef: noteClef })]);
                             Accidental.applyAccidentals([voice], 'C');
                             new Formatter().joinVoices([voice]).format([voice], 300);
                             voice.draw(ctx, st);
@@ -1388,17 +1446,17 @@
                             r.resize(staveWidth + 20, 160);
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, staveWidth);
-                            st.addClef(div.dataset.clef || 'treble');
+                            st.addClef(noteClef);
                             st.setNoteStartX(st.getNoteStartX() + 20);
                             st.setContext(ctx).draw();
                             let voice;
                             if (showAll && allKeys.length) {
-                                const notes = allKeys.map(k => new StaveNote({ keys: [k], duration: "q", auto_stem: true }));
+                                const notes = allKeys.map(k => new StaveNote({ keys: [k], duration: "q", auto_stem: true, clef: noteClef }));
                                 voice = new Voice({ numBeats: notes.length, beatValue: 4 }).setMode(Voice.Mode.SOFT);
                                 voice.addTickables(notes);
                             } else {
                                 voice = new Voice({ numBeats: 4, beatValue: 4 });
-                                voice.addTickables([new StaveNote({ keys: [rootKey], duration: "w", auto_stem: true })]);
+                                voice.addTickables([new StaveNote({ keys: [rootKey], duration: "w", auto_stem: true, clef: noteClef })]);
                             }
                             Accidental.applyAccidentals([voice], 'C');
                             const formatWidth = Math.max(120, staveWidth - clefWidth - 50);
@@ -1413,14 +1471,14 @@
                         renderer.resize(546, 160);
                         const context = renderer.getContext();
                         const stave = new Stave(10, 30, 780);
-                        stave.addClef(div.dataset.clef || 'treble');
+                        stave.addClef(noteClef);
                         stave.setNoteStartX(stave.getNoteStartX() + 40);
                         stave.setContext(context).draw();
 
                         if (notesFromParams) {
                             const notesParsed = notesFromParams.split(',');
                             const duration = notesParsed.length > 1 ? "h" : "1";
-                            const staveNotes = notesParsed.map(note => new StaveNote({ keys: [note], duration: duration, auto_stem: true }));
+                            const staveNotes = notesParsed.map(note => new StaveNote({ keys: [note], duration: duration, auto_stem: true, clef: noteClef }));
                             const numBeats = notesParsed.length > 1 ? 2 : 4;
                             const voice = new Voice({ numBeats: numBeats, beatValue: notesParsed.length > 1 ? 2 : 4 });
                             voice.addTickables(staveNotes);

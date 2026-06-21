@@ -16,8 +16,8 @@
                     </svg>
                 </div>
                 {{-- Wordmark --}}
-                <div class="hidden sm:block">
-                    <span class="font-bold text-2xl tracking-tight leading-none">
+                <div class="block">
+                    <span class="font-bold text-xl sm:text-2xl tracking-tight leading-none">
                         <span style="background: linear-gradient(135deg,#9333ea,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">H</span><span class="text-gray-900">armoniva</span>
                     </span>
                 </div>

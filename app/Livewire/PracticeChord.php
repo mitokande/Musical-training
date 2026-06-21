@@ -15,15 +15,23 @@ class PracticeChord extends Component
     use HandlesPracticeData;
 
     private const ALL_CHORD_TYPES = [
-        'Major', 'Minor', 'Diminished', 'Augmented',
-        'Dominant 7th', 'Major 7th', 'Minor 7th', 'Half Diminished',
-        'Diminished 7th', 'Augmented 7th',
+        // Triads & Sus
+        'Major', 'Minor', 'Diminished', 'Augmented', 'Sus2', 'Sus4',
+        // 7th Chords
+        'Major 7th', 'Dominant 7th', 'Minor 7th', 'Minor Major 7th',
+        'Half-Diminished 7th', 'Diminished 7th', 'Augmented 7th',
+        // Color Chords
+        'Major 6th', 'Minor 6th', 'Add9', 'Minor Add9',
     ];
 
     public $currentPracticeIndex = 0;
+
     public $settings = [];
+
     public $replayLimit = null;
+
     public $feedbackMode = 'immediate';
+
     public $timeLimitSeconds = 0;
 
     public function mount($practices)
@@ -31,35 +39,38 @@ class PracticeChord extends Component
         $settings = session('exercise_settings', []);
         session()->forget('exercise_settings');
 
-        if (!empty($settings)) {
+        if (! empty($settings)) {
             $this->settings = $settings;
             $this->replayLimit = $settings['replay_limit'] ?? null;
             $this->feedbackMode = $settings['feedback_mode'] ?? 'immediate';
             $this->timeLimitSeconds = (int) ($settings['time_limit_seconds'] ?? 0);
 
             $count = (int) ($settings['question_count'] ?? 10);
-            $chordTypes = !empty($settings['chord_types']) ? $settings['chord_types'] : self::ALL_CHORD_TYPES;
+            $chordTypes = ! empty($settings['chord_types']) ? $settings['chord_types'] : self::ALL_CHORD_TYPES;
 
             $generator = app(LearningPathQuestionGenerator::class);
-            $octaveRange = !empty($settings['octave_range']) ? $settings['octave_range'] : [4];
-            sort($octaveRange);
-            $midOctave = (string) $octaveRange[(int)(count($octaveRange) / 2)];
+            // No explicit octave: the generator keeps every chord tone inside
+            // the selected clef's playable range (CLEF_RANGES).
             $exercise = new LearningPathExercise(['config_json' => [
-                'practice_type'       => 'chord-practice',
+                'practice_type' => 'chord-practice',
                 'allowed_chord_types' => $chordTypes,
-                'allowed_root_notes'  => ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-                'voicing'             => $settings['voicing'] ?? 'block',
-                'include_inversions'  => $settings['include_inversions'] ?? false,
-                'distractor_pool'     => self::ALL_CHORD_TYPES,
-                'octave'              => $midOctave,
+                'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+                'voicing' => $settings['voicing'] ?? 'block',
+                'include_inversions' => $settings['include_inversions'] ?? false,
+                'distractor_pool' => self::ALL_CHORD_TYPES,
+                'clef' => $settings['clef'] ?? 'treble',
             ]]);
             $generated = $generator->generate($exercise, $count)->values()
-                ->map(function ($q, $i) { $q->id = $i + 1; return $q; });
+                ->map(function ($q, $i) {
+                    $q->id = $i + 1;
+
+                    return $q;
+                });
 
             session(['exercise_practice_session' => [
-                'practice_type'  => 'chord-practice',
+                'practice_type' => 'chord-practice',
                 'question_count' => $generated->count(),
-                'questions'      => $generator->serializeForSession($generated),
+                'questions' => $generator->serializeForSession($generated),
             ]]);
 
             $this->practiceDataArray = $this->serializePractices($generated->all());
@@ -71,10 +82,13 @@ class PracticeChord extends Component
     public function render()
     {
         $currentPractice = $this->buildModelFromData(ChordPractice::class, $this->getCurrentPracticeData());
+        $chordTypes = $this->settings['chord_types'] ?? self::ALL_CHORD_TYPES;
+
         return view('livewire.practice-chord', [
-            'practices'            => $this->practiceDataArray,
-            'currentPractice'      => $currentPractice,
+            'practices' => $this->practiceDataArray,
+            'currentPractice' => $currentPractice,
             'currentPracticeIndex' => $this->currentPracticeIndex,
+            'chordTypes' => $chordTypes,
         ]);
     }
 

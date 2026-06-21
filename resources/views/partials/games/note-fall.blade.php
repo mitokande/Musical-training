@@ -1,40 +1,31 @@
 {{-- Note Fall game partial --}}
 
-@if(!$canPlay && $dailyLimit !== -1)
+@if(!$canPlay)
     <div class="game-surface rounded-2xl p-10 text-center">
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5">
             <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
         </div>
         <h2 class="text-white text-xl font-bold mb-2">{{ __('app.games.daily_limit_title') }}</h2>
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
-            @auth
-                @if(auth()->user()->plan === 'free')
-                    {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-                @else
-                    {{ __('app.games.daily_limit_premium_desc', ['limit' => $dailyLimit]) }}
-                @endif
+            @guest
+                {{ __('app.games.daily_limit_guest_desc') }}
             @else
-                {{ __('app.games.daily_limit_desc', ['limit' => $dailyLimit]) }}
-            @endauth
+                {{ __('app.games.daily_limit_desc', ['limit' => $perTypeLimit]) }}
+            @endguest
         </p>
-        @auth
+        @guest
+            <a href="{{ route('register') }}"
+               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
+                {{ __('app.popup.sign_up') }}
+            </a>
+        @else
             @if(auth()->user()->plan === 'free')
             <a href="{{ route('profile.edit') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>
-            @else
-            <a href="{{ route('games.index') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-white/8 border border-white/12 text-white/70 font-semibold text-sm hover:bg-white/12 transition-all">
-                ← {{ __('app.nav.games') }}
-            </a>
             @endif
-        @else
-            <a href="{{ route('register') }}"
-               class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
-                {{ __('app.popup.sign_up') }}
-            </a>
-        @endauth
+        @endguest
     </div>
 @else
 
@@ -70,13 +61,24 @@
     .nf-glow-green { animation: nfGlowGreen 0.28s ease-out; }
     .nf-glow-red   { animation: nfGlowRed   0.28s ease-out; }
     .nf-glow-amber { animation: nfGlowAmber 0.28s ease-out; }
+
+    /* Note state animations */
+    @keyframes nfNoteExplode {
+        0%   { transform: scale(1);   opacity: 1; }
+        40%  { transform: scale(2.0); opacity: 0.9; }
+        100% { transform: scale(3.0); opacity: 0; }
+    }
+    .nf-note-explode {
+        animation: nfNoteExplode 0.38s ease-out forwards;
+        pointer-events: none;
+    }
 </style>
 
 <div x-data="noteFallGame()" x-init="onInit()" class="game-surface rounded-2xl overflow-hidden">
 
     {{-- Header --}}
     <div class="bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border-b border-white/10 py-4 px-5 sm:p-5">
-        <div class="flex items-center justify-between">
+        <div class="relative flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="{{ route('games.index') }}" class="w-10 h-10 rounded-xl bg-white border border-white/20 flex items-center justify-center text-red-600 font-bold hover:bg-white/90 transition-all flex-shrink-0">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
@@ -87,25 +89,23 @@
                 <div>
                     <div class="text-white font-bold text-sm">Note Fall</div>
                     <div class="text-white/40 text-xs"
-                         x-text="gameState==='idle'?str.ready:(gameState==='playing'?str.level+' '+level:str.gameOver)"></div>
+                         x-text="gameState==='idle'?str.ready:(gameState==='playing'?str.playing:str.gameOver)"></div>
                 </div>
             </div>
+
+            {{-- Centered countdown timer --}}
+            <div class="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
+                 x-show="gameState==='playing' || gameState==='gameover'">
+                <div class="text-white/35 text-xs mb-0.5 uppercase tracking-wide">{{ __('app.games.time') ?? 'Süre' }}</div>
+                <div class="font-black text-3xl tabular-nums leading-none"
+                     :class="timeLeft<=5?'text-red-400 animate-pulse':timeLeft<=15?'text-amber-400':'text-white'"
+                     x-text="timeLeft"></div>
+            </div>
+
             <div class="flex items-center gap-3 sm:gap-4">
-                {{-- Hearts: desktop only (inline) --}}
-                <div class="hidden sm:flex items-center gap-0.5">
-                    <template x-for="i in 3" :key="i">
-                        <span class="text-2xl" :class="i<=lives?'text-red-500':'opacity-40 text-rose-800'">❤</span>
-                    </template>
-                </div>
                 <div class="text-center">
                     <div class="text-white/40 text-xs">Score</div>
                     <div class="text-white font-black text-xl tabular-nums" x-text="score"></div>
-                    {{-- Hearts: mobile only (below score) --}}
-                    <div class="flex items-center justify-center gap-0.5 mt-0.5 sm:hidden">
-                        <template x-for="i in 3" :key="'m'+i">
-                            <span class="text-lg" :class="i<=lives?'text-red-500':'opacity-40 text-rose-800'">❤</span>
-                        </template>
-                    </div>
                 </div>
                 <div class="text-center">
                     <div class="text-white/40 text-xs" x-text="str.streak">Streak</div>
@@ -176,12 +176,21 @@
 
             {{-- Falling notes --}}
             <template x-for="note in fallingNotes" :key="note.id">
-                <div class="absolute" :style="`left:${note.x}px;top:${note.y}px;`"
-                     :class="note.sliding ? 'transition-none' : ''">
+                <div class="absolute"
+                     :style="`left:${note.x}px;top:${note.y}px;`"
+                     :class="[
+                         note.state==='correct' ? 'text-emerald-400' : note.state==='wrong' ? 'text-red-400' : 'text-white',
+                         note.state==='wrong' ? 'nf-note-explode' : ''
+                     ]">
                     <div x-show="mode==='staff'" x-html="NOTE_SVGS[note.note]"
                          class="w-full flex justify-center"></div>
                     <div x-show="mode==='letters'"
-                         class="w-11 h-11 rounded-xl bg-emerald-500/25 border border-emerald-400/50 flex items-center justify-center">
+                         :class="note.state==='correct'
+                             ? 'bg-emerald-500/50 border-emerald-400'
+                             : note.state==='wrong'
+                             ? 'bg-red-500/50 border-red-400'
+                             : 'bg-emerald-500/25 border-emerald-400/50'"
+                         class="w-11 h-11 rounded-xl border flex items-center justify-center">
                         <span class="text-white font-black text-xl"
                               x-text="NOTE_LABELS[note.note]||note.note"></span>
                     </div>
@@ -197,8 +206,8 @@
                     <div class="text-5xl font-black text-white tabular-nums" x-text="score"></div>
                 </div>
                 <div class="flex items-center gap-5 text-sm text-white/50">
-                    <span x-text="str.level+' '+level"></span>
                     <span><span x-text="str.streak"></span>: <span x-text="maxStreak"></span></span>
+                    <span x-text="correctCount+' ✓'"></span>
                 </div>
                 <div x-show="isNewBest"
                      class="px-4 py-2 rounded-full bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 text-sm font-bold"
@@ -246,9 +255,12 @@
         </div>
     </div>
 
-    @if($dailyLimit !== -1)
+    @if($perTypeLimit !== null && $perTypeLimit !== -1)
     <div class="px-6 pb-4 text-center text-white/20 text-xs">
-        {{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $dailyLimit]) }}
+        {{ __('app.games.plays_used', ['used' => $dailyPlaysUsed, 'limit' => $perTypeLimit]) }}
+        @if($totalLimit !== null && $totalLimit !== -1)
+         · {{ __('app.games.plays_used_total', ['used' => $totalPlaysUsed, 'total' => $totalLimit]) }}
+        @endif
     </div>
     @endif
 </div>
@@ -257,25 +269,26 @@
 (function () {
 
 // ── Pre-compute note SVGs (treble clef, C4 octave) ─────────────────────────
-// Staff lines (top→bottom in SVG y-coords): y = 18,25,32,39,46
-// Treble clef: line 1(bottom)=E4, line2=G4, line3=B4; C4 on ledger below
-const STAFF_LINES_Y = [18, 25, 32, 39, 46];
-const STAFF_NOTE_CY = { C4:58, D4:53, E4:46, F4:42, G4:39, A4:35, B4:32 };
+// Staff canvas ×1.56 vs original (×1.3 × ×1.2); note head ×0.9 vs original.
+// Staff lines (top→bottom in SVG y-coords): y = 28,39,50,61,72  (11px spacing)
+// Treble clef: line 5(bottom)=E4, line4=G4, line3=B4; C4 on ledger below
+const STAFF_LINES_Y = [28, 39, 50, 61, 72];
+const STAFF_NOTE_CY = { C4:90, D4:83, E4:72, F4:66, G4:61, A4:55, B4:50 };
 
 function buildNoteSVG(name) {
-    const cy = STAFF_NOTE_CY[name] ?? 39;
-    const cx = 24;
-    let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 74" width="52" height="74">`;
+    const cy = STAFF_NOTE_CY[name] ?? 61;
+    const cx = 37;
+    let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82 115" width="82" height="115">`;
     STAFF_LINES_Y.forEach(y => {
-        s += `<line x1="3" y1="${y}" x2="49" y2="${y}" stroke="rgba(255,255,255,0.68)" stroke-width="1.4"/>`;
+        s += `<line x1="5" y1="${y}" x2="77" y2="${y}" stroke="rgba(255,255,255,0.68)" stroke-width="1.4"/>`;
     });
     // Ledger line for C4 (one line below staff)
     if (name === 'C4') {
-        s += `<line x1="14" y1="${cy}" x2="34" y2="${cy}" stroke="rgba(255,255,255,0.82)" stroke-width="1.5"/>`;
+        s += `<line x1="22" y1="${cy}" x2="53" y2="${cy}" stroke="rgba(255,255,255,0.82)" stroke-width="1.5"/>`;
     }
-    s += `<ellipse cx="${cx}" cy="${cy}" rx="8.5" ry="6" fill="white"/>`;
-    const stemTop = Math.max(8, cy - 30);
-    s += `<line x1="${cx+8}" y1="${cy-2}" x2="${cx+8}" y2="${stemTop}" stroke="white" stroke-width="2"/>`;
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="7.7" ry="5.4" fill="currentColor"/>`;
+    const stemTop = Math.max(10, cy - 30);
+    s += `<line x1="${cx+8}" y1="${cy-2}" x2="${cx+8}" y2="${stemTop}" stroke="currentColor" stroke-width="2"/>`;
     s += `</svg>`;
     return s;
 }
@@ -287,14 +300,14 @@ const _NOTE_LABELS = { C4:'C', D4:'D', E4:'E', F4:'F', G4:'G', A4:'A', B4:'B' };
 const WHITE_KEY_INDEX = { C4:0, D4:1, E4:2, F4:3, G4:4, A4:5, B4:6 };
 const PLAYABLE_NOTES  = ['C4','D4','E4','F4','G4','A4','B4'];
 const FIELD_H         = 340;
-const NOTE_W          = 52;
+const NOTE_W          = 82;
 // Step distance between notes (for variety scoring)
 const NOTE_STEP = { C4:0, D4:1, E4:2, F4:3, G4:4, A4:5, B4:6 };
 
 // ── Alpine component ────────────────────────────────────────────────────────
 window.noteFallGame = function () {
     const PERSONAL_BEST = {{ (int)$personalBest }};
-    const SCORE_URL     = @json(route('games.score', 'note-fall'));
+    const SCORE_URL     = @json($scoreUrl);
     const STR           = window.GAME_STRINGS || {};
 
     return {
@@ -311,7 +324,8 @@ window.noteFallGame = function () {
 
         limitReached: false,
         gameState: 'idle', mode: 'staff',
-        lives: 3, score: 0, streak: 0, maxStreak: 0, level: 1, correctCount: 0,
+        score: 0, streak: 0, maxStreak: 0, correctCount: 0,
+        timeLeft: 60, elapsed: 0, timerInterval: null,
         fallingNotes: [], nextId: 0,
         isNewBest: false, personalBest: PERSONAL_BEST,
         loopId: null, spawnTimer: null,
@@ -363,18 +377,24 @@ window.noteFallGame = function () {
             return '';
         },
 
-        // ── Game speed ─────────────────────────────────────────────────────
-        get fallSpeed() { return 0.85 + (this.level - 1) * 0.22; },
-        get spawnMs()   { return Math.max(1100, 2600 - (this.level - 1) * 180); },
+        // ── Game speed — 25% compound increase every 15 s ──────────────────
+        get phase()     { return Math.floor(this.elapsed / 15); },  // 0→1→2→3
+        get fallSpeed() { return 1.54 * Math.pow(1.25, this.phase); },
+        get spawnMs()   { return Math.max(700, Math.round(2200 / Math.pow(1.25, this.phase))); },
 
         // ── Start / Loop ───────────────────────────────────────────────────
         startGame() {
-            this.lives = 3; this.score = 0; this.streak = 0; this.maxStreak = 0;
-            this.level = 1; this.correctCount = 0; this.isNewBest = false;
+            this.score = 0; this.streak = 0; this.maxStreak = 0; this.correctCount = 0;
+            this.timeLeft = 60; this.elapsed = 0; this.isNewBest = false;
             this.fallingNotes = []; this.nextId = 0; this.recentNotes = [];
             this.gameState = 'playing';
             this.startLoop();
             this.scheduleSpawn();
+            this.timerInterval = setInterval(() => {
+                this.elapsed++;
+                this.timeLeft--;
+                if (this.timeLeft <= 0) this.endGame();
+            }, 1000);
         },
 
         startLoop() {
@@ -383,8 +403,9 @@ window.noteFallGame = function () {
                 const toRemove = [];
 
                 this.fallingNotes.forEach(n => {
+                    if (n.state === 'wrong') return; // frozen; removed via timeout after explosion
                     if (n.fastFall) {
-                        // Fall at 4× normal speed — silently exit (already scored)
+                        // Fall at 130% of current speed — green exit
                         n.y += n.vy;
                         if (n.y > FIELD_H + 14) toRemove.push(n.id);
                     } else {
@@ -392,8 +413,6 @@ window.noteFallGame = function () {
                         if (n.y > FIELD_H + 12) {
                             toRemove.push(n.id);
                             this.streak = 0;
-                            this.lives--;
-                            if (this.lives <= 0) { setTimeout(() => this.endGame(), 200); }
                         }
                     }
                 });
@@ -440,7 +459,7 @@ window.noteFallGame = function () {
             const fieldW = this.$refs.field?.offsetWidth || 600;
             const margin = 12;
             const x = margin + Math.random() * (fieldW - NOTE_W - margin * 2);
-            this.fallingNotes.push({ id: this.nextId++, note, y: -74, x, fastFall: false, vy: 0 });
+            this.fallingNotes.push({ id: this.nextId++, note, y: -115, x, fastFall: false, vy: 0, state: null });
         },
 
         // ── Key press ──────────────────────────────────────────────────────
@@ -448,36 +467,41 @@ window.noteFallGame = function () {
             if (this.gameState !== 'playing') return;
             if (window.HarmonivaAudio) HarmonivaAudio.playNote(note, 0.5);
 
-            // Match any active (non-fast-falling) note with this name on screen
+            // Match any active (non-fast-falling, non-exploding) note with this name on screen
             const idx = this.fallingNotes.findIndex(
-                n => n.note === note && !n.fastFall
+                n => n.note === note && !n.fastFall && n.state !== 'wrong'
             );
 
             if (idx !== -1) {
-                // ✓ Correct — trigger 4× speed fall, exits silently (already scored)
+                // ✓ Correct — turn green, fall at 4× current speed
                 const n = this.fallingNotes[idx];
+                n.state = 'correct';
                 n.fastFall = true;
                 n.vy = this.fallSpeed * 4;
 
                 this.streak++;
                 this.maxStreak = Math.max(this.maxStreak, this.streak);
                 this.correctCount++;
-                this.score += 100 + this.streak * 15 + this.level * 10;
-                if (this.correctCount % 8 === 0) this.level++;
+                this.score += 100 + this.streak * 15 + this.phase * 25;
 
                 this._flashKey(note, 'correct', 280);
             } else {
-                // ✗ Wrong — flash red + hint the closest active note's key
+                // ✗ Wrong — flash key red; closest active note turns red and explodes
                 this._flashKey(note, 'wrong', 280);
 
-                const active = this.fallingNotes.filter(n => !n.fastFall);
+                const active = this.fallingNotes.filter(n => !n.fastFall && n.state !== 'wrong');
                 if (active.length > 0) {
                     const closest = active.reduce(
                         (b, n) => n.y > b.y ? n : b,
-                        { y: -Infinity, note: null }
+                        { y: -Infinity, id: -1 }
                     );
-                    if (closest.note && closest.note !== note) {
-                        this._flashKey(closest.note, 'hint', 300);
+                    const wi = this.fallingNotes.findIndex(n => n.id === closest.id);
+                    if (wi !== -1) {
+                        const wid = this.fallingNotes[wi].id;
+                        this.fallingNotes[wi].state = 'wrong';
+                        setTimeout(() => {
+                            this.fallingNotes = this.fallingNotes.filter(n => n.id !== wid);
+                        }, 400);
                     }
                 }
             }
@@ -492,6 +516,8 @@ window.noteFallGame = function () {
         endGame() {
             cancelAnimationFrame(this.loopId);
             clearTimeout(this.spawnTimer);
+            clearInterval(this.timerInterval);
+            this.timeLeft = 0;
             this.gameState = 'gameover';
             this.isNewBest = this.score > this.personalBest;
             if (this.isNewBest) this.personalBest = this.score;
@@ -508,8 +534,8 @@ window.noteFallGame = function () {
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                 body: JSON.stringify({
                     score: this.score, max_streak: this.maxStreak,
-                    level_reached: this.level,
-                    metadata: { correct: this.correctCount, mode: this.mode },
+                    level_reached: 4,
+                    metadata: { correct: this.correctCount, mode: this.mode, duration: 60 },
                 }),
             })
             .then(r => r.json())
@@ -520,6 +546,7 @@ window.noteFallGame = function () {
         resetGame() {
             cancelAnimationFrame(this.loopId);
             clearTimeout(this.spawnTimer);
+            clearInterval(this.timerInterval);
             this.fallingNotes = [];
             if (this.limitReached) { window.location.reload(); return; }
             this.gameState = 'idle';

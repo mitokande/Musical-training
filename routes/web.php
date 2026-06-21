@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\GameController as MusicGameController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dev\MidiViewerController;
 use App\Http\Controllers\ExerciseSetupController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LearningPathController;
@@ -123,11 +124,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/practice-mixed', [PageController::class, 'practiceMixedView'])->middleware(['auth', 'verified'])->name('practice.mixed');
 Route::post('/practice-mixed/start', [PageController::class, 'startMixedPractice'])->middleware(['auth', 'verified'])->name('practice.mixed.start');
 Route::get('/practice-ai', [PageController::class, 'aiPracticeView'])->middleware(['auth', 'verified'])->name('practice.ai');
+Route::get('/practice-ai/melodic-dictation', [PageController::class, 'aiDictationPracticeView'])->middleware(['auth', 'verified'])->name('practice.ai.dictation');
 
 // Music Games
 Route::get('/games', [MusicGameController::class, 'index'])->name('games.index');
 Route::get('/games/{slug}', [MusicGameController::class, 'show'])->name('games.show');
 Route::post('/games/{slug}/score', [MusicGameController::class, 'storeScore'])->middleware(['auth', 'verified'])->name('games.score');
+Route::post('/games/{slug}/guest-track', [MusicGameController::class, 'trackGuestPlay'])->name('games.guest-track');
 
 // TEMPORARY: preview the current user's interval accuracy multipliers.
 // Remove once the adaptive-practice feature consumes these stats directly.
@@ -136,6 +139,14 @@ Route::get('/dev/interval-stats', function () {
         'stats' => auth()->user()->intervalAccuracyMultipliers(),
     ]);
 })->middleware(['auth', 'verified'])->name('dev.interval-stats');
+
+// Dev: upload + inspect .mid files (admin only)
+Route::middleware(['auth', 'verified', 'admin'])->prefix('dev/midi')->name('dev.midi.')->group(function () {
+    Route::get('/', [MidiViewerController::class, 'index'])->name('index');
+    Route::post('/upload', [MidiViewerController::class, 'upload'])->name('upload');
+    Route::get('/file/{filename}', [MidiViewerController::class, 'file'])->name('file');
+    Route::delete('/{filename}', [MidiViewerController::class, 'destroy'])->name('destroy');
+});
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Livewire\Concerns\HandlesPracticeData;
 use App\Models\IntervalConstructionPractice;
 use App\Models\LearningPathExercise;
+use App\Models\Practice;
 use App\Models\UserPractice;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
@@ -37,9 +38,15 @@ class PracticeIntervalConstruction extends Component
     ];
 
     public $currentPracticeIndex = 0;
+
     public $settings = [];
+
+    public $clef = 'treble';
+
     public $replayLimit = null;
+
     public $feedbackMode = 'immediate';
+
     public $timeLimitSeconds = 0;
 
     public function mount($practices)
@@ -47,8 +54,9 @@ class PracticeIntervalConstruction extends Component
         $settings = session('exercise_settings', []);
         session()->forget('exercise_settings');
 
-        if (!empty($settings)) {
+        if (! empty($settings)) {
             $this->settings = $settings;
+            $this->clef = $settings['clef'] ?? 'treble';
             $this->replayLimit = $settings['replay_limit'] ?? null;
             $this->feedbackMode = $settings['feedback_mode'] ?? 'immediate';
             $this->timeLimitSeconds = (int) ($settings['time_limit_seconds'] ?? 0);
@@ -56,37 +64,41 @@ class PracticeIntervalConstruction extends Component
             $count = (int) ($settings['question_count'] ?? 10);
 
             $allowedIntervals = self::ALL_INTERVALS;
-            if (!empty($settings['interval_pool'])) {
+            if (! empty($settings['interval_pool'])) {
                 $mapped = array_values(array_filter(
-                    array_map(fn($a) => self::INTERVAL_POOL_MAP[$a] ?? null, $settings['interval_pool'])
+                    array_map(fn ($a) => self::INTERVAL_POOL_MAP[$a] ?? null, $settings['interval_pool'])
                 ));
-                if (!empty($mapped)) {
+                if (! empty($mapped)) {
                     $allowedIntervals = $mapped;
                 }
             }
 
             $generator = app(LearningPathQuestionGenerator::class);
-            $octaveRange = !empty($settings['octave_range']) ? $settings['octave_range'] : [4];
-            sort($octaveRange);
-            $midOctave = (string) $octaveRange[(int)(count($octaveRange) / 2)];
+            // No explicit octave: the generator keeps root and target inside
+            // the selected clef's playable range (CLEF_RANGES).
             $exercise = new LearningPathExercise(['config_json' => [
-                'practice_type'      => 'interval-construction-practice',
-                'allowed_intervals'  => $allowedIntervals,
+                'practice_type' => 'interval-construction-practice',
+                'allowed_intervals' => $allowedIntervals,
                 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-                'octave'             => $midOctave,
+                'clef' => $this->clef,
+                'direction' => $settings['direction'] ?? 'ascending',
             ]]);
             $generated = $generator->generate($exercise, $count)->values()
-                ->map(function ($q, $i) { $q->id = $i + 1; return $q; });
+                ->map(function ($q, $i) {
+                    $q->id = $i + 1;
+
+                    return $q;
+                });
 
             session(['exercise_practice_session' => [
-                'practice_type'  => 'interval-construction-practice',
+                'practice_type' => 'interval-construction-practice',
                 'question_count' => $generated->count(),
-                'questions'      => $generator->serializeForSession($generated),
+                'questions' => $generator->serializeForSession($generated),
             ]]);
 
             $music = app(MusicTheoryService::class);
             $this->practiceDataArray = $generated->map(function ($q) use ($music) {
-                $data    = $this->serializeOnePractice($q);
+                $data = $this->serializeOnePractice($q);
                 $correct = $data['note2'];
 
                 // Pick distractors from diatonic pool, excluding enharmonic equivalents
@@ -94,14 +106,19 @@ class PracticeIntervalConstruction extends Component
                 shuffle($pool);
                 $distractors = [];
                 foreach ($pool as $candidate) {
-                    if (count($distractors) >= 3) break;
-                    if ($music->notesAreEnharmonic($candidate, $correct)) continue;
+                    if (count($distractors) >= 3) {
+                        break;
+                    }
+                    if ($music->notesAreEnharmonic($candidate, $correct)) {
+                        continue;
+                    }
                     $distractors[] = $candidate;
                 }
 
                 $options = array_merge([$correct], $distractors);
                 shuffle($options);
                 $data['options'] = $options;
+
                 return $data;
             })->values()->toArray();
         } else {
@@ -113,12 +130,14 @@ class PracticeIntervalConstruction extends Component
     {
         $data = $this->getCurrentPracticeData();
         $currentPractice = $this->buildModelFromData(IntervalConstructionPractice::class, $data);
+
         return view('livewire.practice-interval-construction', [
-            'practices'            => $this->practiceDataArray,
-            'currentPractice'      => $currentPractice,
+            'practices' => $this->practiceDataArray,
+            'currentPractice' => $currentPractice,
             'currentPracticeIndex' => $this->currentPracticeIndex,
-            'noteOptions'          => $data['options'] ?? null,
-            'settings'             => $this->settings,
+            'noteOptions' => $data['options'] ?? null,
+            'settings' => $this->settings,
+            'clef' => $this->clef,
         ]);
     }
 
@@ -128,14 +147,15 @@ class PracticeIntervalConstruction extends Component
         $this->dispatch('practice-updated');
     }
 
-    public function answerPractice($answer) {
-        $practiceId = \App\Models\Practice::where('slug', 'interval-construction-practice')->value('id');
+    public function answerPractice($answer)
+    {
+        $practiceId = Practice::where('slug', 'interval-construction-practice')->value('id');
         $userPractice = UserPractice::firstOrCreate(
             ['user_id' => auth()->user()->id, 'practice_id' => $practiceId],
             ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
         );
 
-        $data   = $this->getCurrentPracticeData();
+        $data = $this->getCurrentPracticeData();
         $target = app(MusicTheoryService::class)->getAnswerFromQuestion($data, 'interval-construction-practice');
         $isCorrect = strtolower(trim($answer)) === strtolower(trim($target));
 

@@ -27,34 +27,63 @@
                 </div>
             </div>
 
-            <div class="p-8">
-                <!-- Root note display -->
-                <div class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8 py-6">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-500 mb-1">Root Note</p>
-                        <div class="text-5xl font-bold text-gray-800">{{ $currentPractice->root_note }}</div>
-                        <p class="text-sm text-gray-400 mt-1">{{ ucfirst($currentPractice->direction) }}</p>
+            <div class="p-4 sm:p-8">
+                @php
+                    // note_array already accounts for direction (descending reverses); convert
+                    // each note ("Eb4","G4") to a VexFlow key ("eb/4","g/4"), accepting flats.
+                    $scaleKeys = collect($currentPractice->note_array ?? [])->map(function ($n) {
+                        if (preg_match('/^([A-Ga-g](?:#{1,2}|b{1,2})?)(\d+)$/', $n, $m)) {
+                            return strtolower($m[1]) . '/' . $m[2];
+                        }
+                        return strtolower($n);
+                    })->implode(',');
+                    $scaleRootKey = strtolower($currentPractice->root_note) . '/' . $currentPractice->octave;
+                    // Bass clef when the root sits below G3, otherwise treble.
+                    $clefFor = function ($note, $octave) {
+                        $base = ['C' => 0, 'D' => 2, 'E' => 4, 'F' => 5, 'G' => 7, 'A' => 9, 'B' => 11];
+                        $letter = strtoupper(substr((string) $note, 0, 1));
+                        $rest = substr((string) $note, 1);
+                        $acc = str_contains($rest, '#') ? 1 : (str_contains($rest, 'b') ? -1 : 0);
+                        $pitch = ((int) $octave) * 12 + (($base[$letter] ?? 0) + $acc);
+                        return $pitch < (3 * 12 + 7) ? 'bass' : 'treble';
+                    };
+                    // Exercise-setup questions carry the user-selected clef; fall back to auto.
+                    $staffClef = $currentPractice->clef ?? $clefFor($currentPractice->root_note, $currentPractice->octave);
+                @endphp
+
+                <!-- Scale name label – hidden until the user answers -->
+                <p id="scaleLabel" class="text-center text-sm font-bold tracking-widest text-purple-700 mb-3 invisible">&nbsp;</p>
+
+                <!-- VexFlow staff: shows only the starting note until the user answers, then
+                     reveals the full scale as a note sequence (matches the AI-exercise scale view). -->
+                <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center mb-8" style="min-height:130px;">
+                    <div id="output"
+                         style="width:100%; height:180px; display:flex; justify-content:center;"
+                         data-notes="{{ $scaleKeys }}"
+                         data-root="{{ $scaleRootKey }}"
+                         data-clef="{{ $staffClef }}">
                     </div>
                 </div>
 
                 <!-- Play Button -->
-                <div class="card p-6 mb-8">
+                <div class="card p-4 sm:p-6 mb-4 sm:mb-8">
                     <div class="flex flex-col items-center">
-                        <div class="flex gap-3">
+                        <div class="flex flex-wrap justify-center gap-3 mb-3">
                             <button id="playButton"
-                                class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
-                                data-notes="{{ implode(',', $currentPractice->note_array ?? []) }}">
+                                class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow"
+                                data-notes="{{ implode(',', $currentPractice->note_array ?? []) }}"
+                                data-tempo="{{ $scaleTempo ?? 'normal' }}">
                                 <i data-lucide="play" class="w-5 h-5"></i>
                                 Play Scale
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
-                                    class="font-semibold py-3 px-8 rounded-lg hidden items-center gap-2 mb-3 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
+                                    class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
-                                    class="font-semibold py-3 px-8 rounded-lg hidden items-center gap-2 mb-3 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
+                                    class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
                                     <i data-lucide="check" class="w-5 h-5"></i> Finish
                                 </a>
                             @endif
@@ -66,16 +95,24 @@
                 <!-- Answer Options -->
                 <div id="answerOptions" class="grid grid-cols-2 gap-3"
                      data-target="{{ strtolower($currentPractice->scale_type) }}"
+                     data-scale-name="{{ $currentPractice->root_note }} {{ $currentPractice->scale_type }}"
                      data-practice-id="{{ $currentPractice->id }}">
                     @php
                         $options = array_merge([$currentPractice->scale_type], $currentPractice->other_options ?? []);
-                        if (count($options) < 4) {
-                            $allScales = ['Major','Natural Minor','Harmonic Minor','Melodic Minor','Pentatonic','Blues','Dorian','Phrygian','Lydian','Mixolydian','Locrian'];
-                            $existing  = array_map('strtolower', $options);
-                            $extra     = array_values(array_filter($allScales, fn($s) => !in_array(strtolower($s), $existing)));
+                        // When coming from exercise-setup, the target count equals the number of
+                        // selected scale types (max 4). For DB-sourced questions scaleTypes is
+                        // empty, so we default to 4.
+                        $targetCount = !empty($scaleTypes) ? min(count($scaleTypes), 4) : 4;
+                        if (count($options) < $targetCount) {
+                            $pool = !empty($scaleTypes)
+                                ? $scaleTypes
+                                : ['Major','Natural Minor','Harmonic Minor','Melodic Minor','Ionian','Dorian','Phrygian','Lydian','Mixolydian','Aeolian','Locrian','Major Pentatonic','Minor Pentatonic','Blues Scale','Chromatic Scale','Whole Tone Scale'];
+                            $existing = array_map('strtolower', $options);
+                            $extra    = array_values(array_filter($pool, fn($s) => !in_array(strtolower($s), $existing)));
                             shuffle($extra);
-                            $options   = array_merge($options, array_slice($extra, 0, 4 - count($options)));
+                            $options  = array_merge($options, array_slice($extra, 0, $targetCount - count($options)));
                         }
+                        $options = array_slice($options, 0, $targetCount);
                         shuffle($options);
                     @endphp
                     @foreach($options as $option)
@@ -96,7 +133,47 @@
             <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
+            // Draw the scale on a staff. showAll=false shows only the starting note (so the
+            // notation doesn't give away the answer); showAll=true reveals the full scale as a
+            // quarter-note sequence. Accidentals (incl. flats) are applied so e.g. C–Eb–F–Gb…
+            // spells correctly, and auto_stem flips stems for notes on/above the middle line.
+            function drawScaleStave(allKeys, rootKey, showAll, clef) {
+                if (typeof Vex === 'undefined') return;
+                const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
+                const div = document.getElementById('output');
+                if (!div) return;
+                div.innerHTML = '';
+                // Size the staff to the full scale so every note stays on screen.
+                const noteCount = (showAll && allKeys.length) ? allKeys.length : 1;
+                const clefWidth = 60;
+                const staveWidth = Math.max(360, clefWidth + 40 + noteCount * 46);
+                const renderer = new Renderer(div, Renderer.Backends.SVG);
+                renderer.resize(staveWidth + 20, 180);
+                const context = renderer.getContext();
+                const stave = new Stave(10, 30, staveWidth);
+                stave.addClef(clef || 'treble');
+                stave.setNoteStartX(stave.getNoteStartX() + 20);
+                stave.setContext(context).draw();
+
+                let voice;
+                // clef must be passed so VexFlow positions the notes on the
+                // correct staff line for bass/alto (defaults to treble otherwise)
+                if (showAll && allKeys.length) {
+                    const notes = allKeys.map(k => new StaveNote({ keys: [k], duration: 'q', auto_stem: true, clef: clef || 'treble' }));
+                    voice = new Voice({ numBeats: notes.length, beatValue: 4 }).setMode(Voice.Mode.SOFT);
+                    voice.addTickables(notes);
+                } else {
+                    voice = new Voice({ numBeats: 4, beatValue: 4 });
+                    voice.addTickables([new StaveNote({ keys: [rootKey], duration: 'w', auto_stem: true, clef: clef || 'treble' })]);
+                }
+                Accidental.applyAccidentals([voice], 'C');
+                const formatWidth = Math.max(120, staveWidth - clefWidth - 50);
+                new Formatter().joinVoices([voice]).format([voice], formatWidth);
+                voice.draw(context, stave);
+            }
+
             window.initPracticeScale = function() {
                 window._practiceGen = (window._practiceGen || 0) + 1;
                 const myGen = window._practiceGen;
@@ -110,9 +187,20 @@
                 if (!playButton || !answerOptions) return;
 
                 const target = answerOptions.dataset.target;
+                const scaleName = answerOptions.dataset.scaleName;
                 const practiceId = answerOptions.dataset.practiceId;
                 const notes = playButton.dataset.notes ? playButton.dataset.notes.split(',') : [];
+                const tempoMs = { slow: 650, normal: 450, fast: 270 }[playButton.dataset.tempo || 'normal'] || 450;
                 let isAnswered = false;
+
+                // ── Scale staff (start-note only until answered, then full scale) ──
+                const outputDiv = document.getElementById('output');
+                const staffClef = outputDiv ? (outputDiv.dataset.clef || 'treble') : 'treble';
+                const scaleKeys = outputDiv && outputDiv.dataset.notes ? outputDiv.dataset.notes.split(',').filter(n => n.length) : [];
+                const scaleRootKey = outputDiv ? (scaleKeys[0] || outputDiv.dataset.root || 'c/4') : 'c/4';
+                if (typeof Vex !== 'undefined' && outputDiv) {
+                    drawScaleStave(scaleKeys, scaleRootKey, false, staffClef);
+                }
 
                 playButton.onclick = async function() {
                     await Tone.start();
@@ -120,14 +208,14 @@
                     playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5 inline"></i> Playing...';
                     playStatus.textContent = 'Playing scale...';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
-                    window.HarmonivaAudio.playSequential(notes, 450, 1);
+                    window.HarmonivaAudio.playSequential(notes, tempoMs, 1);
                     setTimeout(() => {
                         if (window._practiceGen !== myGen) return;
                         playButton.disabled = false;
                         playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
                         playStatus.textContent = 'Click to play again';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
-                    }, notes.length * 450 + 500);
+                    }, notes.length * tempoMs + 500);
                 };
 
                 answerButtons.forEach(btn => {
@@ -143,6 +231,16 @@
                             });
                             const data = await response.json();
                             isAnswered = true;
+                            // Reveal the full scale on the staff after answering.
+                            if (typeof Vex !== 'undefined' && outputDiv) {
+                                drawScaleStave(scaleKeys, scaleRootKey, true, staffClef);
+                            }
+                            // Show scale name above the staff.
+                            const scaleLabelEl = document.getElementById('scaleLabel');
+                            if (scaleLabelEl && scaleName) {
+                                scaleLabelEl.textContent = scaleName;
+                                scaleLabelEl.classList.remove('invisible');
+                            }
                             if (playButton) playButton.classList.add('hidden');
                             if (playStatus) playStatus.classList.add('hidden');
                             if (nextButton) nextButton.classList.remove('hidden');

@@ -77,6 +77,14 @@ class PageController extends Controller
     {
         $backUrl = session()->pull('exercise_back_url', '/learn');
 
+        // Unless a fresh Exercise-Setup launch is incoming (exercise_settings present,
+        // consumed by the Livewire component's mount()), any leftover
+        // exercise_practice_session is stale. Clear it so it cannot hijack the
+        // answer check — checkAnswer() evaluates that session before LP/DB lookup.
+        if (! session()->has('exercise_settings')) {
+            session()->forget('exercise_practice_session');
+        }
+
         // LP session guard: if a learning path session is active for this practice type, use its questions.
         // NOTE: We intentionally do NOT forget the session here — PracticeController::checkLPAnswer()
         // clears it after the final question so answer-checking can reference session data.
@@ -220,6 +228,23 @@ class PageController extends Controller
             'practices' => $practices,
             'title' => $title,
         ]);
+    }
+
+    /**
+     * AI Assisted Exercises — dedicated Melodic Dictation page.
+     *
+     * The Livewire component (PracticeAiMelodicDictation) consumes the
+     * 'ai_dictation_settings' session written by AIController and generates
+     * the questions itself, mirroring the Exercise Setup flow. Without that
+     * session (refresh / direct visit) the user is sent back to the AI page.
+     */
+    public function aiDictationPracticeView()
+    {
+        if (! session()->has('ai_dictation_settings')) {
+            return redirect()->route('ai.exercises')->with('error', 'Your AI session has expired. Please start a new session.');
+        }
+
+        return view('practice-ai-dictation', ['practices' => []]);
     }
 
     /**

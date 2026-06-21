@@ -35,23 +35,51 @@
             </div>
 
             <!-- Content -->
-            <div class="p-8">
-                <!-- Root note display -->
-                <div class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8 py-6">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-500 mb-1">Root Note</p>
-                        <div class="text-5xl font-bold text-gray-800">{{ $currentPractice->root_note }}</div>
-                        <p class="text-sm text-gray-400 mt-1">Octave {{ $currentPractice->octave }} • {{ ucfirst($currentPractice->voicing) }}</p>
+            <div class="p-4 sm:p-8">
+                @php
+                    // Convert note_array ("Eb4","G4","Bb4") to VexFlow keys ("eb/4","g/4","bb/4"),
+                    // accepting single/double flats and sharps so flat chords spell correctly.
+                    $chordKeys = collect($currentPractice->note_array ?? [])->map(function ($n) {
+                        if (preg_match('/^([A-Ga-g](?:#{1,2}|b{1,2})?)(\d+)$/', $n, $m)) {
+                            return strtolower($m[1]) . '/' . $m[2];
+                        }
+                        return strtolower($n);
+                    })->implode(',');
+                    $chordRootKey = strtolower($currentPractice->root_note) . '/' . $currentPractice->octave;
+                    // Bass clef when the root sits below G3, otherwise treble.
+                    $clefFor = function ($note, $octave) {
+                        $base = ['C' => 0, 'D' => 2, 'E' => 4, 'F' => 5, 'G' => 7, 'A' => 9, 'B' => 11];
+                        $letter = strtoupper(substr((string) $note, 0, 1));
+                        $rest = substr((string) $note, 1);
+                        $acc = str_contains($rest, '#') ? 1 : (str_contains($rest, 'b') ? -1 : 0);
+                        $pitch = ((int) $octave) * 12 + (($base[$letter] ?? 0) + $acc);
+                        return $pitch < (3 * 12 + 7) ? 'bass' : 'treble';
+                    };
+                    // Exercise-setup questions carry the user-selected clef; fall back to auto.
+                    $staffClef = $currentPractice->clef ?? $clefFor($currentPractice->root_note, $currentPractice->octave);
+                @endphp
+
+                <!-- Chord name label – hidden until the user answers -->
+                <p id="chordLabel" class="text-center text-sm font-bold tracking-widest text-purple-700 mb-3 invisible">&nbsp;</p>
+
+                <!-- VexFlow staff: shows only the root note until the user answers, then
+                     reveals the full stacked chord (matches the AI-exercise chord view). -->
+                <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8" style="min-height:130px;">
+                    <div id="output"
+                         style="width:100%; height:180px; display:flex; justify-content:center;"
+                         data-notes="{{ $chordKeys }}"
+                         data-root="{{ $chordRootKey }}"
+                         data-clef="{{ $staffClef }}">
                     </div>
                 </div>
 
                 <!-- Play Button -->
-                <div class="card p-6 mb-8">
+                <div class="card p-4 sm:p-6 mb-4 sm:mb-8">
                     <div class="flex flex-col items-center">
-                        <div class="flex gap-3">
+                        <div class="flex flex-wrap justify-center gap-3 mb-3">
                             <button
                                 id="playButton"
-                                class="btn-primary text-white font-semibold py-3 px-8 rounded-lg flex items-center gap-2 mb-3 hover:shadow-lg transition-shadow"
+                                class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow"
                                 data-notes="{{ implode(',', $currentPractice->note_array ?? []) }}"
                                 data-voicing="{{ $currentPractice->voicing }}"
                             >
@@ -60,12 +88,12 @@
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
-                                    class="font-semibold py-3 px-8 rounded-lg hidden items-center gap-2 mb-3 hover:shadow-lg transition-shadow bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
+                                    class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 hover:shadow-lg transition-shadow bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
-                                    class="font-semibold py-3 px-8 rounded-lg hidden items-center gap-2 mb-3 hover:shadow-lg transition-shadow bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
+                                    class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 hover:shadow-lg transition-shadow bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
                                     <i data-lucide="check" class="w-5 h-5"></i> Finish
                                 </a>
                             @endif
@@ -75,20 +103,36 @@
                 </div>
 
                 <!-- Answer Options -->
-                <div id="answerOptions" class="grid grid-cols-2 gap-3"
+                @php
+                    $allChordTypes = [
+                        'Major','Minor','Diminished','Augmented','Sus2','Sus4',
+                        'Major 7th','Dominant 7th','Minor 7th','Minor Major 7th',
+                        'Half-Diminished 7th','Diminished 7th','Augmented 7th',
+                        'Major 6th','Minor 6th','Add9','Minor Add9',
+                        'Half Diminished', // legacy
+                    ];
+                    $selectedTypes = $chordTypes ?? $allChordTypes;
+                    $optionCount   = min(4, max(2, count($selectedTypes)));
+                    $correctType   = $currentPractice->chord_type;
+                    $otherSelected = array_values(array_filter($selectedTypes, fn($t) => strtolower($t) !== strtolower($correctType)));
+                    shuffle($otherSelected);
+                    $distractors   = array_slice($otherSelected, 0, $optionCount - 1);
+                    if (count($distractors) < $optionCount - 1) {
+                        $existing  = array_map('strtolower', array_merge([$correctType], $distractors));
+                        $extra     = array_values(array_filter($allChordTypes, fn($c) => !in_array(strtolower($c), $existing)));
+                        shuffle($extra);
+                        $distractors = array_merge($distractors, array_slice($extra, 0, $optionCount - 1 - count($distractors)));
+                    }
+                    $options  = array_merge([$correctType], $distractors);
+                    shuffle($options);
+                    $gridCols = count($options) === 3 ? 'grid-cols-3' : 'grid-cols-2';
+                @endphp
+                <div id="answerOptions" class="grid {{ $gridCols }} gap-3"
                      data-target="{{ strtolower($currentPractice->chord_type) }}"
-                     data-practice-id="{{ $currentPractice->id }}">
-                    @php
-                        $options = array_merge([$currentPractice->chord_type], $currentPractice->other_options ?? []);
-                        if (count($options) < 4) {
-                            $allChords = ['Major','Minor','Diminished','Augmented','Dominant 7th','Major 7th','Minor 7th','Half Diminished','Diminished 7th','Augmented 7th'];
-                            $existing  = array_map('strtolower', $options);
-                            $extra     = array_values(array_filter($allChords, fn($c) => !in_array(strtolower($c), $existing)));
-                            shuffle($extra);
-                            $options   = array_merge($options, array_slice($extra, 0, 4 - count($options)));
-                        }
-                        shuffle($options);
-                    @endphp
+                     data-practice-id="{{ $currentPractice->id }}"
+                     data-chord-root="{{ $currentPractice->root_note }}"
+                     data-chord-type="{{ $currentPractice->chord_type }}"
+                     data-inversion="{{ $currentPractice->inversion ?? 0 }}">
                     @foreach($options as $option)
                         <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm"
                                 data-answer="{{ strtolower($option) }}">
@@ -112,7 +156,37 @@
             <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
+            // Draw the chord on a staff. showAll=false shows only the root note (so the
+            // notation doesn't give away the answer); showAll=true reveals the full stacked
+            // chord. Accidentals (incl. flats) are applied so e.g. Eb–G–Bb spells correctly,
+            // and auto_stem flips the stem down for notes on/above the middle line.
+            function drawChordStave(allKeys, rootKey, showAll, clef) {
+                if (typeof Vex === 'undefined') return;
+                const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
+                const div = document.getElementById('output');
+                if (!div) return;
+                div.innerHTML = '';
+                const renderer = new Renderer(div, Renderer.Backends.SVG);
+                renderer.resize(490, 180);
+                const context = renderer.getContext();
+                const stave = new Stave(10, 30, 464);
+                stave.addClef(clef || 'treble');
+                stave.setNoteStartX(stave.getNoteStartX() + 100);
+                stave.setContext(context).draw();
+
+                const keys = (showAll && allKeys.length) ? allKeys : [rootKey];
+                // clef must be passed so VexFlow positions the notes on the
+                // correct staff line for bass/alto (defaults to treble otherwise)
+                const chord = new StaveNote({ keys, duration: 'w', auto_stem: true, clef: clef || 'treble' });
+                const voice = new Voice({ numBeats: 4, beatValue: 4 });
+                voice.addTickables([chord]);
+                Accidental.applyAccidentals([voice], 'C');
+                new Formatter().joinVoices([voice]).format([voice], 200);
+                voice.draw(context, stave);
+            }
+
             window.initPracticeChord = function() {
                 window._practiceGen = (window._practiceGen || 0) + 1;
                 const myGen = window._practiceGen;
@@ -127,9 +201,35 @@
 
                 const target = answerOptions.dataset.target;
                 const practiceId = answerOptions.dataset.practiceId;
+                const chordRoot = answerOptions.dataset.chordRoot || '';
+                const chordType = answerOptions.dataset.chordType || '';
+                const inversionNum = parseInt(answerOptions.dataset.inversion || '0');
+                const chordAbbr = {
+                    // Triads & Sus
+                    'major': 'Maj.', 'minor': 'min.', 'diminished': 'dim.',
+                    'augmented': 'aug.', 'sus2': 'sus2', 'sus4': 'sus4',
+                    // 7th Chords
+                    'major 7th': 'Maj7', 'dominant 7th': 'Dom7', 'minor 7th': 'min7',
+                    'minor major 7th': 'mMaj7', 'half-diminished 7th': 'hdim7',
+                    'half diminished': 'hdim7',
+                    'diminished 7th': 'dim7', 'augmented 7th': 'aug7',
+                    // Color Chords
+                    'major 6th': 'Maj6', 'minor 6th': 'min6',
+                    'add9': 'add9', 'minor add9': 'madd9',
+                };
+                const invLabels = [' Root', ' 1. Çev.', ' 2. Çev.'];
                 const notes = playButton.dataset.notes ? playButton.dataset.notes.split(',') : [];
                 const voicing = playButton.dataset.voicing;
                 let isAnswered = false;
+
+                // ── Chord staff (root-only until answered, then full chord) ──
+                const outputDiv = document.getElementById('output');
+                const staffClef = outputDiv ? (outputDiv.dataset.clef || 'treble') : 'treble';
+                const chordKeys = outputDiv && outputDiv.dataset.notes ? outputDiv.dataset.notes.split(',').filter(n => n.length) : [];
+                const chordRootKey = outputDiv ? (outputDiv.dataset.root || chordKeys[0] || 'c/4') : 'c/4';
+                if (typeof Vex !== 'undefined' && outputDiv) {
+                    drawChordStave(chordKeys, chordRootKey, false, staffClef);
+                }
 
                 playButton.onclick = async function() {
                     await Tone.start();
@@ -166,6 +266,17 @@
                             });
                             const data = await response.json();
                             isAnswered = true;
+                            // Reveal the full stacked chord on the staff after answering.
+                            if (typeof Vex !== 'undefined' && outputDiv) {
+                                drawChordStave(chordKeys, chordRootKey, true, staffClef);
+                            }
+                            // Show chord name with inversion label above the staff.
+                            const chordLabelEl = document.getElementById('chordLabel');
+                            if (chordLabelEl) {
+                                const abbr = chordAbbr[chordType.toLowerCase()] || chordType;
+                                chordLabelEl.textContent = chordRoot + abbr + (invLabels[inversionNum] || '');
+                                chordLabelEl.classList.remove('invisible');
+                            }
                             if (playButton) playButton.classList.add('hidden');
                             if (playStatus) playStatus.classList.add('hidden');
                             if (nextButton) nextButton.classList.remove('hidden');
