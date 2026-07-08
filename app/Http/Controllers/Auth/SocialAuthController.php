@@ -29,7 +29,8 @@ class SocialAuthController extends Controller
 
         if ($user) {
             Auth::login($user, remember: true);
-            return redirect()->intended(route('profile.edit'));
+
+            return redirect()->intended(route($user->homeRoute()));
         }
 
         $user = User::where('email', $googleUser->getEmail())->first();
@@ -41,7 +42,8 @@ class SocialAuthController extends Controller
             ]);
 
             Auth::login($user, remember: true);
-            return redirect()->intended(route('profile.edit'));
+
+            return redirect()->intended(route($user->homeRoute()));
         }
 
         $user = User::create([
@@ -59,7 +61,7 @@ class SocialAuthController extends Controller
 
         Auth::login($user, remember: true);
 
-        return redirect()->route('profile.edit');
+        return redirect()->route($user->homeRoute());
     }
 
     private function generateUniqueUsername(string $name): string
@@ -69,7 +71,7 @@ class SocialAuthController extends Controller
         $counter = 1;
 
         while (User::where('username', $username)->exists()) {
-            $username = $base . $counter;
+            $username = $base.$counter;
             $counter++;
         }
 

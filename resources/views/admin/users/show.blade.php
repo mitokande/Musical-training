@@ -91,12 +91,50 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
                 <a href="{{ route('admin.users.edit', $user) }}" class="btn-primary inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg">
                     <i data-lucide="pencil" class="w-4 h-4"></i> Edit
                 </a>
+                @if($user->role !== 'admin' && $user->id !== auth()->id())
+                <form action="{{ route('admin.users.impersonate', $user) }}" method="POST" class="inline" onsubmit="return confirm('Log in as {{ $user->name }}? You can return via the banner at the top.')">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 text-sm font-medium rounded-lg transition-colors">
+                        <i data-lucide="venetian-mask" class="w-4 h-4"></i> Login as user
+                    </button>
+                </form>
+                @endif
+                <form action="{{ route('admin.users.send-password-reset', $user) }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition-colors">
+                        <i data-lucide="key-round" class="w-4 h-4"></i> Send password reset
+                    </button>
+                </form>
             </div>
         </div>
+    </div>
+
+    <!-- Activity Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+        <x-admin.stat-card title="Exercises" :value="$activityStats['total_exercises']" icon="headphones" color="purple" />
+        <x-admin.stat-card title="Game Plays" :value="$activityStats['game_plays']" icon="gamepad-2" color="orange" />
+        <x-admin.stat-card title="Best Score" :value="$activityStats['best_game_score']" icon="trophy" color="teal" />
+        <x-admin.stat-card title="AI Sessions" :value="$activityStats['ai_sessions']" icon="brain" color="indigo" />
+        <x-admin.stat-card title="Feed Posts" :value="$activityStats['feed_posts']" icon="rss" color="blue" />
+        <x-admin.stat-card title="Followers" :value="$activityStats['followers']" icon="users" color="green" />
+        <x-admin.stat-card title="Following" :value="$activityStats['following']" icon="user-plus" color="pink" />
+    </div>
+
+    <!-- Exercise Activity Chart -->
+    <div class="card p-6">
+        <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="bar-chart-3" class="w-5 h-5 text-purple-600"></i>
+            <h2 class="text-lg font-semibold text-gray-900">Exercise Activity (30 days)</h2>
+        </div>
+        @if(count($exerciseTrend) > 0)
+            <div id="userExerciseChart"></div>
+        @else
+            <p class="text-sm text-gray-500 py-4">No exercise activity in the last 30 days.</p>
+        @endif
     </div>
 
     <!-- Tabs Navigation -->
@@ -366,7 +404,7 @@
                 <!-- Add Note Form -->
                 <div class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <h3 class="text-sm font-semibold text-gray-900 mb-3">Add New Note</h3>
-                    <form action="{{ route('admin.users.crm-notes.store', $user) }}" method="POST" class="space-y-3">
+                    <form action="{{ route('admin.notes.store', $user) }}" method="POST" class="space-y-3">
                         @csrf
                         <textarea name="note" rows="3" placeholder="Write a note about this member..."
                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" required></textarea>
@@ -420,14 +458,14 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-1">
-                                <form action="{{ route('admin.users.crm-notes.pin', [$user, $note]) }}" method="POST" class="inline">
+                                <form action="{{ route('admin.notes.togglePin', $note) }}" method="POST" class="inline">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="{{ $note->is_pinned ? 'Unpin' : 'Pin' }}">
                                         <i data-lucide="pin" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.users.crm-notes.destroy', [$user, $note]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this note?')">
+                                <form action="{{ route('admin.notes.destroy', $note) }}" method="POST" class="inline" onsubmit="return confirm('Delete this note?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
@@ -456,3 +494,24 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const trend = @json($exerciseTrend ?? []);
+    if (trend.length > 0) {
+        new ApexCharts(document.querySelector('#userExerciseChart'), {
+            chart: { type: 'bar', height: 240, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans' },
+            series: [{ name: 'Exercises', data: trend.map(i => i.total) }],
+            xaxis: { categories: trend.map(i => i.date), labels: { style: { fontSize: '11px', colors: '#9ca3af' } } },
+            yaxis: { labels: { style: { fontSize: '11px', colors: '#9ca3af' } } },
+            colors: ['#9333ea'],
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+            grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+            tooltip: { theme: 'light' },
+            dataLabels: { enabled: false }
+        }).render();
+    }
+});
+</script>
+@endpush

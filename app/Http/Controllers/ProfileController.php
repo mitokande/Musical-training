@@ -11,7 +11,6 @@ use App\Models\UserProfile;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -21,7 +20,7 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-        $profile = $user->profile ?? new UserProfile();
+        $profile = $user->profile ?? new UserProfile;
         $questions = QuestionnaireQuestion::active()->get();
         $responses = $user->questionnaireResponses()->pluck('answer_value', 'question_id');
         $tab = $request->get('tab', 'general');
@@ -31,17 +30,17 @@ class ProfileController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $totalSessions   = $userPractices->count();
-        $totalQuestions  = $userPractices->sum('total_questions');
-        $totalCorrect    = $userPractices->sum('correct_answers');
-        $totalIncorrect  = $userPractices->sum('incorrect_answers');
-        $totalTime       = $userPractices->sum('total_time');
+        $totalSessions = $userPractices->count();
+        $totalQuestions = $userPractices->sum('total_questions');
+        $totalCorrect = $userPractices->sum('correct_answers');
+        $totalIncorrect = $userPractices->sum('incorrect_answers');
+        $totalTime = $userPractices->sum('total_time');
         $overallAccuracy = $totalQuestions > 0
             ? round(($totalCorrect / $totalQuestions) * 100, 1) : 0;
-        $streak          = $this->calcStreak($userPractices);
-        $formattedTime   = $this->calcFormattedTime($totalTime);
+        $streak = $this->calcStreak($userPractices);
+        $formattedTime = $this->calcFormattedTime($totalTime);
         $practiceBreakdown = $this->calcPracticeBreakdown($userPractices);
-        $recentActivity  = $userPractices->take(5);
+        $recentActivity = $userPractices->take(5);
 
         return view('profile.edit', compact(
             'user', 'profile', 'questions', 'responses', 'tab',
@@ -53,26 +52,36 @@ class ProfileController extends Controller
 
     private function calcStreak($userPractices): int
     {
-        if ($userPractices->isEmpty()) return 0;
+        if ($userPractices->isEmpty()) {
+            return 0;
+        }
 
         $dates = $userPractices->pluck('created_at')
-            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
             ->unique()->sort()->reverse()->values();
 
-        if ($dates->isEmpty()) return 0;
+        if ($dates->isEmpty()) {
+            return 0;
+        }
 
-        $today     = Carbon::today()->format('Y-m-d');
+        $today = Carbon::today()->format('Y-m-d');
         $yesterday = Carbon::yesterday()->format('Y-m-d');
 
-        if ($dates->first() !== $today && $dates->first() !== $yesterday) return 0;
+        if ($dates->first() !== $today && $dates->first() !== $yesterday) {
+            return 0;
+        }
 
         $streak = 0;
         $current = Carbon::parse($dates->first());
 
         foreach ($dates as $date) {
             $d = Carbon::parse($date);
-            if ($current->diffInDays($d) <= 1) { $streak++; $current = $d; }
-            else break;
+            if ($current->diffInDays($d) <= 1) {
+                $streak++;
+                $current = $d;
+            } else {
+                break;
+            }
         }
 
         return $streak;
@@ -80,12 +89,17 @@ class ProfileController extends Controller
 
     private function calcFormattedTime(int $seconds): string
     {
-        if ($seconds < 60) return $seconds . 's';
+        if ($seconds < 60) {
+            return $seconds.'s';
+        }
         $minutes = floor($seconds / 60);
         $remaining = $seconds % 60;
-        if ($minutes < 60) return $minutes . 'm ' . $remaining . 's';
+        if ($minutes < 60) {
+            return $minutes.'m '.$remaining.'s';
+        }
         $hours = floor($minutes / 60);
-        return $hours . 'h ' . ($minutes % 60) . 'm';
+
+        return $hours.'h '.($minutes % 60).'m';
     }
 
     private function calcPracticeBreakdown($userPractices): array
@@ -100,15 +114,15 @@ class ProfileController extends Controller
             $tt = $tp->sum('total_time');
 
             $breakdown[] = [
-                'id'              => $practice->id,
-                'name'            => $practice->name,
-                'slug'            => $practice->slug,
-                'sessions'        => $tp->count(),
+                'id' => $practice->id,
+                'name' => $practice->name,
+                'slug' => $practice->slug,
+                'sessions' => $tp->count(),
                 'total_questions' => $tq,
                 'correct_answers' => $tc,
-                'accuracy'        => $tq > 0 ? round(($tc / $tq) * 100, 1) : 0,
-                'total_time'      => $tt,
-                'avg_time'        => $tq > 0 ? round($tt / $tq, 1) : 0,
+                'accuracy' => $tq > 0 ? round(($tc / $tq) * 100, 1) : 0,
+                'total_time' => $tt,
+                'avg_time' => $tq > 0 ? round($tt / $tq, 1) : 0,
             ];
         }
 
@@ -152,21 +166,23 @@ class ProfileController extends Controller
             if (file_exists($oldPath)) {
                 @unlink($oldPath);
             }
-        } elseif ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
+        } elseif ($user->avatar_url && ! str_starts_with($user->avatar_url, 'http')) {
             Storage::disk('public')->delete($user->avatar_url);
         }
 
         // Store directly in public/images/avatars/ to avoid symlink issues
         $filename = $request->file('avatar')->hashName();
-        $destDir  = public_path('images/avatars');
-        if (!is_dir($destDir)) {
+        $destDir = public_path('images/avatars');
+        if (! is_dir($destDir)) {
             mkdir($destDir, 0755, true);
         }
         $request->file('avatar')->move($destDir, $filename);
 
-        $user->update(['avatar_url' => 'pub:images/avatars/' . $filename]);
+        $user->update(['avatar_url' => 'pub:images/avatars/'.$filename]);
 
-        return Redirect::route('profile.edit', ['tab' => 'general'])->with('status', 'avatar-updated');
+        // back() so the upload works from both the personal profile page
+        // and the Teacher CRM settings page.
+        return Redirect::back()->with('status', 'avatar-updated');
     }
 
     public function toggleSuspend(Request $request): RedirectResponse
@@ -175,17 +191,19 @@ class ProfileController extends Controller
 
         if ($user->isSuspended()) {
             $user->update(['suspended_at' => null]);
+
             return Redirect::route('profile.edit')->with('status', 'account-activated');
         }
 
         $user->update(['suspended_at' => now()]);
+
         return Redirect::route('profile.edit')->with('status', 'account-suspended');
     }
 
     public function editExtendedProfile(Request $request): View
     {
         $user = $request->user();
-        $profile = $user->profile ?? new UserProfile();
+        $profile = $user->profile ?? new UserProfile;
 
         return view('profile.extended-profile', [
             'user' => $user,
@@ -265,7 +283,7 @@ class ProfileController extends Controller
                 $value = json_encode($value);
             }
 
-            if (!is_null($value)) {
+            if (! is_null($value)) {
                 QuestionnaireResponse::updateOrCreate(
                     [
                         'user_id' => $request->user()->id,

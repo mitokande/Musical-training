@@ -6,17 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ContentCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ContentController extends Controller
 {
     public function index(Request $request)
     {
         $articles = Article::with(['author', 'contentCategory'])
-            ->when($request->content_type, fn($q, $type) => $q->where('content_type', $type))
-            ->when($request->status, fn($q, $status) => $q->where('status', $status))
-            ->when($request->category_id, fn($q, $catId) => $q->where('category_id', $catId))
-            ->when($request->search, fn($q, $s) => $q->where('title', 'like', "%{$s}%"))
+            ->when($request->content_type, fn ($q, $type) => $q->where('content_type', $type))
+            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
+            ->when($request->category_id, fn ($q, $catId) => $q->where('category_id', $catId))
+            ->when($request->search, fn ($q, $s) => $q->where('title', 'like', "%{$s}%"))
             ->latest()
             ->paginate(20);
 
@@ -35,24 +34,24 @@ class ContentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'            => 'required|string|max:255',
-            'body'             => 'required|string',
-            'excerpt'          => 'nullable|string|max:500',
-            'content_type'     => 'required|string|in:article,video,audio,document',
-            'status'           => 'required|string|in:draft,pending,published',
-            'visibility'       => 'required|string|in:public,premium,private',
-            'category_id'      => 'nullable|exists:content_categories,id',
-            'featured_image'   => 'nullable|image|max:2048',
-            'video_url'        => 'nullable|url',
-            'audio_file'       => 'nullable|file|mimes:mp3,wav|max:10240',
-            'document_file'    => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'tags'             => 'nullable|array',
-            'is_featured'      => 'boolean',
-            'meta_title'       => 'nullable|string|max:255',
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'excerpt' => 'nullable|string|max:500',
+            'content_type' => 'required|string|in:article,video,audio,document',
+            'status' => 'required|string|in:draft,pending,published',
+            'visibility' => 'required|string|in:public,premium,private',
+            'category_id' => 'nullable|exists:content_categories,id',
+            'featured_image' => 'nullable|image|max:2048',
+            'video_url' => 'nullable|url',
+            'audio_file' => 'nullable|file|mimes:mp3,wav|max:10240',
+            'document_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'tags' => 'nullable|array',
+            'is_featured' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:255',
-            'meta_keywords'    => 'nullable|string|max:255',
-            'og_image'         => 'nullable|string|max:255',
-            'canonical_url'    => 'nullable|url',
+            'meta_keywords' => 'nullable|string|max:255',
+            'og_image' => 'nullable|string|max:255',
+            'canonical_url' => 'nullable|url',
         ]);
 
         $validated['author_id'] = auth()->id();
@@ -89,22 +88,22 @@ class ContentController extends Controller
     public function update(Request $request, Article $article)
     {
         $validated = $request->validate([
-            'title'            => 'required|string|max:255',
-            'body'             => 'required|string',
-            'excerpt'          => 'nullable|string|max:500',
-            'content_type'     => 'required|string|in:article,video,audio,document',
-            'status'           => 'required|string|in:draft,pending,published',
-            'visibility'       => 'required|string|in:public,premium,private',
-            'category_id'      => 'nullable|exists:content_categories,id',
-            'featured_image'   => 'nullable|image|max:2048',
-            'video_url'        => 'nullable|url',
-            'tags'             => 'nullable|array',
-            'is_featured'      => 'boolean',
-            'meta_title'       => 'nullable|string|max:255',
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'excerpt' => 'nullable|string|max:500',
+            'content_type' => 'required|string|in:article,video,audio,document',
+            'status' => 'required|string|in:draft,pending,published',
+            'visibility' => 'required|string|in:public,premium,private',
+            'category_id' => 'nullable|exists:content_categories,id',
+            'featured_image' => 'nullable|image|max:2048',
+            'video_url' => 'nullable|url',
+            'tags' => 'nullable|array',
+            'is_featured' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:255',
-            'meta_keywords'    => 'nullable|string|max:255',
-            'og_image'         => 'nullable|string|max:255',
-            'canonical_url'    => 'nullable|url',
+            'meta_keywords' => 'nullable|string|max:255',
+            'og_image' => 'nullable|string|max:255',
+            'canonical_url' => 'nullable|url',
         ]);
 
         $validated['is_featured'] = $request->boolean('is_featured');
@@ -130,7 +129,7 @@ class ContentController extends Controller
     public function approve(Article $article)
     {
         $article->update([
-            'status'       => 'published',
+            'status' => 'published',
             'published_at' => now(),
         ]);
 
@@ -144,7 +143,7 @@ class ContentController extends Controller
         ]);
 
         $article->update([
-            'status'     => 'rejected',
+            'status' => 'rejected',
             'admin_note' => $request->admin_note,
         ]);
 

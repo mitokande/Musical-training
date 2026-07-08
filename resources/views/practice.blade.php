@@ -155,6 +155,8 @@
 
     </script>
 
+    @include('partials.responsive-notation')
+
     <script>
     window.HarmonivaAudio = (function () {
         let sampler = null;

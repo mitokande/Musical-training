@@ -16,7 +16,7 @@
                     <!-- Title -->
                     <div class="flex-1 text-center px-2">
                         <h1 class="text-base sm:text-lg font-bold text-white leading-tight">
-                            {{ !empty($settings) ? 'AI Generated Practice' : 'Interval Construction' }}
+                            Interval Construction
                         </h1>
                         <p class="text-white/70 text-xs sm:text-sm mt-0.5">Interval Construction</p>
                     </div>
@@ -195,9 +195,10 @@
                 const renderer = new Renderer(div, Renderer.Backends.SVG);
                 renderer.resize(490, 160);
                 const context = renderer.getContext();
+                const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
                 const stave = new Stave(10, 20, 464);
                 stave.addClef(clef);
-                stave.setNoteStartX(stave.getNoteStartX() + 100);
+                stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                 stave.setContext(context).draw();
 
                 if (showBoth) {
@@ -212,7 +213,7 @@
                     const voice = new Voice({ numBeats: 2, beatValue: 2 });
                     voice.addTickables(notes);
                     Accidental.applyAccidentals([voice], 'C');
-                    new Formatter().joinVoices([voice]).format([voice], 200);
+                    new Formatter().joinVoices([voice]).format([voice], HS.span(2));
                     voice.draw(context, stave);
                 } else {
                     const sd = vfStemDirC(note1Key, clef);
@@ -220,7 +221,7 @@
                     const voice = new Voice({ numBeats: 4, beatValue: 4 });
                     voice.addTickables([note]);
                     Accidental.applyAccidentals([voice], 'C');
-                    new Formatter().joinVoices([voice]).format([voice], 120);
+                    new Formatter().joinVoices([voice]).format([voice], HS.span(1));
                     voice.draw(context, stave);
                 }
             }

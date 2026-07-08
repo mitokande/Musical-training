@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Http\Controllers\AIController;
-use App\Http\Controllers\PageController;
+use App\Models\Practice;
 use App\Models\UserIntervalStat;
 use App\Models\UserPractice;
 use App\Services\MusicTheoryService;
@@ -12,19 +12,36 @@ use Livewire\Component;
 class PracticeMixed extends Component
 {
     public $practices = [];
+
     public $answers = [];
 
     public $currentPractice;
+
     public $currentPracticeIndex = 0;
+
     public $totalQuestions;
+
     public $correctCount = 0;
+
     public $incorrectCount = 0;
+
     public $xpEarned = 0;
+
     public $sessionTitle = 'Mixed Practice';
-    
+
     public $showResults = false;
+
     public $coachNotes = null;
+
     public $isGeneratingNotes = false;
+
+    /**
+     * Fixed reference note (C4 — "Do") for single-note sessions: on the first
+     * single-note question, Play sounds this note (shown on the staff) right
+     * before the question note. Later questions skip it — each heard note
+     * becomes the reference for the next, so answers work by comparison.
+     */
+    public const REFERENCE_NOTE = 'C4';
 
     public function mount($practices, $title = 'Mixed Practice')
     {
@@ -45,7 +62,7 @@ class PracticeMixed extends Component
                 'type' => $type,
             ];
         })->toArray();
-        
+
         $this->totalQuestions = count($this->practices);
         $this->sessionTitle = $title;
 
@@ -82,11 +99,11 @@ class PracticeMixed extends Component
     protected function getPracticeIdByType(string $type): int
     {
         $slug = $this->slugForType($type);
-        if (!$slug) {
+        if (! $slug) {
             return 0;
         }
 
-        return \App\Models\Practice::where('slug', $slug)->value('id') ?? 0;
+        return Practice::where('slug', $slug)->value('id') ?? 0;
     }
 
     /**
@@ -95,16 +112,16 @@ class PracticeMixed extends Component
     protected function slugForType(string $type): ?string
     {
         return [
-            'single_note'          => 'single-note-practice',
-            'interval_direction'   => 'interval-direction-practice',
-            'interval_comparison'  => 'interval-comparison-practice',
-            'melodic_interval'     => 'melodic-interval-practice',
-            'harmonic_interval'    => 'harmonic-interval-practice',
-            'interval_construction'=> 'interval-construction-practice',
-            'chord'                => 'chord-practice',
-            'scale'                => 'scale-practice',
-            'rhythm'               => 'rhythm-practice',
-            'melodic_dictation'    => 'melodic-dictation',
+            'single_note' => 'single-note-practice',
+            'interval_direction' => 'interval-direction-practice',
+            'interval_comparison' => 'interval-comparison-practice',
+            'melodic_interval' => 'melodic-interval-practice',
+            'harmonic_interval' => 'harmonic-interval-practice',
+            'interval_construction' => 'interval-construction-practice',
+            'chord' => 'chord-practice',
+            'scale' => 'scale-practice',
+            'rhythm' => 'rhythm-practice',
+            'melodic_dictation' => 'melodic-dictation',
         ][$type] ?? null;
     }
 
@@ -126,7 +143,7 @@ class PracticeMixed extends Component
     public function getNextPractice()
     {
         $this->currentPracticeIndex++;
-        
+
         if (isset($this->practices[$this->currentPracticeIndex])) {
             $this->currentPractice = $this->practices[$this->currentPracticeIndex];
         }
@@ -172,7 +189,7 @@ class PracticeMixed extends Component
 
         $slug = $this->slugForType($practiceType);
         if ($slug) {
-            $data     = $this->practices[$this->currentPracticeIndex]['data'] ?? [];
+            $data = $this->practices[$this->currentPracticeIndex]['data'] ?? [];
             $interval = app(MusicTheoryService::class)->intervalForStats($data, $slug);
             if ($interval !== null) {
                 UserIntervalStat::record(auth()->id(), $this->getPracticeIdByType($practiceType), $interval, $isCorrect);
@@ -222,20 +239,22 @@ class PracticeMixed extends Component
         return (($this->currentPracticeIndex + 1) / $this->totalQuestions) * 100;
     }
 
-    public function generateCoachNotes() {
+    public function generateCoachNotes()
+    {
         $this->isGeneratingNotes = true;
-        
-        $aiController = new AIController();
+
+        $aiController = new AIController;
         $questions = $this->practices;
         $answers = $this->answers;
         $coachNotes = $aiController->generateCoachNotes(['questions' => $questions, 'answers' => $answers]);
-        
+
         $this->coachNotes = $coachNotes;
         $this->isGeneratingNotes = false;
         $this->showResults = true;
     }
 
-    public function saveAnswerPractice($answer, $target) {
+    public function saveAnswerPractice($answer, $target)
+    {
         $this->skipRender();
         $this->answers[] = [
             'id' => $this->practices[$this->currentPracticeIndex]['data']['id'],
@@ -244,4 +263,3 @@ class PracticeMixed extends Component
         ];
     }
 }
-

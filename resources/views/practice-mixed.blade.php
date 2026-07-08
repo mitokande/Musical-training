@@ -198,6 +198,8 @@
     });
     </script>
 
+    @include('partials.responsive-notation')
+
     @livewireScripts
 </body>
 </html>

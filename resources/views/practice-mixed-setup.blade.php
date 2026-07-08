@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Mixed Practice Setup - {{ config('app.name', 'Harmoniva') }}</title>
+    <title>{{ __('app.mixed_setup.page_title') }} - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -87,8 +87,8 @@
             <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <i data-lucide="shuffle" class="w-8 h-8 text-white"></i>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Mixed Practice Session</h1>
-            <p class="text-gray-600">Customize your practice session with multiple exercise types</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ __('app.mixed_setup.heading') }}</h1>
+            <p class="text-gray-600">{{ __('app.mixed_setup.subtitle') }}</p>
         </div>
 
         <!-- Setup Form -->
@@ -99,7 +99,7 @@
             <div class="card p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <i data-lucide="list-checks" class="w-5 h-5 text-purple-600"></i>
-                    Select Exercise Types
+                    {{ __('app.mixed_setup.select_types') }}
                 </h2>
                 
                 <div class="space-y-3">
@@ -111,8 +111,8 @@
                                 <i data-lucide="music-2" class="w-6 h-6 text-purple-600"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-semibold text-gray-900">Single Note Recognition</h3>
-                                <p class="text-sm text-gray-500">Identify individual notes by ear</p>
+                                <h3 class="font-semibold text-gray-900">{{ __('app.exercises.single_note') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('app.exercises.single_note_desc') }}</p>
                             </div>
                             <div class="check-icon hidden w-8 h-8 rounded-full bg-purple-600 items-center justify-center">
                                 <i data-lucide="check" class="w-5 h-5 text-white"></i>
@@ -128,8 +128,8 @@
                                 <i data-lucide="arrow-up-down" class="w-6 h-6 text-blue-600"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-semibold text-gray-900">Interval Direction</h3>
-                                <p class="text-sm text-gray-500">Determine if intervals go up or down</p>
+                                <h3 class="font-semibold text-gray-900">{{ __('app.exercises.interval_direction') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('app.exercises.interval_direction_desc') }}</p>
                             </div>
                             <div class="check-icon hidden w-8 h-8 rounded-full bg-purple-600 items-center justify-center">
                                 <i data-lucide="check" class="w-5 h-5 text-white"></i>
@@ -145,8 +145,8 @@
                                 <i data-lucide="compare-horizontal" class="w-6 h-6 text-green-600"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="font-semibold text-gray-900">Interval Comparison</h3>
-                                <p class="text-sm text-gray-500">Compare the distance of two intervals</p>
+                                <h3 class="font-semibold text-gray-900">{{ __('app.exercises.interval_comparison') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('app.exercises.interval_comparison_desc') }}</p>
                             </div>
                             <div class="check-icon hidden w-8 h-8 rounded-full bg-purple-600 items-center justify-center">
                                 <i data-lucide="check" class="w-5 h-5 text-white"></i>
@@ -164,7 +164,7 @@
             <div class="card p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <i data-lucide="hash" class="w-5 h-5 text-purple-600"></i>
-                    Number of Questions
+                    {{ __('app.practice.question_count') }}
                 </h2>
                 
                 <div class="flex items-center gap-4">
@@ -184,8 +184,8 @@
                 </div>
                 
                 <div class="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>5 questions</span>
-                    <span>30 questions</span>
+                    <span>{{ __('app.mixed_setup.n_questions', ['n' => 5]) }}</span>
+                    <span>{{ __('app.mixed_setup.n_questions', ['n' => 30]) }}</span>
                 </div>
             </div>
 
@@ -193,13 +193,13 @@
             <div class="card p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <i data-lucide="type" class="w-5 h-5 text-purple-600"></i>
-                    Session Title <span class="text-sm font-normal text-gray-400">(Optional)</span>
+                    {{ __('app.mixed_setup.session_title_label') }} <span class="text-sm font-normal text-gray-400">({{ __('app.common.optional') }})</span>
                 </h2>
-                
-                <input 
-                    type="text" 
-                    name="title" 
-                    placeholder="e.g., Morning Warm-up, Interval Focus..."
+
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="{{ __('app.mixed_setup.session_title_placeholder') }}"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
             </div>
@@ -210,13 +210,13 @@
                 class="w-full btn-primary text-white font-semibold py-4 px-8 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all"
             >
                 <i data-lucide="play" class="w-5 h-5"></i>
-                Start Practice Session
+                {{ __('app.practice.start_session') }}
             </button>
 
             <!-- Back Link -->
             <div class="text-center">
                 <a href="/learn" class="text-sm text-gray-500 hover:text-purple-600 transition-colors">
-                    ← Back to Learning Path
+                    ← {{ __('app.mixed_setup.back_to_learning_path') }}
                 </a>
             </div>
         </form>

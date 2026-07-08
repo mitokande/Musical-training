@@ -66,12 +66,35 @@
         </form>
     </div>
 
+    <!-- Bulk actions -->
+    <form id="bulkForm" method="POST" action="{{ route('admin.users.bulk-action') }}"
+          onsubmit="return document.querySelectorAll('.bulk-check:checked').length > 0 && (this.action_select_value = this.action.value, this.action.value !== 'delete' || confirm('Delete the selected members? This cannot be undone.'))">
+        @csrf
+        <div class="card p-4 flex flex-wrap items-center gap-3">
+            <span class="text-sm text-gray-500"><span id="bulkCount">0</span> selected</span>
+            <select name="action" required class="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-purple-500">
+                <option value="">Bulk action...</option>
+                <option value="set_plan_premium">Set plan: Premium</option>
+                <option value="set_plan_free">Set plan: Free</option>
+                <option value="set_role_user">Set role: Student</option>
+                <option value="set_role_teacher">Set role: Teacher</option>
+                <option value="set_role_school">Set role: School</option>
+                <option value="delete">Delete selected</option>
+            </select>
+            <button type="submit" class="btn-primary px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all hover:shadow-lg">Apply</button>
+            <span class="text-xs text-gray-400">Admins and your own account are always skipped.</span>
+        </div>
+    </form>
+
     <!-- Table -->
     <div class="card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
+                        <th class="px-4 py-4">
+                            <input type="checkbox" id="checkAll" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                        </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Member</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
@@ -84,6 +107,12 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse ($users as $user)
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-4">
+                            @if($user->role !== 'admin' && $user->id !== auth()->id())
+                            <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" form="bulkForm"
+                                   class="bulk-check w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if($user->avatar)
@@ -94,7 +123,14 @@
                                     </div>
                                 @endif
                                 <div>
-                                    <p class="font-medium text-gray-900">{{ $user->name }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-medium text-gray-900">{{ $user->name }}</p>
+                                        @if($user->is_restricted)
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-xs font-medium">
+                                                <i data-lucide="lock" class="w-2.5 h-2.5"></i> Kısıtlı
+                                            </span>
+                                        @endif
+                                    </div>
                                     <p class="text-xs text-gray-500">ID: {{ $user->id }}</p>
                                 </div>
                             </div>
@@ -148,6 +184,14 @@
                                    class="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Edit">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </a>
+                                @if ($user->role !== 'admin' && $user->id !== auth()->id())
+                                <form action="{{ route('admin.users.impersonate', $user) }}" method="POST" class="inline" onsubmit="return confirm('Log in as {{ $user->name }}? You can return via the banner at the top.')">
+                                    @csrf
+                                    <button type="submit" class="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Login as user">
+                                        <i data-lucide="venetian-mask" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                                @endif
                                 @if ($user->id !== auth()->id())
                                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this member?')">
                                     @csrf
@@ -162,7 +206,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                                     <i data-lucide="users" class="w-8 h-8 text-gray-400"></i>
@@ -185,3 +229,25 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checks = document.querySelectorAll('.bulk-check');
+    const countEl = document.getElementById('bulkCount');
+    const checkAll = document.getElementById('checkAll');
+
+    function updateCount() {
+        countEl.textContent = document.querySelectorAll('.bulk-check:checked').length;
+    }
+
+    checks.forEach(c => c.addEventListener('change', updateCount));
+    if (checkAll) {
+        checkAll.addEventListener('change', function () {
+            checks.forEach(c => { c.checked = checkAll.checked; });
+            updateCount();
+        });
+    }
+});
+</script>
+@endpush

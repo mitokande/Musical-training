@@ -14,7 +14,7 @@ class PracticeChord extends Component
 {
     use HandlesPracticeData;
 
-    private const ALL_CHORD_TYPES = [
+    public const ALL_CHORD_TYPES = [
         // Triads & Sus
         'Major', 'Minor', 'Diminished', 'Augmented', 'Sus2', 'Sus4',
         // 7th Chords

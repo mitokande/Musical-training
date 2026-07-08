@@ -101,8 +101,8 @@
 
         {{-- Features --}}
         <div>
-            <label for="features" class="block text-sm font-medium text-gray-700 mb-1">Features (JSON array)</label>
-            <textarea name="features" id="features" rows="4" placeholder='["Feature 1", "Feature 2", "Feature 3"]'
+            <label for="features" class="block text-sm font-medium text-gray-700 mb-1">Plan Limits (JSON object — these override config/plans.php)</label>
+            <textarea name="features" id="features" rows="4" placeholder='{"daily_exercises_per_type": 3, "ai_exercises": false}'
                 class="w-full rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500 font-mono text-sm">{{ old('features') }}</textarea>
             <p class="text-xs text-gray-400 mt-1">Enter as JSON array, e.g. ["Unlimited access", "Priority support"]</p>
             @error('features') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror

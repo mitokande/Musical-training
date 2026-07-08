@@ -9,10 +9,17 @@
                 </div>
                 <div class="flex-1 overflow-y-auto">
                     @forelse($conversations as $conv)
-                        <button wire:click="selectConversation({{ $conv['user']->id }})"
-                                wire:key="conv-{{ $conv['user']->id }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50
-                                       {{ $activeUser && $activeUser->id === $conv['user']->id ? 'bg-purple-50' : '' }}">
+                        @php $isTeacher = ($conv['source'] ?? 'general') === 'teacher'; @endphp
+                        @if($isTeacher)
+                            <a href="{{ $conv['url'] }}"
+                               wire:key="conv-teacher-{{ $conv['user']->id }}"
+                               class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50">
+                        @else
+                            <button wire:click="selectConversation({{ $conv['user']->id }})"
+                                    wire:key="conv-general-{{ $conv['user']->id }}"
+                                    class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-50
+                                           {{ $activeUser && $activeUser->id === $conv['user']->id ? 'bg-purple-50' : '' }}">
+                        @endif
                             @if($conv['user']->hasAvatar())
                                 <img src="{{ $conv['user']->avatar }}" alt="" class="w-10 h-10 rounded-full object-cover shrink-0">
                             @else
@@ -27,9 +34,16 @@
                                         <span class="bg-purple-600 text-white text-xs font-bold rounded-full px-1.5 min-w-[18px] text-center">{{ $conv['unread'] }}</span>
                                     @endif
                                 </div>
-                                <p class="text-xs text-gray-400 truncate">{{ $conv['last_body'] }}</p>
+                                <div class="flex items-center gap-1.5">
+                                    @if($isTeacher)
+                                        <span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-purple-600 bg-purple-50 rounded px-1 py-0.5 shrink-0">
+                                            <i data-lucide="graduation-cap" class="w-3 h-3"></i>{{ __('app.messenger.teacher_badge') }}
+                                        </span>
+                                    @endif
+                                    <p class="text-xs text-gray-400 truncate">{{ $conv['last_body'] }}</p>
+                                </div>
                             </div>
-                        </button>
+                        @if($isTeacher)</a>@else</button>@endif
                     @empty
                         <p class="p-4 text-sm text-gray-400">{{ __('app.messenger.no_conversations') }}</p>
                     @endforelse

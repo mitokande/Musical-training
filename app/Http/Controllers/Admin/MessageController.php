@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
@@ -12,13 +13,13 @@ class MessageController extends Controller
     {
         $messages = Message::with(['sender', 'receiver'])
             ->whereNull('parent_id')
-            ->when($request->type, fn($q, $type) => $q->where('type', $type))
-            ->when($request->status, fn($q, $status) => $q->where('status', $status))
-            ->when($request->priority, fn($q, $priority) => $q->where('priority', $priority))
+            ->when($request->type, fn ($q, $type) => $q->where('type', $type))
+            ->when($request->status, fn ($q, $status) => $q->where('status', $status))
+            ->when($request->priority, fn ($q, $priority) => $q->where('priority', $priority))
             ->when($request->search, function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('subject', 'like', "%{$search}%")
-                      ->orWhere('body', 'like', "%{$search}%");
+                        ->orWhere('body', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -39,14 +40,21 @@ class MessageController extends Controller
         return view('admin.messages.show', compact('message', 'replies'));
     }
 
+    public function create()
+    {
+        $users = User::select('id', 'name', 'email')->orderBy('name')->get();
+
+        return view('admin.messages.create', compact('users'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'receiver_id' => 'required|exists:users,id',
-            'subject'     => 'required|string|max:255',
-            'body'        => 'required|string',
-            'type'        => 'required|string|in:notification,support,announcement,system',
-            'priority'    => 'required|string|in:low,normal,high,urgent',
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+            'type' => 'required|string|in:notification,support,announcement,system',
+            'priority' => 'required|string|in:low,normal,high,urgent',
         ]);
 
         $validated['sender_id'] = auth()->id();
@@ -65,14 +73,14 @@ class MessageController extends Controller
         ]);
 
         Message::create([
-            'sender_id'   => auth()->id(),
+            'sender_id' => auth()->id(),
             'receiver_id' => $message->sender_id,
-            'subject'     => 'Re: ' . $message->subject,
-            'body'        => $validated['body'],
-            'type'        => $message->type,
-            'priority'    => $message->priority,
-            'status'      => 'sent',
-            'parent_id'   => $message->id,
+            'subject' => 'Re: '.$message->subject,
+            'body' => $validated['body'],
+            'type' => $message->type,
+            'priority' => $message->priority,
+            'status' => 'sent',
+            'parent_id' => $message->id,
         ]);
 
         return back()->with('success', 'Reply sent successfully.');

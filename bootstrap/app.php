@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CheckPlanFeature;
+use App\Http\Middleware\CheckUserRestriction;
+use App\Http\Middleware\NoIndex;
+use App\Http\Middleware\SchoolMiddleware;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TeacherMiddleware;
+use App\Http\Middleware\TrackExerciseUsage;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,15 +20,23 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'teacher' => \App\Http\Middleware\TeacherMiddleware::class,
-            'school' => \App\Http\Middleware\SchoolMiddleware::class,
-            'plan' => \App\Http\Middleware\CheckPlanFeature::class,
-            'track.exercise' => \App\Http\Middleware\TrackExerciseUsage::class,
+            'admin' => AdminMiddleware::class,
+            'teacher' => TeacherMiddleware::class,
+            'school' => SchoolMiddleware::class,
+            'plan' => CheckPlanFeature::class,
+            'track.exercise' => TrackExerciseUsage::class,
+            'check.restriction' => CheckUserRestriction::class,
         ]);
         $middleware->web(append: [
-            \App\Http\Middleware\SetLocale::class,
-            \App\Http\Middleware\NoIndex::class,
+            SetLocale::class,
+            NoIndex::class,
+            CheckUserRestriction::class,
+        ]);
+        // AWS SNS posts signed JSON (validated in SesWebhookController);
+        // unsubscribe POST is the RFC 8058 one-click coming from mail clients.
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/aws/ses/*',
+            'email/unsubscribe/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

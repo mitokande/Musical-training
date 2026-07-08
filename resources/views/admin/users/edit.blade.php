@@ -204,6 +204,37 @@
         </div>
     </form>
 
+    <!-- Restrict User -->
+    @if ($user->id !== auth()->id())
+    <div class="mt-4 p-4 {{ $user->is_restricted ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200' }} border rounded-xl">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full {{ $user->is_restricted ? 'bg-orange-100' : 'bg-yellow-100' }} flex items-center justify-center">
+                    <i data-lucide="{{ $user->is_restricted ? 'lock' : 'lock-open' }}" class="w-5 h-5 {{ $user->is_restricted ? 'text-orange-600' : 'text-yellow-600' }}"></i>
+                </div>
+                <div>
+                    @if ($user->is_restricted)
+                        <p class="font-semibold text-orange-700">Bu kullanıcı kısıtlı</p>
+                        <p class="text-sm text-orange-600">Yalnızca ana sayfayı görebilir. Kısıtlamayı kaldırmak için butona tıklayın.</p>
+                    @else
+                        <p class="font-semibold text-yellow-700">Erişim Kısıtlama</p>
+                        <p class="text-sm text-yellow-600">Kısıtlanırsa kullanıcı yalnızca ana sayfayı görebilir.</p>
+                    @endif
+                </div>
+            </div>
+            <form action="{{ route('admin.users.toggle-restriction', $user) }}" method="POST"
+                  onsubmit="return confirm('{{ $user->is_restricted ? 'Kullanıcının kısıtlamasını kaldırmak istediğinize emin misiniz?' : 'Bu kullanıcıyı kısıtlamak istediğinize emin misiniz?' }}')">
+                @csrf
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-4 py-2 {{ $user->is_restricted ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-500 hover:bg-orange-600' }} text-white text-sm font-medium rounded-lg transition-colors">
+                    <i data-lucide="{{ $user->is_restricted ? 'lock-open' : 'lock' }}" class="w-4 h-4"></i>
+                    {{ $user->is_restricted ? 'Kısıtlamayı Kaldır' : 'Kısıtla' }}
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <!-- Delete User -->
     @if ($user->id !== auth()->id())
     <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">

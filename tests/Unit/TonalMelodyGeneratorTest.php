@@ -185,7 +185,7 @@ class TonalMelodyGeneratorTest extends TestCase
             $melody = $this->generator->generateMelody(8, $context, 'beginner');
             $result = $this->generator->applyAccidentals($melody, 'C', 'major', 'beginner');
             $extras = $this->extraAccidentals($result, $scale);
-            $this->assertEmpty($extras, "Beginner C major must have no extra accidentals, got: ".implode(',', $extras));
+            $this->assertEmpty($extras, 'Beginner C major must have no extra accidentals, got: '.implode(',', $extras));
         }
     }
 
@@ -196,7 +196,9 @@ class TonalMelodyGeneratorTest extends TestCase
         $naturalMinorNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
         $withLeadingTone = 0;
-        $total = 60;
+        // Large sample: the leading tone is applied probabilistically, so a
+        // small sample can legitimately contain zero occurrences and flake.
+        $total = 300;
 
         for ($i = 0; $i < $total; $i++) {
             $melody = $this->generator->generateMelody(8, $context, 'beginner');
@@ -219,7 +221,7 @@ class TonalMelodyGeneratorTest extends TestCase
         for ($i = 0; $i < 40; $i++) {
             $melody = $this->generator->generateMelody(8, $context, 'beginner');
             $result = $this->generator->applyAccidentals($melody, 'C', 'minor', 'beginner');
-            $names  = array_map([$this, 'nameOnly'], $result);
+            $names = array_map([$this, 'nameOnly'], $result);
             $this->assertNotContains('F#', $names,
                 'Beginner A minor: F# (raised 6th) must not appear. Melody: '.implode(',', $result));
         }
@@ -294,7 +296,7 @@ class TonalMelodyGeneratorTest extends TestCase
         $diatonic = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
         for ($i = 0; $i < 50; $i++) {
-            $r      = $this->generator->applyAccidentals($melody, 'C', 'minor', 'intermediate');
+            $r = $this->generator->applyAccidentals($melody, 'C', 'minor', 'intermediate');
             $extras = $this->extraAccidentals($r, $diatonic);
             // F# must not appear in this descending passage (only G# is allowed: leading-tone at end)
             $this->assertNotContains('F#', $extras,
@@ -340,7 +342,7 @@ class TonalMelodyGeneratorTest extends TestCase
     public function test_major_intermediate_allows_at_most_one_chromatic_approach(): void
     {
         $context = $this->generator->contextForKey('C', 'major', 'treble');
-        $scale   = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        $scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
         for ($i = 0; $i < 40; $i++) {
             $melody = $this->generator->generateMelody(8, $context, 'intermediate');
@@ -355,7 +357,7 @@ class TonalMelodyGeneratorTest extends TestCase
     public function test_major_advanced_allows_at_most_two_chromatic_approaches(): void
     {
         $context = $this->generator->contextForKey('C', 'major', 'treble');
-        $scale   = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        $scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
         for ($i = 0; $i < 40; $i++) {
             $melody = $this->generator->generateMelody(8, $context, 'advanced');

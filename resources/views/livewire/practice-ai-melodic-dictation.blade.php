@@ -164,10 +164,10 @@
 
                 <!-- ── Play box ──────────────────────────────────────────── -->
                 <div class="card px-5 py-3 mb-5">
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
 
                         <!-- Left: segment indicator + progress -->
-                        <div class="min-w-0" style="width:42%">
+                        <div class="min-w-0 flex-1" style="min-width:42%">
                             <!-- Segment indicator -->
                             <div class="flex items-center gap-3 mb-2">
                                 <div class="md-seg-indicator" id="segIndicator"></div>
@@ -398,7 +398,17 @@
             if (typeof Vex === 'undefined' || !container) return;
             container.innerHTML = '';
             const VF  = Vex.Flow;
-            const w   = Math.max(container.clientWidth || 500, 300);
+            const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
+            let w = Math.max(container.clientWidth || 500, 300);
+            // Site-wide spacing standard: 40-100px between notes depending on count.
+            const glyphCount = (notes ? notes.length : 0) + (refNote ? 1 : 0);
+            const noteSpanW = HS.span(glyphCount);
+            if (window.innerWidth < 640) {
+                // Mobile: widen the SVG to fit the span instead of squeezing —
+                // the responsive-notation fitter makes the container swipeable.
+                w = Math.max(w, 140 + noteSpanW);
+            }
+            const fmtW = Math.min(w - 120, noteSpanW);
             // Two rows if notes given, else single row
             const h = 160;
             const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
@@ -420,6 +430,8 @@
             } else {
                 stave.addClef(clef || 'treble');
             }
+            // Breathing room between the clef/signatures and the first note.
+            stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
             stave.setContext(ctx).draw();
 
             if ((!notes || !notes.length) && !refNote) return;
@@ -539,12 +551,12 @@
                     } catch(be) {}
                 }
 
-                new VF.Formatter().joinVoices([voice]).format([voice], w - 120);
+                new VF.Formatter().joinVoices([voice]).format([voice], fmtW);
                 voice.draw(ctx, stave);
                 allBeams.forEach(b => b.setContext(ctx).draw());
             } catch(e) {
                 try {
-                    new VF.Formatter().joinVoices([voice]).format([voice], w - 120);
+                    new VF.Formatter().joinVoices([voice]).format([voice], fmtW);
                     voice.draw(ctx, stave);
                 } catch(e2) {}
             }
@@ -635,7 +647,7 @@
             let pickedNotes      = [];
             let currentOctave    = clef === 'bass' ? 2 : (clef === 'alto' ? 3 : 4);
             let selectedDur      = 'quarter';
-            let selectedAcc      = '';
+            let selectedAcc      = null; // null = nothing chosen; '' = natural explicitly chosen
             let isSegAnswered    = false;
             let isAllAnswered    = false;
 
@@ -685,10 +697,13 @@
             setDur('quarter');
 
             // ── Accidental selector ──────────────────────────────────────────
+            // selectedAcc distinguishes "nothing picked yet" (null) from "natural
+            // explicitly picked" (''), so the ♮ button can highlight like the
+            // others — both still produce a plain, unmodified note letter.
             const accBtns = document.querySelectorAll('.md-acc-btn');
             function setAcc(acc) {
-                selectedAcc = (selectedAcc === acc && acc !== '') ? '' : acc;
-                accBtns.forEach(b => b.classList.toggle('md-acc-active', b.dataset.acc === selectedAcc && selectedAcc !== ''));
+                selectedAcc = (selectedAcc === acc) ? null : acc;
+                accBtns.forEach(b => b.classList.toggle('md-acc-active', selectedAcc !== null && b.dataset.acc === selectedAcc));
             }
             accBtns.forEach(b => b.addEventListener('click', () => setAcc(b.dataset.acc)));
 
@@ -748,7 +763,7 @@
             // ── Add note / rest ──────────────────────────────────────────────
             function addNote(noteLetter, dur, isRest) {
                 if (isSegAnswered) return;
-                const name = isRest ? null : noteLetter + selectedAcc + currentOctave;
+                const name = isRest ? null : noteLetter + (selectedAcc || '') + currentOctave;
                 pickedNotes.push({ name, dur, isRest: !!isRest });
                 const pitches = pickedNotes.filter(n => !n.isRest).map(n => n.name);
                 if (dictInput) dictInput.value = pitches.join(',');
@@ -763,8 +778,8 @@
                     addNote(btn.dataset.note, selectedDur, false);
                     btn.classList.add('md-flash');
                     setTimeout(() => btn.classList.remove('md-flash'), 160);
-                    try { window.HarmonivaAudio.playNote(btn.dataset.note + selectedAcc + currentOctave, 0.35); } catch(e) {}
-                    setAcc('');
+                    try { window.HarmonivaAudio.playNote(btn.dataset.note + (selectedAcc || '') + currentOctave, 0.35); } catch(e) {}
+                    setAcc(null);
                 });
             });
 
@@ -982,7 +997,7 @@
                     currentSegIdx++;
                     isSegAnswered = false;
                     pickedNotes   = [];
-                    selectedAcc   = '';
+                    selectedAcc   = null;
                     if (dictInput) dictInput.value = '';
                     if (submitBtn) { submitBtn.disabled = true; submitBtn.style.display = 'flex'; }
                     nextSegBtn.style.display = 'none';

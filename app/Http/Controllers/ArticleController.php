@@ -33,7 +33,7 @@ class ArticleController extends Controller
             'video_url' => ['nullable', 'url', 'max:500'],
             'audio_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a', 'max:20480'],
             'document_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
-            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'tags' => ['nullable', 'string', 'max:500'],
             'category' => ['nullable', 'string', 'max:100'],
         ]);
@@ -53,7 +53,7 @@ class ArticleController extends Controller
             'status' => $status,
         ];
 
-        if (!empty($validated['tags'])) {
+        if (! empty($validated['tags'])) {
             $data['tags'] = array_map('trim', explode(',', $validated['tags']));
         }
 
@@ -69,13 +69,32 @@ class ArticleController extends Controller
 
         Article::create($data);
 
-        $message = $status === 'pending' ? 'Icerik onaya gonderildi.' : 'Icerik taslak olarak kaydedildi.';
+        $message = $status === 'pending' ? __('app.articles.flash_submitted') : __('app.articles.flash_saved_draft');
+
         return redirect()->route('articles.index')->with('success', $message);
+    }
+
+    public function show(Request $request, Article $article): View
+    {
+        $viewer = $request->user();
+        $isOwner = $viewer && $viewer->id === $article->author_id;
+        $isAdmin = $viewer && $viewer->isAdmin();
+
+        // Only published articles are publicly readable; owner/admin may preview drafts.
+        if (! $article->isPublished()) {
+            abort_unless($isOwner || $isAdmin, 404);
+        } elseif (! $isOwner) {
+            $article->increment('view_count');
+        }
+
+        $article->load('author.teacherProfile');
+
+        return view('articles.show', compact('article', 'isOwner', 'isAdmin'));
     }
 
     public function edit(Article $article): View
     {
-        if ($article->author_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        if ($article->author_id !== auth()->id() && ! auth()->user()->isAdmin()) {
             abort(403);
         }
 
@@ -84,7 +103,7 @@ class ArticleController extends Controller
 
     public function update(Request $request, Article $article): RedirectResponse
     {
-        if ($article->author_id !== $request->user()->id && !$request->user()->isAdmin()) {
+        if ($article->author_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403);
         }
 
@@ -97,12 +116,22 @@ class ArticleController extends Controller
             'video_url' => ['nullable', 'url', 'max:500'],
             'audio_file' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a', 'max:20480'],
             'document_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
-            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'tags' => ['nullable', 'string', 'max:500'],
             'category' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $status = $request->input('action') === 'publish' ? 'pending' : 'draft';
+        $publishing = $request->input('action') === 'publish';
+        // Admins editing someone else's article publish directly; a teacher
+        // editing their own (re)submits it for admin approval every time.
+        $isAdminEdit = $request->user()->isAdmin() && $article->author_id !== $request->user()->id;
+
+        if ($publishing) {
+            $status = $isAdminEdit ? 'published' : 'pending';
+        } else {
+            $status = 'draft';
+        }
+
         if ($article->status === 'rejected' && $status === 'pending') {
             $article->admin_note = null;
         }
@@ -118,7 +147,11 @@ class ArticleController extends Controller
             'status' => $status,
         ];
 
-        if (!empty($validated['tags'])) {
+        if ($status === 'published' && ! $article->published_at) {
+            $data['published_at'] = now();
+        }
+
+        if (! empty($validated['tags'])) {
             $data['tags'] = array_map('trim', explode(',', $validated['tags']));
         } else {
             $data['tags'] = null;
@@ -140,12 +173,12 @@ class ArticleController extends Controller
 
         $article->update($data);
 
-        return redirect()->route('articles.index')->with('success', 'Icerik guncellendi.');
+        return redirect()->route('articles.index')->with('success', __('app.articles.flash_updated'));
     }
 
     public function destroy(Article $article): RedirectResponse
     {
-        if ($article->author_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        if ($article->author_id !== auth()->id() && ! auth()->user()->isAdmin()) {
             abort(403);
         }
 
@@ -157,6 +190,6 @@ class ArticleController extends Controller
 
         $article->delete();
 
-        return redirect()->route('articles.index')->with('success', 'Icerik silindi.');
+        return redirect()->route('articles.index')->with('success', __('app.articles.flash_deleted'));
     }
 }

@@ -49,9 +49,9 @@
                         </td>
                         <td class="py-3 px-4 text-gray-600">{{ $session->created_at->format('M d, Y H:i') }}</td>
                         <td class="py-3 px-4">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">{{ $session->model ?? 'N/A' }}</span>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">{{ $session->model_used ?? 'N/A' }}</span>
                         </td>
-                        <td class="py-3 px-4 text-right font-medium text-gray-900">{{ number_format($session->total_tokens ?? 0) }}</td>
+                        <td class="py-3 px-4 text-right font-medium text-gray-900">{{ number_format($session->tokens_used ?? 0) }}</td>
                     </tr>
                     @empty
                     <tr>

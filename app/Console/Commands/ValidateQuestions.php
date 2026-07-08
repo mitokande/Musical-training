@@ -2,6 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalComparisonPractice;
+use App\Models\IntervalConstructionPractice;
+use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
 use App\Services\MusicTheoryService;
 use Illuminate\Console\Command;
 
@@ -14,17 +19,17 @@ class ValidateQuestions extends Command
     protected $description = 'Validate all interval practice questions for data consistency';
 
     private const PRACTICE_TYPES = [
-        'melodic-interval-practice'      => \App\Models\MelodicIntervalPractice::class,
-        'harmonic-interval-practice'     => \App\Models\HarmonicIntervalPractice::class,
-        'interval-direction-practice'    => \App\Models\IntervalDirectionPractice::class,
-        'interval-construction-practice' => \App\Models\IntervalConstructionPractice::class,
-        'interval-comparison-practice'   => \App\Models\IntervalComparisonPractice::class,
+        'melodic-interval-practice' => MelodicIntervalPractice::class,
+        'harmonic-interval-practice' => HarmonicIntervalPractice::class,
+        'interval-direction-practice' => IntervalDirectionPractice::class,
+        'interval-construction-practice' => IntervalConstructionPractice::class,
+        'interval-comparison-practice' => IntervalComparisonPractice::class,
     ];
 
     public function handle(MusicTheoryService $music): int
     {
-        $filterType  = $this->option('type');
-        $showIssues  = $this->option('show-issues');
+        $filterType = $this->option('type');
+        $showIssues = $this->option('show-issues');
 
         $types = $filterType
             ? (isset(self::PRACTICE_TYPES[$filterType]) ? [$filterType => self::PRACTICE_TYPES[$filterType]] : [])
@@ -32,13 +37,14 @@ class ValidateQuestions extends Command
 
         if (empty($types)) {
             $this->error("Unknown practice type: {$filterType}");
+
             return Command::FAILURE;
         }
 
-        $grandTotal   = 0;
-        $grandValid   = 0;
+        $grandTotal = 0;
+        $grandValid = 0;
         $grandInvalid = 0;
-        $grandReview  = 0;
+        $grandReview = 0;
 
         foreach ($types as $type => $modelClass) {
             $questions = $modelClass::all();
@@ -48,13 +54,13 @@ class ValidateQuestions extends Command
             foreach ($questions as $q) {
                 $result = $music->validateQuestionConsistency($q->toArray(), $type);
                 match ($result['status']) {
-                    'valid'        => $valid++,
+                    'valid' => $valid++,
                     'needs_review' => $needsReview++,
-                    default        => $invalid++,
+                    default => $invalid++,
                 };
 
                 if ($showIssues && $result['status'] !== 'valid') {
-                    $this->line("  [{$type}] ID={$q->id} status={$result['status']} issues=" . implode(',', $result['issues']));
+                    $this->line("  [{$type}] ID={$q->id} status={$result['status']} issues=".implode(',', $result['issues']));
                 }
             }
 
@@ -63,10 +69,10 @@ class ValidateQuestions extends Command
                 $type, $total, $valid, $invalid, $needsReview
             ));
 
-            $grandTotal   += $total;
-            $grandValid   += $valid;
+            $grandTotal += $total;
+            $grandValid += $valid;
             $grandInvalid += $invalid;
-            $grandReview  += $needsReview;
+            $grandReview += $needsReview;
         }
 
         $this->newLine();

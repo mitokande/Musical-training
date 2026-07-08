@@ -62,6 +62,9 @@
             .three-col { flex-direction:column; }
             .sidebar-col { width:100% !important; }
         }
+        @media(max-width:640px) {
+            .card-header { margin:-1.5rem -0.75rem 1.25rem; padding:0.875rem 0.75rem; border-radius:15px 15px 0 0; }
+        }
     </style>
     @livewireStyles
 </head>
@@ -223,7 +226,7 @@
             <div class="flex-1 min-w-0 space-y-5">
 
                 <!-- Chord Settings — shown BEFORE general settings when chords selected -->
-                <div class="card p-6" x-show="selectedCategory === 'chords'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'chords'" x-cloak>
                     <div class="card-header card-header-orange flex items-center gap-2">
                         <i data-lucide="piano" class="w-5 h-5 text-orange-700"></i>
                         <h2 class="text-base font-bold text-orange-900">{{ __('app.exercises.chord_settings') }}</h2>
@@ -294,7 +297,7 @@
                 </div>
 
                 <!-- Rhythm Settings — shown BEFORE general settings when rhythm selected -->
-                <div class="card p-6" x-show="selectedCategory === 'rhythm'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'rhythm'" x-cloak>
                     <div class="card-header card-header-red flex items-center gap-2">
                         <i data-lucide="drum" class="w-5 h-5 text-red-700"></i>
                         <h2 class="text-base font-bold text-red-900">{{ __('app.exercises.rhythm_settings') }}</h2>
@@ -347,20 +350,20 @@
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.exercises.note_values') }}</label>
 
-                        <div class="flex gap-3 items-stretch">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-stretch">
 
                             <!-- LEFT: Note values segment with background -->
-                            <div class="flex-shrink-0 bg-gray-100 rounded-xl p-3 flex flex-col gap-2">
+                            <div class="sm:flex-shrink-0 bg-gray-100 rounded-xl p-3 flex flex-col gap-2">
                                 <!-- Row 1: 5 note symbols -->
                                 <div class="flex gap-2">
                                     <!-- Whole Note -->
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="noteValues.includes('whole') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="toggleNoteValue('whole')">
                                         <svg viewBox="0 0 38 20" width="30" height="16"><ellipse cx="19" cy="10" rx="16" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>
                                     </button>
                                     <!-- Half Note -->
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="noteValues.includes('half') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="toggleNoteValue('half')">
                                         <svg viewBox="0 0 28 44" width="17" height="27">
@@ -369,7 +372,7 @@
                                         </svg>
                                     </button>
                                     <!-- Quarter Note -->
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="noteValues.includes('quarter') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="toggleNoteValue('quarter')">
                                         <svg viewBox="0 0 28 44" width="17" height="27">
@@ -378,7 +381,7 @@
                                         </svg>
                                     </button>
                                     <!-- Eighth Note -->
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="noteValues.includes('eighth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="toggleNoteValue('eighth')">
                                         <svg viewBox="0 0 32 44" width="18" height="27">
@@ -388,7 +391,7 @@
                                         </svg>
                                     </button>
                                     <!-- Sixteenth Note -->
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="noteValues.includes('sixteenth') ? 'bg-red-500 text-white border-red-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="toggleNoteValue('sixteenth')">
                                         <svg viewBox="0 0 32 44" width="18" height="27">
@@ -469,9 +472,9 @@
 
                     <!-- Clef + Mode + Key Signature -->
                     <div class="mb-5">
-                        <div class="flex gap-2 items-stretch">
+                        <div class="flex flex-wrap sm:flex-nowrap gap-2 items-stretch">
                             <!-- Col 1: Clef (~34%) -->
-                            <div class="flex flex-col" style="width:34%">
+                            <div class="flex flex-col w-[55%] sm:w-[34%]">
                                 <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.exercises.clef') }}</label>
                                 <div class="bg-gray-100 rounded-xl p-2 flex gap-1.5 flex-1" style="min-height:99px;">
                                     <button class="clef-btn flex-1" :class="clef === 'treble' ? 'active' : ''" @click="clef = 'treble'">
@@ -486,7 +489,7 @@
                                 </div>
                             </div>
                             <!-- Col 2: Major / Minor (~18%) -->
-                            <div class="flex flex-col" style="width:18%">
+                            <div class="flex flex-col flex-1 sm:flex-none sm:w-[18%]">
                                 <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mode</label>
                                 <div class="bg-gray-100 rounded-xl p-2 flex flex-col gap-1.5 flex-1" style="min-height:99px;">
                                     <button class="flex-1 text-xs font-bold rounded-xl border-2 transition-all"
@@ -498,9 +501,9 @@
                                 </div>
                             </div>
                             <!-- Col 3: Key Signature (flex-1) -->
-                            <div class="flex-1 flex flex-col">
+                            <div class="w-full sm:w-auto sm:flex-1 flex flex-col">
                                 <label class="block text-xs font-semibold text-gray-500 mb-1.5">Key Signature</label>
-                                <div class="flex rounded-xl overflow-hidden border border-gray-200 flex-1">
+                                <div class="flex rounded-xl overflow-hidden border border-gray-200 flex-1 min-h-[90px]">
                                     <!-- Left: flat / down arrow -->
                                     <button class="w-1/5 flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-r border-gray-200 transition-all"
                                             @click="if(dictationKeySignatureIndex < dictationKeySignatures.length - 1) dictationKeySignatureIndex++">
@@ -533,12 +536,12 @@
                             <div class="bg-gray-100 rounded-xl p-3 flex flex-col gap-2">
                                 <!-- Row 1: 5 note symbols -->
                                 <div class="flex gap-2">
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="dictationNoteValues.includes('whole') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
                                             @click="toggleDictationNoteValue('whole')">
                                         <svg viewBox="0 0 38 20" width="30" height="16"><ellipse cx="19" cy="10" rx="16" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>
                                     </button>
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="dictationNoteValues.includes('half') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
                                             @click="toggleDictationNoteValue('half')">
                                         <svg viewBox="0 0 28 44" width="17" height="27">
@@ -546,7 +549,7 @@
                                             <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
                                         </svg>
                                     </button>
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="dictationNoteValues.includes('quarter') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
                                             @click="toggleDictationNoteValue('quarter')">
                                         <svg viewBox="0 0 28 44" width="17" height="27">
@@ -554,7 +557,7 @@
                                             <line x1="21.5" y1="29" x2="21.5" y2="6" stroke="currentColor" stroke-width="2.5"/>
                                         </svg>
                                     </button>
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="dictationNoteValues.includes('eighth') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
                                             @click="toggleDictationNoteValue('eighth')">
                                         <svg viewBox="0 0 32 44" width="18" height="27">
@@ -563,7 +566,7 @@
                                             <path d="M21.5 6 C28 10 28 18 21.5 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                                         </svg>
                                     </button>
-                                    <button class="w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center"
+                                    <button class="flex-1 min-w-0 h-12 sm:flex-none sm:w-14 sm:h-14 rounded-xl border-2 transition-all flex items-center justify-center"
                                             :class="dictationNoteValues.includes('sixteenth') ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
                                             @click="toggleDictationNoteValue('sixteenth')">
                                         <svg viewBox="0 0 32 44" width="18" height="27">
@@ -677,7 +680,7 @@
                 </div>
 
                 <!-- Scales Settings — shown BEFORE general settings when scales selected -->
-                <div class="card p-6" x-show="selectedCategory === 'scales'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'scales'" x-cloak>
                     <div class="card-header card-header-amber flex items-center gap-2">
                         <i data-lucide="waves" class="w-5 h-5 text-amber-700"></i>
                         <h2 class="text-base font-bold text-amber-900">{{ __('app.exercises.scale_settings') }}</h2>
@@ -718,7 +721,7 @@
                 </div>
 
                 <!-- Single Note Settings — shown BEFORE general settings when single-note selected -->
-                <div class="card p-6" x-show="selectedCategory === 'single-note'" x-cloak>
+                <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'single-note'" x-cloak>
                     <div class="card-header card-header-indigo flex items-center gap-2">
                         <i data-lucide="music-2" class="w-5 h-5 text-indigo-700"></i>
                         <h2 class="text-base font-bold text-indigo-900">Single Note Settings</h2>
@@ -767,14 +770,13 @@
                     </div>
 
                     <!-- Play notes in groups of + Answer using -->
-                    <div class="flex gap-3 items-start">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:gap-3 sm:items-start">
                         <!-- Group size (2-9, compact) -->
-                        <div class="shrink-0">
+                        <div class="sm:shrink-0">
                             <label class="block text-xs font-semibold text-gray-500 mb-1.5">Play notes in groups of</label>
                             <div class="flex gap-1">
                                 @foreach([2,3,4,5,6,7,8,9] as $n)
-                                <button class="rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center"
-                                        style="width:2.25rem;height:2.75rem;"
+                                <button class="flex-1 min-w-0 sm:flex-none sm:w-9 h-11 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center"
                                         :class="singleNoteGroupSize === {{ $n }} ? 'bg-indigo-700 text-white border-indigo-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-indigo-400'"
                                         @click="singleNoteGroupSize = {{ $n }}">{{ $n }}</button>
                                 @endforeach
@@ -801,7 +803,7 @@
                 </div>
 
                 <!-- General Settings -->
-                <div class="card p-6">
+                <div class="card px-3 py-6 sm:p-6">
                     <div class="card-header card-header-neutral flex items-center gap-2">
                         <i data-lucide="settings-2" class="w-5 h-5 text-slate-600"></i>
                         <h2 class="text-base font-bold text-slate-800">{{ __('app.exercises.general_settings') }}</h2>
@@ -845,27 +847,27 @@
                                     <button @click="scaleTempoOpen = !scaleTempoOpen"
                                             class="w-full h-20 flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-xl border border-slate-700 text-white transition-all"
                                             style="background:linear-gradient(135deg,#1e293b,#334155)">
-                                        <span class="ml-[30px]" x-text="{'slow':'Yavaş','normal':'Normal','fast':'Hızlı'}[scaleTempo]"></span>
+                                        <span class="ml-[30px]" x-text="{'slow':'{{ __('app.exercises.tempo_slow') }}','normal':'{{ __('app.exercises.tempo_normal') }}','fast':'{{ __('app.exercises.tempo_fast') }}'}[scaleTempo]"></span>
                                         <i data-lucide="chevron-down" class="w-5 h-5 text-white/80 transition-transform" style="stroke-width:3" :class="scaleTempoOpen ? 'rotate-180' : ''"></i>
                                     </button>
                                     <div x-show="scaleTempoOpen" x-transition
                                          class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
                                         <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                                 :class="scaleTempo === 'slow' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="scaleTempo = 'slow'; scaleTempoOpen = false">Yavaş</button>
+                                                @click="scaleTempo = 'slow'; scaleTempoOpen = false">{{ __('app.exercises.tempo_slow') }}</button>
                                         <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                                 :class="scaleTempo === 'normal' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="scaleTempo = 'normal'; scaleTempoOpen = false">Normal</button>
+                                                @click="scaleTempo = 'normal'; scaleTempoOpen = false">{{ __('app.exercises.tempo_normal') }}</button>
                                         <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                                 :class="scaleTempo === 'fast' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                @click="scaleTempo = 'fast'; scaleTempoOpen = false">Hızlı</button>
+                                                @click="scaleTempo = 'fast'; scaleTempoOpen = false">{{ __('app.exercises.tempo_fast') }}</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Question Count | AI Mode | Difficulty (melodic-dictation only) -->
-                        <div class="flex gap-2">
+                        <div class="flex flex-col gap-2 sm:flex-row">
 
                             <!-- Question Count -->
                             <div class="flex-1 flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl gap-2">

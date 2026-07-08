@@ -190,15 +190,36 @@
 
                 <!-- Title + task description -->
                 <div class="flex-1 text-center px-2">
-                    <h1 class="text-base sm:text-lg font-bold text-white leading-tight">{{ $sessionTitle }}</h1>
+                    @php
+                        $hType = $currentPractice['type'] ?? '';
+                        $hData = $currentPractice['data'] ?? [];
+                        $exerciseNames = [
+                            'single_note' => 'Single Note',
+                            'interval_direction' => 'Interval Direction',
+                            'interval_comparison' => 'Interval Comparison',
+                            'melodic_interval' => 'Melodic Interval',
+                            'harmonic_interval' => 'Harmonic Interval',
+                            'interval_construction' => 'Interval Construction',
+                            'chord' => 'Chords',
+                            'scale' => 'Scales & Modes',
+                            'melodic_dictation' => 'Melodic Dictation',
+                        ];
+                        if ($hType === 'rhythm') {
+                            $exerciseNames['rhythm'] = match ($hData['rhythm_mode'] ?? 'build') {
+                                'recognition' => 'Rhythm Recognition',
+                                'reading' => 'Rhythm Reading',
+                                default => 'Rhythm Dictation',
+                            };
+                        }
+                    @endphp
+                    <h1 class="text-base sm:text-lg font-bold text-white leading-tight">{{ $exerciseNames[$hType] ?? $sessionTitle }}</h1>
                     <p class="text-white/85 text-xs sm:text-sm mt-1 font-medium">
-                        @php $hType = $currentPractice['type'] ?? ''; $hData = $currentPractice['data'] ?? []; @endphp
                         @if($hType === 'interval_construction')
-                            Build a <strong>{{ $hData['interval'] ?? '' }}</strong> above <strong>{{ strtoupper($hData['note1'] ?? '') }}</strong>
+                            Build a <strong>{{ $hData['interval'] ?? '' }}</strong> {{ ($hData['direction'] ?? 'ascending') === 'descending' ? 'below' : 'above' }} <strong>{{ strtoupper($hData['note1'] ?? '') }}</strong>
                         @elseif($hType === 'chord')
-                            Identify the chord type for <strong>{{ $hData['root_note'] ?? '' }}</strong>
+                            Identify the chord type for <strong>{{ \App\Services\MusicTheoryService::toDisplaySymbol($hData['root_note'] ?? '') }}</strong>
                         @elseif($hType === 'scale')
-                            Identify the scale starting on <strong>{{ $hData['root_note'] ?? '' }}</strong>
+                            Identify the scale starting on <strong>{{ \App\Services\MusicTheoryService::toDisplaySymbol($hData['root_note'] ?? '') }}</strong>
                         @elseif($hType === 'interval_comparison')
                             Which interval is larger — A or B?
                         @elseif($hType === 'interval_direction')
@@ -210,7 +231,14 @@
                         @elseif($hType === 'single_note')
                             Which note did you hear?
                         @elseif($hType === 'rhythm')
-                            Rhythm Dictation — listen, then build the rhythm you heard
+                            @php $hRhythmMode = $hData['rhythm_mode'] ?? 'build'; @endphp
+                            @if($hRhythmMode === 'recognition')
+                                Rhythm Recognition — listen and identify the rhythm pattern
+                            @elseif($hRhythmMode === 'reading')
+                                Rhythmic Reading — tap the rhythm you see on the staff
+                            @else
+                                Rhythm Dictation — listen, then build the rhythm you heard
+                            @endif
                         @elseif($hType === 'melodic_dictation')
                             Identify the melodic sequence
                         @else
@@ -339,15 +367,37 @@
                     </div>
                 </div>
             @elseif($type === 'rhythm')
-                {{-- Built rhythm on a single-line staff (top of the exercise) --}}
-                <div id="rhythmTable"
-                     class="min-h-[110px] w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
-                {{-- Correct-answer reveal (shown only after an incorrect Check) --}}
-                <div id="rhythmReveal" class="hidden mt-3">
-                    <p class="text-xs font-semibold text-gray-500 text-center mb-1">Correct rhythm</p>
-                    <div id="rhythmRevealRow"
-                         class="w-full bg-green-50 border border-green-200 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
-                </div>
+                @php $rhythmMode = $practice['rhythm_mode'] ?? 'build'; @endphp
+                @if($rhythmMode === 'recognition')
+                    {{-- Recognition: nothing to reveal up top — show meter/tempo info (mirrors
+                         the Exercise Setup Rhythm Recognition header panel) --}}
+                    <div class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center py-5">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-1">Time Signature</p>
+                            <div class="text-5xl font-bold text-gray-800">{{ $practice['time_signature'] ?? '4/4' }}</div>
+                            <p class="text-sm text-gray-400 mt-1">Tempo: {{ $practice['tempo'] ?? 80 }} BPM • {{ $practice['bars'] ?? 1 }} bar(s)</p>
+                        </div>
+                    </div>
+                @elseif($rhythmMode === 'reading')
+                    {{-- Reading: the rhythm to tap is always visible on the staff --}}
+                    <div id="rhythmReadingStaff"
+                         class="min-h-[110px] w-full bg-white border-2 border-gray-200 rounded-xl p-2 overflow-x-auto flex items-center justify-center transition-colors duration-300"></div>
+                    <div class="text-center text-sm text-gray-500">
+                        <span class="font-bold text-gray-700 text-base">{{ $practice['time_signature'] ?? '4/4' }}</span>
+                        <span class="mx-2 text-gray-300">•</span>
+                        Tempo: <span class="font-semibold text-gray-700">{{ $practice['tempo'] ?? 80 }} BPM</span>
+                    </div>
+                @else
+                    {{-- Built rhythm on a single-line staff (top of the exercise) --}}
+                    <div id="rhythmTable"
+                         class="min-h-[110px] w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
+                    {{-- Correct-answer reveal (shown only after an incorrect Check) --}}
+                    <div id="rhythmReveal" class="hidden mt-3">
+                        <p class="text-xs font-semibold text-gray-500 text-center mb-1">Correct rhythm</p>
+                        <div id="rhythmRevealRow"
+                             class="w-full bg-green-50 border border-green-200 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
+                    </div>
+                @endif
             @elseif($type === 'melodic_dictation')
                 @php
                     $mdNotes = $practice['notes'] ?? [];
@@ -428,8 +478,17 @@
                     'melodic_dictation'  => 'melodic_dictation',
                     default              => 'melodic',
                 };
+
+                // First single-note question of the session: Play sounds the fixed
+                // reference note (C4 — "Do", shown on the staff) right before the
+                // question note. Later single-note questions skip it — each heard
+                // note is the reference for the next, so answers work by comparison.
+                $firstSingleNoteIdx = collect($practices)->search(fn ($p) => ($p['type'] ?? '') === 'single_note');
+                $playsReference = $type === 'single_note' && $firstSingleNoteIdx === $currentPracticeIndex;
             @endphp
-            @if($type !== 'rhythm')
+            {{-- Rhythm 'build' mode has its own combined info/play card below; the other
+                 two rhythm modes (recognition, reading) use this generic play card. --}}
+            @if($type !== 'rhythm' || ($practice['rhythm_mode'] ?? 'build') !== 'build')
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col items-center gap-2">
                 <div class="flex items-center gap-3">
                         <button
@@ -446,6 +505,9 @@
                                 data-time-sig="{{ $practice['time_signature'] ?? '4/4' }}"
                             @elseif($type === 'melodic_dictation')
                                 data-tempo="{{ $practice['tempo'] ?? 60 }}"
+                            @endif
+                            @if($playsReference)
+                                data-reference-note="{{ \App\Livewire\PracticeMixed::REFERENCE_NOTE }}"
                             @endif
                             data-type="{{ $type }}"
                             data-play-mode="{{ $playMode }}"
@@ -612,7 +674,7 @@
                     @foreach($noteOptions4 as $noteOption)
                         <button class="answer-btn rounded-xl p-4 text-center font-bold text-gray-700 text-lg"
                                 data-answer="{{ $noteOption }}">
-                            {{ $noteSymbol($noteOption) }}
+                            {{ str_replace('##', 'x', $noteOption) }}
                         </button>
                     @endforeach
                 </div>
@@ -646,7 +708,7 @@
                 @php
                     $scaleTarget = strtolower($practice['scale_type'] ?? '');
                     $scaleCorrect = $practice['scale_type'] ?? 'Major';
-                    $allScales = ['Major','Natural Minor','Harmonic Minor','Melodic Minor','Dorian','Phrygian','Lydian','Mixolydian','Pentatonic','Blues'];
+                    $allScales = ['Major','Natural Minor','Harmonic Minor','Melodic Minor','Dorian','Phrygian','Lydian','Mixolydian','Locrian','Major Pentatonic','Minor Pentatonic','Blues Scale','Chromatic Scale','Whole Tone Scale'];
                     $scaleOtherOpts = $practice['other_options'] ?? [];
                     if (is_string($scaleOtherOpts)) $scaleOtherOpts = json_decode($scaleOtherOpts, true) ?? [];
                     $scaleDistractors = array_values(array_filter($allScales, fn($s) => strtolower($s) !== $scaleTarget));
@@ -670,6 +732,7 @@
                 </div>
             @elseif($type === 'rhythm')
                 @php
+                    $rhythmMode = $practice['rhythm_mode'] ?? 'build';
                     $noteValsArr = $practice['note_values'] ?? [];
                     if (is_string($noteValsArr)) $noteValsArr = json_decode($noteValsArr, true) ?? [];
                     $rhythmAnswerTarget = implode(',', $noteValsArr);
@@ -679,13 +742,61 @@
                         $rhythmAllowed = ['whole','half','quarter','eighth','sixteenth','dotted-half','dotted-quarter','dotted-eighth','half_rest','quarter_rest','eighth_rest'];
                     }
                 @endphp
+                @if($rhythmMode === 'recognition')
+                    {{-- ── Rhythm Recognition: listen, then pick the pattern among four staves
+                         (ported from the Exercise Setup rhythm recognition mode) ── --}}
+                    @php
+                        $recOther = $practice['other_options'] ?? [];
+                        if (is_string($recOther)) $recOther = json_decode($recOther, true) ?? [];
+                        $recOptions = [['value' => $rhythmAnswerTarget, 'notes' => array_values($noteValsArr)]];
+                        foreach ($recOther as $recOpt) {
+                            $recNotes = is_array($recOpt) ? $recOpt : explode(',', (string) $recOpt);
+                            $recOptions[] = ['value' => implode(',', $recNotes), 'notes' => array_values($recNotes)];
+                        }
+                        shuffle($recOptions);
+                    @endphp
+                    <p class="text-sm text-gray-500 text-center">Which rhythm did you hear?</p>
+                    <div id="answerOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                         data-target="{{ $rhythmAnswerTarget }}"
+                         data-practice-id="{{ $practice['id'] ?? 0 }}"
+                         data-type="rhythm-recognition">
+                        @foreach($recOptions as $recOpt)
+                            <button class="rhythm-rec-btn card p-2 text-left transition-all hover:shadow-md border-2 border-gray-200 rounded-xl bg-white disabled:cursor-not-allowed"
+                                    data-answer="{{ $recOpt['value'] }}"
+                                    data-notes='@json($recOpt['notes'])'>
+                                <div class="staff-container w-full rounded overflow-hidden min-h-[83px] sm:min-h-[104px]"></div>
+                            </button>
+                        @endforeach
+                    </div>
+                @elseif($rhythmMode === 'reading')
+                    {{-- ── Rhythmic Reading: tap the printed rhythm in time with the metronome
+                         (ported from the Exercise Setup rhythm reading mode) ── --}}
+                    <div id="answerOptions" class="flex flex-col items-center gap-3"
+                         data-target="{{ $rhythmAnswerTarget }}"
+                         data-practice-id="{{ $practice['id'] ?? 0 }}"
+                         data-type="rhythm-reading">
+                        <p class="text-xs text-gray-400">
+                            Use <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Tab</kbd>
+                            to start &amp; tap, or <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Space</kbd> to tap
+                        </p>
+                        <button id="rhythmTapButton" type="button"
+                            class="w-full max-w-[16rem] h-20 rounded-2xl font-bold text-xl select-none transition-all
+                                   bg-gradient-to-b from-amber-400 to-amber-500 text-white shadow-md
+                                   active:scale-95"
+                            style="touch-action: manipulation; opacity: 0.35; cursor: not-allowed;"
+                            disabled>
+                            <i data-lucide="hand" class="w-6 h-6 inline mr-2"></i>
+                            TAP
+                        </button>
+                    </div>
+                @else
 
                 {{-- ── Info / Play card: LEFT = compact info (~38%), RIGHT = play button (~62%) ── --}}
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <div class="flex flex-row gap-4">
+                    <div class="flex flex-col sm:flex-row gap-4">
 
                         {{-- LEFT: time sig (20% smaller) + bar-fill meter (20% larger) --}}
-                        <div class="flex flex-col gap-2 justify-center" style="width:38%">
+                        <div class="flex flex-col gap-2 justify-center w-full sm:w-[38%]">
                             {{-- Time sig / tempo / bars — 20% smaller (text-sm vs original text-lg) --}}
                             <div class="text-xs text-gray-500">
                                 <span class="text-sm font-bold text-gray-800">{{ $practice['time_signature'] ?? '4/4' }}</span>
@@ -702,7 +813,7 @@
                         </div>
 
                         {{-- RIGHT: Play button — 52% width (10% narrower = button shifts ~10% left) --}}
-                        <div class="flex flex-col items-center justify-center gap-2" style="width:52%; border-left:1px solid #e5e7eb; padding-left:1rem;">
+                        <div class="flex flex-col items-center justify-center gap-2 w-full sm:w-[52%] border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-4">
                             <div class="flex items-center gap-3">
                                 <button
                                     id="playButton"
@@ -781,6 +892,7 @@
                         </button>
                     </div>
                 </div>
+                @endif
             @elseif($type === 'melodic_dictation')
                 @php
                     $mdAnswerNotes = $practice['notes'] ?? [];
@@ -821,7 +933,7 @@
         <!-- ── /Content ── -->
     </div>
 
-    
+
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <script>
         // Render accidentals as proper music symbols for display (C# -> C♯, Db -> D♭).
@@ -844,6 +956,7 @@
             'dotted-half':    { label: 'Half.',    svg: '<ellipse cx="8" cy="30" rx="6.4" ry="4.5" transform="rotate(-25 8 30)" fill="none" stroke="currentColor" stroke-width="1.9"/><rect x="13.1" y="8" width="1.8" height="22.5" fill="currentColor"/><circle cx="19" cy="30" r="2" fill="currentColor"/>' },
             'dotted-quarter': { label: 'Qtr.',     svg: '<ellipse cx="8" cy="30" rx="6.4" ry="4.5" transform="rotate(-25 8 30)" fill="currentColor"/><rect x="13.1" y="8" width="1.8" height="22.5" fill="currentColor"/><circle cx="19" cy="30" r="2" fill="currentColor"/>' },
             'dotted-eighth':  { label: '8th.',     svg: '<ellipse cx="8" cy="30" rx="6.4" ry="4.5" transform="rotate(-25 8 30)" fill="currentColor"/><rect x="13.1" y="8" width="1.8" height="22.5" fill="currentColor"/><path d="M15 8 q8 3 5 13 q3-7-5-9 z" fill="currentColor"/><circle cx="22" cy="30" r="2" fill="currentColor"/>' },
+            'whole_rest':     { label: 'W. rest',  svg: '<line x1="4" y1="17" x2="22" y2="17" stroke="currentColor" stroke-width="1.2"/><rect x="7" y="17" width="12" height="5.5" fill="currentColor"/>' },
             'half_rest':      { label: '½ rest',   svg: '<line x1="4" y1="22" x2="22" y2="22" stroke="currentColor" stroke-width="1.2"/><rect x="7" y="16.5" width="12" height="5.5" fill="currentColor"/>' },
             'quarter_rest':   { label: 'Qtr rest', svg: '<path d="M9 8 L15 17 L10 21 L16 29 C12 27 9 29 11 33" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>' },
             'eighth_rest':    { label: '8th rest', svg: '<circle cx="9" cy="15" r="2.6" fill="currentColor"/><path d="M11 14 L15 28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
@@ -864,7 +977,7 @@
             'whole': 'w', 'half': 'h', 'quarter': 'q', 'eighth': '8', 'sixteenth': '16',
             'dotted-half': 'h', 'dotted-quarter': 'q', 'dotted-eighth': '8',
             'triplet-eighth': '8',
-            'half_rest': 'hr', 'quarter_rest': 'qr', 'eighth_rest': '8r',
+            'whole_rest': 'wr', 'half_rest': 'hr', 'quarter_rest': 'qr', 'eighth_rest': '8r',
         };
 
         // Note value → length in twelfths-of-a-quarter (integer math that also fits triplets:
@@ -898,10 +1011,18 @@
 
             const sigWidth = 34;
             const noteWidth = 48;
+            const isOption = !!container.closest('#answerOptions');
             // Use the container's full rendered width so the staff spans edge-to-edge.
             const containerW = Math.max(300, (container.offsetWidth || 500) - 20);
-            const width = Math.max(containerW, sigWidth + 24 + Math.max(1, n) * noteWidth);
-            const height = 104;
+            // Answer options always render at the button's width: glyphs keep the
+            // standard VexFlow size on every option and the formatter compresses
+            // note spacing to fit, instead of the SVG growing with the note count
+            // and being shrunk down (which made note sizes vary between options).
+            const width = isOption
+                ? Math.max(200, container.offsetWidth || 300)
+                : Math.max(containerW, sigWidth + 24 + Math.max(1, n) * noteWidth);
+            // Answer-option staves shrink 20% on mobile (single-column layout).
+            const height = (window.innerWidth < 640 && isOption) ? 83 : 104;
 
             const renderer = new Renderer(container, Renderer.Backends.SVG);
             renderer.resize(width, height);
@@ -942,13 +1063,16 @@
 
             if (n === 0) { centerRhythm(); return; }
 
-            const notes = sequence.map(v => {
+            const notes = sequence.map((v, i) => {
                 const dur = RHYTHM_VF_DURATION[v] || 'q';
                 const note = new StaveNote({ keys: ['b/4'], duration: dur, auto_stem: true });
                 if (v.startsWith('dotted-')) {
                     try { Dot.buildAndAttach([note], { all: true }); } catch (e) {}
                 }
-                if (color) note.setStyle({ fillStyle: color, strokeStyle: color });
+                // color: uniform string, or per-token array (reading mode marks each
+                // note green/red by tap accuracy; null entries keep the default ink).
+                const c = Array.isArray(color) ? color[i] : color;
+                if (c) note.setStyle({ fillStyle: c, strokeStyle: c });
                 return note;
             });
 
@@ -1253,6 +1377,273 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
+        // ── Rhythm Recognition: listen, then pick the heard pattern among four staves ──
+        // Ported from the Exercise Setup rhythm recognition mode; scoring goes through
+        // the shared answerPractice() Livewire action like every other question type.
+        function setupRhythmRecognition(target) {
+            const playButton        = document.getElementById('playButton');
+            const playStatus        = document.getElementById('playStatus');
+            const nextButton        = document.getElementById('nextPracticeBtn');
+            const finishPracticeBtn = document.getElementById('finishPracticeBtn');
+            const feedbackMessage   = document.getElementById('feedbackMessage');
+            const optionBtns        = Array.from(document.querySelectorAll('.rhythm-rec-btn'));
+            if (!optionBtns.length) return;
+
+            const timeSig = (playButton && playButton.dataset.timeSig) || '4/4';
+            let answered = false;
+
+            const drawOption = (btn, color) => {
+                try {
+                    const noteArr = JSON.parse(btn.dataset.notes || '[]');
+                    const container = btn.querySelector('.staff-container');
+                    if (container) drawRhythmStaff(container, noteArr, timeSig, color || null);
+                } catch (e) {}
+            };
+            // Small delay so containers have their final width before VexFlow measures them.
+            setTimeout(() => optionBtns.forEach(b => drawOption(b)), 120);
+
+            optionBtns.forEach(btn => {
+                btn.onclick = async function() {
+                    if (answered) return;
+                    const answer = this.dataset.answer;
+                    optionBtns.forEach(b => b.disabled = true);
+                    try {
+                        const data = await @this.call('answerPractice', 'rhythm', answer, target);
+                        answered = true;
+
+                        if (playButton) playButton.classList.add('hidden');
+                        if (playStatus) playStatus.classList.add('hidden');
+                        if (nextButton) nextButton.classList.remove('hidden');
+                        if (finishPracticeBtn) finishPracticeBtn.classList.remove('hidden');
+
+                        if (data.is_correct) {
+                            this.classList.remove('border-gray-200');
+                            this.classList.add('border-green-400', 'bg-green-50');
+                            drawOption(this, '#16a34a');
+                            feedbackMessage.textContent = '✓ Correct! Well done!';
+                            feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+                            feedbackMessage.classList.add('bg-green-100', 'text-green-700');
+                            const xpEl = document.getElementById('xpEarned');
+                            if (xpEl) xpEl.textContent = (parseInt(xpEl.textContent) || 0) + 10;
+                            const sc = document.getElementById('scoreCorrect');
+                            if (sc) sc.textContent = (parseInt(sc.textContent) || 0) + 1;
+                        } else {
+                            this.classList.remove('border-gray-200');
+                            this.classList.add('border-red-400', 'bg-red-50');
+                            drawOption(this, '#dc2626');
+                            optionBtns.forEach(b => {
+                                if (b.dataset.answer === target) {
+                                    b.classList.remove('border-gray-200');
+                                    b.classList.add('border-green-400', 'bg-green-50');
+                                    drawOption(b, '#16a34a');
+                                }
+                            });
+                            feedbackMessage.textContent = '✗ Incorrect — the correct pattern is highlighted in green.';
+                            feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+                            feedbackMessage.classList.add('bg-red-100', 'text-red-700');
+                        }
+                        const st = document.getElementById('scoreTotal');
+                        if (st) st.textContent = (parseInt(st.textContent) || 0) + 1;
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    } catch (e) {
+                        console.error('Error checking rhythm recognition:', e);
+                        optionBtns.forEach(b => b.disabled = false);
+                        answered = false;
+                    }
+                };
+            });
+        }
+
+        // ── Rhythmic Reading: tap the printed rhythm in time with the metronome ──
+        // Ported from the Exercise Setup rhythm reading mode. Playback is metronome
+        // clicks only (the student reads the staff, so the rhythm itself is never
+        // played). Tap timing is evaluated locally (±20% of a quarter note) and the
+        // result is recorded through the shared answerPractice() Livewire action.
+        function setupRhythmReading(target) {
+            if (window._rhythmReadingKeyCleanup) { window._rhythmReadingKeyCleanup(); window._rhythmReadingKeyCleanup = null; }
+
+            const playButton        = document.getElementById('playButton');
+            const playStatus        = document.getElementById('playStatus');
+            const nextButton        = document.getElementById('nextPracticeBtn');
+            const finishPracticeBtn = document.getElementById('finishPracticeBtn');
+            const feedbackMessage   = document.getElementById('feedbackMessage');
+            const tapButton         = document.getElementById('rhythmTapButton');
+            const staffBox          = document.getElementById('rhythmReadingStaff');
+            if (!playButton || !tapButton) return;
+
+            const notes   = (playButton.dataset.note || '').split(',').filter(Boolean);
+            const tempo   = parseInt(playButton.dataset.tempo) || 80;
+            const timeSig = playButton.dataset.timeSig || '4/4';
+            const num     = parseInt(timeSig.split('/')[0]) || 4;
+            const den     = parseInt(timeSig.split('/')[1]) || 4;
+            const beatMs  = 60000 / tempo;                          // quarter-note length
+            // Metronome tick mirrors playRhythmAudio: dotted-quarter for x/8, half for x/2.
+            const tickMs  = den === 8 ? beatMs * 1.5 : den === 2 ? beatMs * 2 : beatMs;
+            const ticksPerBar = den === 8 ? Math.max(1, Math.round(num / 3)) : num;
+            const tokenMs = v => ((RHYTHM_TWELFTHS[v] ?? 12) / 12) * beatMs;
+
+            let answered = false, playStarted = false, rhythmStartTime = null, userTaps = [], endTimeout = null;
+
+            const setTapActive = (active) => {
+                tapButton.disabled = !active;
+                tapButton.style.opacity = active ? '1' : '0.35';
+                tapButton.style.cursor  = active ? 'pointer' : 'not-allowed';
+            };
+            setTapActive(false);
+
+            // The rhythm is visible from the start — that is the point of reading mode.
+            setTimeout(() => { if (staffBox) drawRhythmStaff(staffBox, notes, timeSig); }, 120);
+            if (playStatus) playStatus.textContent = 'Press Play — the metronome will count you in';
+
+            playButton.onclick = async function() {
+                if (playButton.disabled || answered) return;
+                userTaps = [];
+                rhythmStartTime = null;
+                if (endTimeout) clearTimeout(endTimeout);
+                playStarted = true;
+                setTapActive(true);
+
+                playButton.disabled = true;
+                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Get Ready...';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                await Tone.start();
+                await window.HarmonivaAudio.prepare();
+
+                // Count-in bar + metronome ticks for the rhythm duration, scheduled at
+                // absolute audio-clock times (same approach as playRhythmAudio, no notes).
+                const leadMs = 120;
+                const wallNowRef = Date.now();
+                const t0 = window.HarmonivaAudio.now() + leadMs / 1000;
+                const click = (ms, accent) => _metroClick(accent, t0 + ms / 1000);
+
+                let totalRhythmMs = 0;
+                notes.forEach(v => { totalRhythmMs += tokenMs(v); });
+
+                for (let b = 0; b < ticksPerBar; b++) click(b * tickMs, b === 0);
+                const startMs = ticksPerBar * tickMs;
+                const ticksDuring = Math.ceil(totalRhythmMs / tickMs);
+                for (let b = 0; b < ticksDuring; b++) click(startMs + b * tickMs, (b % ticksPerBar) === 0);
+
+                const startOffset = leadMs + startMs;
+                // Derive the rhythm's true start instant from the same wall-clock
+                // reference the audio clicks are scheduled against, rather than
+                // stamping Date.now() inside the setTimeout below — that callback
+                // can fire tens of ms late (event-loop/GC/background-tab jitter),
+                // which was skewing every tap comparison by that same late amount
+                // even when the user tapped in perfect sync with the metronome.
+                rhythmStartTime = wallNowRef + startOffset;
+                setTimeout(() => {
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
+                    if (playStatus) playStatus.textContent = 'Tap or press Tab/Space along with the rhythm!';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }, startOffset);
+
+                endTimeout = setTimeout(() => {
+                    setTapActive(false);
+                    evaluate();
+                }, startOffset + totalRhythmMs + 600);
+            };
+
+            function recordTap() {
+                if (answered || !playStarted) return;
+                if (rhythmStartTime !== null) userTaps.push(Date.now() - rhythmStartTime);
+                tapButton.style.transform = 'scale(0.93)';
+                setTimeout(() => { tapButton.style.transform = ''; }, 90);
+            }
+            tapButton.addEventListener('click', recordTap);
+            tapButton.addEventListener('touchstart', e => { e.preventDefault(); recordTap(); }, { passive: false });
+
+            // Tab starts the rhythm (first press) or taps; Space taps while playing.
+            const keyHandler = e => {
+                if (answered) return;
+                if (e.code === 'Tab') {
+                    e.preventDefault();
+                    if (!playStarted && !playButton.disabled) playButton.click();
+                    else if (playStarted) recordTap();
+                } else if (e.code === 'Space' && rhythmStartTime !== null) {
+                    e.preventDefault();
+                    recordTap();
+                }
+            };
+            document.addEventListener('keydown', keyHandler);
+            window._rhythmReadingKeyCleanup = () => document.removeEventListener('keydown', keyHandler);
+
+            async function evaluate() {
+                if (answered) return;
+                // ±35% of a quarter note. The timing-reference fix above removes the
+                // setTimeout-jitter bug, but real taps still carry latency the code
+                // can't measure or cancel out: audio output/speaker latency (worse on
+                // Bluetooth), tap/touch input dispatch latency, and ordinary human
+                // sensorimotor variance. Those add up to more than the original ±20%
+                // (Exercise Setup) or ±25% window, so correct-feeling taps were still
+                // getting rejected — widened further to actually absorb it.
+                const tolerance = beatMs * 0.35;
+
+                // Expected tap time per note token (rests are read but not tapped).
+                let posMs = 0;
+                const expected = [];
+                notes.forEach((v, idx) => {
+                    if (!v.includes('_rest')) expected.push({ idx, time: posMs });
+                    posMs += tokenMs(v);
+                });
+
+                const results = new Array(notes.length).fill('neutral');
+                const usedTaps = new Set();
+                expected.forEach(exp => {
+                    let best = -1, bestDiff = Infinity;
+                    userTaps.forEach((t, ti) => {
+                        if (usedTaps.has(ti)) return;
+                        const d = Math.abs(t - exp.time);
+                        if (d < bestDiff) { bestDiff = d; best = ti; }
+                    });
+                    if (best >= 0 && bestDiff <= tolerance) { results[exp.idx] = 'correct'; usedTaps.add(best); }
+                    else { results[exp.idx] = 'wrong'; }
+                });
+
+                const allOK = expected.length > 0 && results.every(r => r !== 'wrong');
+                const colors = results.map(r => r === 'correct' ? '#16a34a' : (r === 'wrong' ? '#dc2626' : null));
+                if (staffBox) {
+                    drawRhythmStaff(staffBox, notes, timeSig, colors);
+                    staffBox.classList.remove('border-gray-200', 'bg-white');
+                    staffBox.classList.add(allOK ? 'border-green-400' : 'border-red-400', allOK ? 'bg-green-50' : 'bg-red-50');
+                }
+
+                answered = true;
+                playButton.disabled = false;
+                try {
+                    // Correctness was decided by the tap evaluation; report it through
+                    // the shared scorer (answer === target ⇔ correct).
+                    await @this.call('answerPractice', 'rhythm', allOK ? target : 'missed-taps', target);
+                } catch (e) {
+                    console.error('Error recording rhythm reading answer:', e);
+                }
+
+                if (feedbackMessage) {
+                    feedbackMessage.textContent = allOK
+                        ? '✓ Perfect timing! All beats correct.'
+                        : '✗ Not quite — green notes were tapped correctly, red ones were missed or mistimed.';
+                    feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+                    feedbackMessage.classList.add(allOK ? 'bg-green-100' : 'bg-red-100', allOK ? 'text-green-700' : 'text-red-700');
+                }
+
+                const st = document.getElementById('scoreTotal');
+                if (st) st.textContent = (parseInt(st.textContent) || 0) + 1;
+                if (allOK) {
+                    const xpEl = document.getElementById('xpEarned');
+                    if (xpEl) xpEl.textContent = (parseInt(xpEl.textContent) || 0) + 10;
+                    const sc = document.getElementById('scoreCorrect');
+                    if (sc) sc.textContent = (parseInt(sc.textContent) || 0) + 1;
+                }
+
+                if (playButton) playButton.classList.add('hidden');
+                if (playStatus) playStatus.classList.add('hidden');
+                if (nextButton) nextButton.classList.remove('hidden');
+                if (finishPracticeBtn) finishPracticeBtn.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
         // Define global init function for mixed practice
         window.initPracticeMixed = function() {
 
@@ -1273,6 +1664,9 @@
                     svg.setAttribute('height', String(containerH));
                 } catch(e) {}
             });
+
+            // Site-wide staff spacing standard (defined in partials/responsive-notation).
+            const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
 
             // ---- Get DOM elements ----
             const playButton = document.getElementById('playButton');
@@ -1321,6 +1715,7 @@
             // Clear any stale interval reveal handler from a previous question.
             window._revealHarmonicMixed = null;
             window._revealConstructionPlay = null;
+            window._markSingleNoteRefShown = null;
 
             // ---- Initialize VexFlow ----
             if (typeof Vex !== 'undefined') {
@@ -1343,6 +1738,7 @@
                         const context = renderer.getContext();
                         const stave = new Stave(10, 30, 442);
                         stave.addClef(noteClef);
+                        stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                         stave.setContext(context).draw();
 
                         if (notesFromParams) {
@@ -1351,7 +1747,7 @@
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables(notes);
                             Accidental.applyAccidentals([voice], 'C');
-                            new Formatter().joinVoices([voice]).format([voice], 280);
+                            new Formatter().joinVoices([voice]).format([voice], HS.span(notesParsed.length));
                             voice.draw(context, stave);
                             centerVexOutput(div);
                         }
@@ -1372,7 +1768,7 @@
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, 780);
                             st.addClef(noteClef);
-                            st.setNoteStartX(st.getNoteStartX() + 40);
+                            st.setNoteStartX(st.getNoteStartX() + HS.startPad);
                             st.setContext(ctx).draw();
 
                             let voice;
@@ -1390,7 +1786,7 @@
                                 ]);
                             }
                             Accidental.applyAccidentals([voice], 'C');
-                            new Formatter().joinVoices([voice]).format([voice], 300);
+                            new Formatter().joinVoices([voice]).format([voice], HS.span(showBoth && !isHarmonic ? 2 : 1));
                             voice.draw(ctx, st);
                             centerVexOutput(div);
                         };
@@ -1419,13 +1815,13 @@
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, 780);
                             st.addClef(noteClef);
-                            st.setNoteStartX(st.getNoteStartX() + 40);
+                            st.setNoteStartX(st.getNoteStartX() + HS.startPad);
                             st.setContext(ctx).draw();
                             const keys = (showAll && allKeys.length) ? allKeys : [rootKey];
                             const voice = new Voice({ numBeats: 4, beatValue: 4 });
                             voice.addTickables([new StaveNote({ keys, duration: "w", auto_stem: true, clef: noteClef })]);
                             Accidental.applyAccidentals([voice], 'C');
-                            new Formatter().joinVoices([voice]).format([voice], 300);
+                            new Formatter().joinVoices([voice]).format([voice], HS.span(1));
                             voice.draw(ctx, st);
                             centerVexOutput(div);
                         };
@@ -1441,13 +1837,13 @@
                             // Size the staff to the full scale so every note stays on screen.
                             const noteCount = (showAll && allKeys.length) ? allKeys.length : 1;
                             const clefWidth = 60;
-                            const staveWidth = Math.max(360, clefWidth + 40 + noteCount * 46);
+                            const staveWidth = Math.max(360, clefWidth + HS.startPad + HS.span(noteCount) + 30);
                             const r = new Renderer(div, Renderer.Backends.SVG);
                             r.resize(staveWidth + 20, 160);
                             const ctx = r.getContext();
                             const st = new Stave(10, 30, staveWidth);
                             st.addClef(noteClef);
-                            st.setNoteStartX(st.getNoteStartX() + 20);
+                            st.setNoteStartX(st.getNoteStartX() + HS.startPad);
                             st.setContext(ctx).draw();
                             let voice;
                             if (showAll && allKeys.length) {
@@ -1459,20 +1855,70 @@
                                 voice.addTickables([new StaveNote({ keys: [rootKey], duration: "w", auto_stem: true, clef: noteClef })]);
                             }
                             Accidental.applyAccidentals([voice], 'C');
-                            const formatWidth = Math.max(120, staveWidth - clefWidth - 50);
-                            new Formatter().joinVoices([voice]).format([voice], formatWidth);
+                            new Formatter().joinVoices([voice]).format([voice], HS.span(noteCount));
                             voice.draw(ctx, st);
                             centerVexOutput(div);
                         };
                         drawScale(false);
                         window._revealHarmonicMixed = drawScale;
+                    } else if (noteType === 'single_note') {
+                        // Single note: keep the staff empty until the user answers.
+                        // The note must be identified by ear (compared against the
+                        // reference / previous note), so printing it up front would
+                        // give the answer away. Revealed via _revealHarmonicMixed.
+                        // On the first single-note question the fixed reference note
+                        // (data-reference-note on the play button) is drawn in indigo
+                        // as soon as it has been played.
+                        const singleKey = (notesFromParams || '').split(',')[0] || 'c/4';
+                        const playBtnEl = document.getElementById('playButton');
+                        const refDataNote = (playBtnEl && playBtnEl.dataset.referenceNote) || '';
+                        const refKey = refDataNote
+                            ? refDataNote.slice(0, -1).toLowerCase() + '/' + refDataNote.slice(-1)
+                            : '';
+                        let refShown = false;
+                        const drawSingle = (showNote) => {
+                            div.innerHTML = '';
+                            const r = new Renderer(div, Renderer.Backends.SVG);
+                            r.resize(546, 160);
+                            const ctx = r.getContext();
+                            const st = new Stave(10, 30, 780);
+                            st.addClef(noteClef);
+                            st.setNoteStartX(st.getNoteStartX() + HS.startPad);
+                            st.setContext(ctx).draw();
+                            const showRef = refShown && refKey;
+                            const noteCount = (showRef ? 1 : 0) + (showNote ? 1 : 0);
+                            if (noteCount > 0) {
+                                const duration = noteCount > 1 ? "h" : "w";
+                                const items = [];
+                                if (showRef) {
+                                    const rn = new StaveNote({ keys: [refKey], duration: duration, auto_stem: true, clef: noteClef });
+                                    rn.setStyle({ fillStyle: '#6366f1', strokeStyle: '#6366f1' });
+                                    items.push(rn);
+                                }
+                                if (showNote) {
+                                    items.push(new StaveNote({ keys: [singleKey], duration: duration, auto_stem: true, clef: noteClef }));
+                                }
+                                const voice = noteCount > 1
+                                    ? new Voice({ numBeats: 2, beatValue: 2 })
+                                    : new Voice({ numBeats: 4, beatValue: 4 });
+                                voice.addTickables(items);
+                                Accidental.applyAccidentals([voice], 'C');
+                                new Formatter().joinVoices([voice]).format([voice], HS.span(noteCount));
+                                voice.draw(ctx, st);
+                            }
+                            centerVexOutput(div);
+                        };
+                        drawSingle(false);
+                        window._revealHarmonicMixed = drawSingle;
+                        // Called by the play handler after the reference note sounds.
+                        window._markSingleNoteRefShown = () => { refShown = true; drawSingle(false); };
                     } else {
-                        // Single Note, Interval Direction, Melodic Interval, Construction
+                        // Interval Direction
                         renderer.resize(546, 160);
                         const context = renderer.getContext();
                         const stave = new Stave(10, 30, 780);
                         stave.addClef(noteClef);
-                        stave.setNoteStartX(stave.getNoteStartX() + 40);
+                        stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                         stave.setContext(context).draw();
 
                         if (notesFromParams) {
@@ -1483,7 +1929,7 @@
                             const voice = new Voice({ numBeats: numBeats, beatValue: notesParsed.length > 1 ? 2 : 4 });
                             voice.addTickables(staveNotes);
                             Accidental.applyAccidentals([voice], 'C');
-                            new Formatter().joinVoices([voice]).format([voice], 300);
+                            new Formatter().joinVoices([voice]).format([voice], HS.span(notesParsed.length));
                             voice.draw(context, stave);
                             centerVexOutput(div);
                         }
@@ -1552,8 +1998,8 @@
                         }
                     } else if (playMode === 'scale') {
                         const notes = this.dataset.note.split(',').filter(n => n.length > 0);
-                        window.HarmonivaAudio.playSequential(notes, 250, 0.8);
-                        const totalMs = (window.HarmonivaAudio.totalMs ? window.HarmonivaAudio.totalMs(notes, 250) : notes.length * 250) + 500;
+                        window.HarmonivaAudio.playSequential(notes, 600, 0.8);
+                        const totalMs = (window.HarmonivaAudio.totalMs ? window.HarmonivaAudio.totalMs(notes, 600) : notes.length * 600) + 500;
                         setTimeout(() => resetPlayBtn('Play Again'), totalMs);
                     } else if (playMode === 'rhythm') {
                         const rhythmNotes = this.dataset.note.split(',').filter(n => n.length > 0);
@@ -1566,6 +2012,24 @@
                         window.HarmonivaAudio.playSequential(notes, noteMs, 0.9);
                         const totalMs = notes.length * noteMs + 600;
                         setTimeout(() => resetPlayBtn('Play Again'), totalMs);
+                    } else if (practiceType === 'single_note' && this.dataset.referenceNote) {
+                        // First single-note question: sound the fixed reference note
+                        // (Do), show it on the staff, then play the question note
+                        // right after. Later single-note questions have no
+                        // data-reference-note and take the plain branch below.
+                        const refNote = this.dataset.referenceNote;
+                        const questionNote = this.dataset.note;
+                        playStatus.textContent = 'Playing reference note (Do)...';
+                        // Wait for the sampler so the ref/question gap stays accurate
+                        // even on the first click (sample loading can take seconds).
+                        await window.HarmonivaAudio.prepare();
+                        window.HarmonivaAudio.playNote(refNote, 1.5);
+                        if (typeof window._markSingleNoteRefShown === 'function') window._markSingleNoteRefShown();
+                        setTimeout(() => {
+                            playStatus.textContent = 'Playing...';
+                            window.HarmonivaAudio.playNote(questionNote, 1.5);
+                        }, 1800);
+                        setTimeout(() => resetPlayBtn('Play Again'), 3800);
                     } else {
                         const notesParsed = this.dataset.note.split(',');
                         if (notesParsed.length === 1) {
@@ -1609,8 +2073,9 @@
 
                             // Reveal hidden staff notes after answering (harmonic, melodic,
                             // and construction intervals reveal the second note; chord
-                            // reveals the full stacked chord; scale reveals the full sequence).
-                            if ((practiceType === 'harmonic_interval' || practiceType === 'melodic_interval' || practiceType === 'interval_construction' || practiceType === 'chord' || practiceType === 'scale')
+                            // reveals the full stacked chord; scale reveals the full
+                            // sequence; single note reveals the heard note).
+                            if ((practiceType === 'harmonic_interval' || practiceType === 'melodic_interval' || practiceType === 'interval_construction' || practiceType === 'chord' || practiceType === 'scale' || practiceType === 'single_note')
                                 && typeof window._revealHarmonicMixed === 'function') {
                                 window._revealHarmonicMixed(true);
                             }
@@ -1638,8 +2103,10 @@
                                 this.innerHTML = `<span class="text-2xl font-bold">${label}</span><span class="text-sm text-gray-500">${desc}</span>`;
                             } else if (practiceType === 'rhythm' || practiceType === 'melodic_dictation') {
                                 this.textContent = answer.replace(/,/g, ' → ');
-                            } else if (practiceType === 'single_note' || practiceType === 'interval_construction') {
+                            } else if (practiceType === 'single_note') {
                                 this.textContent = noteToSymbol(answer);
+                            } else if (practiceType === 'interval_construction') {
+                                this.textContent = answer.replace('##', 'x');
                             } else {
                                 this.textContent = answer.charAt(0).toUpperCase() + answer.slice(1);
                             }
@@ -1675,9 +2142,11 @@
                                     ? target.toUpperCase()
                                     : (practiceType === 'rhythm' || practiceType === 'melodic_dictation')
                                         ? target.replace(/,/g, ' → ')
-                                        : (practiceType === 'single_note' || practiceType === 'interval_construction')
+                                        : practiceType === 'single_note'
                                             ? noteToSymbol(target)
-                                            : target.charAt(0).toUpperCase() + target.slice(1);
+                                            : practiceType === 'interval_construction'
+                                                ? target.replace('##', 'x')
+                                                : target.charAt(0).toUpperCase() + target.slice(1);
                                 feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${correctDisplay}.`;
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
@@ -1716,9 +2185,14 @@
                         }
                     };
                 });
-                // Rhythm Dictation uses a build-it-yourself UI instead of .answer-btn options.
+                // Rhythm modes use dedicated UIs instead of .answer-btn options:
+                // 'rhythm' = dictation builder, plus the two Exercise Setup modes.
                 if (practiceType === 'rhythm') {
                     setupRhythmBuilder(target);
+                } else if (practiceType === 'rhythm-recognition') {
+                    setupRhythmRecognition(target);
+                } else if (practiceType === 'rhythm-reading') {
+                    setupRhythmReading(target);
                 }
             }
         };

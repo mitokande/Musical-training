@@ -14,6 +14,9 @@ use App\Models\Practice;
 use App\Models\RhythmPractice;
 use App\Models\ScalePractice;
 use App\Models\SingleNotePractice;
+use App\Models\TeacherProfile;
+use App\Models\TeacherReview;
+use App\Models\TeacherStudentRelationship;
 use App\Models\User;
 use App\Models\UserLearningPathProgress;
 use App\Models\UserPractice;
@@ -40,7 +43,7 @@ class PageController extends Controller
 
     public function publicProfile(string $username)
     {
-        $profileUser = User::with('profile')->where('username', $username)->firstOrFail();
+        $profileUser = User::with('profile', 'teacherProfile')->where('username', $username)->firstOrFail();
 
         $userPractices = UserPractice::where('user_id', $profileUser->id)->get();
         $totalSessions = $userPractices->count();
@@ -50,12 +53,37 @@ class PageController extends Controller
             ? round(($totalCorrect / $totalQuestions) * 100, 1)
             : 0;
 
+        // Teacher-specific stats: only computed (and shown) for teacher accounts.
+        $isTeacher = $profileUser->hasTeacherAccount();
+        $studentCount = 0;
+        $avgRating = 0;
+        $ratingCount = 0;
+        $teacherSlug = null;
+
+        if ($isTeacher) {
+            $studentCount = TeacherStudentRelationship::active()
+                ->where('teacher_id', $profileUser->id)
+                ->count();
+
+            if ($tp = $profileUser->teacherProfile) {
+                $teacherSlug = $tp->status === TeacherProfile::STATUS_APPROVED ? $tp->slug : null;
+                $reviews = TeacherReview::approved()->where('teacher_profile_id', $tp->id);
+                $ratingCount = (clone $reviews)->count();
+                $avgRating = $ratingCount > 0 ? round((clone $reviews)->avg('rating'), 1) : 0;
+            }
+        }
+
         return view('public-profile', [
             'profileUser' => $profileUser,
             'followersCount' => $profileUser->followersCount(),
             'followingCount' => $profileUser->followingCount(),
             'totalSessions' => $totalSessions,
             'overallAccuracy' => $overallAccuracy,
+            'isTeacher' => $isTeacher,
+            'studentCount' => $studentCount,
+            'avgRating' => $avgRating,
+            'ratingCount' => $ratingCount,
+            'teacherSlug' => $teacherSlug,
         ]);
     }
 
@@ -115,6 +143,43 @@ class PageController extends Controller
         // answer check — checkAnswer() evaluates that session before LP/DB lookup.
         if (! session()->has('exercise_settings')) {
             session()->forget('exercise_practice_session');
+        }
+
+        // Teacher assignment session — highest priority. The student plays the
+        // assignment's immutable question snapshot; the session is cleared by
+        // PracticeController::checkTeacherAssignmentAnswer() after the last
+        // question. Navigating to a different practice type abandons the run.
+        if ($ta = session('teacher_assignment_session')) {
+            if (($ta['practice_type'] ?? null) === $slug) {
+                $generator = app(LearningPathQuestionGenerator::class);
+                $practices = $generator->reconstructFromSession($ta['questions'], $slug);
+
+                return view('practice', [
+                    'practices' => $practices,
+                    'slug' => $slug,
+                    'backUrl' => $backUrl,
+                ]);
+            }
+
+            session()->forget('teacher_assignment_session');
+        }
+
+        // Teacher assignment PREVIEW session — the teacher solving their own
+        // assignment as a student. Same snapshot playback; answers are graded
+        // but never recorded (see PracticeController::checkTeacherAssignmentPreview).
+        if ($tp = session('teacher_assignment_preview_session')) {
+            if (($tp['practice_type'] ?? null) === $slug) {
+                $generator = app(LearningPathQuestionGenerator::class);
+                $practices = $generator->reconstructFromSession($tp['questions'], $slug);
+
+                return view('practice', [
+                    'practices' => $practices,
+                    'slug' => $slug,
+                    'backUrl' => $backUrl,
+                ]);
+            }
+
+            session()->forget('teacher_assignment_preview_session');
         }
 
         // LP session guard: if a learning path session is active for this practice type, use its questions.
@@ -330,12 +395,18 @@ class PageController extends Controller
                 // The correct answer is the interval name. note2 is display-only.
                 // We recalculate note2 and note2_octave from the interval so the
                 // staff and audio always match the stated interval name exactly.
+                // Direction comes from the local generator (Exercise Setup rules:
+                // ascending/descending/mixed); questions without one — legacy
+                // sessions, OpenAI output — stay ascending as before.
                 'melodic-interval' => tap(new MelodicIntervalPractice, function ($p) use ($question, $tempId, $music) {
                     $note1 = $music->normalizeNote($question['note1'] ?? 'C');
                     $octave1 = (int) ($question['octave'] ?? 4);
                     $interval = $music->normalizeIntervalName($question['interval'] ?? 'Major 3rd');
+                    $direction = ($question['direction'] ?? 'ascending') === 'descending' ? 'descending' : 'ascending';
 
-                    $result = $music->preferredNoteAboveByInterval($note1, $octave1, $interval);
+                    $result = $direction === 'descending'
+                        ? $music->preferredNoteBelowByInterval($note1, $octave1, $interval)
+                        : $music->preferredNoteAboveByInterval($note1, $octave1, $interval);
                     $note2 = $result['note'] ?? $music->normalizeNote($question['note2'] ?? 'E');
                     $octave2 = $result['octave'] ?? $octave1;
 
@@ -345,6 +416,7 @@ class PageController extends Controller
                     $p->note2 = $note2;
                     $p->octave = (string) $octave1;
                     $p->note2_octave = $octave2;
+                    $p->direction = $direction;
                     $p->options = $question['options'] ?? null;
                 }),
 
@@ -370,15 +442,27 @@ class PageController extends Controller
 
                 // ── Interval Construction ────────────────────────────────────
                 // note2 IS the correct answer; must be exactly right.
-                // Always recalculate from the interval name.
                 'interval-construction' => tap(new IntervalConstructionPractice, function ($p) use ($question, $tempId, $music) {
                     $note1 = $music->normalizeNote($question['note1'] ?? 'C');
                     $octave1 = (int) ($question['octave'] ?? 4);
                     $interval = $music->normalizeIntervalName($question['interval'] ?? 'Major 3rd');
+                    $direction = ($question['direction'] ?? 'ascending') === 'descending' ? 'descending' : 'ascending';
 
-                    $result = $music->preferredNoteAboveByInterval($note1, $octave1, $interval);
-                    $note2 = $result['note'] ?? $music->normalizeNote($question['note2'] ?? 'E');
-                    $octave2 = $result['octave'] ?? $octave1;
+                    // Locally generated questions (Exercise Setup rules) carry a
+                    // diatonically spelled note2 + octave that the answer options
+                    // were built around — keep them verbatim. Recalculate from the
+                    // interval name only when they are missing (legacy sessions,
+                    // OpenAI output), as before.
+                    if (! empty($question['note2']) && isset($question['note2_octave'])) {
+                        $note2 = $question['note2'];
+                        $octave2 = (int) $question['note2_octave'];
+                    } else {
+                        $result = $direction === 'descending'
+                            ? $music->preferredNoteBelowByInterval($note1, $octave1, $interval)
+                            : $music->preferredNoteAboveByInterval($note1, $octave1, $interval);
+                        $note2 = $result['note'] ?? $music->normalizeNote($question['note2'] ?? 'E');
+                        $octave2 = $result['octave'] ?? $octave1;
+                    }
 
                     $p->id = $tempId;
                     $p->interval = $interval;
@@ -386,6 +470,7 @@ class PageController extends Controller
                     $p->note2 = $note2;
                     $p->octave = (string) $octave1;
                     $p->note2_octave = $octave2;
+                    $p->direction = $direction;
                     $p->options = $question['options'] ?? null;
                 }),
 
@@ -448,6 +533,9 @@ class PageController extends Controller
                     $p->tempo = $question['tempo'] ?? 80;
                     $p->bars = $question['bars'] ?? 1;
                     $p->allowed_values = $question['allowed_values'] ?? [];
+                    // Answer UI variant: 'build' (dictation builder), 'recognition'
+                    // (pick the heard pattern) or 'reading' (tap the printed rhythm).
+                    $p->rhythm_mode = $question['rhythm_mode'] ?? 'build';
                 }),
 
                 // ── Melodic Dictation ─────────────────────────────────────────

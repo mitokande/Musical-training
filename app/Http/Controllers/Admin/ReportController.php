@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ExerciseReportExport;
+use App\Exports\RevenueReportExport;
+use App\Exports\SubscriptionsExport;
+use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Models\AiCoachingSession;
 use App\Models\Article;
@@ -10,7 +14,6 @@ use App\Models\Invoice;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserPractice;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -89,9 +92,9 @@ class ReportController extends Controller
             ->get();
 
         $averageScores = UserPractice::select(
-                'practice_id',
-                DB::raw('AVG(correct_answers / NULLIF(total_questions, 0) * 100) as avg_score')
-            )
+            'practice_id',
+            DB::raw('AVG(correct_answers / NULLIF(total_questions, 0) * 100) as avg_score')
+        )
             ->groupBy('practice_id')
             ->with('practice:id,name')
             ->get();
@@ -110,10 +113,10 @@ class ReportController extends Controller
         $sessionCount = AiCoachingSession::count();
 
         $tokenUsageTrend = AiCoachingSession::select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('SUM(tokens_used) as tokens'),
-                DB::raw('count(*) as sessions')
-            )
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('SUM(tokens_used) as tokens'),
+            DB::raw('count(*) as sessions')
+        )
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
             ->orderBy('date')
@@ -142,11 +145,11 @@ class ReportController extends Controller
     public function export($type)
     {
         $exportClass = match ($type) {
-            'members'       => \App\Exports\UsersExport::class,
-            'revenue'       => \App\Exports\RevenueExport::class,
-            'subscriptions' => \App\Exports\SubscriptionsExport::class,
-            'exercises'     => \App\Exports\ExercisesExport::class,
-            default         => abort(404),
+            'members' => UsersExport::class,
+            'revenue' => RevenueReportExport::class,
+            'subscriptions' => SubscriptionsExport::class,
+            'exercises' => ExerciseReportExport::class,
+            default => abort(404),
         };
 
         return Excel::download(new $exportClass(request()), "{$type}-report.xlsx");

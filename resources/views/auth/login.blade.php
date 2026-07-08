@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-guest-layout max-width="max-w-[33.6rem]">
 
 <div class="form-card rounded-2xl p-8">
 

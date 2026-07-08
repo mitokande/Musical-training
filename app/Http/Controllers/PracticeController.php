@@ -15,11 +15,13 @@ use App\Models\Practice;
 use App\Models\RhythmPractice;
 use App\Models\ScalePractice;
 use App\Models\SingleNotePractice;
+use App\Models\TeacherAssignmentAttempt;
 use App\Models\UserIntervalStat;
 use App\Models\UserLearningPathProgress;
 use App\Models\UserPractice;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
+use App\Services\Teacher\TeacherAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -76,6 +78,26 @@ class PracticeController extends Controller
 
     public function checkAnswer(Request $request)
     {
+        // Teacher assignment session — highest priority: the student answers
+        // against the assignment's immutable question snapshot.
+        $ta = session('teacher_assignment_session');
+        if ($ta) {
+            $qid = (int) $request->input('question_id', 0);
+            if ($qid > 0 && isset($ta['questions'][$qid - 1])) {
+                return $this->checkTeacherAssignmentAnswer($request, $ta, $qid - 1);
+            }
+        }
+
+        // Teacher preview ("solve as a student") — grade against the snapshot
+        // but never record an attempt or any stat.
+        $tp = session('teacher_assignment_preview_session');
+        if ($tp) {
+            $qid = (int) $request->input('question_id', 0);
+            if ($qid > 0 && isset($tp['questions'][$qid - 1])) {
+                return $this->checkTeacherAssignmentPreview($request, $tp, $qid - 1);
+            }
+        }
+
         // Exercise-setup free practice (generated questions, no DB IDs) — check first
         // so a stale learning_path_session cannot override the current exercise.
         $ep = session('exercise_practice_session');
@@ -261,6 +283,103 @@ class PracticeController extends Controller
             'totalCount' => $progress->total_questions,
             'completed' => $isLast,
             'score' => $progress->score,
+        ]);
+    }
+
+    /**
+     * Answer check for teacher assignment sessions. Evaluation reads the
+     * immutable snapshot stored at send time via the same canonical
+     * getAnswerFromSessionQuestion() used by LP and Exercise Setup — the
+     * interval-direction rule and enharmonic handling are shared, not
+     * reimplemented.
+     */
+    protected function checkTeacherAssignmentAnswer(Request $request, array $ta, int $idx): JsonResponse
+    {
+        $request->validate(['answer' => 'required|string|max:1000']);
+
+        $questionData = $ta['questions'][$idx];
+        $practiceType = $ta['practice_type'];
+
+        $generator = app(LearningPathQuestionGenerator::class);
+        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
+        $answer = trim($request->answer);
+
+        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
+        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
+        $isCorrect = $normalizedAnswer === $normalizedCorrect;
+
+        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
+        }
+
+        $service = app(TeacherAssignmentService::class);
+        $completed = $service->recordAnswer((int) $ta['attempt_id'], $idx, $answer, $correct, $isCorrect);
+
+        if ($completed) {
+            session()->forget('teacher_assignment_session');
+        }
+
+        $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
+
+        $attempt = TeacherAssignmentAttempt::find($ta['attempt_id']);
+
+        return response()->json([
+            'is_correct' => $isCorrect,
+            'correctAnswer' => $correct,
+            'xp' => ($attempt?->correct_count ?? 0) * 10,
+            'correctCount' => $attempt?->correct_count ?? 0,
+            'totalCount' => $idx + 1,
+            'completed' => $completed,
+            'score' => $attempt?->score !== null ? (float) $attempt->score : null,
+        ]);
+    }
+
+    /**
+     * Answer check for a teacher previewing their own assignment. Grades with
+     * the same canonical answer resolution as the real student flow, but writes
+     * nothing — no attempt, no recipient, no user/interval stats. The preview
+     * session is cleared after the last question.
+     */
+    protected function checkTeacherAssignmentPreview(Request $request, array $tp, int $idx): JsonResponse
+    {
+        $request->validate(['answer' => 'required|string|max:1000']);
+
+        $questionData = $tp['questions'][$idx];
+        $practiceType = $tp['practice_type'];
+
+        $generator = app(LearningPathQuestionGenerator::class);
+        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
+        $answer = trim($request->answer);
+
+        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
+        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
+        $isCorrect = $normalizedAnswer === $normalizedCorrect;
+
+        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
+        }
+
+        $total = (int) ($tp['question_count'] ?? count($tp['questions']));
+        $isLast = ($idx + 1) >= $total;
+
+        // Track the running correct count across the preview run in the session.
+        $correctSoFar = (int) ($tp['correct_so_far'] ?? 0) + ($isCorrect ? 1 : 0);
+        $tp['correct_so_far'] = $correctSoFar;
+        session(['teacher_assignment_preview_session' => $tp]);
+
+        if ($isLast) {
+            session()->forget('teacher_assignment_preview_session');
+        }
+
+        return response()->json([
+            'is_correct' => $isCorrect,
+            'correctAnswer' => $correct,
+            'xp' => $correctSoFar * 10,
+            'correctCount' => $correctSoFar,
+            'totalCount' => $idx + 1,
+            'completed' => $isLast,
+            'score' => $total > 0 ? round($correctSoFar / $total * 100, 2) : null,
+            'preview' => true,
         ]);
     }
 

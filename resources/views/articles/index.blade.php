@@ -1,43 +1,19 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Blog Yazılarım - {{ config('app.name', 'Harmoniva') }}</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@0.460.0"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
-                    colors: {
-                        primary: { 50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7c3aed',800:'#6b21a8',900:'#581c87' },
-                        accent: { 400:'#fb923c',500:'#f97316',600:'#ea580c' }
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="font-sans bg-gray-50 min-h-screen">
+@extends('teacher.layouts.crm')
 
-@include('partials.navbar', ['active' => 'articles'])
+@section('title', __('app.articles.page_title'))
 
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+@section('content')
+
+<div class="max-w-5xl">
 
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Blog Yazılarım</h1>
-            <p class="text-sm text-gray-500 mt-1">Blog yazısı, video, ders notu ve nota paylaşımlarınız.</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('app.articles.heading') }}</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ __('app.articles.subtitle') }}</p>
         </div>
         <a href="{{ route('articles.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
             <i data-lucide="plus" class="w-4 h-4"></i>
-            Yeni Blog Yazısı
+            {{ __('app.articles.new_post') }}
         </a>
     </div>
 
@@ -64,17 +40,17 @@
                                         'rejected' => 'bg-red-100 text-red-700',
                                     ];
                                     $statusLabels = [
-                                        'draft' => 'Taslak',
-                                        'pending' => 'Onay Bekliyor',
-                                        'published' => 'Yayinda',
-                                        'rejected' => 'Reddedildi',
+                                        'draft' => __('app.articles.status_draft'),
+                                        'pending' => __('app.articles.status_pending'),
+                                        'published' => __('app.articles.status_published'),
+                                        'rejected' => __('app.articles.status_rejected'),
                                     ];
                                     $typeLabels = [
-                                        'article' => 'Makale',
-                                        'video' => 'Video',
-                                        'document' => 'Dokuman',
-                                        'audio' => 'Ses',
-                                        'sheet_music' => 'Nota',
+                                        'article' => __('app.articles.type_article'),
+                                        'video' => __('app.articles.type_video'),
+                                        'document' => __('app.articles.type_document'),
+                                        'audio' => __('app.articles.type_audio'),
+                                        'sheet_music' => __('app.articles.type_sheet_music'),
                                     ];
                                 @endphp
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$article->status] }}">
@@ -87,7 +63,7 @@
                             <p class="text-sm text-gray-500">{{ $article->created_at->format('d.m.Y H:i') }}</p>
                             @if($article->status === 'rejected' && $article->admin_note)
                                 <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p class="text-xs font-medium text-red-700 mb-1">Admin Notu:</p>
+                                    <p class="text-xs font-medium text-red-700 mb-1">{{ __('app.articles.admin_note_label') }}</p>
                                     <p class="text-sm text-red-600">{{ $article->admin_note }}</p>
                                 </div>
                             @endif
@@ -96,7 +72,7 @@
                             <a href="{{ route('articles.edit', $article) }}" class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition">
                                 <i data-lucide="pencil" class="w-4 h-4"></i>
                             </a>
-                            <form method="POST" action="{{ route('articles.destroy', $article) }}" onsubmit="return confirm('Bu icerigi silmek istediginize emin misiniz?')">
+                            <form method="POST" action="{{ route('articles.destroy', $article) }}" onsubmit="return confirm('{{ __('app.articles.delete_confirm') }}')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
@@ -112,16 +88,14 @@
     @else
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
             <i data-lucide="file-text" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Henuz icerik yok</h3>
-            <p class="text-sm text-gray-500 mb-6">Ilk iceriginizi olusturmaya baslayin.</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ __('app.articles.empty_title') }}</h3>
+            <p class="text-sm text-gray-500 mb-6">{{ __('app.articles.empty_desc') }}</p>
             <a href="{{ route('articles.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
                 <i data-lucide="plus" class="w-4 h-4"></i>
-                Yeni Icerik Olustur
+                {{ __('app.articles.create_content') }}
             </a>
         </div>
     @endif
 </div>
 
-<script>lucide.createIcons();</script>
-</body>
-</html>
+@endsection

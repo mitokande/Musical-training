@@ -12,15 +12,15 @@ class CrmNoteController extends Controller
     public function store(Request $request, User $user)
     {
         $validated = $request->validate([
-            'note'           => 'required|string',
-            'type'           => 'required|string|in:general,follow_up,complaint,feedback',
+            'note' => 'required|string',
+            'type' => 'required|string|in:general,follow_up,complaint,feedback',
             'follow_up_date' => 'nullable|date|after_or_equal:today',
         ]);
 
         $user->crmNotes()->create([
-            'admin_id'       => auth()->id(),
-            'note'           => $validated['note'],
-            'type'           => $validated['type'],
+            'admin_id' => auth()->id(),
+            'note' => $validated['note'],
+            'type' => $validated['type'],
             'follow_up_date' => $validated['follow_up_date'] ?? null,
         ]);
 
@@ -30,8 +30,8 @@ class CrmNoteController extends Controller
     public function update(Request $request, CrmNote $note)
     {
         $validated = $request->validate([
-            'note'           => 'required|string',
-            'type'           => 'required|string|in:general,follow_up,complaint,feedback',
+            'note' => 'required|string',
+            'type' => 'required|string|in:general,follow_up,complaint,feedback',
             'follow_up_date' => 'nullable|date',
         ]);
 
@@ -49,7 +49,7 @@ class CrmNoteController extends Controller
 
     public function togglePin(CrmNote $note)
     {
-        $note->update(['is_pinned' => !$note->is_pinned]);
+        $note->update(['is_pinned' => ! $note->is_pinned]);
 
         return back()->with('success', 'Note pin status toggled.');
     }

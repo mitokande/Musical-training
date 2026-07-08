@@ -186,6 +186,10 @@
                 </div>
             </div>
 
+            <a href="{{ route('admin.ai-usage.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.ai-usage.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="cpu" class="w-[18px] h-[18px]"></i> AI Usage
+            </a>
+
             {{-- CRM --}}
             <div>
                 <button @click="toggle('crm')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.tasks.*') || request()->routeIs('admin.appointments.*') ? 'active' : 'text-gray-700' }}">
@@ -203,12 +207,61 @@
                 <i data-lucide="calendar" class="w-[18px] h-[18px]"></i> Calendar
             </a>
 
+            {{-- Community Feed --}}
+            <a href="{{ route('admin.community.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.community.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="rss" class="w-[18px] h-[18px]"></i> Community Feed
+            </a>
+
+            {{-- Teacher Profiles --}}
+            <a href="{{ route('admin.teacher-profiles.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.teacher-profiles.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="graduation-cap" class="w-[18px] h-[18px]"></i> Teacher Profiles
+                @php $pendingTeacherProfiles = \App\Models\TeacherProfile::where('status', 'submitted_for_review')->count(); @endphp
+                @if($pendingTeacherProfiles > 0)
+                    <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{{ $pendingTeacherProfiles }}</span>
+                @endif
+            </a>
+
+            {{-- Teacher Reviews --}}
+            <a href="{{ route('admin.teacher-reviews.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.teacher-reviews.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="star" class="w-[18px] h-[18px]"></i> Teacher Reviews
+                @php $reportedReviews = \App\Models\TeacherReview::whereNotNull('reported_at')->count(); @endphp
+                @if($reportedReviews > 0)
+                    <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{{ $reportedReviews }}</span>
+                @endif
+            </a>
+
             {{-- Messages --}}
             <a href="{{ route('admin.messages.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.messages.*') ? 'active' : 'text-gray-700' }}">
                 <i data-lucide="message-square" class="w-[18px] h-[18px]"></i> Messages
                 @php $unreadCount = \App\Models\Message::unread()->count(); @endphp
                 @if($unreadCount > 0)
                     <span class="ml-auto px-1.5 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full">{{ $unreadCount }}</span>
+                @endif
+            </a>
+
+            {{-- Email Center --}}
+            <div>
+                <button @click="toggle('email-center')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.email-center.*') || request()->routeIs('admin.email-campaigns.*') || request()->routeIs('admin.email-templates.*') || request()->routeIs('admin.email-automations.*') ? 'active' : 'text-gray-700' }}">
+                    <span class="flex items-center gap-3"><i data-lucide="mail" class="w-[18px] h-[18px]"></i> Email Center</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="isOpen('email-center') ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="isOpen('email-center')" x-collapse class="ml-6 mt-1 space-y-0.5">
+                    <a href="{{ route('admin.email-center.dashboard') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-center.dashboard') ? 'active' : 'text-gray-600' }}">Dashboard</a>
+                    <a href="{{ route('admin.email-campaigns.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-campaigns.*') ? 'active' : 'text-gray-600' }}">Campaigns</a>
+                    <a href="{{ route('admin.email-templates.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-templates.*') ? 'active' : 'text-gray-600' }}">Templates</a>
+                    <a href="{{ route('admin.email-automations.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-automations.*') ? 'active' : 'text-gray-600' }}">Automations</a>
+                    <a href="{{ route('admin.email-center.suppressions') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-center.suppressions*') ? 'active' : 'text-gray-600' }}">Suppressions</a>
+                    <a href="{{ route('admin.email-center.logs') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-center.logs*') ? 'active' : 'text-gray-600' }}">Email Log</a>
+                    <a href="{{ route('admin.email-center.settings') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.email-center.settings*') ? 'active' : 'text-gray-600' }}">Settings</a>
+                </div>
+            </div>
+
+            {{-- Support Inbox --}}
+            <a href="{{ route('admin.support-inbox.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.support-inbox.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="inbox" class="w-[18px] h-[18px]"></i> Support Inbox
+                @php $openSupport = \App\Models\SupportConversation::where('status', 'open')->count(); @endphp
+                @if($openSupport > 0)
+                    <span class="ml-auto px-1.5 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-700 rounded-full">{{ $openSupport }}</span>
                 @endif
             </a>
 
@@ -227,6 +280,11 @@
                     <a href="{{ route('admin.reports.content') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.reports.content') ? 'active' : 'text-gray-600' }}">Content</a>
                 </div>
             </div>
+
+            {{-- System Health --}}
+            <a href="{{ route('admin.system-health.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.system-health.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="heart-pulse" class="w-[18px] h-[18px]"></i> System Health
+            </a>
 
             {{-- Settings --}}
             <div>
@@ -253,32 +311,10 @@
 
     {{-- Main content area --}}
     <div class="lg:ml-[270px] min-h-screen flex flex-col">
-        {{-- Top bar --}}
-        <header class="bg-white border-b border-gray-200 sticky top-16 z-30 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center gap-4">
-                <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
-                </button>
-                @hasSection('page-title')
-                    <h1 class="text-lg font-semibold text-gray-900">@yield('page-title')</h1>
-                @endif
-            </div>
-
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
-                        {{ substr(Auth::user()->name ?? 'A', 0, 1) }}
-                    </div>
-                    <span class="hidden sm:block text-sm font-medium text-gray-700">{{ Auth::user()->name ?? 'Admin' }}</span>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
-                    </button>
-                </form>
-            </div>
-        </header>
+        {{-- Mobile sidebar toggle (floating; the old top bar was removed) --}}
+        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden fixed top-[4.5rem] left-3 z-30 p-2 bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
 
         {{-- Page content --}}
         <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">

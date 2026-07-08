@@ -16,6 +16,7 @@ class IntervalComparisonPracticeController extends Controller
     {
         $practices = IntervalComparisonPractice::latest()->paginate(15);
         $settings = Practice::where('slug', 'interval-comparison-practice')->first();
+
         return view('admin.interval-comparison.index', compact('practices', 'settings'));
     }
 
@@ -99,7 +100,7 @@ class IntervalComparisonPracticeController extends Controller
         $validated['is_premium'] = $request->has('is_premium');
 
         $practice = Practice::where('slug', 'interval-comparison-practice')->first();
-        
+
         if ($practice) {
             $practice->update($validated);
         }

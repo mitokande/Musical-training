@@ -6,6 +6,7 @@ use App\Models\DailyExerciseCount;
 use App\Models\ExerciseSession;
 use App\Models\ExerciseSetupTemplate;
 use App\Models\UserPractice;
+use App\Services\AiUsageLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -177,12 +178,14 @@ class ExerciseSetupController extends Controller
 
         $user = $request->user();
         $context = $this->buildRecommendationContext($user);
+        $model = 'gpt-4.1-mini';
+        $start = microtime(true);
 
         try {
             $client = OpenAI::client($apiKey);
 
             $response = $client->chat()->create([
-                'model' => 'gpt-4.1-mini',
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -230,10 +233,13 @@ class ExerciseSetupController extends Controller
                 'temperature' => 0.6,
             ]);
 
+            AiUsageLogger::logSuccess('exercise_setup_recommend', $model, $response->usage, $user->id, [], (int) ((microtime(true) - $start) * 1000));
+
             $result = json_decode($response->choices[0]->message->content, true);
 
             return response()->json(['success' => true, 'recommendation' => $result]);
         } catch (\Exception $e) {
+            AiUsageLogger::logError('exercise_setup_recommend', $model, $e->getMessage(), $user->id, [], (int) ((microtime(true) - $start) * 1000));
             \Log::error('ExerciseSetup AI recommend error: '.$e->getMessage());
 
             return response()->json(['error' => 'AI önerisi alınamadı. Lütfen tekrar deneyin.'], 500);

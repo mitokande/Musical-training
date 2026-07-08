@@ -24,7 +24,9 @@ class PracticeIntervalComparison extends Component
 
     // Maps interval abbreviation → canonical same-octave C-root note pair,
     // using correct diatonic spelling (m2 above C is Db, not C#; m3 is Eb…)
-    private const POOL_TO_PAIR = [
+    // Public: AIController mirrors these Exercise Setup comparison rules when
+    // building the AI Assisted Exercises difficulty presets.
+    public const POOL_TO_PAIR = [
         'm2' => 'C,Db',
         'M2' => 'C,D',
         'm3' => 'C,Eb',
@@ -64,19 +66,9 @@ class PracticeIntervalComparison extends Component
 
             $intervalPairs = self::DEFAULT_PAIRS;
             if (! empty($settings['interval_pool'])) {
-                $selectedPairs = array_values(array_filter(
-                    array_map(fn ($a) => self::POOL_TO_PAIR[$a] ?? null, $settings['interval_pool'])
-                ));
-                if (count($selectedPairs) >= 2) {
-                    $builtPairs = [];
-                    for ($i = 0; $i < count($selectedPairs); $i++) {
-                        for ($j = $i + 1; $j < count($selectedPairs); $j++) {
-                            $builtPairs[] = [$selectedPairs[$i], $selectedPairs[$j]];
-                        }
-                    }
-                    if (! empty($builtPairs)) {
-                        $intervalPairs = $builtPairs;
-                    }
+                $builtPairs = self::buildPairsFromPool($settings['interval_pool']);
+                if (! empty($builtPairs)) {
+                    $intervalPairs = $builtPairs;
                 }
             }
 
@@ -105,6 +97,32 @@ class PracticeIntervalComparison extends Component
         } else {
             $this->practiceDataArray = $this->serializePractices($practices);
         }
+    }
+
+    /**
+     * Build every pairwise comparison combination from a pool of interval
+     * abbreviations (m2…M7). This is the canonical Exercise Setup rule for
+     * turning the user's interval pool into comparison questions; the AI
+     * Assisted Exercises flow reuses it so both flows share one logic.
+     * Returns [] when fewer than two known abbreviations are given.
+     */
+    public static function buildPairsFromPool(array $pool): array
+    {
+        $selectedPairs = array_values(array_filter(
+            array_map(fn ($a) => self::POOL_TO_PAIR[$a] ?? null, $pool)
+        ));
+        if (count($selectedPairs) < 2) {
+            return [];
+        }
+
+        $builtPairs = [];
+        for ($i = 0; $i < count($selectedPairs); $i++) {
+            for ($j = $i + 1; $j < count($selectedPairs); $j++) {
+                $builtPairs[] = [$selectedPairs[$i], $selectedPairs[$j]];
+            }
+        }
+
+        return $builtPairs;
     }
 
     public function render()

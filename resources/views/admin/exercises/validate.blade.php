@@ -43,7 +43,7 @@
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 class="font-semibold text-gray-900">Validation Summary</h3>
         </div>
-        <table class="w-full">
+        <div class="overflow-x-auto"><table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Practice Type</th>
@@ -98,7 +98,7 @@
                 </tr>
                 @endforeach
             </tbody>
-        </table>
+        </table></div>
     </div>
 
     <!-- Legend -->

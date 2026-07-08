@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Message;
+use App\Models\TeacherConversation;
 use App\Models\User;
 use Livewire\Component;
 
@@ -79,12 +80,41 @@ class Messenger extends Component
 
         $users = User::whereIn('id', $otherIds)->get()->keyBy('id');
 
-        $conversations = $messages
+        // Teacher-student conversations (support file attachments). These are
+        // merged into the same inbox so a student never misses a teacher's file
+        // just because it lives in a separate thread. Teacher threads open their
+        // dedicated view (teacher-messages.show) which renders attachments.
+        $teacherConversations = TeacherConversation::with('teacher')
+            ->where('student_id', $userId)
+            ->orderByDesc('last_message_at')
+            ->get()
+            ->map(function ($conv) use ($userId) {
+                $last = $conv->messages()->latest()->first();
+
+                return [
+                    'source' => 'teacher',
+                    'url' => route('teacher-messages.show', $conv),
+                    'user' => $conv->teacher,
+                    'last_body' => $last?->body ?? '',
+                    'last_at' => $conv->last_message_at ?? $conv->created_at,
+                    'unread' => $conv->messages()
+                        ->whereNull('read_at')
+                        ->where('sender_id', '!=', $userId)
+                        ->count(),
+                ];
+            })
+            ->filter(fn ($c) => $c['user'] !== null);
+
+        $teacherUserIds = $teacherConversations->pluck('user.id')->all();
+
+        $generalConversations = $messages
             ->groupBy(fn ($m) => $m->sender_id === $userId ? $m->receiver_id : $m->sender_id)
             ->map(function ($msgs, $otherId) use ($userId, $users) {
                 $last = $msgs->first();
 
                 return [
+                    'source' => 'general',
+                    'url' => null,
                     'user' => $users->get($otherId),
                     'last_body' => $last->body,
                     'last_at' => $last->created_at,
@@ -92,6 +122,13 @@ class Messenger extends Component
                 ];
             })
             ->filter(fn ($c) => $c['user'] !== null)
+            // A teacher thread already covers this pair — avoid a duplicate row.
+            ->reject(fn ($c) => in_array($c['user']->id, $teacherUserIds, true))
+            ->values();
+
+        $conversations = $teacherConversations
+            ->concat($generalConversations)
+            ->sortByDesc('last_at')
             ->values();
 
         $thread = collect();

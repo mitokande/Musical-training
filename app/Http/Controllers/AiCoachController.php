@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FeedItem;
+use App\Models\SystemSetting;
 use App\Models\User;
+use App\Models\UserPractice;
+use App\Services\AiUsageLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,24 +25,33 @@ class AiCoachController extends Controller
             ->take(20)
             ->get();
 
-        return view('ai-coach.index', compact('user', 'profile', 'responses', 'practiceHistory'));
+        $allPractices = UserPractice::where('user_id', $user->id)->get();
+        $totalSessions = $allPractices->count();
+        $totalQuestions = (int) $allPractices->sum('total_questions');
+        $totalCorrect = (int) $allPractices->sum('correct_answers');
+        $accuracy = $totalQuestions > 0 ? round(($totalCorrect / $totalQuestions) * 100) : 0;
+        $streak = FeedItem::currentStreakForUser($user->id);
+
+        return view('ai-coach.index', compact('user', 'profile', 'responses', 'practiceHistory', 'totalSessions', 'totalQuestions', 'accuracy', 'streak'));
     }
 
     public function generate(Request $request): JsonResponse
     {
         $apiKey = config('services.openai.key');
-        if (!$apiKey) {
+        if (! $apiKey) {
             return response()->json(['error' => 'OpenAI API anahtarı yapılandırılmamış.'], 500);
         }
 
         $user = $request->user();
         $context = $this->buildContext($user);
+        $model = SystemSetting::get('ai_model', 'gpt-4.1-mini');
+        $start = microtime(true);
 
         try {
             $client = OpenAI::client($apiKey);
 
             $response = $client->chat()->create([
-                'model' => 'gpt-4.1-mini',
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -76,9 +89,11 @@ class AiCoachController extends Controller
                         'content' => $context,
                     ],
                 ],
-                'max_tokens' => 2000,
-                'temperature' => 0.5,
+                'max_tokens' => (int) SystemSetting::get('ai_max_tokens', 2000),
+                'temperature' => (float) SystemSetting::get('ai_temperature', 0.5),
             ]);
+
+            AiUsageLogger::logSuccess('weekly_coach_plan', $model, $response->usage, $user->id, [], (int) ((microtime(true) - $start) * 1000));
 
             $content = $response->choices[0]->message->content;
 
@@ -95,7 +110,9 @@ class AiCoachController extends Controller
             return response()->json(['plan' => $plan]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Bir hata oluştu: ' . $e->getMessage()], 500);
+            AiUsageLogger::logError('weekly_coach_plan', $model, $e->getMessage(), $user->id, [], (int) ((microtime(true) - $start) * 1000));
+
+            return response()->json(['error' => 'Bir hata oluştu: '.$e->getMessage()], 500);
         }
     }
 
@@ -109,22 +126,22 @@ class AiCoachController extends Controller
             'ko' => 'Korean',   'zh' => 'Chinese',    'sv' => 'Swedish',
         ];
 
-        $profile  = $user->profile;
+        $profile = $user->profile;
         $levelMap = ['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced'];
-        $eduMap   = ['self_taught' => 'Self-taught', 'private_lessons' => 'Private lessons', 'music_school' => 'Music school', 'professional' => 'Professional'];
-        $locale   = $user->locale ?? 'en';
+        $eduMap = ['self_taught' => 'Self-taught', 'private_lessons' => 'Private lessons', 'music_school' => 'Music school', 'professional' => 'Professional'];
+        $locale = $user->locale ?? 'en';
         $language = $localeMap[$locale] ?? 'English';
 
         // --- User profile block ---
         $profileLines = [
             "- name: {$user->name}",
             "- preferred_language: {$language} ({$locale})",
-            '- instrument: '       . ($profile?->primary_instrument ?? 'not specified'),
-            '- level: '            . ($levelMap[$profile?->musical_level ?? ''] ?? 'unknown'),
-            '- education_status: ' . ($eduMap[$profile?->education_status ?? ''] ?? 'unknown'),
-            '- weekly_practice_hours: ' . ($profile?->weekly_practice_hours ?? 0),
+            '- instrument: '.($profile?->primary_instrument ?? 'not specified'),
+            '- level: '.($levelMap[$profile?->musical_level ?? ''] ?? 'unknown'),
+            '- education_status: '.($eduMap[$profile?->education_status ?? ''] ?? 'unknown'),
+            '- weekly_practice_hours: '.($profile?->weekly_practice_hours ?? 0),
         ];
-        if (!empty($profile?->interests)) {
+        if (! empty($profile?->interests)) {
             $interests = is_array($profile->interests) ? implode(', ', $profile->interests) : $profile->interests;
             $profileLines[] = "- interests: {$interests}";
         }
@@ -148,16 +165,16 @@ class AiCoachController extends Controller
             ->take(20)
             ->get();
 
-        $historyLines  = [];
+        $historyLines = [];
         $weakPractices = [];
         foreach ($practiceHistory as $up) {
-            $name    = $up->practice?->name ?? 'Unknown';
+            $name = $up->practice?->name ?? 'Unknown';
             $details = array_filter([
-                isset($up->score)           ? "score: {$up->score}"            : null,
+                isset($up->score) ? "score: {$up->score}" : null,
                 isset($up->correct_answers) ? "correct: {$up->correct_answers}" : null,
-                isset($up->total_questions) ? "total: {$up->total_questions}"   : null,
+                isset($up->total_questions) ? "total: {$up->total_questions}" : null,
             ]);
-            $historyLines[] = "- {$name}" . (count($details) ? ' (' . implode(', ', $details) . ')' : '');
+            $historyLines[] = "- {$name}".(count($details) ? ' ('.implode(', ', $details).')' : '');
 
             if (isset($up->total_questions) && $up->total_questions > 0 && isset($up->correct_answers)) {
                 if (($up->correct_answers / $up->total_questions) < 0.6) {
@@ -175,19 +192,19 @@ class AiCoachController extends Controller
             implode("\n", $profileLines),
         ];
 
-        if (!empty($surveyLines)) {
+        if (! empty($surveyLines)) {
             $parts[] = '';
             $parts[] = 'Survey answers:';
             $parts[] = implode("\n", $surveyLines);
         }
 
-        if (!empty($historyLines)) {
+        if (! empty($historyLines)) {
             $parts[] = '';
             $parts[] = 'Recent practice history (last 20 sessions):';
             $parts[] = implode("\n", $historyLines);
         }
 
-        if (!empty($weakPractices)) {
+        if (! empty($weakPractices)) {
             $parts[] = '';
             $parts[] = 'Detected weak areas (accuracy < 60%):';
             $parts[] = implode(', ', $weakPractices);

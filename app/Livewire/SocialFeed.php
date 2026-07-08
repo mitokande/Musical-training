@@ -5,21 +5,26 @@ namespace App\Livewire;
 use App\Models\FeedItem;
 use App\Models\FeedLike;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 class SocialFeed extends Component
 {
-    use WithPagination;
-
     public string $postBody = '';
 
     /** 'feed' = all events globally (default), 'following' = only users I follow. */
     public string $scope = 'feed';
 
+    /** How many items are currently shown; grows by loadMore() (infinite scroll / "Show more"). */
+    public int $perPage = 15;
+
     public function setScope(string $scope): void
     {
         $this->scope = $scope === 'following' ? 'following' : 'feed';
-        $this->resetPage();
+        $this->perPage = 15;
+    }
+
+    public function loadMore(): void
+    {
+        $this->perPage += 15;
     }
 
     public function post(): void
@@ -31,7 +36,7 @@ class SocialFeed extends Component
         FeedItem::recordPost(auth()->user(), $this->postBody);
 
         $this->postBody = '';
-        $this->resetPage();
+        $this->perPage = 15;
         $this->dispatch('post-shared');
     }
 
@@ -70,7 +75,10 @@ class SocialFeed extends Component
         }
         // 'feed' (default) shows every event globally — no actor filter.
 
-        $items = $query->latest()->paginate(15);
+        // Fetch one extra row to know whether more pages exist, then trim to $perPage.
+        $items = $query->latest()->take($this->perPage + 1)->get();
+        $hasMore = $items->count() > $this->perPage;
+        $items = $items->take($this->perPage);
 
         $likedIds = FeedLike::where('user_id', auth()->id())
             ->whereIn('feed_item_id', $items->pluck('id'))
@@ -80,6 +88,7 @@ class SocialFeed extends Component
         return view('livewire.social-feed', [
             'items' => $items,
             'likedIds' => $likedIds,
+            'hasMore' => $hasMore,
         ]);
     }
 }

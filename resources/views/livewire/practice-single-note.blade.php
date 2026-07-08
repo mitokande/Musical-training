@@ -115,8 +115,8 @@
                                            z-index:10;">
                                 @if($answerMode === 'note-names')
                                 <div class="pointer-events-none flex flex-col items-center justify-center" style="gap:1px;line-height:1.1;">
-                                    <span class="font-bold text-white text-center" style="font-size:11px;">{{ $bk['sharp'] }}</span>
-                                    <span class="font-semibold text-center" style="font-size:10px;color:rgba(255,255,255,0.7);">{{ $bk['flat'] }}</span>
+                                    <span class="font-bold text-white text-center" style="font-size:11px;">{{ \App\Services\MusicTheoryService::toDisplaySymbol($bk['sharp']) }}</span>
+                                    <span class="font-semibold text-center" style="font-size:10px;color:rgba(255,255,255,0.7);">{{ \App\Services\MusicTheoryService::toDisplaySymbol($bk['flat']) }}</span>
                                 </div>
                                 @endif
                             </button>
@@ -220,6 +220,8 @@
                 return sn;
             }
 
+            const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
+
             /** Base staff builder — returns {renderer, ctx, stave} */
             function buildStave(height, staveY) {
                 outputDiv.innerHTML = '';
@@ -230,7 +232,7 @@
                 const ctx = renderer.getContext();
                 const stave = new Stave(10, staveY, w - 20);
                 stave.addClef(clef);
-                stave.setNoteStartX(stave.getNoteStartX() + 20);
+                stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                 stave.setContext(ctx).draw();
                 return { ctx, stave, w };
             }
@@ -254,7 +256,7 @@
                 voice.setStrict(false);
                 voice.addTickables(notes);
                 Accidental.applyAccidentals([voice], 'C');
-                new Formatter().joinVoices([voice]).format([voice], w - 140);
+                new Formatter().joinVoices([voice]).format([voice], Math.min(w - 140, HS.span(items.length)));
                 voice.draw(ctx, stave);
             }
 
@@ -311,7 +313,7 @@
                         // Teal hint — visually distinct from both green and red
                         const hint = mkNote(tgtVF, '#0d9488');
                         vB.push(hint);
-                        hintNotes.push({ note: hint, label: tgtName.toUpperCase() });
+                        hintNotes.push({ note: hint, label: window.HarmonivaNotation.toDisplaySymbol(tgtName) });
                     }
                 });
 
@@ -327,7 +329,7 @@
                 Accidental.applyAccidentals([voice1], 'C');
                 Accidental.applyAccidentals([voice2], 'C');
 
-                new Formatter().joinVoices([voice1, voice2]).format([voice1, voice2], w - 110);
+                new Formatter().joinVoices([voice1, voice2]).format([voice1, voice2], Math.min(w - 110, HS.span(vA.length)));
                 voice1.draw(ctx, stave);
                 voice2.draw(ctx, stave);
 
@@ -424,7 +426,7 @@
                 } else {
                     const correctList = groupTargets.map(t => {
                         const [n, o] = t.split('/');
-                        return n.toUpperCase() + (o || '');
+                        return window.HarmonivaNotation.toDisplaySymbol(n) + (o || '');
                     }).join(', ');
                     feedbackMsg.textContent = '✗ Incorrect. Correct: ' + correctList;
                     feedbackMsg.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';

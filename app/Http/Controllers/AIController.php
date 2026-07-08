@@ -2,11 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Livewire\PracticeChord;
+use App\Livewire\PracticeHarmonicInterval;
+use App\Livewire\PracticeIntervalComparison;
+use App\Livewire\PracticeIntervalConstruction;
+use App\Livewire\PracticeMelodicInterval;
 use App\Models\IntervalDirectionPractice;
 use App\Models\LearningPathExercise;
 use App\Models\Practice;
-use App\Models\SingleNotePractice;
+use App\Models\SystemSetting;
 use App\Models\UserIntervalStat;
+use App\Models\UserPractice;
+use App\Services\AiUsageLogger;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
 use Illuminate\Http\Request;
@@ -21,11 +28,14 @@ class AIController extends Controller
             return response()->json(['error' => 'OpenAI API key not configured'], 500);
         }
 
+        $model = SystemSetting::get('ai_model', 'gpt-4.1-mini');
+        $start = microtime(true);
+
         try {
             $client = OpenAI::client($apikey);
 
             $response = $client->chat()->create([
-                'model' => 'gpt-4.1-mini',
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -46,6 +56,8 @@ class AIController extends Controller
                 ],
             ]);
 
+            AiUsageLogger::logSuccess('interval_direction_question', $model, $response->usage, auth()->id(), [], (int) ((microtime(true) - $start) * 1000));
+
             $data = json_decode($response->choices[0]->message->content, true);
 
             // Post-process: derive note2_octave and re-verify direction via MIDI pitch math.
@@ -64,6 +76,7 @@ class AIController extends Controller
 
             return $data;
         } catch (\Exception $e) {
+            AiUsageLogger::logError('interval_direction_question', $model, $e->getMessage(), auth()->id(), [], (int) ((microtime(true) - $start) * 1000));
             \Log::error('OpenAI API error in generateIntervalDirectionPractice: '.$e->getMessage());
 
             return response()->json(['error' => 'Failed to generate practice. Please try again.'], 500);
@@ -73,23 +86,27 @@ class AIController extends Controller
     public function generatePractices(Request $request)
     {
         $validated = $request->validate([
-            'exercise_types' => 'required|array|min:1',
+            'exercise_types' => 'required_without:rhythm_modes|array',
             'exercise_types.*' => 'integer|exists:practices,id',
             'num_questions' => 'required|integer|min:1|max:50',
             'difficulty' => 'required|string|in:easy,medium,hard,adaptive',
-            // Rhythm Dictation: user-chosen time signature + tempo (optional; only
-            // submitted when the Rhythm Dictation type is selected in the form).
-            'rhythm_time_signature' => 'nullable|in:2/4,3/4,4/4,6/8,9/8,2/2,3/2,4/2',
-            'rhythm_tempo' => 'nullable|integer|min:40|max:208',
+            // Rhythm Recognition / Rhythm Reading: extra rhythm exercise modes
+            // (Exercise Setup Studio's other two rhythm modes) offered as their
+            // own selection cards. They have no Practice DB record — they reuse
+            // the rhythm-practice generation with a different answer UI.
+            'rhythm_modes' => 'nullable|array',
+            'rhythm_modes.*' => 'in:recognition,reading',
         ]);
 
-        $practiceTypes = Practice::whereIn('id', $validated['exercise_types'])->get();
+        $rhythmModes = array_values(array_unique($validated['rhythm_modes'] ?? []));
+
+        $practiceTypes = Practice::whereIn('id', $validated['exercise_types'] ?? [])->get();
 
         // Melodic Dictation alone gets its own dedicated practice page (the AI
         // clone of the Exercise Setup dictation flow). The Livewire component
         // generates the questions from question count + difficulty itself.
         // When mixed with other types it stays in the generic flow below.
-        if ($practiceTypes->count() === 1 && $practiceTypes->first()->slug === 'melodic-dictation') {
+        if ($practiceTypes->count() === 1 && $practiceTypes->first()->slug === 'melodic-dictation' && empty($rhythmModes)) {
             session(['ai_dictation_settings' => [
                 'question_count' => (int) $validated['num_questions'],
                 'difficulty' => $validated['difficulty'],
@@ -99,13 +116,11 @@ class AIController extends Controller
             return redirect()->route('practice.ai.dictation');
         }
 
-        // Types handled via OpenAI structured output
-        $aiPracticeClasses = [
-            'single-note-practice' => SingleNotePractice::class,
-        ];
+        // Types handled via OpenAI structured output (none currently — single-note
+        // migrated to deterministic local generation so user note/clef settings apply).
+        $aiPracticeClasses = [];
 
-        // Types generated locally (no OpenAI needed) — all interval types are now
-        // deterministic (root note + semitones) via LearningPathQuestionGenerator.
+        // Types generated locally via LearningPathQuestionGenerator.
         $localTypeSlugs = [
             'melodic-interval-practice',
             'harmonic-interval-practice',
@@ -116,18 +131,19 @@ class AIController extends Controller
             'scale-practice',
             'rhythm-practice',
             'melodic-dictation',
+            'single-note-practice',
         ];
 
         $aiPracticeTypes = $practiceTypes->filter(fn ($p) => isset($aiPracticeClasses[$p->slug]));
         $localPracticeTypes = $practiceTypes->filter(fn ($p) => in_array($p->slug, $localTypeSlugs));
 
-        if ($aiPracticeTypes->isEmpty() && $localPracticeTypes->isEmpty()) {
+        if ($aiPracticeTypes->isEmpty() && $localPracticeTypes->isEmpty() && empty($rhythmModes)) {
             return back()->with('error', 'No valid practice types selected.');
         }
 
         $numQuestions = (int) $validated['num_questions'];
         $difficulty = $validated['difficulty'];
-        $totalTypes = $aiPracticeTypes->count() + $localPracticeTypes->count();
+        $totalTypes = $aiPracticeTypes->count() + $localPracticeTypes->count() + count($rhythmModes);
         $perType = max(1, (int) ceil($numQuestions / max(1, $totalTypes)));
 
         // ── Local question generation (chord / scale / rhythm / melodic-dictation) ──
@@ -136,22 +152,17 @@ class AIController extends Controller
             $generator = app(LearningPathQuestionGenerator::class);
 
             foreach ($localPracticeTypes as $practiceType) {
+                // Rhythm Dictation (and the recognition/reading modes below) share a
+                // dedicated generation path that mirrors the Exercise Setup rhythm flow.
+                if ($practiceType->slug === 'rhythm-practice') {
+                    $localQuestions = array_merge($localQuestions, $this->generateRhythmQuestions('build', $difficulty, $perType));
+
+                    continue;
+                }
+
                 $typeConfig = $difficulty === 'adaptive'
                     ? $this->buildAdaptiveConfig($practiceType->slug, (int) auth()->id())
                     : $this->buildLocalConfig($practiceType->slug, $difficulty);
-
-                // Rhythm Dictation drives generation from the user's form choices
-                // (time signature + tempo). Bars are assembled from a beat-aligned cell
-                // pool keyed by difficulty (see LearningPathQuestionGenerator::rhythmCells).
-                $rhythmValues = null;
-                if ($practiceType->slug === 'rhythm-practice') {
-                    $tempo = (int) ($validated['rhythm_tempo'] ?? 90);
-                    $rhythmValues = $this->rhythmPaletteForDifficulty($difficulty);
-                    $typeConfig['time_signatures'] = [$validated['rhythm_time_signature'] ?? '4/4'];
-                    $typeConfig['tempo_range'] = [$tempo, $tempo];
-                    $typeConfig['rhythm_difficulty'] = $difficulty;
-                    $typeConfig['bars'] = 1;
-                }
 
                 $config = array_merge(
                     ['practice_type' => $practiceType->slug],
@@ -161,7 +172,21 @@ class AIController extends Controller
                 $exercise->config_json = $config;
 
                 try {
-                    $generated = $generator->generate($exercise, $perType);
+                    // Scale & Mode with direction 'both': the generator takes a single
+                    // direction, so mirror PracticeScale::mount — generate half the
+                    // questions ascending and half descending, then mix.
+                    if ($practiceType->slug === 'scale-practice' && ($typeConfig['direction'] ?? '') === 'both') {
+                        $perDir = max(1, (int) ceil($perType / 2));
+                        $generated = collect();
+                        foreach (['ascending', 'descending'] as $dir) {
+                            $dirExercise = new LearningPathExercise;
+                            $dirExercise->config_json = array_merge($config, ['direction' => $dir]);
+                            $generated = $generated->merge($generator->generate($dirExercise, $perDir));
+                        }
+                        $generated = $generated->shuffle()->values()->take($perType);
+                    } else {
+                        $generated = $generator->generate($exercise, $perType);
+                    }
                     foreach ($generated as $i => $q) {
                         $q->id = $i + 1; // temp ID
                         $attrs = $q->getAttributes();
@@ -180,19 +205,65 @@ class AIController extends Controller
                         if (! isset($attrs['options']) && $q->relationLoaded('_options')) {
                             $attrs['options'] = $q->getRelation('_options');
                         }
+                        // Harmonic interval answer options mirror the Exercise Setup
+                        // grid (PracticeHarmonicInterval::mount): correct interval + 3
+                        // distractors from the canonical ES 12-interval palette. The
+                        // generator's own fallback draws from INTERVAL_SEMITONES, whose
+                        // unison and enharmonic aliases never appear in the ES UI.
+                        if ($practiceType->slug === 'harmonic-interval-practice') {
+                            $music = app(MusicTheoryService::class);
+                            $correct = $attrs['interval'];
+                            $distractors = $music->buildOptions($correct, array_values(PracticeHarmonicInterval::INTERVAL_POOL_MAP), 3);
+                            $options = array_merge([$correct], $distractors);
+                            shuffle($options);
+                            $attrs['options'] = $options;
+                        }
+                        // Interval-construction answer options mirror the Exercise Setup
+                        // component (PracticeIntervalConstruction::mount): the diatonically
+                        // spelled correct note + 3 distractors from the same ES diatonic
+                        // pool, never an enharmonic equivalent of the answer. The
+                        // generator's own _options draw from a wider pool (double-sharp/
+                        // double-flat spellings the ES UI never shows).
+                        if ($practiceType->slug === 'interval-construction-practice') {
+                            $music = app(MusicTheoryService::class);
+                            $correct = $attrs['note2'];
+                            $pool = PracticeIntervalConstruction::DIATONIC_NOTE_POOL;
+                            shuffle($pool);
+                            $distractors = [];
+                            foreach ($pool as $candidate) {
+                                if (count($distractors) >= 3) {
+                                    break;
+                                }
+                                if ($music->notesAreEnharmonic($candidate, $correct)) {
+                                    continue;
+                                }
+                                $distractors[] = $candidate;
+                            }
+                            $options = array_merge([$correct], $distractors);
+                            shuffle($options);
+                            $attrs['options'] = $options;
+                        }
+                        // Hard chord sessions mix voicing per question — Exercise Setup
+                        // offers block and arpeggiated playback and the mixed view
+                        // already supports both via data-voicing.
+                        if ($practiceType->slug === 'chord-practice' && $difficulty === 'hard') {
+                            $attrs['voicing'] = random_int(0, 1) === 1 ? 'arpeggiated' : 'block';
+                        }
                         // Add type discriminator matching convertAIQuestionsToPractices() cases
                         $attrs['type'] = $this->slugToQuestionType($practiceType->slug);
-                        // Carry the allowed note-value pool so the builder palette matches
-                        // what could actually have been generated for this difficulty.
-                        if ($rhythmValues !== null) {
-                            $attrs['allowed_values'] = $rhythmValues;
-                        }
                         $localQuestions[] = $attrs;
                     }
                 } catch (\Exception $e) {
                     \Log::error("Local question generation failed for {$practiceType->slug}: ".$e->getMessage());
                 }
             }
+        }
+
+        // ── Rhythm Recognition / Rhythm Reading ───────────────────────────────────
+        // Extra rhythm modes selected on the AI page. Same generation engine and
+        // rules as Rhythm Dictation; only the answer UI differs (rhythm_mode).
+        foreach ($rhythmModes as $mode) {
+            $localQuestions = array_merge($localQuestions, $this->generateRhythmQuestions($mode, $difficulty, $perType));
         }
 
         // ── AI question generation (interval types / single-note) ─────────────────
@@ -211,11 +282,14 @@ class AIController extends Controller
             // Distribute remaining questions evenly across AI types
             $aiNumQuestions = max(1, $numQuestions - count($localQuestions));
 
+            $model = SystemSetting::get('ai_model', 'gpt-4.1-mini');
+            $start = microtime(true);
+
             try {
                 $practiceNames = $aiPracticeTypes->pluck('name')->toArray();
                 $client = OpenAI::client($apikey);
                 $response = $client->chat()->create([
-                    'model' => 'gpt-4.1-mini',
+                    'model' => $model,
                     'messages' => [
                         [
                             'role' => 'system',
@@ -260,9 +334,12 @@ class AIController extends Controller
                     ],
                 ]);
 
+                AiUsageLogger::logSuccess('ai_practice_generation', $model, $response->usage, auth()->id(), ['difficulty' => $difficulty, 'num_questions' => $aiNumQuestions], (int) ((microtime(true) - $start) * 1000));
+
                 $decoded = json_decode($response->choices[0]->message->content, true);
                 $aiQuestions = $this->sanitizeAIQuestions($decoded['questions'] ?? []);
             } catch (\Exception $e) {
+                AiUsageLogger::logError('ai_practice_generation', $model, $e->getMessage(), auth()->id(), ['difficulty' => $difficulty], (int) ((microtime(true) - $start) * 1000));
                 \Log::error('OpenAI API error in generatePractices: '.$e->getMessage());
 
                 $message = 'Failed to generate AI practices. Please try again.';
@@ -280,6 +357,16 @@ class AIController extends Controller
         // Merge and shuffle all questions
         $allQuestions = array_merge($aiQuestions, $localQuestions);
         shuffle($allQuestions);
+
+        // Keep single-note questions contiguous at the front: the session opens
+        // with a reference note (C4 — PracticeMixed reference intro) and each
+        // heard note then anchors the next, so interleaving other types in
+        // between would break the comparison chain.
+        $singleNote = array_values(array_filter($allQuestions, fn ($q) => ($q['type'] ?? '') === 'single-note'));
+        if ($singleNote !== []) {
+            $others = array_values(array_filter($allQuestions, fn ($q) => ($q['type'] ?? '') !== 'single-note'));
+            $allQuestions = array_merge($singleNote, $others);
+        }
 
         if (empty($allQuestions)) {
             return back()->with('error', 'No practice questions could be generated. Please try again.');
@@ -306,8 +393,65 @@ class AIController extends Controller
             'interval-direction-practice' => 'interval-direction',
             'interval-construction-practice' => 'interval-construction',
             'interval-comparison-practice' => 'interval-comparison',
+            'single-note-practice' => 'single-note',
             default => $slug,
         };
+    }
+
+    /**
+     * Generate rhythm questions for one of the three rhythm modes carried over
+     * from Exercise Setup Studio: 'build' (Rhythm Dictation — rebuild the rhythm
+     * note-by-note), 'recognition' (pick the heard pattern among four staves) and
+     * 'reading' (tap the printed rhythm in time). All three share the exact same
+     * generation rules; only the answer UI in the mixed view differs, so each
+     * question carries a rhythm_mode discriminator.
+     *
+     * Time signature and tempo are not user inputs on the AI page — they come
+     * from the difficulty preset (buildLocalConfig), and 'adaptive' resolves the
+     * preset from the user's rhythm practice history (buildAdaptiveConfig).
+     *
+     * @return array<int, array> question attribute arrays for the mixed session
+     */
+    private function generateRhythmQuestions(string $mode, string $difficulty, int $count): array
+    {
+        $typeConfig = $difficulty === 'adaptive'
+            ? $this->buildAdaptiveConfig('rhythm-practice', (int) auth()->id())
+            : $this->buildLocalConfig('rhythm-practice', $difficulty);
+
+        $exercise = new LearningPathExercise;
+        $exercise->config_json = array_merge(['practice_type' => 'rhythm-practice'], $typeConfig);
+
+        $questions = [];
+        try {
+            $generator = app(LearningPathQuestionGenerator::class);
+            // Palette must match the resolved cell-pool difficulty (adaptive may have
+            // resolved to easy/medium/hard from history), not the raw request value.
+            $palette = $this->rhythmPaletteForDifficulty($typeConfig['rhythm_difficulty'] ?? 'medium');
+
+            foreach ($generator->generate($exercise, $count) as $i => $q) {
+                $q->id = $i + 1; // temp ID
+                $attrs = $q->getAttributes();
+                foreach ($attrs as $key => $value) {
+                    if (is_string($value) && strlen($value) > 0 && $value[0] === '[') {
+                        $decoded = json_decode($value, true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $attrs[$key] = $decoded;
+                        }
+                    }
+                }
+                $attrs['type'] = 'rhythm';
+                $attrs['rhythm_mode'] = $mode;
+                if ($mode === 'build') {
+                    // Builder palette: which note buttons the student can place.
+                    $attrs['allowed_values'] = $palette;
+                }
+                $questions[] = $attrs;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Rhythm question generation failed for mode {$mode}: ".$e->getMessage());
+        }
+
+        return $questions;
     }
 
     /**
@@ -339,13 +483,41 @@ class AIController extends Controller
      */
     private function buildLocalConfig(string $slug, string $difficulty): array
     {
-        $allIntervalNames = array_keys(MusicTheoryService::INTERVAL_SEMITONES);
+        // Scale & Mode difficulty palettes (subsets of the Exercise Setup Studio
+        // scale palette, PracticeScale::ALL_SCALE_TYPES). Ionian and Aeolian are
+        // omitted on purpose: they sound identical to Major and Natural Minor, so
+        // sharing an answer pool with them would make questions ambiguous.
+        $scaleTypesEasy = ['Major', 'Natural Minor', 'Major Pentatonic', 'Minor Pentatonic'];
+        $scaleTypesMedium = array_merge($scaleTypesEasy, ['Harmonic Minor', 'Melodic Minor', 'Blues Scale']);
+        $scaleTypesHard = array_merge($scaleTypesMedium, ['Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Locrian', 'Chromatic Scale', 'Whole Tone Scale']);
 
         return match ($slug) {
-            'melodic-interval-practice', 'harmonic-interval-practice' => match ($difficulty) {
-                'easy' => ['allowed_intervals' => ['Major 3rd', 'Perfect 5th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G'], 'octave_range' => ['4'], 'distractor_count' => 2, 'distractor_mode' => 'far'],
-                'hard' => ['allowed_intervals' => $allIntervalNames, 'allowed_notes' => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'octave_range' => ['3', '4', '5'], 'distractor_count' => 5, 'distractor_mode' => 'near'],
-                default => ['allowed_intervals' => ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Major 6th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'octave_range' => ['4'], 'distractor_count' => 3, 'distractor_mode' => 'mixed'],
+            // Melodic interval rules mirror the Exercise Setup Studio melodic-interval
+            // flow (PracticeMelodicInterval::mount): natural start notes, octave derived
+            // from the treble clef's playable range ('clef' instead of octave_range),
+            // the ES 12-interval palette (INTERVAL_POOL_MAP — no unison, no enharmonic
+            // aliases), and the generator's own ES distractor heuristic (no
+            // distractor_count/mode overrides: pools under 4 draw distractors from the
+            // full palette, otherwise 3 from the pool). Difficulty stands in for the
+            // user-selected pool in Exercise Setup and ramps direction: easy ascending,
+            // medium/hard mixed (the ES default).
+            'melodic-interval-practice' => match ($difficulty) {
+                'easy' => ['allowed_intervals' => ['Major 3rd', 'Perfect 5th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'ascending'],
+                'hard' => ['allowed_intervals' => array_values(PracticeMelodicInterval::INTERVAL_POOL_MAP), 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'mixed'],
+                default => ['allowed_intervals' => ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Major 6th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'mixed'],
+            },
+            // Harmonic interval rules mirror the Exercise Setup Studio harmonic-interval
+            // flow (PracticeHarmonicInterval::mount): natural start notes, octave derived
+            // from the treble clef's playable range ('clef' instead of octave_range), and
+            // the ES 12-interval palette (INTERVAL_POOL_MAP — no unison, no enharmonic
+            // aliases). No distractor_count/mode overrides — the answer options are
+            // rebuilt in generatePractices() exactly like the ES component builds them
+            // (correct + 3 distractors from the full ES palette). Difficulty stands in
+            // for the user-selected pool in Exercise Setup.
+            'harmonic-interval-practice' => match ($difficulty) {
+                'easy' => ['allowed_intervals' => ['Major 3rd', 'Perfect 5th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble'],
+                'hard' => ['allowed_intervals' => array_values(PracticeHarmonicInterval::INTERVAL_POOL_MAP), 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble'],
+                default => ['allowed_intervals' => ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Major 6th', 'Perfect Octave'], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble'],
             },
             // Note: 12 (Perfect Octave) is intentionally omitted here. A direction
             // question for an octave has note1/note2 sharing the same name, which the
@@ -356,35 +528,87 @@ class AIController extends Controller
                 'hard' => ['allowed_intervals_semitones' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], 'allowed_notes' => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'octave' => 4, 'clef' => 'treble'],
                 default => ['allowed_intervals_semitones' => [2, 3, 4, 5, 7, 9, 11], 'allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'octave' => 4, 'clef' => 'treble'],
             },
+            // Interval construction rules mirror the Exercise Setup Studio construction
+            // flow (PracticeIntervalConstruction::mount): natural root notes, octave
+            // derived from the treble clef's playable range ('clef' instead of a fixed
+            // octave), the ES 12-interval palette (INTERVAL_POOL_MAP — no unison, no
+            // enharmonic aliases), and diatonic spelling for the correct answer (no
+            // distractor_count/mode overrides — the answer options are rebuilt in
+            // generatePractices() exactly like the ES component builds them: correct
+            // note + 3 distractors from the ES diatonic pool). Difficulty stands in
+            // for the user-selected pool in Exercise Setup and ramps direction: easy
+            // ascending, medium/hard mixed (the ES default).
             'interval-construction-practice' => match ($difficulty) {
-                'easy' => ['allowed_intervals' => ['Major 3rd', 'Perfect 5th', 'Perfect Octave'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G'], 'octave' => 4, 'distractor_count' => 2, 'distractor_mode' => 'far'],
-                'hard' => ['allowed_intervals' => $allIntervalNames, 'allowed_root_notes' => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'octave' => 4, 'distractor_count' => 5, 'distractor_mode' => 'near'],
-                default => ['allowed_intervals' => ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Major 6th', 'Perfect Octave'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'octave' => 4, 'distractor_count' => 3, 'distractor_mode' => 'mixed'],
+                'easy' => ['allowed_intervals' => ['Major 3rd', 'Perfect 5th', 'Perfect Octave'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'ascending'],
+                'hard' => ['allowed_intervals' => array_values(PracticeIntervalConstruction::INTERVAL_POOL_MAP), 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'mixed'],
+                default => ['allowed_intervals' => ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th', 'Perfect 5th', 'Major 6th', 'Perfect Octave'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'clef' => 'treble', 'direction' => 'mixed'],
             },
+            // Interval comparison rules mirror the Exercise Setup Studio comparison
+            // flow (PracticeIntervalComparison::mount): the interval pool is mapped
+            // to canonical same-octave C-root pairs with correct diatonic spelling
+            // (POOL_TO_PAIR — flats, no unison, no octave), every pairwise
+            // combination of the pool is offered (buildPairsFromPool), and no fixed
+            // octave — 'clef' makes the generator place each pair inside the treble
+            // range. Difficulty stands in for the user-selected pool in Exercise
+            // Setup: easy mirrors the other interval types' easy palette (M7 stands
+            // in for the octave, which a same-octave pair cannot express), medium
+            // is the shared 8-interval medium palette minus the octave, hard is the
+            // full comparison pool.
             'interval-comparison-practice' => match ($difficulty) {
-                'easy' => ['allowed_interval_pairs' => [['C,D', 'C,G'], ['C,E', 'C,C'], ['C,F', 'C,A']], 'octave' => '4', 'clef' => 'treble'],
-                'hard' => ['allowed_interval_pairs' => [['C,C#', 'C,D'], ['C,F#', 'C,G'], ['C,A', 'C,A#'], ['C,D#', 'C,E'], ['C,G#', 'C,A']], 'octave' => '4', 'clef' => 'treble'],
-                default => ['allowed_interval_pairs' => [['C,D', 'C,F'], ['C,E', 'C,A'], ['C,G', 'C,C'], ['C,D', 'C,E']], 'octave' => '4', 'clef' => 'treble'],
+                'easy' => ['allowed_interval_pairs' => PracticeIntervalComparison::buildPairsFromPool(['M3', 'P5', 'M7']), 'clef' => 'treble'],
+                'hard' => ['allowed_interval_pairs' => PracticeIntervalComparison::buildPairsFromPool(array_keys(PracticeIntervalComparison::POOL_TO_PAIR)), 'clef' => 'treble'],
+                default => ['allowed_interval_pairs' => PracticeIntervalComparison::buildPairsFromPool(['m2', 'M2', 'm3', 'M3', 'P4', 'P5', 'M6']), 'clef' => 'treble'],
             },
+            // Chord rules mirror the Exercise Setup Studio chord flow (PracticeChord::mount):
+            // natural root notes, distractor options drawn from the full chord-type palette,
+            // and no fixed octave — 'clef' makes the generator keep every chord tone inside
+            // the treble range. Difficulty narrows the answer palette and gates inversions;
+            // hard additionally mixes per-question voicing (see generatePractices()).
             'chord-practice' => match ($difficulty) {
-                'easy' => ['allowed_chord_types' => ['Major', 'Minor'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G'], 'voicing' => 'block', 'include_inversions' => false, 'distractor_pool' => ['Diminished', 'Augmented', 'Dominant 7th']],
-                'hard' => ['allowed_chord_types' => ['Major', 'Minor', 'Diminished', 'Augmented', 'Dominant 7th', 'Major 7th', 'Minor 7th'], 'allowed_root_notes' => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'voicing' => 'block', 'include_inversions' => true, 'distractor_pool' => ['Half Diminished', 'Diminished 7th', 'Augmented 7th']],
-                default => ['allowed_chord_types' => ['Major', 'Minor', 'Diminished', 'Dominant 7th'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'voicing' => 'block', 'include_inversions' => false, 'distractor_pool' => ['Augmented', 'Major 7th', 'Minor 7th']],
+                'easy' => ['allowed_chord_types' => ['Major', 'Minor'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'voicing' => 'block', 'include_inversions' => false, 'distractor_pool' => PracticeChord::ALL_CHORD_TYPES, 'clef' => 'treble'],
+                'hard' => ['allowed_chord_types' => ['Major', 'Minor', 'Diminished', 'Augmented', 'Dominant 7th', 'Major 7th', 'Minor 7th'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'voicing' => 'block', 'include_inversions' => true, 'distractor_pool' => PracticeChord::ALL_CHORD_TYPES, 'clef' => 'treble'],
+                default => ['allowed_chord_types' => ['Major', 'Minor', 'Diminished', 'Dominant 7th'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'voicing' => 'block', 'include_inversions' => false, 'distractor_pool' => PracticeChord::ALL_CHORD_TYPES, 'clef' => 'treble'],
             },
+            // Scale rules mirror the Exercise Setup Studio Scale & Mode flow
+            // (PracticeScale::mount): natural root notes, distractor options drawn
+            // from the same allowed scale set (not an external pool), and no fixed
+            // octave — 'clef' makes the generator keep the whole scale inside the
+            // treble range. Difficulty widens the palette; medium/hard use direction
+            // 'both', which generatePractices() expands to half ascending / half
+            // descending exactly like PracticeScale does.
             'scale-practice' => match ($difficulty) {
-                'easy' => ['allowed_scale_types' => ['Major', 'Natural Minor'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G'], 'direction' => 'ascending', 'distractor_pool' => ['Harmonic Minor', 'Pentatonic', 'Blues']],
-                'hard' => ['allowed_scale_types' => ['Major', 'Natural Minor', 'Harmonic Minor', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'direction' => 'ascending', 'distractor_pool' => ['Melodic Minor', 'Pentatonic', 'Blues', 'Locrian']],
-                default => ['allowed_scale_types' => ['Major', 'Natural Minor', 'Harmonic Minor', 'Pentatonic'], 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A'], 'direction' => 'ascending', 'distractor_pool' => ['Blues', 'Dorian', 'Mixolydian']],
+                'easy' => ['allowed_scale_types' => $scaleTypesEasy, 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'direction' => 'ascending', 'distractor_pool' => $scaleTypesEasy, 'clef' => 'treble'],
+                'hard' => ['allowed_scale_types' => $scaleTypesHard, 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'direction' => 'both', 'distractor_pool' => $scaleTypesHard, 'clef' => 'treble'],
+                default => ['allowed_scale_types' => $scaleTypesMedium, 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'direction' => 'both', 'distractor_pool' => $scaleTypesMedium, 'clef' => 'treble'],
             },
+            // Rhythm rules mirror the Exercise Setup Studio rhythm flow
+            // (PracticeRhythm::mount): the difficulty-keyed beat-cell pool
+            // (LearningPathQuestionGenerator::rhythmCells) drives generation
+            // directly — no allowed_note_values filter, so dotted values, busier
+            // subdivisions and (hard) triplets arrive with the difficulty exactly
+            // as in Exercise Setup. Rests follow the include_rests rule: exactly
+            // one rest injected post-assembly, never on the first beat (easy has
+            // none). Time signature and tempo have no user input on the AI page,
+            // so the difficulty also widens the meter pool and speeds the tempo.
             'rhythm-practice' => match ($difficulty) {
-                'easy' => ['time_signatures' => ['4/4'], 'allowed_note_values' => ['quarter', 'half'], 'tempo_range' => [70, 80], 'bars' => 1],
-                'hard' => ['time_signatures' => ['4/4', '3/4', '6/8'], 'allowed_note_values' => ['quarter', 'eighth', 'half', 'sixteenth', 'quarter_rest'], 'tempo_range' => [88, 100], 'bars' => 2],
-                default => ['time_signatures' => ['4/4', '3/4'], 'allowed_note_values' => ['quarter', 'eighth', 'half', 'quarter_rest'], 'tempo_range' => [76, 88], 'bars' => 1],
+                'easy' => ['rhythm_difficulty' => 'easy', 'include_rests' => false, 'time_signatures' => ['4/4'], 'tempo_range' => [56, 64], 'bars' => 1],
+                'hard' => ['rhythm_difficulty' => 'hard', 'include_rests' => true, 'time_signatures' => ['4/4', '3/4', '6/8'], 'tempo_range' => [66, 76], 'bars' => 1],
+                default => ['rhythm_difficulty' => 'medium', 'include_rests' => true, 'time_signatures' => ['4/4', '3/4'], 'tempo_range' => [60, 70], 'bars' => 1],
             },
             'melodic-dictation' => match ($difficulty) {
                 'easy' => ['note_pool' => ['C4', 'D4', 'E4', 'F4', 'G4'], 'melody_length' => 4, 'clef' => 'treble', 'key_signatures' => ['C'], 'tempo_range' => [56, 64], 'bars' => 1],
                 'hard' => ['note_pool' => ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5'], 'melody_length' => 6, 'clef' => 'treble', 'key_signatures' => ['C', 'G', 'F'], 'tempo_range' => [66, 76], 'bars' => 2],
                 default => ['note_pool' => ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4'], 'melody_length' => 5, 'clef' => 'treble', 'key_signatures' => ['C', 'G'], 'tempo_range' => [60, 70], 'bars' => 1],
+            },
+            // Single Note: same generation engine + rules as Exercise Setup Studio
+            // (PracticeSingleNote::mount) — allowed-note pool, treble octave range
+            // (4–5), distractor_count 3 (target + 3 distractors = 4 options, which
+            // is exactly what the practice-mixed answer grid renders). Only the
+            // note pool and octave spread vary by difficulty.
+            'single-note-practice' => match ($difficulty) {
+                'easy' => ['allowed_notes' => ['C', 'D', 'E', 'G', 'A'], 'octave_range' => ['4'], 'distractor_count' => 3],
+                'hard' => ['allowed_notes' => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], 'octave_range' => ['4', '5'], 'distractor_count' => 3],
+                default => ['allowed_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'], 'octave_range' => ['4'], 'distractor_count' => 3],
             },
             default => [],
         };
@@ -404,6 +628,22 @@ class AIController extends Controller
     private function buildAdaptiveConfig(string $slug, int $userId): array
     {
         $medium = $this->buildLocalConfig($slug, 'medium');
+
+        // Rhythm: pick the difficulty preset from the user's rhythm practice
+        // history (UserPractice accuracy across all rhythm modes). Cold start
+        // (fewer than 10 answered questions) uses the medium preset, matching
+        // Exercise Setup's adaptive → medium mapping.
+        if ($slug === 'rhythm-practice') {
+            $practiceId = Practice::where('slug', 'rhythm-practice')->value('id');
+            $stats = UserPractice::where('user_id', $userId)->where('practice_id', $practiceId)->first();
+            if ($stats && $stats->total_questions >= 10) {
+                $level = $stats->score >= 85 ? 'hard' : ($stats->score >= 55 ? 'medium' : 'easy');
+
+                return $this->buildLocalConfig($slug, $level);
+            }
+
+            return $medium;
+        }
 
         // Adaptive weighting only applies to the interval practice types.
         $intervalSlugs = array_column(UserIntervalStat::INTERVAL_PRACTICE_TYPES, 'slug');
@@ -475,14 +715,18 @@ class AIController extends Controller
     }
 
     /**
-     * Weight-expanded list of comparison pairs. Each weak interval becomes the
-     * larger member of a pair, paired against a randomly chosen smaller one
-     * (both rooted at C within a single octave). Octave (12) is skipped since it
-     * cannot be expressed as a same-letter single-octave note pair.
+     * Weight-expanded list of comparison pairs. Each weak interval is paired
+     * against a randomly chosen different-sized one, both expressed as the
+     * Exercise Setup comparison component's canonical same-octave C-root pairs
+     * (PracticeIntervalComparison::POOL_TO_PAIR — diatonic flat spelling, never
+     * a unison). Octave (12) is skipped since it cannot be expressed as a
+     * same-octave note pair.
      */
     private function weightedComparisonPairs(array $intervals, callable $copies): array
     {
-        $chroma = MusicTheoryService::CHROMATIC_NOTES; // indices 0-11
+        // Canonical C-root pair per semitone size 1–11 (POOL_TO_PAIR order: m2…M7).
+        $pairBySemitone = array_values(PracticeIntervalComparison::POOL_TO_PAIR);
+
         $out = [];
         foreach ($intervals as $iv) {
             $s = $iv['semitones'];
@@ -490,12 +734,14 @@ class AIController extends Controller
                 continue;
             }
             for ($i = 0, $n = $copies($iv['multiplier']); $i < $n; $i++) {
-                $smaller = random_int(0, $s - 1);
-                $out[] = ['C,'.$chroma[$smaller], 'C,'.$chroma[$s]];
+                // m2 (1 semitone) has no smaller ES interval — pair it against a
+                // random larger one instead so the weak interval still appears.
+                $other = $s === 1 ? random_int(2, 11) : random_int(1, $s - 1);
+                $out[] = [$pairBySemitone[$s - 1], $pairBySemitone[$other - 1]];
             }
         }
 
-        return $out ?: [['C,D', 'C,F'], ['C,E', 'C,A'], ['C,G', 'C,C']];
+        return $out ?: PracticeIntervalComparison::buildPairsFromPool(['M3', 'P5', 'M7']);
     }
 
     /**
@@ -604,11 +850,14 @@ class AIController extends Controller
             return ['error' => 'OpenAI API key not configured'];
         }
 
+        $model = SystemSetting::get('ai_model', 'gpt-4.1-mini');
+        $start = microtime(true);
+
         try {
             $client = OpenAI::client($apikey);
 
             $response = $client->chat()->create([
-                'model' => 'gpt-4.1-mini',
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -694,8 +943,11 @@ class AIController extends Controller
                 ],
             ]);
 
+            AiUsageLogger::logSuccess('session_coach_notes', $model, $response->usage, auth()->id(), [], (int) ((microtime(true) - $start) * 1000));
+
             return json_decode($response->choices[0]->message->content, true);
         } catch (\Exception $e) {
+            AiUsageLogger::logError('session_coach_notes', $model, $e->getMessage(), auth()->id(), [], (int) ((microtime(true) - $start) * 1000));
             \Log::error('OpenAI API error in generateCoachNotes: '.$e->getMessage());
 
             return [

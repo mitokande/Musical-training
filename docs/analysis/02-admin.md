@@ -1,0 +1,50 @@
+## Admin Panel & Operations
+
+All admin routes live in a single group at `routes/web.php:361` — `Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')`. Authorization is entirely middleware-based (`AdminMiddleware` gates on `role === 'admin'`); none of the 30 admin controllers use policies or `$this->authorize()` — access control is all-or-nothing at the route-group level, not per-resource.
+
+### Dashboard
+`AdminController::dashboard()` (`app/Http/Controllers/Admin/AdminController.php`, 142 lines) is a single fat action that assembles the whole admin homepage: user counts by role/plan, DAU/WAU/MAU, registration trend (30d), exercise volume (14d), AI/game/social weekly stats, pending-article count, unread-message count, top users by exercise volume, and the last 15 `spatie/activitylog` entries. No caching — every admin page load runs ~15 aggregate queries directly against `users`, `daily_exercise_counts`, `ai_coaching_sessions`, `game_scores`, `feed_items`.
+
+### CRM (lightweight, user-attached notes/tasks)
+- `CrmNoteController` (56 lines) — CRUD + pin toggle on notes attached to a `User` (`type`: general/follow_up/complaint/feedback). No ownership check on update/destroy — any admin can edit/delete any other admin's note (`Route::model` binding only, no `$note->admin_id === auth()->id()` guard).
+- `CrmTaskController` (99 lines) — standard resource controller for admin-facing tasks.
+- `MessageController` (102 lines) — inbox-style admin↔user messaging (index/show/create/store/reply/markRead/archive). Distinct from the new Teacher-CRM messaging system (out of scope here).
+
+Note: there is a **second, much larger Teacher CRM system** (`TeacherStudentNote`, `TeacherStudentTag`, etc., under `app/Models/Teacher*`) introduced in the uncommitted work — unrelated to this lightweight admin CRM and owned by the Teacher-domain fork.
+
+### Content & Exercise Library
+- `ContentController` (152 lines) — manages `Article` records (draft/pending/published/rejected workflow) **and now absorbs article approval**: `approve()` (line 129) sets `status=published`, `reject()` requires an `admin_note` and sets `status=rejected`. This is a merge target — see Risks below.
+- `ContentCategoryController`, `ExerciseCategoryController` — plain category CRUD.
+- `ExerciseController` (61 lines) — generic exercise CRUD, thin.
+- `LearningPathExerciseController` (163 lines) — admin CRUD for `LearningPathExercise` rows, the model that drives `LearningPathQuestionGenerator` (per CLAUDE.md); this is the most structurally important content-admin controller since `config_json` shape errors here directly break practice generation.
+- Five near-identical per-practice-type admin controllers (`HarmonicIntervalPracticeController`, `IntervalComparisonPracticeController`, `IntervalConstructionPracticeController`, `IntervalDirectionPracticeController`, `MelodicIntervalPracticeController`, plus `SingleNotePracticeController`), each ~110-134 lines of duplicated CRUD scaffolding for one Eloquent model — no shared base/trait despite being structurally identical (see Risks).
+- `MusicTheoryApiController` (96 lines) — admin-facing endpoints wrapping `MusicTheoryService` (likely for building/previewing questions in the admin UI).
+- `ExerciseValidationController` (69 lines) — `index()` runs `MusicTheoryService::validateQuestionConsistency()` over **every row** of all 5 interval-practice tables synchronously on each page load (`$modelClass::all()` then per-row validation, no chunking/caching) to build a valid/invalid/needs-review summary; `repair()` shells out to the `exercises:repair-questions` Artisan command (see `RepairQuestions.php`) with `--dry-run`/`--type` flags, echoing raw `Artisan::output()` back into the response/flash message.
+
+### Commerce / Ops
+- `UserController` (310 lines, largest admin controller) — index (search/filter/paginate), show, bulk actions, **impersonation** (`impersonate()`/`leaveImpersonation()`), password-reset trigger, segments, CRUD, `toggleRestriction()`, CSV export via `UsersExport`/Maatwebsite Excel.
+  - Impersonation (lines 136-161): blocks self-impersonation and impersonating other admins, stores `session('impersonator_id')`, calls `Auth::login($user)` directly. `leaveImpersonation()` trusts the session value and re-logs-in as that admin ID with no re-verification (e.g. no check that the *current* session was actually reached via a real impersonation, no restriction check on the target admin). Standard-ish pattern but worth a security pass given it's a full account-takeover primitive gated only by the `admin` role check.
+- `CouponController`, `InvoiceController`, `PlanController`, `SubscriptionController` — conventional CRUD over `Coupon`, `Invoice`, `Plan`, `Subscription`.
+- `SettingsController` (50 lines) — key/value system settings + `activityLog()` viewer (spatie activitylog browser).
+- `ReportController` (157 lines) — 7 report views (members, revenue, subscriptions, exercises, aiCoach, content) plus a generic `export($type)`.
+- `AppointmentController` / `CalendarController` — admin-side scheduling views; likely legacy/parallel to the new Teacher booking system (`TeacherAppointment`, `TeacherAvailability` etc.) being built in the uncommitted work — worth reconciling which is canonical going forward.
+- `GameController` (70 lines) — leaderboard/score moderation (`destroyScore`) + game settings.
+- `PianoStudioController` (40 lines) — settings for the piano-studio feature.
+
+### New, uncommitted general-ops controllers
+- `SystemHealthController` (114 lines, untracked) — `index()` returns PHP/Laravel/env/cache/queue info, DB connectivity + row counts for 10 key tables, pending/failed job counts + oldest pending job age, disk free/total/used%, log file size, and tails recent errors out of `storage/logs/laravel.log` (`recentLogErrors()`). No caching; reads the log file synchronously on every request — could be slow if the log is large. Purely a read-only ops dashboard, no destructive actions.
+- `CommunityController` (51 lines, untracked) — moderation view over `FeedItem`/`FeedLike`/`Follow` (the new social-feed feature): stats, filterable/searchable feed listing, top posters, and `destroy()` to hard-delete a feed item. No soft-delete/audit trail on `destroy` — deleted posts leave no record for the activity log (unlike most Eloquent CRUD elsewhere in admin, this bypasses spatie/activitylog).
+
+### Deleted/merged: Article Approval
+`app/Http/Controllers/Admin/ArticleApprovalController.php` and its views (`resources/views/admin/articles/{index,show}.blade.php`) are deleted in the working tree. Confirmed via `git show HEAD:...`: its `index/show/approve/reject` logic has been folded into `ContentController` (approve/reject now at `ContentController.php:129` and `:141`), and `routes/web.php:496` leaves an explicit legacy redirect: `Route::redirect('articles', '/admin/content')` with the comment "Legacy /admin/articles module was merged into the Content Library (admin.content.*)". This is a clean, intentional merge — not dangling breakage.
+
+### config/plans.php
+Two top-level keys, `user` and `teacher`, each with `free`/`premium` arrays of feature flags/limits (e.g. `daily_exercises_per_type`, `ai_coach`, `games_daily_plays_per_type`, and for teachers `max_students`, `crm`, `assignments`, `content_publishing`, `calendar`). `-1` is the "unlimited" sentinel throughout, consistent with `User::getPlanLimit()` per CLAUDE.md. The `teacher.premium` block foreshadows the large uncommitted Teacher-marketplace feature (CRM, assignments, calendar) — this config is the gating point that new Teacher CRM controllers should (and largely do) check against.
+
+### Risks & Observations
+1. **No per-resource authorization** — every admin controller relies solely on the route-group `admin` middleware. There's no ownership/ability check anywhere (e.g. `CrmNoteController::update/destroy` lets any admin mutate any other admin's notes; `GameController::destroyScore` and `CommunityController::destroy` are irreversible with no confirmation/audit trail). Fine for a single trusted admin role today, but there's no seam for a future "moderator" or scoped-admin role.
+2. **Six duplicated interval-practice CRUD controllers** (`HarmonicIntervalPracticeController`, `IntervalComparisonPracticeController`, `IntervalConstructionPracticeController`, `IntervalDirectionPracticeController`, `MelodicIntervalPracticeController`, `SingleNotePracticeController`) — ~110-134 lines each, structurally near-identical. A shared abstract controller or trait would cut ~500+ lines and centralize the `config_json`/validation-rule logic that currently must be kept in sync by hand across six files.
+3. **`ExerciseValidationController::index()` is O(n) synchronous validation with no chunking** — loads `Model::all()` for 5 practice types and runs `validateQuestionConsistency()` per row on every page view; will degrade as question banks grow. Should be cached or moved to a scheduled command writing a summary table (there's already `ValidateQuestions.php` as an Artisan command — the admin page could read its output instead of recomputing).
+4. **Overlapping scheduling systems** — legacy `Admin\AppointmentController`/`CalendarController` vs. the new uncommitted `TeacherAppointment`/`TeacherAvailability`/`TeacherBookingController` stack (owned by the Teacher-domain fork). Worth an explicit decision on whether the legacy admin appointment CRUD is being retired.
+5. **`CommunityController::destroy()`** hard-deletes feed items with no activity-log entry, inconsistent with the rest of the admin panel's implicit reliance on `spatie/laravel-activitylog` for auditability (see `SettingsController::activityLog()`).
+6. **Impersonation** (`UserController::impersonate/leaveImpersonation`) is a full session takeover gated only by `role !== admin`; no logging of who impersonated whom or when beyond whatever spatie/activitylog auto-captures (worth confirming `User` model has the `LogsActivity` trait wired for auth events, not just model CRUD).

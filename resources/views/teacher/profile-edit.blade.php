@@ -1,253 +1,538 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ __('app.teacher.profile_page_title') }} - {{ config('app.name', 'Harmoniva') }}</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@0.460.0"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
-                    colors: {
-                        primary: { 50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7c3aed',800:'#6b21a8',900:'#581c87' },
-                        accent: { 400:'#fb923c',500:'#f97316',600:'#ea580c' }
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="font-sans bg-gray-50 min-h-screen">
+@extends('teacher.layouts.crm')
 
-@include('partials.navbar', ['active' => 'teacher'])
+@section('title', __('teacher.profile.title'))
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+@section('content')
+<div class="max-w-4xl" x-data="{ section: 'general' }">
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ __('app.teacher.profile_page_title') }}</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ __('app.teacher.profile_subtitle') }}</p>
+            <h1 class="text-2xl font-bold text-gray-900">{{ __('teacher.profile.title') }}</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ __('teacher.profile.subtitle') }}</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            {{ __('app.teacher.back_to_dashboard') }}
-        </a>
+        <div class="flex items-center gap-2">
+            @if($profile->canBeSubmitted())
+                <form method="POST" action="{{ route('teacher.profile.submit') }}">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                        <i data-lucide="send" class="w-4 h-4"></i> {{ __('teacher.dashboard.submit_for_review') }}
+                    </button>
+                </form>
+            @endif
+            <a href="{{ route('teacher.profile.preview') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                <i data-lucide="eye" class="w-4 h-4"></i> {{ __('teacher.nav.view_as_student') }}
+            </a>
+        </div>
     </div>
 
-    @if(session('status') === 'profile-updated')
-        <div class="mb-6 px-4 py-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
-            <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
-            <p class="text-sm text-green-700">{{ __('app.teacher.profile_updated') }}</p>
+    @if($profile->isPubliclyVisible())
+        <div class="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-xl flex items-center gap-3 text-sm">
+            <i data-lucide="link" class="w-4 h-4 text-primary-600 shrink-0"></i>
+            <span class="text-gray-600">{{ __('teacher.profile.public_url') }}:</span>
+            <a href="{{ $profile->publicUrl() }}" class="font-semibold text-primary-700 truncate">{{ $profile->publicUrl() }}</a>
         </div>
     @endif
 
-    @if($errors->any())
-        <div class="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
-            <ul class="list-disc list-inside text-sm text-red-600">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    {{-- Section tabs --}}
+    <div class="flex flex-wrap gap-2 mb-6">
+        @foreach([
+            'general' => __('teacher.profile.section_general'),
+            'music' => __('teacher.profile.section_music'),
+            'services' => __('teacher.profile.section_services'),
+            'videos' => __('teacher.profile.section_videos'),
+            'media' => __('teacher.profile.section_media'),
+            'payment' => __('teacher.profile.section_payment_links'),
+            'seo' => __('teacher.profile.section_seo'),
+        ] as $key => $label)
+            <button type="button" @click="section = '{{ $key }}'"
+                    :class="section === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold transition">
+                {{ $label }}
+            </button>
+        @endforeach
+    </div>
 
-    <form method="POST" action="{{ route('teacher.profile.update') }}">
+    @php
+        $toCsv = fn ($arr) => is_array($arr) ? implode(', ', $arr) : ($arr ?? '');
+    @endphp
+
+    {{-- =============== MAIN FORM: general + music + seo =============== --}}
+    <form method="POST" action="{{ route('teacher.profile.update') }}" x-show="['general','music','seo'].includes(section)">
         @csrf
         @method('PUT')
 
-        {{-- Temel Bilgiler --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <i data-lucide="user" class="w-5 h-5 text-primary-600"></i>
-                {{ __('app.teacher.basic_info') }}
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {{-- GENERAL --}}
+        <div class="card p-6 space-y-5" x-show="section === 'general'" x-cloak>
+            <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.title_label') }}</label>
-                    <input type="text" name="title" value="{{ old('title', $profile->title) }}" placeholder="{{ __('app.teacher.title_placeholder') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.headline') }}</label>
+                    <input type="text" name="headline" value="{{ old('headline', $profile->headline) }}" maxlength="160"
+                           placeholder="{{ __('teacher.fields.headline_placeholder') }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.location') }}</label>
-                    <input type="text" name="location" value="{{ old('location', $profile->location) }}" placeholder="{{ __('app.teacher.location_placeholder') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.expertise') }}</label>
+                    <input type="text" name="expertise" value="{{ old('expertise', $profile->expertise) }}"
+                           placeholder="{{ __('teacher.fields.expertise_placeholder') }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
                 </div>
             </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.short_bio') }}</label>
-                <textarea name="short_bio" rows="2" maxlength="500" placeholder="Kisa bir tanitim..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">{{ old('short_bio', $profile->short_bio) }}</textarea>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.detailed_bio') }}</label>
-                <textarea name="long_bio" rows="5" maxlength="5000" placeholder="Detayli biyografiniz..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">{{ old('long_bio', $profile->long_bio) }}</textarea>
-            </div>
-        </div>
 
-        {{-- Uzmanlik Alanlari --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <i data-lucide="award" class="w-5 h-5 text-primary-600"></i>
-                {{ __('app.teacher.expertise') }}
-            </h2>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('app.teacher.specializations') }}</label>
-                @php
-                    $allSpecs = __('app.teacher.specialization_options');
-                    $selectedSpecs = old('specializations', $profile->specializations ?? []);
-                @endphp
-                <div x-data="{ selected: {{ json_encode($selectedSpecs) }} }" class="flex flex-wrap gap-2">
-                    @foreach($allSpecs as $spec)
-                        <label @click.prevent="selected.includes('{{ addslashes($spec) }}') ? selected.splice(selected.indexOf('{{ addslashes($spec) }}'), 1) : selected.push('{{ addslashes($spec) }}')"
-                               :class="selected.includes('{{ addslashes($spec) }}') ? 'bg-primary-50 border-primary-300 text-primary-700' : 'bg-white border-gray-200 text-gray-600 hover:border-primary-200'"
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer text-sm transition select-none">
-                            <input type="checkbox" name="specializations[]" value="{{ $spec }}"
-                                   :checked="selected.includes('{{ addslashes($spec) }}')" class="hidden">
-                            {{ $spec }}
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.about') }}</label>
+                <textarea name="about" rows="5" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('about', $profile->about) }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.teaching_methodology') }}</label>
+                <textarea name="teaching_methodology" rows="4" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('teaching_methodology', $profile->teaching_methodology) }}</textarea>
+            </div>
+
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-2">{{ __('teacher.fields.teaching_formats') }}</label>
+                <div class="flex flex-wrap gap-4">
+                    @foreach(['online' => __('teacher.fields.format_online'), 'in_person' => __('teacher.fields.format_in_person'), 'hybrid' => __('teacher.fields.format_hybrid')] as $format => $label)
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" name="teaching_formats[]" value="{{ $format }}"
+                                   @checked(in_array($format, old('teaching_formats', $profile->teaching_formats ?? [])))
+                                   class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                            {{ $label }}
                         </label>
                     @endforeach
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.education_history') }}</label>
-                    <textarea name="education_background" rows="2" maxlength="500" placeholder="Universite, sertifikalar..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">{{ old('education_background', $profile->education_background) }}</textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.experience_years') }}</label>
-                    <input type="number" name="experience_years" value="{{ old('experience_years', $profile->experience_years) }}" min="0" max="80" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('app.teacher.spoken_languages') }}</label>
-                @php
-                    $allLangs = __('app.teacher.language_options');
-                    $selectedLangs = old('languages', $profile->languages ?? []);
-                @endphp
-                <div x-data="{ selected: {{ json_encode($selectedLangs) }} }" class="flex flex-wrap gap-2">
-                    @foreach($allLangs as $lang)
-                        <label @click.prevent="selected.includes('{{ addslashes($lang) }}') ? selected.splice(selected.indexOf('{{ addslashes($lang) }}'), 1) : selected.push('{{ addslashes($lang) }}')"
-                               :class="selected.includes('{{ addslashes($lang) }}') ? 'bg-primary-50 border-primary-300 text-primary-700' : 'bg-white border-gray-200 text-gray-600 hover:border-primary-200'"
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer text-sm transition select-none">
-                            <input type="checkbox" name="languages[]" value="{{ $lang }}"
-                                   :checked="selected.includes('{{ addslashes($lang) }}')" class="hidden">
-                            {{ $lang }}
-                        </label>
-                    @endforeach
-                </div>
-            </div>
-        </div>
 
-        {{-- Ders Bilgileri --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <i data-lucide="book-open" class="w-5 h-5 text-primary-600"></i>
-                {{ __('app.teacher.lesson_info') }}
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.lesson_format') }}</label>
-                    <select name="lesson_format" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                        <option value="">{{ __('app.teacher.select_format') }}</option>
-                        <option value="online" {{ old('lesson_format', $profile->lesson_format) === 'online' ? 'selected' : '' }}>{{ __('app.teacher.online') }}</option>
-                        <option value="in_person" {{ old('lesson_format', $profile->lesson_format) === 'in_person' ? 'selected' : '' }}>{{ __('app.teacher.in_person') }}</option>
-                        <option value="hybrid" {{ old('lesson_format', $profile->lesson_format) === 'hybrid' ? 'selected' : '' }}>{{ __('app.teacher.hybrid') }}</option>
-                    </select>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.lesson_types') }}</label>
+                    <input type="text" name="lesson_types" value="{{ old('lesson_types', $toCsv($profile->lesson_types)) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('teacher.fields.lesson_types_hint') }}</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.hourly_rate') }}</label>
-                    <input type="number" name="hourly_rate" value="{{ old('hourly_rate', $profile->hourly_rate) }}" min="0" step="0.01" placeholder="250.00" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.currency') }}</label>
-                    <select name="currency" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                        <option value="TRY" {{ old('currency', $profile->currency ?? 'TRY') === 'TRY' ? 'selected' : '' }}>TRY</option>
-                        <option value="USD" {{ old('currency', $profile->currency) === 'USD' ? 'selected' : '' }}>USD</option>
-                        <option value="EUR" {{ old('currency', $profile->currency) === 'EUR' ? 'selected' : '' }}>EUR</option>
-                    </select>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.languages') }}</label>
+                    <input type="text" name="languages" value="{{ old('languages', $toCsv($profile->languages)) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('teacher.fields.languages_hint') }}</p>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div class="flex items-center gap-3">
-                    <input type="hidden" name="accepts_students" value="0">
-                    <input type="checkbox" name="accepts_students" value="1" id="accepts_students" {{ old('accepts_students', $profile->accepts_students) ? 'checked' : '' }} class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500">
-                    <label for="accepts_students" class="text-sm font-medium text-gray-700">{{ __('app.teacher.accepting_students') }}</label>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.max_students') }}</label>
-                    <input type="number" name="max_students" value="{{ old('max_students', $profile->max_students) }}" min="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.payment_link') }}</label>
-                <input type="url" name="payment_link" value="{{ old('payment_link', $profile->payment_link) }}" placeholder="https://..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-            </div>
-        </div>
 
-        {{-- Sosyal Medya --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <i data-lucide="share-2" class="w-5 h-5 text-primary-600"></i>
-                {{ __('app.teacher.social_media') }}
-            </h2>
-            @php $social = old('social_links', $profile->social_links ?? []); @endphp
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0"><i data-lucide="instagram" class="w-5 h-5 text-pink-600"></i></div>
-                    <input type="text" name="social_links[instagram]" value="{{ $social['instagram'] ?? '' }}" placeholder="{{ __('app.teacher.instagram_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.country') }}</label>
+                    <input type="text" name="country" value="{{ old('country', $profile->country) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0"><i data-lucide="youtube" class="w-5 h-5 text-red-600"></i></div>
-                    <input type="text" name="social_links[youtube]" value="{{ $social['youtube'] ?? '' }}" placeholder="{{ __('app.teacher.youtube_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.city') }}</label>
+                    <input type="text" name="city" value="{{ old('city', $profile->city) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-                        <svg viewBox="0 0 24 24" class="w-5 h-5 text-gray-700 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.public_email') }}</label>
+                    <input type="email" name="public_email" value="{{ old('public_email', $profile->public_email) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    <label class="inline-flex items-center gap-2 mt-2 text-[15px] text-gray-700">
+                        <input type="checkbox" name="show_email" value="1" @checked(old('show_email', $profile->show_email)) class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        {{ __('teacher.fields.show_email') }}
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.public_phone') }}</label>
+                    <input type="text" name="public_phone" value="{{ old('public_phone', $profile->public_phone) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    <label class="inline-flex items-center gap-2 mt-2 text-[15px] text-gray-700">
+                        <input type="checkbox" name="show_phone" value="1" @checked(old('show_phone', $profile->show_phone)) class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                        {{ __('teacher.fields.show_phone') }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.website') }}</label>
+                    <input type="url" name="website_url" value="{{ old('website_url', $profile->website_url) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                @foreach(['instagram', 'tiktok', 'youtube', 'linkedin', 'facebook'] as $network)
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.'.$network) }}</label>
+                        <input type="url" name="social_links[{{ $network }}]" value="{{ old('social_links.'.$network, $profile->social_links[$network] ?? '') }}"
+                               class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
                     </div>
-                    <input type="text" name="social_links[twitter]" value="{{ $social['twitter'] ?? '' }}" placeholder="{{ __('app.teacher.twitter_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><i data-lucide="linkedin" class="w-5 h-5 text-blue-600"></i></div>
-                    <input type="text" name="social_links[linkedin]" value="{{ $social['linkedin'] ?? '' }}" placeholder="{{ __('app.teacher.linkedin_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><i data-lucide="facebook" class="w-5 h-5 text-blue-700"></i></div>
-                    <input type="text" name="social_links[facebook]" value="{{ $social['facebook'] ?? '' }}" placeholder="{{ __('app.teacher.facebook_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0"><i data-lucide="music-2" class="w-5 h-5 text-white"></i></div>
-                    <input type="text" name="social_links[tiktok]" value="{{ $social['tiktok'] ?? '' }}" placeholder="{{ __('app.teacher.tiktok_ph') }}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                </div>
-            </div>
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.teacher.website') }}</label>
-                <input type="url" name="website_url" value="{{ old('website_url', $profile->website_url) }}" placeholder="https://www.example.com" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                @endforeach
             </div>
         </div>
 
-        {{-- Gorunurluk --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-            <div class="flex items-center gap-3">
-                <input type="hidden" name="public_profile" value="0">
-                <input type="checkbox" name="public_profile" value="1" id="public_profile" {{ old('public_profile', $profile->public_profile) ? 'checked' : '' }} class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500">
-                <label for="public_profile" class="text-sm font-medium text-gray-700">{{ __('app.teacher.public_profile') }}</label>
+        {{-- MUSIC PROFILE --}}
+        <div class="card p-6 space-y-5" x-show="section === 'music'" x-cloak>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.primary_instrument') }}</label>
+                    <input type="text" name="primary_instrument" value="{{ old('primary_instrument', $profile->primary_instrument) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.other_instruments') }}</label>
+                    <input type="text" name="instruments" value="{{ old('instruments', $profile->instruments->pluck('instrument')->implode(', ')) }}"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    <p class="text-xs text-gray-400 mt-1">{{ __('teacher.fields.languages_hint') }}</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.education_status') }}</label>
+                <input type="text" name="education_status" value="{{ old('education_status', $profile->education_status) }}"
+                       class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+            </div>
+
+            {{-- Education entries (Add More) --}}
+            <div x-data="{ rows: {{ json_encode($profile->educations->map(fn ($e) => [
+                'institution' => $e->institution,
+                'program' => $e->program,
+                'field_of_study' => $e->field_of_study,
+                'graduation_year' => $e->graduation_year,
+            ])->values()->all() ?: [['institution' => '', 'program' => '', 'field_of_study' => '', 'graduation_year' => '']]) }} }">
+                <label class="block text-[15px] font-semibold text-gray-800 mb-2">{{ __('teacher.fields.educations') }}</label>
+                <template x-for="(row, index) in rows" :key="index">
+                    <div class="grid sm:grid-cols-4 gap-2 mb-2 items-start">
+                        <input type="text" :name="'educations['+index+'][institution]'" x-model="row.institution"
+                               placeholder="{{ __('teacher.fields.institution') }}"
+                               class="rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <input type="text" :name="'educations['+index+'][program]'" x-model="row.program"
+                               placeholder="{{ __('teacher.fields.program') }}"
+                               class="rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <input type="text" :name="'educations['+index+'][field_of_study]'" x-model="row.field_of_study"
+                               placeholder="{{ __('teacher.fields.field_of_study') }}"
+                               class="rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <div class="flex gap-2">
+                            <input type="number" :name="'educations['+index+'][graduation_year]'" x-model="row.graduation_year"
+                                   placeholder="{{ __('teacher.fields.graduation_year') }}" min="1940" max="2100"
+                                   class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                            <button type="button" @click="rows.splice(index, 1)" class="p-2 text-gray-400 hover:text-red-500" x-show="rows.length > 1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+                <button type="button" @click="rows.push({institution:'',program:'',field_of_study:'',graduation_year:''}); $nextTick(() => lucide.createIcons())"
+                        class="inline-flex items-center gap-1 text-sm font-semibold text-primary-600 hover:text-primary-700 mt-1">
+                    <i data-lucide="plus" class="w-4 h-4"></i> {{ __('teacher.profile.add_more') }}
+                </button>
+            </div>
+
+            <div class="grid sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.certificates') }}</label>
+                    <textarea name="certificates" rows="3" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('certificates', $profile->certificates) }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.workshops') }}</label>
+                    <textarea name="workshops" rows="3" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('workshops', $profile->workshops) }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.masterclasses') }}</label>
+                    <textarea name="masterclasses" rows="3" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('masterclasses', $profile->masterclasses) }}</textarea>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.experience_years') }}</label>
+                    <input type="number" name="experience_years" value="{{ old('experience_years', $profile->experience_years) }}" min="0" max="80"
+                           class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.teaching_experience') }}</label>
+                    <textarea name="teaching_experience" rows="2" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('teaching_experience', $profile->teaching_experience) }}</textarea>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                @foreach(['genres', 'expertise_areas', 'age_groups', 'skill_levels', 'teaching_languages'] as $listField)
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.'.$listField) }}</label>
+                        <input type="text" name="{{ $listField }}" value="{{ old($listField, $toCsv($profile->{$listField})) }}"
+                               class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <p class="text-xs text-gray-400 mt-1">{{ __('teacher.fields.languages_hint') }}</p>
+                    </div>
+                @endforeach
             </div>
         </div>
 
-        <div class="flex justify-end">
-            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
-                <i data-lucide="save" class="w-4 h-4"></i>
-                {{ __('app.common.save') }}
+        {{-- SEO --}}
+        <div class="card p-6 space-y-5" x-show="section === 'seo'" x-cloak>
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.seo_title') }}</label>
+                <input type="text" name="seo_title" value="{{ old('seo_title', $profile->seo_title) }}" maxlength="255"
+                       class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+            </div>
+            <div>
+                <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.fields.seo_description') }}</label>
+                <textarea name="seo_description" rows="3" maxlength="320" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('seo_description', $profile->seo_description) }}</textarea>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                <i data-lucide="save" class="w-4 h-4"></i> {{ __('teacher.profile.save_draft') }}
             </button>
         </div>
     </form>
-</div>
 
-<script>lucide.createIcons();</script>
-</body>
-</html>
+    {{-- =============== COVER IMAGE (general section, separate form for file upload) =============== --}}
+    <div class="card p-6 mt-6" x-show="section === 'general'" x-cloak>
+        <label class="block text-[15px] font-semibold text-gray-800 mb-2">{{ __('teacher.fields.cover_image') }}</label>
+        @if($profile->coverImageUrl())
+            <img src="{{ $profile->coverImageUrl() }}" alt="" class="w-full h-40 object-cover rounded-xl mb-3">
+        @endif
+        <form method="POST" action="{{ route('teacher.profile.cover') }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
+            @csrf
+            <input type="file" name="cover" accept="image/*" required class="text-sm text-gray-600">
+            <button type="submit" class="px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">{{ __('teacher.fields.upload_cover') }}</button>
+        </form>
+    </div>
+
+    {{-- =============== SERVICES =============== --}}
+    <div x-show="section === 'services'" x-cloak>
+        <div class="card p-6 mb-4">
+            <h2 class="font-semibold text-gray-900 mb-4">{{ __('teacher.services.add') }}</h2>
+            <form method="POST" action="{{ route('teacher.services.store') }}" class="grid sm:grid-cols-2 gap-4">
+                @csrf
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.service_title') }}</label>
+                    <input type="text" name="title" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.lesson_type') }}</label>
+                    <input type="text" name="lesson_type" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.format') }}</label>
+                    <select name="format" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">—</option>
+                        <option value="online">{{ __('teacher.fields.format_online') }}</option>
+                        <option value="in_person">{{ __('teacher.fields.format_in_person') }}</option>
+                        <option value="hybrid">{{ __('teacher.fields.format_hybrid') }}</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.duration') }}</label>
+                        <input type="number" name="duration_minutes" min="5" max="480" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.price_text') }}</label>
+                        <input type="text" name="price_text" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.description') }}</label>
+                    <textarea name="description" rows="2" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500"></textarea>
+                </div>
+                <div class="sm:col-span-2">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i> {{ __('teacher.services.add') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @forelse($profile->services as $service)
+            <div class="card p-4 mb-2 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="font-semibold text-gray-900 text-sm">{{ $service->title }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        {{ $service->lesson_type }}
+                        @if($service->duration_minutes) · {{ $service->duration_minutes }} min @endif
+                        @if($service->price_text) · {{ $service->price_text }} @endif
+                    </p>
+                    @if($service->description)<p class="text-sm text-gray-600 mt-1">{{ $service->description }}</p>@endif
+                </div>
+                <form method="POST" action="{{ route('teacher.services.destroy', $service) }}" onsubmit="return confirm('{{ __('teacher.profile.remove') }}?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </form>
+            </div>
+        @empty
+            <p class="text-sm text-gray-400">{{ __('teacher.services.none') }}</p>
+        @endforelse
+    </div>
+
+    {{-- =============== VIDEOS =============== --}}
+    <div x-show="section === 'videos'" x-cloak>
+        <div class="card p-6 mb-4">
+            <h2 class="font-semibold text-gray-900 mb-4">{{ __('teacher.videos.add') }}</h2>
+            <form method="POST" action="{{ route('teacher.videos.store') }}" class="grid sm:grid-cols-2 gap-4">
+                @csrf
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.videos.video_title') }}</label>
+                    <input type="text" name="title" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.videos.youtube_url') }}</label>
+                    <input type="url" name="url" required placeholder="https://www.youtube.com/watch?v=..." class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="sm:col-span-2">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i> {{ __('teacher.videos.add') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+            @forelse($profile->videos as $video)
+                <div class="card overflow-hidden">
+                    <img src="{{ $video->thumbnailUrl() }}" alt="{{ $video->title }}" class="w-full h-36 object-cover">
+                    <div class="p-3 flex items-center justify-between gap-2">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $video->title }}</p>
+                        <form method="POST" action="{{ route('teacher.videos.destroy', $video) }}" onsubmit="return confirm('{{ __('teacher.profile.remove') }}?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="p-1.5 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400">{{ __('teacher.videos.none') }}</p>
+            @endforelse
+        </div>
+    </div>
+
+    {{-- =============== MEDIA =============== --}}
+    <div x-show="section === 'media'" x-cloak>
+        <div class="card p-6 mb-4">
+            <h2 class="font-semibold text-gray-900 mb-4">{{ __('teacher.media.add') }}</h2>
+            <form method="POST" action="{{ route('teacher.media.store') }}" enctype="multipart/form-data" class="grid sm:grid-cols-2 gap-4">
+                @csrf
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.media.kind') }}</label>
+                    <select name="kind" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <option value="photo">{{ __('teacher.media.kind_photo') }}</option>
+                        <option value="document">{{ __('teacher.media.kind_document') }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.media.visibility') }}</label>
+                    <select name="visibility" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        <option value="private">{{ __('teacher.media.visibility_private') }}</option>
+                        <option value="public">{{ __('teacher.media.visibility_public') }}</option>
+                        <option value="shared">{{ __('teacher.media.visibility_shared') }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.media.file') }}</label>
+                    <input type="file" name="file" required class="text-sm text-gray-600">
+                </div>
+                <div>
+                    <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.services.service_title') }}</label>
+                    <input type="text" name="title" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                <div class="sm:col-span-2">
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                        <i data-lucide="upload" class="w-4 h-4"></i> {{ __('teacher.media.add') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @forelse($profile->media as $item)
+            <div class="card p-4 mb-2 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    @if($item->kind === 'photo' && $item->isPublic())
+                        <img src="{{ $item->publicUrl() }}" alt="" class="w-12 h-12 object-cover rounded-lg shrink-0">
+                    @else
+                        <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                            <i data-lucide="{{ $item->kind === 'photo' ? 'image' : 'file-text' }}" class="w-5 h-5 text-gray-400"></i>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ $item->title ?: $item->original_name }}</p>
+                        <p class="text-xs text-gray-400">{{ __('teacher.media.kind_'.$item->kind) }} · {{ __('teacher.media.visibility_'.$item->visibility) }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    @unless($item->isPublic())
+                        <a href="{{ route('teacher.media.download', $item) }}" class="p-2 text-gray-400 hover:text-primary-600"><i data-lucide="download" class="w-4 h-4"></i></a>
+                    @endunless
+                    <form method="POST" action="{{ route('teacher.media.destroy', $item) }}" onsubmit="return confirm('{{ __('teacher.profile.remove') }}?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <p class="text-sm text-gray-400">{{ __('teacher.media.none') }}</p>
+        @endforelse
+    </div>
+
+    {{-- =============== PAYMENT LINKS =============== --}}
+    <div x-show="section === 'payment'" x-cloak>
+        @if($capabilities['useExternalPaymentLinks'])
+            <div class="card p-6 mb-4">
+                <h2 class="font-semibold text-gray-900 mb-1">{{ __('teacher.payment_links.add') }}</h2>
+                <p class="text-xs text-gray-500 mb-4">{{ __('teacher.payment_links.intro') }}</p>
+                <form method="POST" action="{{ route('teacher.payment-links.store') }}" class="grid sm:grid-cols-2 gap-4">
+                    @csrf
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.label') }}</label>
+                        <input type="text" name="label" required placeholder="{{ __('teacher.payment_links.label_placeholder') }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.url') }}</label>
+                        <input type="url" name="url" required placeholder="https://" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.price_text') }}</label>
+                        <input type="text" name="price_text" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.lesson_type') }}</label>
+                        <input type="text" name="lesson_type" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.visibility') }}</label>
+                        <select name="visibility" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                            <option value="public">{{ __('teacher.payment_links.visibility_public') }}</option>
+                            <option value="approved_students">{{ __('teacher.payment_links.visibility_approved_students') }}</option>
+                            <option value="appointment_confirmation">{{ __('teacher.payment_links.visibility_appointment_confirmation') }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ __('teacher.payment_links.description') }}</label>
+                        <input type="text" name="description" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> {{ __('teacher.payment_links.add') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            @forelse($profile->paymentLinks as $link)
+                <div class="card p-4 mb-2 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900">{{ $link->label }} @if($link->price_text)<span class="text-gray-500 font-normal">· {{ $link->price_text }}</span>@endif</p>
+                        <p class="text-xs text-gray-400 truncate">{{ $link->url }} · {{ __('teacher.payment_links.visibility_'.$link->visibility) }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('teacher.payment-links.destroy', $link) }}" onsubmit="return confirm('{{ __('teacher.profile.remove') }}?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </form>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400">{{ __('teacher.payment_links.none') }}</p>
+            @endforelse
+        @else
+            <div class="card p-8 text-center">
+                <i data-lucide="lock" class="w-8 h-8 text-amber-400 mx-auto mb-3"></i>
+                <p class="text-sm text-gray-600">{{ __('teacher.payment_links.premium_required') }}</p>
+            </div>
+        @endif
+    </div>
+</div>
+@endsection

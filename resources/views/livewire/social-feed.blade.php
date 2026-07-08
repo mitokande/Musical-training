@@ -1,4 +1,4 @@
-<div class="max-w-2xl mx-auto space-y-4">
+<div class="w-full space-y-4">
 
     {{-- Composer --}}
     <div class="card p-5">
@@ -51,7 +51,8 @@
                 {{-- Avatar --}}
                 <a href="{{ $actor ? url('/u/'.$actor->username) : '#' }}" class="shrink-0">
                     @if($actor && $actor->hasAvatar())
-                        <img src="{{ $actor->avatar }}" alt="" class="w-10 h-10 rounded-full object-cover">
+                        {{-- Uploaded photos render at 2× the placeholder size --}}
+                        <img src="{{ $actor->avatar }}" alt="" class="w-20 h-20 rounded-full object-cover">
                     @else
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
                             {{ substr($actor->name ?? 'U', 0, 1) }}
@@ -122,5 +123,25 @@
         </div>
     @endforelse
 
-    <div>{{ $items->links() }}</div>
+    {{-- Infinite scroll: auto-loads the next batch as the sentinel scrolls into view,
+         with a "Show more" button as a click fallback. --}}
+    @if($hasMore)
+        <div wire:key="feed-load-more"
+             x-data="{ busy: false }"
+             x-init="
+                const io = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting && !busy) {
+                        busy = true;
+                        $wire.loadMore().then(() => { busy = false; });
+                    }
+                }, { rootMargin: '400px' });
+                io.observe($el);
+             ">
+            <button wire:click="loadMore" wire:loading.attr="disabled" wire:target="loadMore"
+                    class="w-full card py-3 text-sm font-semibold text-purple-700 hover:bg-purple-50 transition-colors inline-flex items-center justify-center gap-2">
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin hidden" wire:loading.class.remove="hidden" wire:target="loadMore"></i>
+                {{ __('app.social.load_more') }}
+            </button>
+        </div>
+    @endif
 </div>

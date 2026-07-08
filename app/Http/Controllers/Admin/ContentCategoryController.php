@@ -28,12 +28,12 @@ class ContentCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'slug'        => 'required|string|max:255|unique:content_categories',
-            'parent_id'   => 'nullable|exists:content_categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:content_categories',
+            'parent_id' => 'nullable|exists:content_categories,id',
             'description' => 'nullable|string',
-            'sort_order'  => 'integer|min:0',
-            'is_active'   => 'boolean',
+            'sort_order' => 'integer|min:0',
+            'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
@@ -50,18 +50,18 @@ class ContentCategoryController extends Controller
             ->where('id', '!=', $contentCategory->id)
             ->get();
 
-        return view('admin.content-categories.edit', compact('contentCategory', 'parents'));
+        return view('admin.content-categories.edit', ['category' => $contentCategory, 'parents' => $parents]);
     }
 
     public function update(Request $request, ContentCategory $contentCategory)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'slug'        => 'required|string|max:255|unique:content_categories,slug,' . $contentCategory->id,
-            'parent_id'   => 'nullable|exists:content_categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:content_categories,slug,'.$contentCategory->id,
+            'parent_id' => 'nullable|exists:content_categories,id',
             'description' => 'nullable|string',
-            'sort_order'  => 'integer|min:0',
-            'is_active'   => 'boolean',
+            'sort_order' => 'integer|min:0',
+            'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');

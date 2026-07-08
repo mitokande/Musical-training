@@ -21,7 +21,7 @@ class PracticeIntervalConstruction extends Component
         'Minor 7th', 'Major 7th', 'Perfect Octave',
     ];
 
-    private const INTERVAL_POOL_MAP = [
+    public const INTERVAL_POOL_MAP = [
         'm2' => 'Minor 2nd',   'M2' => 'Major 2nd',
         'm3' => 'Minor 3rd',   'M3' => 'Major 3rd',
         'P4' => 'Perfect 4th', 'TT' => 'Tritone',
@@ -30,7 +30,7 @@ class PracticeIntervalConstruction extends Component
         'M7' => 'Major 7th',   '8ve' => 'Perfect Octave',
     ];
 
-    private const DIATONIC_NOTE_POOL = [
+    public const DIATONIC_NOTE_POOL = [
         'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'Fb',
         'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb',
         'B', 'B#', 'Cb', 'C##', 'D##', 'F##', 'G##', 'A##',

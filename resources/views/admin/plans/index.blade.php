@@ -70,12 +70,19 @@
 
                     @if($plan->features)
                         <div class="border-t pt-4">
-                            <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">Features</h4>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase mb-2">Limits</h4>
                             <ul class="space-y-1">
-                                @foreach((is_array($plan->features) ? $plan->features : json_decode($plan->features, true)) ?? [] as $feature)
-                                    <li class="flex items-center gap-2 text-sm text-gray-600">
-                                        <i data-lucide="check" class="w-3 h-3 text-green-500"></i>
-                                        {{ $feature }}
+                                @foreach((is_array($plan->features) ? $plan->features : json_decode($plan->features, true)) ?? [] as $key => $value)
+                                    <li class="flex items-center justify-between gap-2 text-sm text-gray-600">
+                                        <span>{{ is_int($key) ? $value : ucfirst(str_replace('_', ' ', $key)) }}</span>
+                                        @unless(is_int($key))
+                                        <span class="font-medium {{ $value === false ? 'text-red-500' : 'text-gray-900' }}">
+                                            @if(is_bool($value)) {{ $value ? 'Yes' : 'No' }}
+                                            @elseif($value === -1) Unlimited
+                                            @else {{ $value }}
+                                            @endif
+                                        </span>
+                                        @endunless
                                     </li>
                                 @endforeach
                             </ul>

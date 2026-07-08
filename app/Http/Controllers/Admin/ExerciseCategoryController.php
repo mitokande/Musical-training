@@ -38,6 +38,7 @@ class ExerciseCategoryController extends Controller
                     ->withAvg('userProgress', 'score')
                     ->orderBy('sort_order')
                     ->get());
+
                 return $sub;
             });
 
@@ -54,14 +55,14 @@ class ExerciseCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'slug'        => 'required|string|max:255|unique:exercise_categories',
-            'parent_id'   => 'nullable|exists:exercise_categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:exercise_categories',
+            'parent_id' => 'nullable|exists:exercise_categories,id',
             'description' => 'nullable|string',
-            'icon'        => 'nullable|string|max:100',
-            'sort_order'  => 'integer|min:0',
-            'is_active'   => 'boolean',
-            'is_premium'  => 'boolean',
+            'icon' => 'nullable|string|max:100',
+            'sort_order' => 'integer|min:0',
+            'is_active' => 'boolean',
+            'is_premium' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
@@ -79,20 +80,20 @@ class ExerciseCategoryController extends Controller
             ->where('id', '!=', $exerciseCategory->id)
             ->get();
 
-        return view('admin.exercise-categories.edit', compact('exerciseCategory', 'parents'));
+        return view('admin.exercise-categories.edit', ['category' => $exerciseCategory, 'parents' => $parents]);
     }
 
     public function update(Request $request, ExerciseCategory $exerciseCategory)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'slug'        => 'required|string|max:255|unique:exercise_categories,slug,' . $exerciseCategory->id,
-            'parent_id'   => 'nullable|exists:exercise_categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:exercise_categories,slug,'.$exerciseCategory->id,
+            'parent_id' => 'nullable|exists:exercise_categories,id',
             'description' => 'nullable|string',
-            'icon'        => 'nullable|string|max:100',
-            'sort_order'  => 'integer|min:0',
-            'is_active'   => 'boolean',
-            'is_premium'  => 'boolean',
+            'icon' => 'nullable|string|max:100',
+            'sort_order' => 'integer|min:0',
+            'is_active' => 'boolean',
+            'is_premium' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');

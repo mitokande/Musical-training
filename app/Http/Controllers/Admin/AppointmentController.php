@@ -20,18 +20,18 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'teacher_id'  => 'required|exists:users,id',
-            'student_id'  => 'nullable|exists:users,id',
-            'school_id'   => 'nullable|exists:schools,id',
-            'title'       => 'required|string|max:255',
+            'teacher_id' => 'required|exists:users,id',
+            'student_id' => 'nullable|exists:users,id',
+            'school_id' => 'nullable|exists:schools,id',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'starts_at'   => 'required|date',
-            'ends_at'     => 'required|date|after:starts_at',
-            'type'        => 'required|string|in:lesson,consultation,meeting,trial',
-            'status'      => 'required|string|in:scheduled,confirmed,cancelled,completed',
-            'location'    => 'nullable|string|max:255',
+            'starts_at' => 'required|date',
+            'ends_at' => 'required|date|after:starts_at',
+            'type' => 'required|string|in:lesson,consultation,meeting,trial',
+            'status' => 'required|string|in:scheduled,confirmed,cancelled,completed',
+            'location' => 'nullable|string|max:255',
             'meeting_url' => 'nullable|url',
-            'notes'       => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         Appointment::create($validated);
@@ -58,18 +58,18 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'teacher_id'  => 'required|exists:users,id',
-            'student_id'  => 'nullable|exists:users,id',
-            'school_id'   => 'nullable|exists:schools,id',
-            'title'       => 'required|string|max:255',
+            'teacher_id' => 'required|exists:users,id',
+            'student_id' => 'nullable|exists:users,id',
+            'school_id' => 'nullable|exists:schools,id',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'starts_at'   => 'required|date',
-            'ends_at'     => 'required|date|after:starts_at',
-            'type'        => 'required|string|in:lesson,consultation,meeting,trial',
-            'status'      => 'required|string|in:scheduled,confirmed,cancelled,completed',
-            'location'    => 'nullable|string|max:255',
+            'starts_at' => 'required|date',
+            'ends_at' => 'required|date|after:starts_at',
+            'type' => 'required|string|in:lesson,consultation,meeting,trial',
+            'status' => 'required|string|in:scheduled,confirmed,cancelled,completed',
+            'location' => 'nullable|string|max:255',
             'meeting_url' => 'nullable|url',
-            'notes'       => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $appointment->update($validated);

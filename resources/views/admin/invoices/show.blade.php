@@ -44,7 +44,7 @@
 
         {{-- Invoice Body --}}
         <div class="p-6">
-            <table class="w-full text-sm mb-6">
+            <div class="overflow-x-auto"><table class="w-full text-sm mb-6">
                 <thead>
                     <tr class="border-b border-gray-200">
                         <th class="text-left py-2 text-xs font-semibold text-gray-500 uppercase">Description</th>
@@ -57,7 +57,7 @@
                         <td class="py-3 text-right text-gray-800">{{ number_format($invoice->amount, 2) }}</td>
                     </tr>
                 </tbody>
-            </table>
+            </table></div>
 
             <div class="flex justify-end">
                 <div class="w-64 space-y-2">

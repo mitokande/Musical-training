@@ -20,20 +20,30 @@
         }
     </script>
 
+    @php
+    $v = $variant ?? null;
+    $bgBase    = match($v) { 'a' => '#1c1535', 'b' => '#0c1428', default => '#0c0918' };
+    $bgSurface = match($v) { 'a' => 'rgba(255,255,255,0.06)',  'b' => 'rgba(255,255,255,0.055)', default => 'rgba(255,255,255,0.045)' };
+    $bgHover   = match($v) { 'a' => 'rgba(255,255,255,0.09)',  'b' => 'rgba(255,255,255,0.085)', default => 'rgba(255,255,255,0.07)' };
+    $border    = match($v) { 'a' => 'rgba(255,255,255,0.10)',  'b' => 'rgba(255,255,255,0.09)',  default => 'rgba(255,255,255,0.09)' };
+    $borderH   = match($v) { 'a' => 'rgba(255,255,255,0.20)',  'b' => 'rgba(255,255,255,0.18)',  default => 'rgba(255,255,255,0.18)' };
+    $grad1     = match($v) { 'a' => 'rgba(120,40,210,0.40)',   'b' => 'rgba(50,100,240,0.28)',   default => 'rgba(110,30,180,0.28)' };
+    $grad2     = match($v) { 'a' => 'rgba(40,90,210,0.22)',    'b' => 'rgba(110,40,200,0.20)',   default => 'rgba(30,80,200,0.12)' };
+    @endphp
     <style>
         :root {
-            --bg-base: #0c0918;
-            --bg-surface: rgba(255,255,255,0.045);
-            --bg-surface-hover: rgba(255,255,255,0.07);
-            --border: rgba(255,255,255,0.09);
-            --border-hover: rgba(255,255,255,0.18);
+            --bg-base: {{ $bgBase }};
+            --bg-surface: {{ $bgSurface }};
+            --bg-surface-hover: {{ $bgHover }};
+            --border: {{ $border }};
+            --border-hover: {{ $borderH }};
         }
         body { background: var(--bg-base); }
 
         .page-bg {
             background:
-                radial-gradient(ellipse 70% 40% at 60% -10%, rgba(110,30,180,0.28) 0%, transparent 60%),
-                radial-gradient(ellipse 50% 30% at 15% 70%, rgba(30,80,200,0.12) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 40% at 60% -10%, {{ $grad1 }} 0%, transparent 60%),
+                radial-gradient(ellipse 50% 30% at 15% 70%, {{ $grad2 }} 0%, transparent 55%),
                 var(--bg-base);
         }
 
@@ -483,6 +493,17 @@
         </div>
 
     </div>
+
+    @if($v ?? null)
+    <div style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:9px 14px;border-radius:12px;font-size:12px;font-weight:700;backdrop-filter:blur(12px);font-family:sans-serif;">
+        🎨 Test Variant {{ strtoupper($v) }}
+        <span style="color:rgba(255,255,255,0.3)">|</span>
+        <a href="/games/a" style="color:{{ $v==='a'?'#a78bfa':'rgba(255,255,255,0.4)' }};text-decoration:none;">A</a>
+        <a href="/games/b" style="color:{{ $v==='b'?'#60a5fa':'rgba(255,255,255,0.4)' }};text-decoration:none;">B</a>
+        <span style="color:rgba(255,255,255,0.3)">|</span>
+        <a href="/games" style="color:rgba(255,255,255,0.4);text-decoration:none;">Orijinal</a>
+    </div>
+    @endif
 
     <script>
         document.addEventListener('DOMContentLoaded', () => lucide.createIcons());

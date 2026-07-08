@@ -82,10 +82,11 @@ class MusicTheoryService
         'Perfect Octave' => 8,
     ];
 
-    // Clef → inclusive playable pitch range [lowest, highest] for interval
-    // exercises. Notes outside this range must never be generated.
+    // Clef → inclusive playable pitch range [lowest, highest]. Site-wide
+    // standard: treble G3–G5, bass C2–C4, alto C3–C5. Notes outside this
+    // range must never be generated.
     public const CLEF_RANGES = [
-        'treble' => ['G3', 'E5'],
+        'treble' => ['G3', 'G5'],
         'bass' => ['C2', 'C4'],
         'alto' => ['C3', 'C5'],
     ];
@@ -295,8 +296,9 @@ class MusicTheoryService
         }
 
         $accidental = $accOffset === 1 ? '#' : ($accOffset === -1 ? 'b' : '');
+        $spelled = $targetLetter.$accidental;
 
-        return ['note' => $targetLetter.$accidental, 'octave' => $targetOctave];
+        return ['note' => $spelled, 'octave' => $targetOctave];
     }
 
     /**
@@ -388,6 +390,32 @@ class MusicTheoryService
         $cb = $this->parseNoteChromatic($b);
 
         return $ca !== null && $cb !== null && $ca === $cb;
+    }
+
+    /**
+     * Convert an internal ASCII note spelling (#, b, ##, bb, or the VexFlow
+     * 'x' double-sharp alias) into the universal Unicode accidental symbols
+     * (♯, ♭) for user-facing display. Doubled accidentals become doubled
+     * symbols (♯♯, ♭♭) — the standard way double-sharps/flats are engraved.
+     * Any trailing octave digits pass through untouched. Mirrored in JS by
+     * window.HarmonivaNotation.toDisplaySymbol (partials/responsive-notation).
+     */
+    public static function toDisplaySymbol(string $note): string
+    {
+        if (! preg_match('/^([A-Ga-g])(##|bb|x|#|b)?(.*)$/', $note, $m)) {
+            return str_replace(['#', 'b'], ['♯', '♭'], $note);
+        }
+
+        $letter = strtoupper($m[1]);
+        $accidental = match (strtolower($m[2] ?? '')) {
+            '#' => '♯',
+            '##', 'x' => '♯♯',
+            'b' => '♭',
+            'bb' => '♭♭',
+            default => '',
+        };
+
+        return $letter.$accidental.$m[3];
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

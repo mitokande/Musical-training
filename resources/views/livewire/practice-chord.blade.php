@@ -171,9 +171,10 @@
                 const renderer = new Renderer(div, Renderer.Backends.SVG);
                 renderer.resize(490, 180);
                 const context = renderer.getContext();
+                const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
                 const stave = new Stave(10, 30, 464);
                 stave.addClef(clef || 'treble');
-                stave.setNoteStartX(stave.getNoteStartX() + 100);
+                stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                 stave.setContext(context).draw();
 
                 const keys = (showAll && allKeys.length) ? allKeys : [rootKey];
@@ -183,7 +184,7 @@
                 const voice = new Voice({ numBeats: 4, beatValue: 4 });
                 voice.addTickables([chord]);
                 Accidental.applyAccidentals([voice], 'C');
-                new Formatter().joinVoices([voice]).format([voice], 200);
+                new Formatter().joinVoices([voice]).format([voice], HS.span(1));
                 voice.draw(context, stave);
             }
 
@@ -217,7 +218,7 @@
                     'major 6th': 'Maj6', 'minor 6th': 'min6',
                     'add9': 'add9', 'minor add9': 'madd9',
                 };
-                const invLabels = [' Root', ' 1. Çev.', ' 2. Çev.'];
+                const invLabels = [' {{ __('app.exercises.chord_inversion_root') }}', ' {{ __('app.exercises.chord_inversion_1st') }}', ' {{ __('app.exercises.chord_inversion_2nd') }}'];
                 const notes = playButton.dataset.notes ? playButton.dataset.notes.split(',') : [];
                 const voicing = playButton.dataset.voicing;
                 let isAnswered = false;
@@ -274,7 +275,7 @@
                             const chordLabelEl = document.getElementById('chordLabel');
                             if (chordLabelEl) {
                                 const abbr = chordAbbr[chordType.toLowerCase()] || chordType;
-                                chordLabelEl.textContent = chordRoot + abbr + (invLabels[inversionNum] || '');
+                                chordLabelEl.textContent = window.HarmonivaNotation.toDisplaySymbol(chordRoot) + abbr + (invLabels[inversionNum] || '');
                                 chordLabelEl.classList.remove('invisible');
                             }
                             if (playButton) playButton.classList.add('hidden');

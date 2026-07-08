@@ -146,15 +146,16 @@
                 if (!div) return;
                 div.innerHTML = '';
                 // Size the staff to the full scale so every note stays on screen.
+                const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
                 const noteCount = (showAll && allKeys.length) ? allKeys.length : 1;
                 const clefWidth = 60;
-                const staveWidth = Math.max(360, clefWidth + 40 + noteCount * 46);
+                const staveWidth = Math.max(360, clefWidth + HS.startPad + HS.span(noteCount) + 30);
                 const renderer = new Renderer(div, Renderer.Backends.SVG);
                 renderer.resize(staveWidth + 20, 180);
                 const context = renderer.getContext();
                 const stave = new Stave(10, 30, staveWidth);
                 stave.addClef(clef || 'treble');
-                stave.setNoteStartX(stave.getNoteStartX() + 20);
+                stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                 stave.setContext(context).draw();
 
                 let voice;
@@ -169,8 +170,7 @@
                     voice.addTickables([new StaveNote({ keys: [rootKey], duration: 'w', auto_stem: true, clef: clef || 'treble' })]);
                 }
                 Accidental.applyAccidentals([voice], 'C');
-                const formatWidth = Math.max(120, staveWidth - clefWidth - 50);
-                new Formatter().joinVoices([voice]).format([voice], formatWidth);
+                new Formatter().joinVoices([voice]).format([voice], HS.span(noteCount));
                 voice.draw(context, stave);
             }
 
@@ -238,7 +238,7 @@
                             // Show scale name above the staff.
                             const scaleLabelEl = document.getElementById('scaleLabel');
                             if (scaleLabelEl && scaleName) {
-                                scaleLabelEl.textContent = scaleName;
+                                scaleLabelEl.textContent = window.HarmonivaNotation.toDisplaySymbol(scaleName);
                                 scaleLabelEl.classList.remove('invisible');
                             }
                             if (playButton) playButton.classList.add('hidden');

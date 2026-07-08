@@ -108,7 +108,7 @@
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                 </a>
                                 @if(($message->status ?? '') == 'unread')
-                                <form action="{{ route('admin.messages.mark-read', $message) }}" method="POST" class="inline">
+                                <form action="{{ route('admin.messages.read', $message) }}" method="POST" class="inline">
                                     @csrf @method('PATCH')
                                     <button type="submit" class="p-1.5 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50" title="Mark Read">
                                         <i data-lucide="check" class="w-4 h-4"></i>

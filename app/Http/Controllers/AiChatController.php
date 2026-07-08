@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FeedItem;
+use App\Models\SystemSetting;
+use App\Models\User;
+use App\Models\UserPractice;
+use App\Services\AiUsageLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,10 +25,13 @@ class AiChatController extends Controller
         'it' => 'Italian',
     ];
 
-    private const DAILY_LIMIT_FREE    = 3;
+    private const DAILY_LIMIT_FREE = 3;
+
     private const DAILY_LIMIT_PREMIUM = 10;
-    private const MAX_WORDS_FREE      = 200;
-    private const MAX_WORDS_PREMIUM   = 400;
+
+    private const MAX_WORDS_FREE = 200;
+
+    private const MAX_WORDS_PREMIUM = 400;
 
     private const LIMIT_MESSAGES = [
         'tr' => 'Günlük soru limitinize ulaştınız. Daha fazla soru sormak için Premium\'a geçin.',
@@ -38,7 +46,17 @@ class AiChatController extends Controller
     public function index(Request $request): View
     {
         $history = session('ai_chat_history', []);
-        return view('ai-chat.index', compact('history'));
+        $user = $request->user();
+        $profile = $user->profile;
+
+        $allPractices = UserPractice::where('user_id', $user->id)->get();
+        $totalSessions = $allPractices->count();
+        $totalQuestions = (int) $allPractices->sum('total_questions');
+        $totalCorrect = (int) $allPractices->sum('correct_answers');
+        $accuracy = $totalQuestions > 0 ? round(($totalCorrect / $totalQuestions) * 100) : 0;
+        $streak = FeedItem::currentStreakForUser($user->id);
+
+        return view('ai-chat.index', compact('history', 'user', 'profile', 'totalSessions', 'totalQuestions', 'accuracy', 'streak'));
     }
 
     public function send(Request $request): RedirectResponse
@@ -46,22 +64,23 @@ class AiChatController extends Controller
         $request->validate(['message' => ['required', 'string', 'max:500']]);
 
         $apiKey = config('services.openai.key');
-        if (!$apiKey) {
+        if (! $apiKey) {
             return redirect()->route('ai-chat.index')->with('chat_error', 'OpenAI API anahtarı yapılandırılmamış.');
         }
 
-        $user     = $request->user();
-        $locale   = $this->resolveLocale($user->locale ?? 'en');
-        $cacheKey = "ai_chat:{$user->id}:" . now()->toDateString();
-        $used     = (int) Cache::get($cacheKey, 0);
-        $limit    = $user->isPremium() ? self::DAILY_LIMIT_PREMIUM : self::DAILY_LIMIT_FREE;
+        $user = $request->user();
+        $locale = $this->resolveLocale($user->locale ?? 'en');
+        $cacheKey = "ai_chat:{$user->id}:".now()->toDateString();
+        $used = (int) Cache::get($cacheKey, 0);
+        $limit = $user->isPremium() ? self::DAILY_LIMIT_PREMIUM : self::DAILY_LIMIT_FREE;
 
         if ($used >= $limit) {
             $msg = self::LIMIT_MESSAGES[$locale] ?? self::LIMIT_MESSAGES['en'];
+
             return redirect()->route('ai-chat.index')->with('chat_error', $msg);
         }
 
-        $maxWords  = $user->isPremium() ? self::MAX_WORDS_PREMIUM : self::MAX_WORDS_FREE;
+        $maxWords = $user->isPremium() ? self::MAX_WORDS_PREMIUM : self::MAX_WORDS_FREE;
         $maxTokens = $user->isPremium() ? 600 : 320;
 
         $history = session('ai_chat_history', []);
@@ -69,8 +88,8 @@ class AiChatController extends Controller
 
         $messages = [
             [
-                'role'    => 'system',
-                'content' => $this->buildSystemPrompt($maxWords) . "\n\n" . $this->buildUserContext($user, $locale),
+                'role' => 'system',
+                'content' => $this->buildSystemPrompt($maxWords)."\n\n".$this->buildUserContext($user, $locale),
             ],
         ];
 
@@ -79,18 +98,25 @@ class AiChatController extends Controller
         }
         $messages[] = ['role' => 'user', 'content' => $userMsg];
 
+        $model = SystemSetting::get('ai_model', 'gpt-4.1-mini');
+        $start = microtime(true);
+
         try {
-            $client   = OpenAI::client($apiKey);
+            $client = OpenAI::client($apiKey);
             $response = $client->chat()->create([
-                'model'       => 'gpt-4.1-mini',
-                'messages'    => $messages,
-                'max_tokens'  => $maxTokens,
+                'model' => $model,
+                'messages' => $messages,
+                'max_tokens' => $maxTokens,
                 'temperature' => 0.5,
             ]);
+
+            AiUsageLogger::logSuccess('ai_chat_assistant', $model, $response->usage, $user->id, [], (int) ((microtime(true) - $start) * 1000));
 
             $answer = $response->choices[0]->message->content;
 
         } catch (\Exception $e) {
+            AiUsageLogger::logError('ai_chat_assistant', $model, $e->getMessage(), $user->id, [], (int) ((microtime(true) - $start) * 1000));
+
             return redirect()->route('ai-chat.index')->with('chat_error', 'Bir hata oluştu. Lütfen tekrar deneyin.');
         }
 
@@ -111,6 +137,7 @@ class AiChatController extends Controller
     public function clear(Request $request): RedirectResponse
     {
         session()->forget('ai_chat_history');
+
         return redirect()->route('ai-chat.index');
     }
 
@@ -134,7 +161,7 @@ class AiChatController extends Controller
             '',
             'Rules:',
             '- Reply in the language specified by the user\'s preferred_language field. Supported languages: English, Spanish, German, French, Portuguese, Turkish, Italian. If not supported, use English.',
-            '- Keep your response under ' . $maxWords . ' words.',
+            '- Keep your response under '.$maxWords.' words.',
             '- For simple questions, answer briefly and clearly.',
             '- For technical, broad, or important questions, give a more detailed, structured, and example-based answer.',
             '- Adapt the explanation to the user\'s apparent level.',
@@ -157,10 +184,10 @@ class AiChatController extends Controller
         ]);
     }
 
-    private function buildUserContext(\App\Models\User $user, string $locale): string
+    private function buildUserContext(User $user, string $locale): string
     {
         $language = self::SUPPORTED_LOCALES[$locale] ?? 'English';
-        $profile  = $user->profile;
+        $profile = $user->profile;
 
         $lines = [
             'User music profile context (use to personalize responses — do not repeat this back to the user):',
@@ -169,8 +196,8 @@ class AiChatController extends Controller
 
         if ($profile?->primary_instrument) {
             $levelMap = ['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced'];
-            $lines[]  = '- instrument: ' . $profile->primary_instrument;
-            $lines[]  = '- level: ' . ($levelMap[$profile->musical_level ?? ''] ?? 'unknown');
+            $lines[] = '- instrument: '.$profile->primary_instrument;
+            $lines[] = '- level: '.($levelMap[$profile->musical_level ?? ''] ?? 'unknown');
         }
 
         $weakAreas = $user->userPractices()
@@ -178,18 +205,17 @@ class AiChatController extends Controller
             ->orderByDesc('updated_at')
             ->take(10)
             ->get()
-            ->filter(fn($up) =>
-                isset($up->total_questions, $up->correct_answers)
+            ->filter(fn ($up) => isset($up->total_questions, $up->correct_answers)
                 && $up->total_questions > 0
                 && ($up->correct_answers / $up->total_questions) < 0.6
             )
-            ->map(fn($up) => $up->practice?->name)
+            ->map(fn ($up) => $up->practice?->name)
             ->filter()
             ->unique()
             ->values();
 
         if ($weakAreas->isNotEmpty()) {
-            $lines[] = '- recent weak areas: ' . $weakAreas->implode(', ');
+            $lines[] = '- recent weak areas: '.$weakAreas->implode(', ');
         }
 
         return implode("\n", $lines);

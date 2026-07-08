@@ -127,31 +127,49 @@
         noteFallDesc:    @json(__('app.games.note_fall_desc')),
         noteCatcherDesc: @json(__('app.games.note_catcher_desc')),
     };
+
+    // Site-wide accidental display standard (mirrored in
+    // partials/responsive-notation.blade.php and MusicTheoryService::toDisplaySymbol).
+    // Converts internal ASCII note spellings (#, b, ##, bb) into the universal
+    // Unicode accidental symbols (♯, ♭) for display; doubled accidentals become
+    // doubled symbols (♯♯, ♭♭). Game pitch-class values keep using the ASCII
+    // form for lookups — only pass through here at render time.
+    window.HarmonivaNotation = {
+        toDisplaySymbol: function (note) {
+            var s = String(note == null ? '' : note);
+            var m = s.match(/^([A-Ga-g])(##|bb|x|#|b)?(.*)$/);
+            if (!m) return s.replace(/#/g, '♯').replace(/b/g, '♭');
+            var letter = m[1].toUpperCase();
+            var acc = { '#': '♯', '##': '♯♯', 'x': '♯♯', 'b': '♭', 'bb': '♭♭' }[(m[2] || '').toLowerCase()] || '';
+            return letter + acc + m[3];
+        }
+    };
     </script>
 
-    <div class="max-w-7xl mx-auto px-[5px] sm:px-6 lg:px-8 pt-5 sm:pt-[50px] pb-6">
+    <div class="max-w-7xl mx-auto px-[5px] sm:px-6 lg:px-8 pt-5 sm:pt-[30px] pb-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-7 gap-6{{ $slug === 'note-catcher' ? ' lg:max-w-[90%] lg:mx-auto' : '' }}">
+        <div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
 
             <!-- Game Panel -->
             <div class="lg:col-span-5">
                 @include('partials.games.' . $slug, [
-                    'personalBest'   => $personalBest,
-                    'canPlay'        => $canPlay,
-                    'perTypeLimit'   => $perTypeLimit,
-                    'totalLimit'     => $totalLimit,
-                    'dailyPlaysUsed' => $dailyPlaysUsed,
-                    'totalPlaysUsed' => $totalPlaysUsed,
-                    'scoreUrl'       => $scoreUrl,
-                    'slug'           => $slug,
+                    'personalBest'      => $personalBest,
+                    'canPlay'           => $canPlay,
+                    'perTypeLimit'      => $perTypeLimit,
+                    'totalLimit'        => $totalLimit,
+                    'dailyPlaysUsed'    => $dailyPlaysUsed,
+                    'totalPlaysUsed'    => $totalPlaysUsed,
+                    'scoreUrl'          => $scoreUrl,
+                    'slug'              => $slug,
+                    'maxUnlockedLevel'  => $maxUnlockedLevel ?? 1,
                 ])
             </div>
 
             <!-- Sidebar -->
-            <div class="lg:col-span-2 space-y-4">
+            <div class="lg:col-span-2 flex flex-col gap-4">
 
                 <!-- How to play -->
-                <div class="game-surface rounded-2xl p-5">
+                <div class="game-surface rounded-2xl p-5 flex-1">
                     <h3 class="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">{{ __('app.games.how_to_play') }}</h3>
                     @switch($slug)
                         @case('note-rush')
@@ -200,7 +218,7 @@
                 </div>
 
                 <!-- Personal Best -->
-                <div class="game-surface rounded-2xl p-5">
+                <div class="game-surface rounded-2xl p-5 flex-1">
                     <h3 class="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">{{ __('app.games.your_best') }}</h3>
                     @guest
                     <p class="text-white/30 text-sm mb-3">{{ __('app.games.save_score_login') }}</p>
@@ -229,7 +247,7 @@
 
                 <!-- Leaderboard -->
                 @if($canAccessLeaderboard && $weeklyLeaderboard->isNotEmpty())
-                <div class="game-surface rounded-2xl p-5">
+                <div class="game-surface rounded-2xl p-5 flex-1">
                     <div x-data="{ tab: 'weekly' }">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-white/50 text-xs font-semibold uppercase tracking-wider">{{ __('app.games.leaderboard') }}</h3>
@@ -270,7 +288,7 @@
                     </div>
                 </div>
                 @elseif(!$canAccessLeaderboard)
-                <div class="game-surface rounded-2xl p-5 text-center">
+                <div class="game-surface rounded-2xl p-5 text-center flex-1">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
                     </div>
@@ -297,7 +315,7 @@
 
         {{-- ─── ALL-TIME TOP 30 ────────────────────────────────────────────── --}}
         @if($canAccessLeaderboard && $allTimeLeaderboard->isNotEmpty())
-        <div class="mt-8 mb-4{{ $slug === 'note-catcher' ? ' lg:max-w-[90%] lg:mx-auto' : '' }}">
+        <div class="mt-8 mb-4">
             <div class="flex items-center gap-2 mb-5">
                 <i data-lucide="list-ordered" class="w-5 h-5 text-amber-400"></i>
                 <h2 class="text-white font-bold text-base">{{ __('app.games.all_time') }} — Top 30</h2>
@@ -376,29 +394,42 @@
     <script>
     window.HarmonivaAudio = (function () {
         let sampler = null;
+        let loadedPromise = null;
+
         function init() {
             if (sampler) return;
-            sampler = new Tone.Sampler({
-                urls: {
-                    C4: 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3',
-                    A4: 'A4.mp3', C5: 'C5.mp3',
-                },
-                release: 1,
-                baseUrl: 'https://tonejs.github.io/audio/salamander/',
-            }).toDestination();
+            loadedPromise = new Promise(resolve => {
+                sampler = new Tone.Sampler({
+                    urls: {
+                        C4: 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3',
+                        A4: 'A4.mp3', C5: 'C5.mp3',
+                    },
+                    release: 1,
+                    baseUrl: 'https://tonejs.github.io/audio/salamander/',
+                    onload: resolve,
+                }).toDestination();
+            });
         }
+
+        async function ready() {
+            await Tone.start();
+            if (!sampler) init();
+            if (loadedPromise) await loadedPromise;
+        }
+
         return {
+            async warmup() { await Tone.start(); if (!sampler) init(); },
             async playNote(note, duration) {
-                await Tone.start(); if (!sampler) init();
+                await ready();
                 sampler.triggerAttackRelease(note, duration ?? 1);
             },
             async playChord(notes, duration) {
-                await Tone.start(); if (!sampler) init();
+                await ready();
                 const now = Tone.now();
                 notes.forEach(n => sampler.triggerAttackRelease(n, duration ?? 2, now));
             },
             async playSequence(notes, intervalMs, duration) {
-                await Tone.start(); if (!sampler) init();
+                await ready();
                 const now = Tone.now();
                 notes.forEach((n, i) => sampler.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
             },

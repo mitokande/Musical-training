@@ -35,29 +35,43 @@
 
     @include('partials.navbar', ['active' => ''])
 
-    <div class="hero-gradient h-32"></div>
+    <div class="hero-gradient h-40"></div>
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 pb-10">
-        <div class="card p-6">
-            <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-10">
+        <div class="card p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-end gap-5">
                 {{-- Avatar --}}
                 @if($profileUser->hasAvatar())
-                    <img src="{{ $profileUser->avatar }}" alt="" class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow -mt-12 sm:-mt-16 bg-white">
+                    <img src="{{ $profileUser->avatar }}" alt="" class="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl object-cover border-4 border-white shadow-lg -mt-16 sm:-mt-24 bg-white">
                 @else
-                    <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow -mt-12 sm:-mt-16">
+                    <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-5xl font-bold border-4 border-white shadow-lg -mt-16 sm:-mt-24">
                         {{ substr($profileUser->name ?? 'U', 0, 1) }}
                     </div>
                 @endif
 
-                <div class="flex-1">
-                    <h1 class="text-2xl font-bold text-gray-900">{{ $profileUser->name }} {{ $profileUser->surname }}</h1>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $profileUser->name }} {{ $profileUser->surname }}</h1>
+                        @if($isTeacher)
+                            <span class="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full px-2.5 py-1">
+                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i> {{ __('app.social.teacher') }}
+                            </span>
+                        @endif
+                    </div>
                     <p class="text-gray-400 text-sm">&#64;{{ $profileUser->username }}</p>
                 </div>
 
                 {{-- Actions --}}
                 @auth
                     @if(auth()->id() !== $profileUser->id)
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @if($isTeacher && $teacherSlug)
+                                <a href="{{ route('teachers.show', $teacherSlug) }}"
+                                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    {{ __('app.social.see_profile') }}
+                                </a>
+                            @endif
                             @livewire('follow-button', ['user' => $profileUser])
                             <a href="{{ url('/messages?to='.$profileUser->username) }}"
                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
@@ -93,16 +107,28 @@
                 @endif
             </div>
 
-            {{-- Follow / stat counts --}}
-            <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                @foreach([
+            {{-- Follow / stat counts (teachers get two extra boxes) --}}
+            @php
+                $stats = [
                     ['label' => __('app.social.followers'), 'value' => $followersCount, 'icon' => 'users'],
                     ['label' => __('app.social.following'), 'value' => $followingCount, 'icon' => 'user-check'],
                     ['label' => __('app.social.sessions'), 'value' => $totalSessions, 'icon' => 'activity'],
                     ['label' => __('app.social.accuracy'), 'value' => $overallAccuracy.'%', 'icon' => 'target'],
-                ] as $stat)
-                    <div class="bg-gray-50 rounded-xl p-3 text-center">
-                        <div class="text-lg font-bold text-gray-900">{{ $stat['value'] }}</div>
+                ];
+                if ($isTeacher) {
+                    $stats[] = ['label' => __('app.social.students'), 'value' => $studentCount, 'icon' => 'graduation-cap'];
+                    $stats[] = ['label' => __('app.social.rating'), 'value' => $ratingCount > 0 ? $avgRating : '—', 'icon' => 'star'];
+                }
+            @endphp
+            <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 {{ $isTeacher ? 'lg:grid-cols-6' : 'lg:grid-cols-4' }} gap-3">
+                @foreach($stats as $stat)
+                    <div class="bg-gray-50 rounded-xl p-3.5 text-center">
+                        <div class="flex items-center justify-center gap-1 text-lg font-bold text-gray-900">
+                            @if($stat['icon'] === 'star' && $isTeacher && $ratingCount > 0)
+                                <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+                            @endif
+                            {{ $stat['value'] }}
+                        </div>
                         <div class="text-xs text-gray-400">{{ $stat['label'] }}</div>
                     </div>
                 @endforeach

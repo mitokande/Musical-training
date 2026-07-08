@@ -245,7 +245,7 @@
                                         <span class="text-gray-400">{{ $totalQuestions }} {{ __('app.profile.total_questions') }}</span>
                                     </div>
                                 @else
-                                    <p class="text-xs text-gray-400 pt-1">{{ __('app.profile.no_sessions') }} <a href="{{ route('learn') }}" class="text-primary-600 hover:underline">Başla →</a></p>
+                                    <p class="text-xs text-gray-400 pt-1">{{ __('app.profile.no_sessions') }} <a href="{{ route('learn') }}" class="text-primary-600 hover:underline">{{ __('app.exercises.start') }} →</a></p>
                                 @endif
                             </div>
                         </div>
@@ -418,7 +418,7 @@
                                 </div>
                             </dl>
                             <div class="p-3 rounded-xl mb-6 {{ empty($profile->bio) ? 'bg-red-50 border border-red-100' : 'bg-gray-50' }}">
-                                <dt class="text-xs font-medium {{ empty($profile->bio) ? 'text-red-500' : 'text-gray-500' }} mb-1">{{ __('app.profile.bio') }} {{ empty($profile->bio) ? '· Eksik' : '' }}</dt>
+                                <dt class="text-xs font-medium {{ empty($profile->bio) ? 'text-red-500' : 'text-gray-500' }} mb-1">{{ __('app.profile.bio') }} {{ empty($profile->bio) ? '· ' . __('app.common.missing') : '' }}</dt>
                                 <dd class="text-sm {{ empty($profile->bio) ? 'text-red-400 italic' : 'text-gray-700' }} leading-relaxed">{{ $profile->bio ?: __('app.profile.bio_empty') }}</dd>
                             </div>
                             <div>
@@ -482,7 +482,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.profile.weekly_hours') }}</label>
-                                        <input type="number" name="weekly_practice_hours" value="{{ old('weekly_practice_hours', $profile->weekly_practice_hours) }}" min="0" max="168" placeholder="Örneğin: 10" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                                        <input type="number" name="weekly_practice_hours" value="{{ old('weekly_practice_hours', $profile->weekly_practice_hours) }}" min="0" max="168" placeholder="{{ __('app.profile.weekly_hours_placeholder') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                                     </div>
                                 </div>
                                 <div class="mt-6">
@@ -727,6 +727,30 @@
                     <span class="text-sm font-semibold text-gray-700">{{ __('app.profile.settings') }}</span>
                 </div>
 
+                {{-- Öğretmen Hesabı --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="graduation-cap" class="w-5 h-5 text-primary-600"></i>
+                        {{ __('teacher.become.title') }}
+                    </h2>
+                    @if(auth()->user()->hasTeacherAccount())
+                        <p class="text-sm text-gray-500 mb-4">{{ __('teacher.profile.subtitle') }}</p>
+                        <a href="{{ route('teacher.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                            {{ __('teacher.dashboard.title') }}
+                        </a>
+                    @else
+                        <p class="text-sm text-gray-500 mb-4">{{ __('teacher.become.description') }}</p>
+                        <form method="POST" action="{{ route('teacher.become') }}">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                                <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                                {{ __('teacher.become.button') }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
+
                 {{-- Dil Ayarı --}}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -780,7 +804,7 @@
                                 :class="editingAvatar ? 'bg-gray-100 text-gray-600' : 'bg-primary-50 text-primary-600 hover:bg-primary-100'"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition">
                             <i :data-lucide="editingAvatar ? 'x' : 'pencil'" class="w-4 h-4"></i>
-                            <span x-text="editingAvatar ? '{{ __('app.profile.cancel') }}' : '{{ __('app.profile.change_password') }}'"></span>
+                            <span x-text="editingAvatar ? '{{ __('app.profile.cancel') }}' : '{{ __('app.profile.change_photo') }}'"></span>
                         </button>
                     </div>
                     <div x-show="!editingAvatar" class="flex items-center gap-5">

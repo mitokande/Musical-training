@@ -1361,5 +1361,6 @@
     </script>
 
     @include('partials.guest-timer-popup', ['timerKey' => 'piano-studio'])
+    @include('partials.responsive-notation')
 </body>
 </html>

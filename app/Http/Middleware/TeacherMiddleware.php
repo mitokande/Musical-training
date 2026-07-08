@@ -10,7 +10,11 @@ class TeacherMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, ['teacher', 'school', 'admin'])) {
+        $user = auth()->user();
+
+        // Teacher access is granted by role (legacy teacher/school/admin) or by
+        // holding a teacher account (TeacherProfile), which any user may create.
+        if (! $user || (! in_array($user->role, ['teacher', 'school', 'admin']) && ! $user->hasTeacherAccount())) {
             abort(403, 'Unauthorized. Teacher access required.');
         }
 

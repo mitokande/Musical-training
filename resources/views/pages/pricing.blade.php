@@ -206,6 +206,7 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
+            <div class="overflow-x-auto"><div class="min-w-[560px]">
             <div class="grid grid-cols-4 gap-0 border-b border-gray-100 bg-gray-50">
                 <div class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Feature</div>
                 <div class="px-3 py-4 text-center">
@@ -257,6 +258,7 @@
                 @endforeach
             </div>
             @endforeach
+            </div></div>
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-4 mt-8 text-sm reveal">

@@ -28,7 +28,7 @@
                             <input type="checkbox" name="settings[{{ $setting->key }}]" id="setting_{{ $setting->key }}" value="1"
                                    {{ $setting->value ? 'checked' : '' }}
                                    class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
-                        @elseif($setting->type === 'number')
+                        @elseif($setting->type === 'number' || $setting->type === 'integer')
                             <input type="number" name="settings[{{ $setting->key }}]" id="setting_{{ $setting->key }}" value="{{ $setting->value }}"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                         @else

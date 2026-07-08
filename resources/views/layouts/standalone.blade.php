@@ -81,16 +81,16 @@
                 </a>
                 <div class="flex items-center gap-3">
                     <a href="/" class="hidden sm:inline-flex px-4 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                        ← Back to Home
+                        ← {{ __('app.welcome.back_to_home') }}
                     </a>
                     @auth
                         <a href="{{ url('/dashboard') }}" class="px-5 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90 transition-all shadow-lg" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                            Dashboard
+                            {{ __('app.welcome.nav_dashboard') }}
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">Sign In</a>
+                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">{{ __('app.auth.sign_in') }}</a>
                         <a href="{{ route('register') }}" class="px-5 py-2 text-sm font-semibold text-white rounded-lg hover:opacity-90 transition-all shadow-lg" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                            Get Started Free
+                            {{ __('app.welcome.nav_start_free') }}
                         </a>
                     @endauth
                 </div>

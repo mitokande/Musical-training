@@ -15,7 +15,7 @@ class PracticeHarmonicInterval extends Component
 {
     use HandlesPracticeData;
 
-    private const INTERVAL_POOL_MAP = [
+    public const INTERVAL_POOL_MAP = [
         'm2' => 'Minor 2nd',
         'M2' => 'Major 2nd',
         'm3' => 'Minor 3rd',

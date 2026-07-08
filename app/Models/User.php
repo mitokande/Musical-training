@@ -34,6 +34,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'city',
         'date_of_birth',
         'suspended_at',
+        'is_restricted',
     ];
 
     protected $hidden = [
@@ -49,6 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'date_of_birth' => 'date',
             'last_active_at' => 'datetime',
             'suspended_at' => 'datetime',
+            'is_restricted' => 'boolean',
         ];
     }
 
@@ -67,6 +69,35 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isTeacher(): bool
     {
         return $this->role === 'teacher';
+    }
+
+    /**
+     * Teacher-ness is orthogonal to role: any user (student, teacher, admin)
+     * may hold a teacher account, represented by a TeacherProfile row.
+     */
+    public function hasTeacherAccount(): bool
+    {
+        return $this->isTeacher() || $this->teacherProfile()->exists();
+    }
+
+    /** 'basic' | 'premium' | null when the user has no teacher account. */
+    public function teacherTier(): ?string
+    {
+        return $this->teacherProfile?->tier;
+    }
+
+    public function isTeacherPremium(): bool
+    {
+        return $this->teacherTier() === TeacherProfile::TIER_PREMIUM;
+    }
+
+    /**
+     * Route name to land on after login. Teachers go straight to their CRM;
+     * everyone else keeps the existing profile landing.
+     */
+    public function homeRoute(): string
+    {
+        return $this->hasTeacherAccount() ? 'teacher.dashboard' : 'profile.edit';
     }
 
     public function isSchool(): bool
@@ -89,6 +120,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSuspended(): bool
     {
         return ! is_null($this->suspended_at);
+    }
+
+    public function isRestricted(): bool
+    {
+        return (bool) $this->is_restricted;
     }
 
     public function hasPassword(): bool
@@ -121,6 +157,19 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getPlanLimit(string $feature): mixed
     {
+        // Admin-managed limits from the plans table take precedence;
+        // config/plans.php remains the fallback for missing keys.
+        $plans = cache()->remember('plans.features', 300, function () {
+            return Plan::where('is_active', true)
+                ->get()
+                ->keyBy(fn ($plan) => $plan->role.'.'.$plan->type);
+        });
+
+        $plan = $plans->get("{$this->role}.{$this->plan}");
+        if ($plan && is_array($plan->features) && array_key_exists($feature, $plan->features)) {
+            return $plan->features[$feature];
+        }
+
         return config("plans.{$this->role}.{$this->plan}.{$feature}");
     }
 
@@ -213,6 +262,67 @@ class User extends Authenticatable implements MustVerifyEmail
     public function exerciseSessions(): HasMany
     {
         return $this->hasMany(ExerciseSession::class);
+    }
+
+    // --- Teacher CRM ---
+
+    /** Relationships where this user is the teacher. */
+    public function studentRelationships(): HasMany
+    {
+        return $this->hasMany(TeacherStudentRelationship::class, 'teacher_id');
+    }
+
+    /** Relationships where this user is the student. */
+    public function teacherRelationships(): HasMany
+    {
+        return $this->hasMany(TeacherStudentRelationship::class, 'student_id');
+    }
+
+    public function teacherSubscriptionBenefits(): HasMany
+    {
+        return $this->hasMany(TeacherSubscriptionBenefit::class);
+    }
+
+    /** Classes this user teaches. */
+    public function teacherClasses(): HasMany
+    {
+        return $this->hasMany(TeacherClass::class, 'teacher_id');
+    }
+
+    /** Assignments this user issued as a teacher. */
+    public function teacherAssignments(): HasMany
+    {
+        return $this->hasMany(TeacherAssignment::class, 'teacher_id');
+    }
+
+    /** Assignment recipient rows where this user is the student. */
+    public function assignmentRecipients(): HasMany
+    {
+        return $this->hasMany(TeacherAssignmentRecipient::class, 'student_id');
+    }
+
+    /** Rewards this user received as a student. */
+    public function studentRewards(): HasMany
+    {
+        return $this->hasMany(TeacherStudentReward::class, 'student_id');
+    }
+
+    /** Active, mutually approved relationship between this teacher and a student. */
+    public function hasActiveStudent(int $studentId): bool
+    {
+        return $this->studentRelationships()
+            ->where('student_id', $studentId)
+            ->where('status', TeacherStudentRelationship::STATUS_ACTIVE)
+            ->exists();
+    }
+
+    /** Active, mutually approved relationship between this student and a teacher. */
+    public function hasActiveTeacher(int $teacherId): bool
+    {
+        return $this->teacherRelationships()
+            ->where('teacher_id', $teacherId)
+            ->where('status', TeacherStudentRelationship::STATUS_ACTIVE)
+            ->exists();
     }
 
     // --- Social: following / feed ---

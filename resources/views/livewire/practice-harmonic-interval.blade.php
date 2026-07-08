@@ -147,9 +147,10 @@
                 const renderer = new Renderer(div, Renderer.Backends.SVG);
                 renderer.resize(490, 180);
                 const context = renderer.getContext();
+                const HS = window.HarmonivaStaff || { startPad: 40, span: function (n) { n = Math.max(1, n); return n * Math.max(40, Math.min(80, Math.round(160 / n))); } };
                 const stave = new Stave(10, 30, 464);
                 stave.addClef(clef || 'treble');
-                stave.setNoteStartX(stave.getNoteStartX() + 100);
+                stave.setNoteStartX(stave.getNoteStartX() + HS.startPad);
                 stave.setContext(context).draw();
 
                 // For stem direction: use the topmost note
@@ -163,7 +164,7 @@
                 const voice = new Voice({ numBeats: 4, beatValue: 4 });
                 voice.addTickables([chord]);
                 Accidental.applyAccidentals([voice], 'C');
-                new Formatter().joinVoices([voice]).format([voice], 200);
+                new Formatter().joinVoices([voice]).format([voice], HS.span(1));
                 voice.draw(context, stave);
             }
 

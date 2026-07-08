@@ -138,10 +138,14 @@ class LearningPathQuestionGenerator
         $directions = $this->resolveDirections($cfg['direction'] ?? 'ascending');
         $allIntervals = array_keys(MusicTheoryService::INTERVAL_SEMITONES);
 
-        $distractorCount = count($intervals) <= 2 ? 1 : 3;
-        $distractorPool = $distractorCount > 1 && count($intervals) < 4
+        // The adaptive AI flow weights weak intervals by repeating them in
+        // allowed_intervals; distractor decisions must use the distinct set so
+        // the option list never contains duplicates.
+        $distinctIntervals = array_values(array_unique($intervals));
+        $distractorCount = count($distinctIntervals) <= 2 ? 1 : 3;
+        $distractorPool = $distractorCount > 1 && count($distinctIntervals) < 4
             ? $allIntervals
-            : $intervals;
+            : $distinctIntervals;
         $canonicalPool = $this->canonicalIntervalPool();
 
         $pool = [];
@@ -344,12 +348,11 @@ class LearningPathQuestionGenerator
             'Dbb', 'Ebb', 'Fbb', 'Gbb', 'Abb', 'Bbb', 'Cbb',
         ];
 
-        // The AI difficulty flow supplies distractor settings and its downstream
-        // conversion now recomputes note2 with proper diatonic spelling (flats
-        // where the interval calls for them), so when those settings are present
-        // we generate the correct answer + distractors from the diatonic pool to
-        // stay consistent. Without them, the legacy diatonic-spelling behavior is
-        // preserved for LP / Exercise Setup.
+        // Configs that supply distractor settings (legacy ad-hoc configs) get the
+        // correct answer + distractors generated here from a clean single-accidental
+        // pool. Without them — Exercise Setup, Learning Path, and the AI difficulty
+        // flow, which all follow the ES rules — the diatonic-spelling path below
+        // applies and callers rebuild the answer options themselves.
         $hasDistractorCfg = isset($cfg['distractor_count']) || isset($cfg['distractor_mode']);
 
         // Single-accidental diatonic spellings only, used for AI distractors so
@@ -502,8 +505,8 @@ class LearningPathQuestionGenerator
 
             $q = new IntervalComparisonPractice;
             $q->id = null;
-            $q->interval_a = $root1 . ',' . $semToNote[$st1 + $semA];
-            $q->interval_b = $root1 . ',' . $semToNote[$st1 + $semB];
+            $q->interval_a = $root1.','.$semToNote[$st1 + $semA];
+            $q->interval_b = $root1.','.$semToNote[$st1 + $semB];
             $q->target = $target;
             $q->octave = $octave;
             $q->clef = $clef;
@@ -511,8 +514,8 @@ class LearningPathQuestionGenerator
 
             $qRev = new IntervalComparisonPractice;
             $qRev->id = null;
-            $qRev->interval_a = $root2 . ',' . $semToNote[$st2 + $semB];
-            $qRev->interval_b = $root2 . ',' . $semToNote[$st2 + $semA];
+            $qRev->interval_a = $root2.','.$semToNote[$st2 + $semB];
+            $qRev->interval_b = $root2.','.$semToNote[$st2 + $semA];
             $qRev->target = $target === 'a' ? 'b' : 'a';
             $qRev->octave = $octave;
             $qRev->clef = $clef;
@@ -592,9 +595,19 @@ class LearningPathQuestionGenerator
         $pool = [];
         foreach ($chordTypes as $type) {
             $chordIntervals = ChordPractice::chordIntervals()[$type] ?? null;
-            $span = $chordIntervals !== null ? max($chordIntervals) : 12;
             foreach ($roots as $root) {
                 foreach ($inversionValues as $inv) {
+                    // Inversions lift the lowest $inv chord tones an octave, so
+                    // the top sounding pitch is intervals[$inv-1] + 12 — wider
+                    // than max(intervals). Use the true per-inversion span so
+                    // the whole voicing stays inside the clef range.
+                    if ($chordIntervals === null) {
+                        $span = 12 + ($inv > 0 ? 12 : 0);
+                    } elseif ($inv > 0 && count($chordIntervals) > $inv) {
+                        $span = $chordIntervals[$inv - 1] + 12;
+                    } else {
+                        $span = max($chordIntervals);
+                    }
                     if ($octaveCfg !== null) {
                         $octave = $octaveCfg;
                     } elseif ($clef !== null) {
@@ -733,10 +746,10 @@ class LearningPathQuestionGenerator
     private function injectOneRest(array $pattern): ?array
     {
         $noteToRest = [
-            'whole'   => 'whole_rest',
-            'half'    => 'half_rest',
+            'whole' => 'whole_rest',
+            'half' => 'half_rest',
             'quarter' => 'quarter_rest',
-            'eighth'  => 'eighth_rest',
+            'eighth' => 'eighth_rest',
         ];
 
         $eligible = [];
@@ -769,18 +782,18 @@ class LearningPathQuestionGenerator
         // busy and calm beats instead of becoming a wall of notes (keeps harder levels
         // readable). At most ~half the beats may be dense.
         $isDense = fn ($c) => ! empty(array_intersect($c['tokens'], ['sixteenth', 'triplet-eighth']));
-        $isRest  = fn ($c) => ! empty(array_intersect($c['tokens'], ['whole_rest', 'half_rest', 'quarter_rest', 'eighth_rest']));
-        $maxDense     = max(1, intdiv($beatsPerBar, 2));
+        $isRest = fn ($c) => ! empty(array_intersect($c['tokens'], ['whole_rest', 'half_rest', 'quarter_rest', 'eighth_rest']));
+        $maxDense = max(1, intdiv($beatsPerBar, 2));
         // Allow at most half the bar to be rests (minimum 1 so a quarter_rest can appear
         // in short meters). Budget is checked per-cell so a half_rest (2 beats) is only
         // included when 2 or more rest-beats are still available.
         $maxRestBeats = max(1, intdiv($beatsPerBar, 2));
 
         for ($b = 0; $b < $bars; $b++) {
-            $remaining     = $beatsPerBar;
-            $denseUsed     = 0;
+            $remaining = $beatsPerBar;
+            $denseUsed = 0;
             $restBeatsUsed = 0;
-            $barStart      = true;
+            $barStart = true;
 
             while ($remaining > 0) {
                 $fitting = array_values(array_filter($cells, fn ($c) => $c['len'] <= $remaining));
@@ -802,7 +815,7 @@ class LearningPathQuestionGenerator
                 }));
                 // Safety net: if all candidates were rest-filtered, fall back to non-rest cells.
                 if (empty($fitting)) {
-                    $allFit  = array_values(array_filter($cells, fn ($c) => $c['len'] <= $remaining));
+                    $allFit = array_values(array_filter($cells, fn ($c) => $c['len'] <= $remaining));
                     $nonRest = array_values(array_filter($allFit, fn ($c) => ! $isRest($c)));
                     $fitting = ! empty($nonRest) ? $nonRest : $allFit;
                 }
@@ -818,7 +831,7 @@ class LearningPathQuestionGenerator
                     $restBeatsUsed += $cell['len'];
                 }
                 $remaining -= $cell['len'];
-                $barStart   = false;
+                $barStart = false;
             }
         }
 
@@ -950,11 +963,24 @@ class LearningPathQuestionGenerator
     private function generateSingleNote(array $cfg, int $count): Collection
     {
         $notes = $cfg['allowed_notes'] ?? ['C', 'D', 'E', 'F', 'G'];
-        $octaveRange = $cfg['octave_range'] ?? ['4'];
+        // Explicit octave_range (Learning Path configs) wins; otherwise the
+        // note is placed in every octave inside the clef's playable range.
+        $octaveCfg = $cfg['octave_range'] ?? null;
+        $clef = $cfg['clef'] ?? null;
         $distractorCount = $cfg['distractor_count'] ?? 3;
 
         $pool = [];
         foreach ($notes as $note) {
+            if ($octaveCfg !== null) {
+                $octaveRange = $octaveCfg;
+            } elseif ($clef !== null) {
+                $octaveRange = array_map('strval', $this->octavesWithinClefRange($note, 0, $clef));
+                if (empty($octaveRange)) {
+                    continue;
+                }
+            } else {
+                $octaveRange = ['4'];
+            }
             foreach ($octaveRange as $octave) {
                 $distractors = $this->music->buildOptions($note, $notes, min(3, count($notes) - 1));
                 $allOptions = array_merge([$note], $distractors);

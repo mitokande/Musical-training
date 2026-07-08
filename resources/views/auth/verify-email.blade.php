@@ -8,14 +8,14 @@
     </div>
 
     <!-- Header -->
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">E-postanı Doğrula</h1>
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ __('app.auth.verify_email_title') }}</h1>
     <p class="text-sm text-gray-500 leading-relaxed mb-6">
-        Hesabını aktifleştirmek için e-posta adresine gönderilen doğrulama linkine tıkla.
+        {{ __('app.auth.verify_email_text') }}
     </p>
 
     @if (session('status') == 'verification-link-sent')
         <div class="mb-6 p-3 rounded-xl text-sm font-medium bg-green-50 border border-green-200 text-green-700">
-            Yeni doğrulama linki e-posta adresine gönderildi.
+            {{ __('app.auth.verification_sent') }}
         </div>
     @endif
 
@@ -24,14 +24,14 @@
         <button type="submit"
                 class="btn-primary w-full py-3 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2">
             <i data-lucide="send" class="w-4 h-4"></i>
-            Doğrulama Linkini Tekrar Gönder
+            {{ __('app.auth.resend_verification') }}
         </button>
     </form>
 
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-            Çıkış Yap
+            {{ __('app.auth.logout') }}
         </button>
     </form>
 

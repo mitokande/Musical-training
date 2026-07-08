@@ -70,6 +70,7 @@
         .checkbox-card {
             transition: all 0.2s ease;
             cursor: pointer;
+            background: #f5f3ff;
         }
         .checkbox-card:hover {
             border-color: #c084fc;
@@ -88,17 +89,6 @@
             border-color: #c084fc;
         }
         .difficulty-btn.selected {
-            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
-            color: white;
-            border-color: transparent;
-        }
-        .tempo-btn {
-            transition: all 0.2s ease;
-        }
-        .tempo-btn:hover {
-            border-color: #c084fc;
-        }
-        .tempo-btn.selected {
             background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
             color: white;
             border-color: transparent;
@@ -140,7 +130,7 @@
         <div class="music-note" style="top:68%; right:6%;  font-size:3.2rem; opacity:0.11; transform:rotate(-12deg);">♪</div>
         <div class="music-note" style="top:85%; right:4%;  font-size:2.6rem; opacity:0.09; transform:rotate(6deg);">♫</div>
 
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <!-- Header Section -->
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center gap-3 mb-3">
@@ -188,13 +178,12 @@
                         <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
                             <i data-lucide="settings" class="w-3.5 h-3.5 text-purple-600"></i>
                         </div>
-                        <h2 class="font-semibold text-gray-900">Session Configuration</h2>
+                        <h2 class="font-semibold text-gray-900">Exercise Types</h2>
                     </div>
                     <p class="text-sm text-gray-500 mb-6">Tell us what you want to practice</p>
 
                     <!-- Exercise Types -->
                     <div class="mb-6">
-                        <label class="block text-sm font-semibold text-gray-900 mb-3">Exercise Types</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             @foreach($practices as $practice)
                                 @if($practice->slug === 'interval-direction-practice')
@@ -220,77 +209,62 @@
                                         @endif
                                     </span>
                                 </label>
+                                @if($practice->slug === 'rhythm-practice')
+                                    {{-- Rhythm Recognition & Rhythm Reading: Exercise Setup Studio's other
+                                         two rhythm modes, offered as their own AI exercise types. They have
+                                         no Practice DB record — AIController maps them onto rhythm-practice
+                                         generation with a different answer UI. --}}
+                                    <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox data-slug="rhythm-recognition">
+                                        <input type="checkbox"
+                                               name="rhythm_modes[]"
+                                               value="recognition"
+                                               class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
+                                        <span class="checkbox-label text-sm text-gray-700">Rhythm Recognition</span>
+                                    </label>
+                                    <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox data-slug="rhythm-reading">
+                                        <input type="checkbox"
+                                               name="rhythm_modes[]"
+                                               value="reading"
+                                               class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
+                                        <span class="checkbox-label text-sm text-gray-700">Rhythm Reading</span>
+                                    </label>
+                                @endif
                             @endforeach
                         </div>
                     </div>
 
-                    <!-- Rhythm Dictation options (shown only when Rhythm Dictation is selected) -->
-                    <div id="rhythmOptions" class="mb-6 hidden">
-                        <div class="rounded-lg border border-purple-200 bg-purple-50/60 p-4">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="music-2" class="w-4 h-4 text-purple-600"></i>
-                                <span class="text-sm font-semibold text-gray-900">Rhythm Dictation Settings</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Time Signature</label>
-                                    <select name="rhythm_time_signature" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                        <option value="2/4">2/4</option>
-                                        <option value="3/4">3/4</option>
-                                        <option value="4/4" selected>4/4</option>
-                                        <option value="6/8">6/8</option>
-                                        <option value="9/8">9/8</option>
-                                        <option value="2/2">2/2</option>
-                                        <option value="3/2">3/2</option>
-                                        <option value="4/2">4/2</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">Tempo (BPM)</label>
-                                    <div class="grid grid-cols-4 gap-2">
-                                        @foreach ([60, 80, 90, 100] as $bpm)
-                                            <button type="button"
-                                                    class="tempo-btn px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 {{ $bpm === 90 ? 'selected' : '' }}"
-                                                    data-tempo="{{ $bpm }}">
-                                                {{ $bpm }}
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                    <input type="hidden" name="rhythm_tempo" id="rhythmTempo" value="90">
-                                </div>
-                            </div>
+                    <!-- Number of Questions + Difficulty Mode (side-by-side on desktop) -->
+                    <div class="mb-6 flex flex-col lg:flex-row gap-6 lg:gap-4">
+                        <!-- Number of Questions -->
+                        <div class="lg:order-last lg:flex-[0.5]">
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
+                            <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="5" selected>5 Questions (Quick)</option>
+                                <option value="10" >10 Questions (Standard)</option>
+                                <option value="15">15 Questions (Extended)</option>
+                                <option value="20">20 Questions (Comprehensive)</option>
+                            </select>
                         </div>
-                    </div>
 
-                    <!-- Number of Questions -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
-                        <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            <option value="5" selected>5 Questions (Quick)</option>
-                            <option value="10" >10 Questions (Standard)</option>
-                            <option value="15">15 Questions (Extended)</option>
-                            <option value="20">20 Questions (Comprehensive)</option>
-                        </select>
-                    </div>
-
-                    <!-- Difficulty Mode -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-gray-900 mb-3">Difficulty Mode</label>
-                        <div class="grid grid-cols-4 gap-2">
-                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="easy">
-                                Easy
-                            </button>
-                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="medium">
-                                Medium
-                            </button>
-                            <button type="button" class="difficulty-btn px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="hard">
-                                Hard
-                            </button>
-                            <button type="button" class="difficulty-btn selected px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="adaptive">
-                                Adaptive
-                            </button>
+                        <!-- Difficulty Mode -->
+                        <div class="lg:flex-1">
+                            <label class="block text-sm font-semibold text-gray-900 mb-3">Difficulty Mode</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="easy">
+                                    Easy
+                                </button>
+                                <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="medium">
+                                    Medium
+                                </button>
+                                <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="hard">
+                                    Hard
+                                </button>
+                                <button type="button" class="difficulty-btn selected px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="adaptive">
+                                    Adaptive
+                                </button>
+                            </div>
+                            <input type="hidden" name="difficulty" id="difficultyInput" value="adaptive">
                         </div>
-                        <input type="hidden" name="difficulty" id="difficultyInput" value="adaptive">
                     </div>
 
                     <!-- Submit Button -->
@@ -316,15 +290,6 @@
         // Checkbox card selection styling
         document.addEventListener('DOMContentLoaded', function() {
             const checkboxCards = document.querySelectorAll('[data-checkbox]');
-            
-            // Show the Rhythm Dictation settings panel only while its type is selected.
-            const rhythmOptions = document.getElementById('rhythmOptions');
-            const rhythmCard = document.querySelector('[data-slug="rhythm-practice"]');
-            const syncRhythmOptions = function() {
-                if (!rhythmOptions || !rhythmCard) return;
-                const cb = rhythmCard.querySelector('input[type="checkbox"]');
-                rhythmOptions.classList.toggle('hidden', !(cb && cb.checked));
-            };
 
             checkboxCards.forEach(card => {
                 const checkbox = card.querySelector('input[type="checkbox"]');
@@ -344,23 +309,9 @@
                     } else {
                         card.classList.remove('selected');
                     }
-
-                    syncRhythmOptions();
                 });
             });
-            syncRhythmOptions();
 
-            // Predefined tempo selection (60 / 80 / 90 / 100 BPM).
-            const tempoBtns = document.querySelectorAll('.tempo-btn');
-            const rhythmTempoInput = document.getElementById('rhythmTempo');
-            tempoBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    tempoBtns.forEach(b => b.classList.remove('selected'));
-                    this.classList.add('selected');
-                    if (rhythmTempoInput) rhythmTempoInput.value = this.dataset.tempo;
-                });
-            });
-            
             // Difficulty buttons
             const difficultyBtns = document.querySelectorAll('.difficulty-btn');
             const difficultyInput = document.getElementById('difficultyInput');

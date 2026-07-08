@@ -67,7 +67,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse($contents as $content)
+                    @forelse($articles as $content)
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4">
                                 <div class="font-medium text-gray-800 max-w-xs truncate">{{ $content->title }}</div>
@@ -151,9 +151,9 @@
             </table>
         </div>
 
-        @if($contents->hasPages())
+        @if($articles->hasPages())
             <div class="px-6 py-4 border-t border-gray-100">
-                {{ $contents->withQueryString()->links() }}
+                {{ $articles->withQueryString()->links() }}
             </div>
         @endif
     </div>

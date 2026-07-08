@@ -83,7 +83,9 @@ Key methods:
 | `scale-practice` | `allowed_scale_types`, `allowed_root_notes`, `direction`, `distractor_pool` |
 | `rhythm-practice` | `time_signatures`, `allowed_note_values`, `tempo_range`, `bars` |
 | `melodic-dictation` | `note_pool`, `melody_length`, `clef`, `key_signatures`, `tempo_range`, `bars` |
-| `single-note-practice` | `allowed_notes`, `octave_range`, `distractor_count` |
+| `single-note-practice` | `allowed_notes`, `octave_range` **or** `clef`, `distractor_count` |
+
+Pitch range rule: for every pitched type, passing `clef` (instead of a hardcoded `octave`/`octave_range`) makes the generator place all notes inside `MusicTheoryService::CLEF_RANGES` — site standard: treble **G3–G5**, bass **C2–C4**, alto **C3–C5**. Explicit `octave`/`octave_range` wins over `clef` when both are present (legacy LP seed configs). Exercise Setup Studio and Teacher Assignments (`TeacherAssignmentConfigFactory`) both use the clef-driven path. Chord/scale type names must be the canonical `chordIntervals()`/`scaleIntervals()` keys (`Major`, `Natural Minor`, `Dominant 7th`, …) — lowercase slugs silently fall back to Major intervals.
 
 Interval name abbreviations (`m2`, `M2`, `TT`, `8ve`, etc.) from exercise-setup are **not** understood by the generator — they must be mapped to full names (`Minor 2nd`, `Major 2nd`, `Tritone`, `Perfect Octave`) in the Livewire component before passing to the generator.
 
@@ -141,4 +143,22 @@ For `single-note-practice`, the blade does `explode(',', $currentPractice->other
 
 ### i18n
 
-15 locales in `lang/`. `SetLocale` middleware applies `app()->setLocale()` from `User->locale`. `LearningPathExercise` has a `translations` JSON column; use `$exercise->getLocalizedTitle()`. Language switched via `POST /language/switch`.
+15 locales in `resources/lang/` (NOT the Laravel-11-default root `lang/` — new lang files must go under `resources/lang/{locale}/`). `SetLocale` middleware applies `app()->setLocale()` from `User->locale`. `LearningPathExercise` has a `translations` JSON column; use `$exercise->getLocalizedTitle()`. Language switched via `POST /language/switch`.
+
+### Email Center (Amazon SES)
+
+Admin module at `/admin/email-center` (sidebar: Email Center + Support Inbox). All outbound mail goes through Amazon SES (eu-central-1, domain `harmoniva.app` verified, config set `harmoniva-email-events` publishes send/delivery/open/click/bounce/complaint events to SNS → `POST /webhooks/aws/ses/events`, validated by `SnsMessageValidator`).
+
+Key pieces (all under `App\Services\EmailCenter`):
+- `EmailDispatchService::dispatch()` — the only entry point for queueing mail. Creates `email_messages` row (owns `tracking_token`), enforces suppression list + weekly frequency cap for marketing types (`campaign`, `automation`); transactional types only blocked by `hard_bounce` suppression.
+- `SendEmailCenterMessage` job — rate-limited (`email-center-send` limiter, SystemSetting `email_send_rate`), renders via `TemplateRenderer` ({{var}} substitution, signed click-redirect links + UTM, open pixel, unsubscribe footer), sends via `Mail::mailer('ses')`, stores `ses_message_id` from the `X-SES-Message-ID` header.
+- `SesEventProcessor` — idempotent (dedup_hash), updates message status/campaign counters, auto-suppresses hard bounces + complaints. Soft bounces surface in admin Suppressions screen for manual action.
+- `SegmentBuilder` — campaign segment JSON → User query (always excludes unverified/suspended/restricted/suppressed).
+- `AutomationEngine` — 6 standard automations keyed by `email_automations.key` (welcome, first_exercise_reminder, learning_path_reminder, weekly_progress, re_engagement, premium_upsell); all seeded disabled via `EmailCenterSeeder`.
+- Scheduler (`routes/console.php`): queue:work every minute (no daemon worker on this server), `email:process-campaigns` every minute, `email:run-automations` every 15 min, `support:fetch-mail` every 5 min. Requires the user-level crontab entry running `php8.2 artisan schedule:run`.
+
+Support Inbox: MX stays on this server (local Postfix/Dovecot). `SupportMailFetcher` polls `support@harmoniva.app` over IMAP (`webklex/php-imap`, creds in `.env` `SUPPORT_IMAP_*`), threads by Message-ID/References into `support_conversations`/`support_messages`; admin replies go out via SES from the support address with `In-Reply-To`/`References` headers.
+
+Tracking endpoints (public, signed): `GET /email/open/{token}`, `GET /email/click/{token}?url=`, `GET|POST /email/unsubscribe/{token}` (RFC 8058 one-click). CSRF exempt: `webhooks/aws/ses/*`, `email/unsubscribe/*` (see `bootstrap/app.php`).
+
+Tests: `tests/Feature/EmailCenterTest.php`.

@@ -2,6 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalComparisonPractice;
+use App\Models\IntervalConstructionPractice;
+use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
 use App\Services\MusicTheoryService;
 use Illuminate\Console\Command;
 
@@ -14,17 +19,17 @@ class RepairQuestions extends Command
     protected $description = 'Repair interval practice questions where direction or answer mismatches the actual note data';
 
     private const PRACTICE_TYPES = [
-        'melodic-interval-practice'      => \App\Models\MelodicIntervalPractice::class,
-        'harmonic-interval-practice'     => \App\Models\HarmonicIntervalPractice::class,
-        'interval-direction-practice'    => \App\Models\IntervalDirectionPractice::class,
-        'interval-construction-practice' => \App\Models\IntervalConstructionPractice::class,
-        'interval-comparison-practice'   => \App\Models\IntervalComparisonPractice::class,
+        'melodic-interval-practice' => MelodicIntervalPractice::class,
+        'harmonic-interval-practice' => HarmonicIntervalPractice::class,
+        'interval-direction-practice' => IntervalDirectionPractice::class,
+        'interval-construction-practice' => IntervalConstructionPractice::class,
+        'interval-comparison-practice' => IntervalComparisonPractice::class,
     ];
 
     public function handle(MusicTheoryService $music): int
     {
         $filterType = $this->option('type');
-        $dryRun     = $this->option('dry-run');
+        $dryRun = $this->option('dry-run');
 
         $types = $filterType
             ? (isset(self::PRACTICE_TYPES[$filterType]) ? [$filterType => self::PRACTICE_TYPES[$filterType]] : [])
@@ -32,6 +37,7 @@ class RepairQuestions extends Command
 
         if (empty($types)) {
             $this->error("Unknown practice type: {$filterType}");
+
             return Command::FAILURE;
         }
 
@@ -39,8 +45,8 @@ class RepairQuestions extends Command
             $this->warn('[DRY RUN] No changes will be written to the database.');
         }
 
-        $repaired     = 0;
-        $skipped      = 0;
+        $repaired = 0;
+        $skipped = 0;
         $markedReview = 0;
 
         foreach ($types as $type => $modelClass) {
@@ -55,13 +61,14 @@ class RepairQuestions extends Command
 
                 if ($check['status'] === 'needs_review') {
                     // Mark ambiguous questions but do not change their data
-                    $this->line("  [needs_review] {$type} ID={$q->id} issues=" . implode(',', $check['issues']));
-                    if (!$dryRun) {
-                        $q->needs_review      = true;
+                    $this->line("  [needs_review] {$type} ID={$q->id} issues=".implode(',', $check['issues']));
+                    if (! $dryRun) {
+                        $q->needs_review = true;
                         $q->validation_status = 'needs_review';
                         $q->save();
                     }
                     $markedReview++;
+
                     continue;
                 }
 
@@ -69,14 +76,15 @@ class RepairQuestions extends Command
                 $fixes = $this->buildFixes($music, $q->toArray(), $type, $check['issues']);
 
                 if (empty($fixes)) {
-                    $this->warn("  [skip] {$type} ID={$q->id} — could not determine fix for issues: " . implode(',', $check['issues']));
+                    $this->warn("  [skip] {$type} ID={$q->id} — could not determine fix for issues: ".implode(',', $check['issues']));
                     $skipped++;
+
                     continue;
                 }
 
-                $this->line("  [repair] {$type} ID={$q->id} fixes=" . json_encode($fixes));
+                $this->line("  [repair] {$type} ID={$q->id} fixes=".json_encode($fixes));
 
-                if (!$dryRun) {
+                if (! $dryRun) {
                     // Back up original data before modifying
                     if (empty($q->backup_data)) {
                         $q->backup_data = $q->toArray();
@@ -85,7 +93,7 @@ class RepairQuestions extends Command
                     foreach ($fixes as $field => $value) {
                         $q->{$field} = $value;
                     }
-                    $q->needs_review      = false;
+                    $q->needs_review = false;
                     $q->validation_status = 'valid';
                     $q->save();
                 }
@@ -107,11 +115,11 @@ class RepairQuestions extends Command
     private function buildFixes(MusicTheoryService $music, array $q, string $type, array $issues): array
     {
         $fixes = [];
-        $note1  = $q['note1'] ?? null;
+        $note1 = $q['note1'] ?? null;
         $octave = isset($q['octave']) ? (int) $q['octave'] : null;
-        $note2  = $q['note2'] ?? null;
+        $note2 = $q['note2'] ?? null;
 
-        if (!$note1 || !$octave || !$note2) {
+        if (! $note1 || ! $octave || ! $note2) {
             return [];
         }
 
@@ -120,13 +128,13 @@ class RepairQuestions extends Command
                 // Fix: recalculate note2_octave (default to same octave for existing records)
                 // and re-derive direction from actual pitches.
                 $note2Octave = isset($q['note2_octave']) ? (int) $q['note2_octave'] : $octave;
-                $direction   = $music->getDirection($note1, $octave, $note2, $note2Octave);
+                $direction = $music->getDirection($note1, $octave, $note2, $note2Octave);
 
                 if (in_array('direction_mismatch', $issues)) {
-                    $fixes['direction']    = $direction;
+                    $fixes['direction'] = $direction;
                     $fixes['note2_octave'] = $note2Octave;
                 }
-                if (in_array('octave_mismatch', $issues) || !isset($q['note2_octave'])) {
+                if (in_array('octave_mismatch', $issues) || ! isset($q['note2_octave'])) {
                     $fixes['note2_octave'] = $note2Octave;
                 }
                 $fixes['validation_status'] = 'valid';
@@ -136,14 +144,16 @@ class RepairQuestions extends Command
             case 'harmonic-interval-practice':
                 // Fix: recalculate note2 and note2_octave from note1+interval
                 $intervalName = $q['interval'] ?? null;
-                if (!$intervalName) break;
+                if (! $intervalName) {
+                    break;
+                }
 
                 $expected = $music->noteAboveByInterval($note1, $octave, $intervalName);
                 if ($expected) {
                     if (in_array('answer_mismatch', $issues)) {
-                        $fixes['note2']       = $expected['note'];
-                        $fixes['note2_octave']= $expected['octave'];
-                    } elseif (!isset($q['note2_octave'])) {
+                        $fixes['note2'] = $expected['note'];
+                        $fixes['note2_octave'] = $expected['octave'];
+                    } elseif (! isset($q['note2_octave'])) {
                         $fixes['note2_octave'] = $expected['octave'];
                     }
                     $fixes['validation_status'] = 'valid';
@@ -152,14 +162,16 @@ class RepairQuestions extends Command
 
             case 'interval-construction-practice':
                 $intervalName = $q['interval'] ?? null;
-                if (!$intervalName) break;
+                if (! $intervalName) {
+                    break;
+                }
 
                 $expected = $music->noteAboveByInterval($note1, $octave, $intervalName);
                 if ($expected) {
                     if (in_array('answer_mismatch', $issues)) {
-                        $fixes['note2']       = $expected['note'];
-                        $fixes['note2_octave']= $expected['octave'];
-                    } elseif (!isset($q['note2_octave'])) {
+                        $fixes['note2'] = $expected['note'];
+                        $fixes['note2_octave'] = $expected['octave'];
+                    } elseif (! isset($q['note2_octave'])) {
                         $fixes['note2_octave'] = $expected['octave'];
                     }
                     $fixes['validation_status'] = 'valid';

@@ -239,14 +239,51 @@
                     </span>
                 </a>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('login') }}"
-                       class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-black/5 rounded-lg transition-all">
-                        Giriş Yap
-                    </a>
-                    <a href="{{ route('register') }}"
-                       class="btn-primary px-4 py-2 text-sm font-semibold text-white rounded-lg">
-                        Kayıt Ol
-                    </a>
+                    {{-- Desktop: Login / Register buttons --}}
+                    <div class="hidden md:flex items-center gap-2">
+                        <a href="{{ route('login') }}"
+                           class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-black/5 rounded-lg transition-all">
+                            {{ __('app.auth.login') }}
+                        </a>
+                        <a href="{{ route('register') }}"
+                           class="btn-primary px-4 py-2 text-sm font-semibold text-white rounded-lg">
+                            {{ __('app.auth.register') }}
+                        </a>
+                    </div>
+
+                    {{-- Mobile: standard menu icon with dropdown --}}
+                    <div class="md:hidden relative" x-data="{ open: false }" @click.outside="open = false">
+                        <button @click="open = !open"
+                                class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-black/5 rounded-lg transition-colors"
+                                style="width:40px; height:40px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                                <line x1="4" y1="6"  x2="20" y2="6"/>
+                                <line x1="4" y1="12" x2="20" y2="12"/>
+                                <line x1="4" y1="18" x2="20" y2="18"/>
+                            </svg>
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 px-1.5 z-50 flex flex-col gap-1"
+                             style="display: none;">
+                            <a href="{{ route('login') }}"
+                               class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+                                <i data-lucide="log-in" class="w-4 h-4"></i>
+                                {{ __('app.auth.login') }}
+                            </a>
+                            <a href="{{ route('register') }}"
+                               class="btn-primary flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white rounded-lg">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                {{ __('app.auth.register') }}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -254,7 +291,7 @@
 
     <!-- Page Content -->
     <div class="relative min-h-screen flex items-center justify-center pt-16 px-4 py-12" style="z-index:2;">
-        <div class="w-full max-w-md">
+        <div class="w-full {{ $maxWidth }}">
             {{ $slot }}
         </div>
     </div>

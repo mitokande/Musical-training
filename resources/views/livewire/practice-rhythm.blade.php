@@ -275,14 +275,14 @@
 
                 <!-- Answer Options: 4 VexFlow staves in 2×2 grid -->
                 <p class="text-sm text-gray-500 mb-3 text-center">Which rhythm did you hear?</p>
-                <div id="answerOptions" class="grid grid-cols-2 gap-3"
+                <div id="answerOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3"
                      data-target="{{ $correctStr }}"
                      data-practice-id="{{ $currentPractice->id }}">
                     @foreach($allOptions as $optIdx => $opt)
                         <button class="answer-btn card p-3 text-left transition-all hover:shadow-md border-2 border-transparent rounded-xl"
                                 data-answer="{{ $opt['value'] }}"
                                 data-notes='{{ json_encode(array_values($opt['notes'])) }}'>
-                            <div class="staff-container w-full rounded overflow-hidden" style="height:130px;min-height:130px;"></div>
+                            <div class="staff-container w-full rounded overflow-hidden h-[104px] min-h-[104px] sm:h-[130px] sm:min-h-[130px]"></div>
                         </button>
                     @endforeach
                 </div>
@@ -384,8 +384,15 @@
             container.innerHTML = '';
 
             const VF     = Vex.Flow;
-            const width  = Math.max(container.clientWidth || 400, 200);
-            const height = h || 130;
+            let width = Math.max(container.clientWidth || 400, 200);
+            if (window.innerWidth < 640 && container.id === 'rhythm-staff-output') {
+                // Mobile: the main staff gets per-note room instead of being squeezed —
+                // the responsive-notation fitter makes the container horizontally
+                // swipeable. Answer-option / reveal mini staves keep container width.
+                width = Math.max(width, 90 + noteArray.length * 50);
+            }
+            // Answer-option staves shrink 20% on mobile (single-column layout).
+            const height = h || ((window.innerWidth < 640 && container.closest('#answerOptions')) ? 104 : 130);
             // B4 (line 2) sits at staveY + space_above*10 + 2*10 = staveY+60. Centre it:
             const staveY = Math.max(Math.round(height / 2 - 60), 5);
 

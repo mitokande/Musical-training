@@ -16,6 +16,7 @@ class SingleNotePracticeController extends Controller
     {
         $practices = SingleNotePractice::latest()->paginate(15);
         $settings = Practice::where('slug', 'single-note-practice')->first();
+
         return view('admin.single-note.index', compact('practices', 'settings'));
     }
 
@@ -97,7 +98,7 @@ class SingleNotePracticeController extends Controller
         $validated['is_premium'] = $request->has('is_premium');
 
         $practice = Practice::where('slug', 'single-note-practice')->first();
-        
+
         if ($practice) {
             $practice->update($validated);
         }

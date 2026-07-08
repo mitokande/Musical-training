@@ -46,7 +46,7 @@ class PracticeAiMelodicDictation extends PracticeMelodicDictation
         $this->dictationKeySignature = $auto['key_signature'];
         $this->dictationTempo = $auto['tempo'];
         $this->dictationMetronome = true;
-        $this->dictationMode = 'major';
+        $this->dictationMode = $auto['mode'];
         $this->dictationNoteValues = $auto['note_values'];
 
         $count = max(1, (int) ($settings['question_count'] ?? 10));
@@ -55,7 +55,8 @@ class PracticeAiMelodicDictation extends PracticeMelodicDictation
         $timeSig = $this->dictationTimeSignature;
 
         $majorKeyRoot = $this->parseMajorRoot($this->dictationKeySignature);
-        $tonicRoot = $majorKeyRoot;
+        $minorKeyRoot = $this->parseMinorRoot($this->dictationKeySignature);
+        $tonicRoot = $this->dictationMode === 'minor' ? $minorKeyRoot : $majorKeyRoot;
 
         $melodyGenerator = app(TonalMelodyGenerator::class);
         $context = $melodyGenerator->contextForKey($majorKeyRoot, $this->dictationMode, $clef);
@@ -68,12 +69,20 @@ class PracticeAiMelodicDictation extends PracticeMelodicDictation
             $rhythmValues = ['quarter'];
         }
 
+        // Same rule as Exercise Setup's Rests toggle: when the pool contains
+        // rest values, exactly one rest is injected into each melody.
+        $addRests = count($rhythmValues) < count(array_filter($auto['note_values'], fn ($v) => isset(self::BEAT16[$v])));
+
         $generated = collect();
         for ($qi = 0; $qi < $count; $qi++) {
             $noteValues = $this->generateBeatPatternRhythm($bars, $timeSig, $rhythmValues);
             $noteCount = count($noteValues);
             $notes = $melodyGenerator->generateMelody($noteCount, $context, $this->difficulty);
             $notes = $melodyGenerator->applyAccidentals($notes, $majorKeyRoot, $this->dictationMode, $this->difficulty);
+
+            if ($addRests) {
+                [$notes, $noteValues] = $this->injectOneRestIntoMelody($notes, $noteValues);
+            }
 
             $q = new MelodicDictationPractice;
             $q->id = $qi + 1;
@@ -117,30 +126,36 @@ class PracticeAiMelodicDictation extends PracticeMelodicDictation
     /**
      * Auto-derived session settings per melody level. Pools widen with level
      * the same way the Exercise Setup defaults do; one key / time signature /
-     * tempo is fixed for the whole session, matching the setup flow.
+     * tempo / mode is fixed for the whole session, matching the setup flow.
+     * Advanced additionally engages the optional Setup rules the same way it
+     * already does for dotted values: rests (one injected per melody) and the
+     * minor mode (minor tonic + minor accidental handling).
      *
-     * @return array{key_signature: string, time_signature: string, tempo: int, note_values: string[]}
+     * @return array{key_signature: string, time_signature: string, tempo: int, note_values: string[], mode: string}
      */
     protected function autoSettingsForLevel(string $level): array
     {
-        [$keys, $timeSigs, $tempo, $noteValues] = match ($level) {
+        [$keys, $timeSigs, $tempo, $noteValues, $modes] = match ($level) {
             'beginner' => [
                 ['C Major / A minor', 'G Major / E minor'],
                 ['4/4'],
-                70,
+                50,
                 ['quarter', 'half'],
+                ['major'],
             ],
             'advanced' => [
                 ['C Major / A minor', 'G Major / E minor', 'D Major / B minor', 'F Major / D minor', 'Bb Major / G minor'],
                 ['4/4', '3/4', '6/8'],
-                90,
-                ['quarter', 'eighth', 'sixteenth', 'half', 'dotted-quarter', 'dotted-eighth', 'dotted-half'],
+                70,
+                ['quarter', 'eighth', 'sixteenth', 'half', 'dotted-quarter', 'dotted-eighth', 'dotted-half', 'half_rest', 'quarter_rest', 'eighth_rest'],
+                ['major', 'minor'],
             ],
             default => [ // intermediate
                 ['C Major / A minor', 'G Major / E minor', 'F Major / D minor', 'D Major / B minor'],
                 ['4/4', '3/4'],
-                80,
+                60,
                 ['quarter', 'eighth', 'half'],
+                ['major'],
             ],
         };
 
@@ -149,6 +164,7 @@ class PracticeAiMelodicDictation extends PracticeMelodicDictation
             'time_signature' => $timeSigs[array_rand($timeSigs)],
             'tempo' => $tempo,
             'note_values' => $noteValues,
+            'mode' => $modes[array_rand($modes)],
         ];
     }
 }

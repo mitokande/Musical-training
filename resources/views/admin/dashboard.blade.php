@@ -66,10 +66,85 @@
         />
     </div>
 
+    <!-- Engagement Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+        <x-admin.stat-card title="Active Today (DAU)" :value="$stats['dau']" icon="sun" color="green" />
+        <x-admin.stat-card title="Weekly Active" :value="$stats['wau']" icon="calendar-days" color="blue" />
+        <x-admin.stat-card title="Monthly Active" :value="$stats['mau']" icon="calendar" color="purple" />
+        <x-admin.stat-card title="Signups Today" :value="$stats['registrations_today']" icon="user-plus" color="orange" />
+        <x-admin.stat-card title="Premium Rate" :value="$stats['premium_rate'] . '%'" icon="crown" color="indigo" />
+        <x-admin.stat-card title="Inactive 30d+" :value="$stats['inactive_users']" icon="user-x" color="red" />
+    </div>
+
+    <!-- Feature Usage Row (last 7 days) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <x-admin.stat-card title="Exercises (7d)" :value="$stats['exercise_week']" icon="headphones" color="purple" />
+        <x-admin.stat-card title="AI Sessions (7d)" :value="$stats['ai_sessions_week']" icon="brain" color="indigo" :link="route('admin.ai-coach-admin.index')" />
+        <x-admin.stat-card title="Game Plays (7d)" :value="$stats['game_plays_week']" icon="gamepad-2" color="orange" />
+        <x-admin.stat-card title="Feed Posts (7d)" :value="$stats['feed_items_week']" icon="rss" color="green" />
+    </div>
+
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-admin.chart-card title="Member Registration Trend" chartId="registrationChart" />
         <x-admin.chart-card title="Plan Distribution" chartId="planChart" />
+    </div>
+    <div class="grid grid-cols-1 gap-6">
+        <x-admin.chart-card title="Exercise Volume (14 days)" chartId="exerciseVolumeChart" />
+    </div>
+
+    <!-- Members Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5 text-purple-600"></i>
+                    <h2 class="text-lg font-semibold text-gray-900">Latest Members</h2>
+                </div>
+                <a href="{{ route('admin.users.index') }}" class="text-sm text-purple-600 hover:text-purple-700 font-medium">View all</a>
+            </div>
+            <div class="space-y-3">
+                @forelse($recentUsers as $u)
+                <a href="{{ route('admin.users.show', $u) }}" class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                        {{ strtoupper(substr($u->name ?? '?', 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ $u->name }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ $u->email }}</p>
+                    </div>
+                    <span class="px-2 py-0.5 text-xs font-medium rounded-full {{ $u->plan === 'premium' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600' }}">{{ ucfirst($u->plan ?? 'free') }}</span>
+                    <span class="text-xs text-gray-400 shrink-0">{{ $u->created_at->diffForHumans(null, true) }}</span>
+                </a>
+                @empty
+                <p class="text-sm text-gray-500 text-center py-6">No members yet.</p>
+                @endforelse
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-6">
+                <i data-lucide="flame" class="w-5 h-5 text-orange-500"></i>
+                <h2 class="text-lg font-semibold text-gray-900">Most Active (7 days)</h2>
+            </div>
+            <div class="space-y-3">
+                @forelse($topUsers as $row)
+                <a href="{{ route('admin.users.show', $row->user) }}" class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                        {{ strtoupper(substr($row->user->name ?? '?', 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ $row->user->name }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ $row->user->email }}</p>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-900">{{ $row->total }}</span>
+                    <span class="text-xs text-gray-400">exercises</span>
+                </a>
+                @empty
+                <p class="text-sm text-gray-500 text-center py-6">No exercise activity in the last 7 days.</p>
+                @endforelse
+            </div>
+        </div>
     </div>
 
     <!-- Recent Activity -->
@@ -195,6 +270,22 @@ document.addEventListener('DOMContentLoaded', function () {
             plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Total', fontSize: '14px', fontWeight: 600 } } } } },
             dataLabels: { enabled: false },
             tooltip: { theme: 'light' }
+        }).render();
+    }
+
+    // Exercise Volume Bar Chart
+    const volData = @json($exerciseVolume ?? []);
+    if (volData.length > 0) {
+        new ApexCharts(document.querySelector('#exerciseVolumeChart'), {
+            chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans' },
+            series: [{ name: 'Exercises', data: volData.map(item => item.total) }],
+            xaxis: { categories: volData.map(item => item.date), labels: { style: { fontSize: '11px', colors: '#9ca3af' } } },
+            yaxis: { labels: { style: { fontSize: '11px', colors: '#9ca3af' } } },
+            colors: ['#f97316'],
+            plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+            grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
+            tooltip: { theme: 'light' },
+            dataLabels: { enabled: false }
         }).render();
     }
 });

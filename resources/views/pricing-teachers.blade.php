@@ -306,6 +306,7 @@
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
+                <div class="overflow-x-auto"><div class="min-w-[560px]">
                 {{-- Header --}}
                 <div class="grid grid-cols-4 gap-0 border-b border-gray-100">
                     <div class="px-5 py-4 col-span-1"></div>
@@ -372,6 +373,7 @@
                     </div>
                 </div>
                 @endforeach
+                </div></div>
             </div>
         </div>
     </section>

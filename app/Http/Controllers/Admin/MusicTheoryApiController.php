@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\HarmonicIntervalPractice;
+use App\Models\IntervalComparisonPractice;
+use App\Models\IntervalConstructionPractice;
+use App\Models\IntervalDirectionPractice;
+use App\Models\MelodicIntervalPractice;
 use App\Services\MusicTheoryService;
 use Illuminate\Http\Request;
 
@@ -19,24 +24,24 @@ class MusicTheoryApiController extends Controller
      */
     public function recalculate(Request $request)
     {
-        $note1   = $request->input('note1', 'C');
+        $note1 = $request->input('note1', 'C');
         $octave1 = (int) $request->input('note1_octave', 4);
-        $note2   = $request->input('note2', 'E');
+        $note2 = $request->input('note2', 'E');
         $octave2 = (int) $request->input('note2_octave', $octave1);
 
-        if (!isset(MusicTheoryService::NOTE_SEMITONES[$note1]) || !isset(MusicTheoryService::NOTE_SEMITONES[$note2])) {
+        if (! isset(MusicTheoryService::NOTE_SEMITONES[$note1]) || ! isset(MusicTheoryService::NOTE_SEMITONES[$note2])) {
             return response()->json(['error' => 'Unknown note name'], 422);
         }
 
-        $direction     = $this->music->getDirection($note1, $octave1, $note2, $octave2);
-        $semitones     = abs($this->music->semitonesBetween($note1, $octave1, $note2, $octave2));
-        $intervalName  = $this->music->intervalNameFromSemitones($semitones);
+        $direction = $this->music->getDirection($note1, $octave1, $note2, $octave2);
+        $semitones = abs($this->music->semitonesBetween($note1, $octave1, $note2, $octave2));
+        $intervalName = $this->music->intervalNameFromSemitones($semitones);
 
         return response()->json([
-            'direction'      => $direction,
-            'semitones'      => $semitones,
-            'interval_name'  => $intervalName,
-            'note2_octave'   => $octave2,
+            'direction' => $direction,
+            'semitones' => $semitones,
+            'interval_name' => $intervalName,
+            'note2_octave' => $octave2,
         ]);
     }
 
@@ -47,7 +52,7 @@ class MusicTheoryApiController extends Controller
      */
     public function validateQuestion(Request $request)
     {
-        $type     = $request->input('type', '');
+        $type = $request->input('type', '');
         $question = $request->except('type');
 
         $result = $this->music->validateQuestionConsistency($question, $type);
@@ -64,19 +69,19 @@ class MusicTheoryApiController extends Controller
         $type = $request->input('type', '');
 
         $modelMap = [
-            'melodic-interval-practice'      => \App\Models\MelodicIntervalPractice::class,
-            'harmonic-interval-practice'     => \App\Models\HarmonicIntervalPractice::class,
-            'interval-direction-practice'    => \App\Models\IntervalDirectionPractice::class,
-            'interval-construction-practice' => \App\Models\IntervalConstructionPractice::class,
-            'interval-comparison-practice'   => \App\Models\IntervalComparisonPractice::class,
+            'melodic-interval-practice' => MelodicIntervalPractice::class,
+            'harmonic-interval-practice' => HarmonicIntervalPractice::class,
+            'interval-direction-practice' => IntervalDirectionPractice::class,
+            'interval-construction-practice' => IntervalConstructionPractice::class,
+            'interval-comparison-practice' => IntervalComparisonPractice::class,
         ];
 
-        if (!isset($modelMap[$type])) {
+        if (! isset($modelMap[$type])) {
             return response()->json(['error' => 'Unknown practice type'], 422);
         }
 
         $questions = $modelMap[$type]::all();
-        $results   = ['total' => $questions->count(), 'valid' => 0, 'invalid' => 0, 'needs_review' => 0, 'details' => []];
+        $results = ['total' => $questions->count(), 'valid' => 0, 'invalid' => 0, 'needs_review' => 0, 'details' => []];
 
         foreach ($questions as $q) {
             $check = $this->music->validateQuestionConsistency($q->toArray(), $type);

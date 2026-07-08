@@ -3,9 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 
 class CachePianoNotes extends Command
 {
@@ -90,53 +89,54 @@ class CachePianoNotes extends Command
     {
         $duration = $this->option('duration');
         $force = $this->option('force');
-        
+
         $apiBaseUrl = 'https://mithatck.com/music/api/note.php';
         $cachePath = public_path('audio/piano');
-        
+
         // Create cache directory if it doesn't exist
-        if (!File::isDirectory($cachePath)) {
+        if (! File::isDirectory($cachePath)) {
             File::makeDirectory($cachePath, 0755, true);
             $this->info("Created cache directory: {$cachePath}");
         }
-        
-        $this->info("Caching piano notes from API...");
-        $this->info("Duration: {$duration}s | Force: " . ($force ? 'Yes' : 'No'));
+
+        $this->info('Caching piano notes from API...');
+        $this->info("Duration: {$duration}s | Force: ".($force ? 'Yes' : 'No'));
         $this->newLine();
-        
+
         $progressBar = $this->output->createProgressBar(count($this->notes));
         $progressBar->start();
-        
+
         $cached = 0;
         $skipped = 0;
         $failed = 0;
-        
+
         foreach ($this->notes as $noteData) {
             $note = $noteData['note'];
             $octave = $noteData['octave'];
             $isSharp = $noteData['isSharp'];
-            
+
             // Build note name for filename (use 's' for sharp, e.g., Cs for C#)
             $filenameNote = $isSharp ? "{$note}s" : $note;
             $filename = "{$filenameNote}{$octave}_d{$duration}.mp3";
             $filePath = "{$cachePath}/{$filename}";
-            
+
             // Skip if file exists and not forcing
-            if (File::exists($filePath) && !$force) {
+            if (File::exists($filePath) && ! $force) {
                 $skipped++;
                 $progressBar->advance();
+
                 continue;
             }
-            
+
             // Build API URL (use %23 for #)
             $apiNote = $isSharp ? "{$note}%23" : $note;
             $apiUrl = "{$apiBaseUrl}?note={$apiNote}{$octave}&duration={$duration}";
-            
+
             try {
                 $response = Http::timeout(30)->get($apiUrl);
-                
+
                 $displayNote = $isSharp ? "{$note}#{$octave}" : "{$note}{$octave}";
-                
+
                 if ($response->successful()) {
                     File::put($filePath, $response->body());
                     $cached++;
@@ -150,17 +150,17 @@ class CachePianoNotes extends Command
                 $this->error("Error fetching {$displayNote}: {$e->getMessage()}");
                 $failed++;
             }
-            
+
             $progressBar->advance();
-            
+
             // Small delay to avoid overwhelming the API
             usleep(100000); // 100ms
         }
-        
+
         $progressBar->finish();
         $this->newLine(2);
-        
-        $this->info("Cache complete!");
+
+        $this->info('Cache complete!');
         $this->table(
             ['Status', 'Count'],
             [
@@ -169,16 +169,16 @@ class CachePianoNotes extends Command
                 ['Failed', $failed],
             ]
         );
-        
+
         $this->newLine();
         $this->info("Audio files cached at: {$cachePath}");
-        
+
         if ($cached > 0 || $skipped > 0) {
             $this->newLine();
-            $this->comment("To use cached notes, update the piano game to use local files:");
-            $this->comment("const apiUrl = `/audio/piano/\${noteName}\${octave}_d1.mp3`;");
+            $this->comment('To use cached notes, update the piano game to use local files:');
+            $this->comment('const apiUrl = `/audio/piano/${noteName}${octave}_d1.mp3`;');
         }
-        
+
         return $failed > 0 ? Command::FAILURE : Command::SUCCESS;
     }
 }

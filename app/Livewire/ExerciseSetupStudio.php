@@ -4,16 +4,22 @@ namespace App\Livewire;
 
 use App\Models\ExerciseSetupTemplate;
 use App\Models\UserPractice;
+use App\Services\AiUsageLogger;
 use Livewire\Component;
 use OpenAI;
 
 class ExerciseSetupStudio extends Component
 {
     public $templates = [];
+
     public $isPremium = false;
+
     public $savedPlansLimit = 3;
+
     public $aiRecommendation = null;
+
     public $aiLoading = false;
+
     public $aiError = null;
 
     public function mount()
@@ -40,14 +46,16 @@ class ExerciseSetupStudio extends Component
     {
         $user = auth()->user();
 
-        if (!$user->isPremium()) {
-            $this->aiError = 'AI önerileri Premium üyelere özeldir.';
+        if (! $user->isPremium()) {
+            $this->aiError = __('app.exercises.ai_premium_only');
+
             return;
         }
 
         $apiKey = config('services.openai.key');
-        if (!$apiKey) {
-            $this->aiError = 'OpenAI API anahtarı yapılandırılmamış.';
+        if (! $apiKey) {
+            $this->aiError = __('app.exercises.ai_not_configured');
+
             return;
         }
 
@@ -55,14 +63,17 @@ class ExerciseSetupStudio extends Component
         $this->aiError = null;
         $this->aiRecommendation = null;
 
+        $model = 'gpt-4.1-mini';
+        $start = microtime(true);
+
         try {
             $context = $this->buildContext($user);
             $client = OpenAI::client($apiKey);
 
             $response = $client->chat()->create([
-                'model' => 'gpt-4.1-mini',
+                'model' => $model,
                 'messages' => [
-                    ['role' => 'system', 'content' => 'Sen bir müzik kulağı eğitimi koçusun. Kullanıcının profili, geçmiş pratik verileri ve zayıf noktaları doğrultusunda kişiselleştirilmiş egzersiz ayarları öner. Türkçe yanıt ver. Sadece JSON döndür.'],
+                    ['role' => 'system', 'content' => "You are an ear-training coach for musicians. Based on the user's profile, recent practice data, and weak points, recommend personalized exercise settings. Respond in {$this->aiResponseLanguage()}. Return JSON only."],
                     ['role' => 'user', 'content' => $context],
                 ],
                 'response_format' => [
@@ -102,10 +113,13 @@ class ExerciseSetupStudio extends Component
                 'temperature' => 0.6,
             ]);
 
+            AiUsageLogger::logSuccess('exercise_setup_studio_recommend', $model, $response->usage, $user->id, [], (int) ((microtime(true) - $start) * 1000));
+
             $this->aiRecommendation = json_decode($response->choices[0]->message->content, true);
         } catch (\Exception $e) {
-            $this->aiError = 'AI önerisi alınamadı. Lütfen tekrar deneyin.';
-            \Log::error('ExerciseSetupStudio AI error: ' . $e->getMessage());
+            AiUsageLogger::logError('exercise_setup_studio_recommend', $model, $e->getMessage(), $user->id, [], (int) ((microtime(true) - $start) * 1000));
+            $this->aiError = __('app.exercises.ai_failed');
+            \Log::error('ExerciseSetupStudio AI error: '.$e->getMessage());
         } finally {
             $this->aiLoading = false;
         }
@@ -124,7 +138,7 @@ class ExerciseSetupStudio extends Component
     {
         $template = ExerciseSetupTemplate::find($templateId);
         if ($template && $template->user_id === auth()->id()) {
-            $template->update(['is_favorite' => !$template->is_favorite]);
+            $template->update(['is_favorite' => ! $template->is_favorite]);
             $this->loadTemplates();
         }
     }
@@ -146,13 +160,24 @@ class ExerciseSetupStudio extends Component
         $practiceLines = $recentPractices->map(function ($up) {
             $total = $up->total_questions > 0 ? $up->total_questions : 1;
             $accuracy = round(($up->correct_answers / $total) * 100);
-            return "- {$up->practice->name}: %{$accuracy} doğruluk";
+
+            return "- {$up->practice->name}: {$accuracy}% accuracy";
         })->implode("\n");
 
-        $level = $profile?->musical_level ?? 'bilinmiyor';
-        $instrument = $profile?->primary_instrument ?? 'belirtilmemiş';
+        $level = $profile?->musical_level ?? 'unknown';
+        $instrument = $profile?->primary_instrument ?? 'unspecified';
         $weeklyHours = $profile?->weekly_practice_hours ?? 0;
 
-        return "Kullanıcı bilgileri:\n- Müzik seviyesi: {$level}\n- Ana enstrüman: {$instrument}\n- Haftalık pratik süresi: {$weeklyHours} saat\n\nSon pratik performansları:\n{$practiceLines}\n\nBu verilere dayanarak, kullanıcının en çok gelişmeye ihtiyaç duyduğu alanda kişiselleştirilmiş bir egzersiz ayarı öner. Mevcut egzersiz tipleri: melodic-intervals, harmonic-intervals, intervals-direction, intervals-construction, interval-comparison, chords, scales, rhythm, melodic-dictation.";
+        return "User info:\n- Musical level: {$level}\n- Primary instrument: {$instrument}\n- Weekly practice time: {$weeklyHours} hours\n\nRecent practice performance:\n{$practiceLines}\n\nBased on this data, recommend a personalized exercise setup for the area the user most needs to improve. Available exercise types: melodic-intervals, harmonic-intervals, intervals-direction, intervals-construction, interval-comparison, chords, scales, rhythm, melodic-dictation.";
+    }
+
+    private function aiResponseLanguage(): string
+    {
+        return [
+            'en' => 'English', 'tr' => 'Turkish', 'es' => 'Spanish', 'de' => 'German',
+            'fr' => 'French', 'pt' => 'Portuguese', 'it' => 'Italian', 'ar' => 'Arabic',
+            'ja' => 'Japanese', 'ko' => 'Korean', 'nl' => 'Dutch', 'pl' => 'Polish',
+            'ru' => 'Russian', 'sv' => 'Swedish', 'zh' => 'Chinese',
+        ][app()->getLocale()] ?? 'English';
     }
 }

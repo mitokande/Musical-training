@@ -34,7 +34,9 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            // ProfileController::update returns to the general tab of the
+            // tabbed profile page.
+            ->assertRedirect('/profile?tab=general');
 
         $user->refresh();
 
@@ -56,44 +58,41 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect('/profile?tab=general');
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    // Account deletion was replaced by suspend/reactivate
+    // (ProfileController::toggleSuspend); there is no DELETE /profile route.
+
+    public function test_user_can_suspend_their_account(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
+            ->post('/profile/suspend');
 
         $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
+            ->assertRedirect(route('profile.edit', absolute: false))
+            ->assertSessionHas('status', 'account-suspended');
 
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertNotNull($user->refresh()->suspended_at);
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_suspended_user_can_reactivate_their_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['suspended_at' => now()]);
 
         $response = $this
             ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
+            ->post('/profile/suspend');
 
         $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.edit', absolute: false))
+            ->assertSessionHas('status', 'account-activated');
 
-        $this->assertNotNull($user->fresh());
+        $this->assertNull($user->refresh()->suspended_at);
     }
 }

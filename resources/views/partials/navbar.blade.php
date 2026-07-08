@@ -1,12 +1,22 @@
 {{-- Professional Navbar Component --}}
 {{-- Usage: @include('partials.navbar', ['active' => 'learn']) --}}
 
+@if(session('impersonator_id'))
+<div class="bg-amber-500 text-white text-sm font-medium px-4 py-2 flex items-center justify-center gap-3 relative z-[60]">
+    <span>You are viewing as <strong>{{ auth()->user()->name ?? '' }}</strong> (impersonation mode)</span>
+    <form method="POST" action="{{ route('impersonate.leave') }}" class="inline">
+        @csrf
+        <button type="submit" class="underline font-semibold hover:text-amber-100">Return to admin</button>
+    </form>
+</div>
+@endif
+
 <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-            
+
             {{-- Logo --}}
-            <a href="{{ url('/') }}" class="flex items-center gap-2.5 group md:-ml-20">
+            <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
                 {{-- Icon mark: black box, white H --}}
                 <div class="w-11 h-11 rounded-xl bg-gray-900 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow shrink-0">
                     <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
@@ -24,73 +34,155 @@
             </a>
 
             {{-- Desktop Navigation --}}
-            <nav class="hidden md:flex items-center gap-1">
+            <nav class="hidden md:flex items-center gap-1 ml-10">
                 @php
-                    $navItems = [
-                        ['href' => '/dashboard', 'label' => __('app.nav.home'), 'icon' => 'home', 'key' => 'dashboard'],
-                        ['href' => '/learn', 'label' => __('app.nav.practice'), 'icon' => 'music-2', 'key' => 'learn'],
-                        ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
-                        ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
-                        ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
-                        ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
-                        ['href' => '/progress', 'label' => __('app.nav.progress'), 'icon' => 'trending-up', 'key' => 'progress'],
-                        ['href' => '/feed', 'label' => __('app.nav.feed'), 'icon' => 'rss', 'key' => 'feed'],
-                    ];
+                    // Students (plain "user" role) get a streamlined top bar:
+                    // Dashboard · Exercise Setup · Music Games · AI Exercises · Piano · Notifications
+                    // (Notifications is rendered separately below.) Teacher/school/admin keep the full set.
+                    $isStudent = Auth::check() && Auth::user()->role === 'user';
+                    // Teacher accounts (any user holding a TeacherProfile, plus legacy teacher role)
+                    // get a dedicated top bar. Every other teacher tool lives in the CRM sidebar.
+                    $isTeacherAccount = Auth::check() && Auth::user()->hasTeacherAccount();
+                    // Admins get a focused top bar linking straight into the admin modules.
+                    $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+
                     $currentActive = $active ?? '';
-                    $unreadMessages = Auth::check()
-                        ? \App\Models\Message::where('receiver_id', Auth::id())->where('type', 'message')->unread()->count()
-                        : 0;
+                    // Unified Messages badge: general messages + teacher-student conversations.
+                    $unreadMessages = 0;
+                    $unreadNotifications = 0;
+                    $myProfileUrl = '#';
+                    if (Auth::check()) {
+                        $unreadMessages = \App\Models\Message::where('receiver_id', Auth::id())->where('type', 'message')->unread()->count()
+                            + app(\App\Services\Teacher\TeacherMessagingService::class)->unreadTotalFor(Auth::user());
+                        $unreadNotifications = Auth::user()->unreadNotifications()->count();
+                        $myProfileUrl = Auth::user()->username
+                            ? route('profile.public', Auth::user()->username)
+                            : route('profile.edit');
+                    }
+
+                    if ($isAdmin) {
+                        // Order (left→right): Dashboard, Members, Teachers, Feed, Messages, Email, Support.
+                        // Messages carries an unread badge; the shared trailing Messages/My Profile
+                        // blocks below are suppressed for admins.
+                        $navItems = [
+                            ['href' => route('admin.dashboard'),          'label' => __('app.nav.dashboard'), 'icon' => 'layout-dashboard', 'key' => 'admin-dashboard'],
+                            ['href' => route('admin.users.index'),        'label' => __('app.nav.members'),   'icon' => 'users',            'key' => 'admin-members'],
+                            ['href' => route('admin.teacher-profiles.index'), 'label' => __('app.nav.teachers'), 'icon' => 'graduation-cap', 'key' => 'admin-teachers'],
+                            ['href' => route('admin.community.index'),    'label' => __('app.nav.feed'),      'icon' => 'rss',              'key' => 'admin-feed'],
+                            ['href' => route('admin.messages.index'),     'label' => __('app.nav.messages'),  'icon' => 'message-circle',   'key' => 'admin-messages', 'badge' => $unreadMessages],
+                            ['href' => route('admin.email-center.dashboard'), 'label' => __('app.nav.email'), 'icon' => 'mail',           'key' => 'admin-email'],
+                            ['href' => route('admin.support-inbox.index'), 'label' => __('app.nav.support'),  'icon' => 'life-buoy',        'key' => 'admin-support'],
+                        ];
+                    } elseif ($isTeacherAccount) {
+                        // Profile → the teacher's public, shareable profile URL (/teachers/{slug}).
+                        // Falls back to the owner preview when no slug exists yet (legacy teacher role).
+                        $tp = Auth::user()->teacherProfile;
+                        $teacherPublicUrl = ($tp && $tp->slug) ? route('teachers.show', $tp->slug) : route('teacher.profile.preview');
+
+                        // Order (left→right): Dashboard, Feed, Notifications, Messages, Profile, My Students, Calendar.
+                        // Notifications + Messages carry unread badges; the shared trailing
+                        // Notifications/Messages blocks below are suppressed for teachers.
+                        $navItems = [
+                            ['href' => route('teacher.dashboard'),       'label' => __('app.nav.dashboard'),          'icon' => 'layout-dashboard', 'key' => 'teacher'],
+                            ['href' => route('teacher.feed'),            'label' => __('app.nav.feed'),               'icon' => 'rss',              'key' => 'feed'],
+                            ['href' => route('notifications.index'),     'label' => __('app.nav.notifications'),      'icon' => 'bell',             'key' => 'notifications', 'badge' => $unreadNotifications],
+                            ['href' => route('teacher.messages.index'),  'label' => __('app.nav.messages'),           'icon' => 'message-circle',   'key' => 'messages',      'badge' => $unreadMessages],
+                            ['href' => $teacherPublicUrl,                'label' => __('teacher.nav.profile'),        'icon' => 'user-pen',         'key' => 'my-profile'],
+                            ['href' => route('teacher.students.index'),  'label' => __('teacher.dashboard.hero_students'), 'icon' => 'users',       'key' => 'students'],
+                            ['href' => route('teacher.calendar.index'),  'label' => __('teacher.nav.calendar'),       'icon' => 'calendar',         'key' => 'calendar'],
+                        ];
+                    } elseif ($isStudent) {
+                        $navItems = [
+                            ['href' => '/dashboard', 'label' => __('app.nav.dashboard'), 'icon' => 'home', 'key' => 'dashboard'],
+                            ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
+                            ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
+                            ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
+                            ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
+                        ];
+                    } else {
+                        $navItems = [
+                            ['href' => '/dashboard', 'label' => __('app.nav.home'), 'icon' => 'home', 'key' => 'dashboard'],
+                            ['href' => '/learn', 'label' => __('app.nav.practice'), 'icon' => 'music-2', 'key' => 'learn'],
+                            ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
+                            ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
+                            ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
+                            ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
+                            ['href' => '/progress', 'label' => __('app.nav.progress'), 'icon' => 'trending-up', 'key' => 'progress'],
+                        ];
+                    }
                 @endphp
                 
                 @foreach($navItems as $item)
                     <a href="{{ $item['href'] }}"
-                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                       class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
                               {{ $currentActive === $item['key']
                                  ? 'bg-purple-50 text-purple-700'
                                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
-                        <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4"></i>
+                        <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4 {{ ($item['key'] === 'notifications' && ($item['badge'] ?? 0) > 0) ? 'text-purple-600' : '' }}"></i>
                         {{ $item['label'] }}
+                        @if(($item['badge'] ?? 0) > 0)
+                            <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $item['badge'] > 9 ? '9+' : $item['badge'] }}</span>
+                        @endif
                     </a>
                 @endforeach
 
+                {{-- My Profile (replaces the former Feed slot) — hidden for students, teacher accounts and admins, who reach it via the avatar dropdown / dashboard grid --}}
                 @auth
-                    <a href="/messages"
-                       class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                              {{ $currentActive === 'messages' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
-                        <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        {{ __('app.nav.messages') }}
-                        @if($unreadMessages > 0)
-                            <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
-                        @endif
+                    @unless($isStudent || $isTeacherAccount || $isAdmin)
+                    <a href="{{ $myProfileUrl }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                              {{ $currentActive === 'my-profile' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        {{ __('app.nav.my_profile') }}
                     </a>
+                    @endunless
                 @endauth
 
-                @if(Auth::check() && (Auth::user()->isTeacher() || Auth::user()->isSchool()))
-                    <a href="{{ route('articles.index') }}"
-                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
-                              {{ $currentActive === 'articles' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
-                        {{ __('app.nav.blog') }}
+                {{-- Messages: hidden for students and any teacher/school account (they use the CRM inbox) --}}
+                @auth
+                    @unless($isStudent || $isTeacherAccount || $isAdmin || Auth::user()->isTeacher() || Auth::user()->isSchool())
+                        <a href="/messages"
+                           class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                                  {{ $currentActive === 'messages' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            {{ __('app.nav.messages') }}
+                            @if($unreadMessages > 0)
+                                <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
+                            @endif
+                        </a>
+                    @endunless
+
+                    {{-- Notifications: visible to every authenticated user (teachers get it inside their nav set above; admins use the focused admin bar) --}}
+                    @unless($isTeacherAccount || $isAdmin)
+                    <a href="{{ route('notifications.index') }}"
+                       class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                              {{ $currentActive === 'notifications' ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
+                        <i data-lucide="bell" class="w-4 h-4 {{ $unreadNotifications > 0 ? 'text-purple-600' : '' }}"></i>
+                        {{ __('app.nav.notifications') }}
+                        @if($unreadNotifications > 0)
+                            <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}</span>
+                        @endif
                     </a>
-                @endif
+                    @endunless
+                @endauth
             </nav>
 
             {{-- Right Side: User Menu --}}
             <div class="flex items-center gap-2">
-                {{-- Search Button --}}
-                <a href="/search"
-                   class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors inline-flex items-center"
-                   title="{{ __('app.nav.search') }}">
-                    <i data-lucide="search" class="w-4 h-4"></i>
-                </a>
-                {{-- Admin Link (if admin) --}}
-                @if(Auth::user() && Auth::user()->role === 'admin')
-                    <a href="/admin" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-                        Admin
-                    </a>
-                @endif
-
+                {{-- Search: compact expandable input --}}
+                <div x-data="{ focused: false }" class="hidden md:flex items-center ml-2">
+                    <form action="/search" method="GET">
+                        <div class="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <input type="text" name="q"
+                                   placeholder="{{ __('app.nav.search') }}..."
+                                   @focus="focused = true"
+                                   @blur="focused = false"
+                                   :class="focused ? 'w-48 bg-white border-purple-300 ring-1 ring-purple-100' : 'w-28 bg-gray-50 border-gray-200'"
+                                   class="pl-8 pr-3 py-1.5 text-sm rounded-lg border outline-none transition-all duration-300 text-gray-700 placeholder-gray-400">
+                        </div>
+                    </form>
+                </div>
                 @auth
                 {{-- User Avatar & Dropdown --}}
                 <div x-data="{ open: false }" @click.outside="open = false" class="relative">
@@ -104,7 +196,7 @@
                             </div>
                         @endif
                         <span class="hidden lg:block text-sm font-medium text-gray-700 max-w-[100px] truncate">
-                            {{ Auth::user()->name ?? 'User' }}
+                            {{ $isAdmin ? 'Admin' : (Auth::user()->name ?? 'User') }}
                         </span>
                         <i data-lucide="chevron-down" class="hidden lg:block w-4 h-4 text-gray-400"></i>
                     </button>
@@ -121,33 +213,55 @@
                          style="display: none;">
 
                         <div class="px-4 py-2 border-b border-gray-100">
-                            <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name ?? 'User' }}</p>
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $isAdmin ? 'Admin' : (Auth::user()->name ?? 'User') }}</p>
                             <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email ?? '' }}</p>
                         </div>
 
-                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                            <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
-                            {{ __('app.nav.profile') }}
-                        </a>
-
-                        <a href="{{ route('profile.edit', ['tab' => 'settings']) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                            <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
-                            {{ __('app.nav.profile_settings') }}
-                        </a>
-
-                        <a href="/progress" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-gray-400"></i>
-                            {{ __('app.nav.my_progress') }}
-                        </a>
-
-                        @if(Auth::user()->isTeacher())
-                            <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                                <i data-lucide="book-open" class="w-4 h-4 text-gray-400"></i>
+                        @if($isAdmin)
+                            {{-- Admins: straight to the admin dashboard; general user settings are hidden --}}
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('app.nav.dashboard') }}
+                            </a>
+                        @elseif(Auth::user()->hasTeacherAccount())
+                            {{-- Teacher accounts: CRM-centric menu, old profile pages are gone --}}
+                            <a href="{{ route('teacher.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('app.nav.teacher_panel') }}
+                            </a>
+
+                            <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="user-pen" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('teacher.nav.profile') }}
+                            </a>
+
+                            <a href="{{ route('teacher.profile.preview') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('teacher.nav.public_profile') }}
+                            </a>
+
+                            <a href="{{ route('teacher.settings') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('teacher.nav.settings') }}
+                            </a>
+                        @else
+                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('app.nav.profile') }}
+                            </a>
+
+                            <a href="{{ route('profile.edit', ['tab' => 'settings']) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('app.nav.profile_settings') }}
+                            </a>
+
+                            <a href="/progress" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <i data-lucide="bar-chart-2" class="w-4 h-4 text-gray-400"></i>
+                                {{ __('app.nav.my_progress') }}
                             </a>
                         @endif
 
-                        @if(Auth::user()->isSchool())
+                        @if(!$isAdmin && Auth::user()->isSchool())
                             <a href="{{ route('school.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('app.nav.school_panel') }}
@@ -250,29 +364,51 @@
                              : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
                     <i data-lucide="{{ $item['icon'] }}" class="w-5 h-5 shrink-0"></i>
                     {{ $item['label'] }}
+                    @if(($item['badge'] ?? 0) > 0)
+                        <span class="ml-auto bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $item['badge'] > 9 ? '9+' : $item['badge'] }}</span>
+                    @endif
                 </a>
             @endforeach
 
+            {{-- My Profile (replaces the former Feed slot) — hidden for students and teacher accounts, who reach it via the avatar menu / dashboard grid --}}
             @auth
-                <a href="/messages"
+                @unless($isStudent || $isTeacherAccount)
+                <a href="{{ $myProfileUrl }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                          {{ $currentActive === 'messages' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
-                    <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                    {{ __('app.nav.messages') }}
-                    @if($unreadMessages > 0)
-                        <span class="ml-auto bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
-                    @endif
+                          {{ $currentActive === 'my-profile' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
+                    <i data-lucide="user" class="w-5 h-5 shrink-0"></i>
+                    {{ __('app.nav.my_profile') }}
                 </a>
+                @endunless
             @endauth
 
-            @if(Auth::check() && Auth::user()->isTeacher() || Auth::check() && Auth::user()->isSchool())
-                <a href="{{ route('articles.index') }}"
+            {{-- Messages: hidden for students and any teacher/school account (they use the CRM inbox) --}}
+            @auth
+                @unless($isStudent || $isTeacherAccount || Auth::user()->isTeacher() || Auth::user()->isSchool())
+                    <a href="/messages"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                              {{ $currentActive === 'messages' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
+                        <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                        {{ __('app.nav.messages') }}
+                        @if($unreadMessages > 0)
+                            <span class="ml-auto bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadMessages > 9 ? '9+' : $unreadMessages }}</span>
+                        @endif
+                    </a>
+                @endunless
+
+                {{-- Notifications: visible to every authenticated user (teachers get it inside their nav set above) --}}
+                @unless($isTeacherAccount)
+                <a href="{{ route('notifications.index') }}"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                          {{ $currentActive === 'articles' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
-                    <i data-lucide="file-text" class="w-5 h-5 shrink-0"></i>
-                    {{ __('app.nav.blog') }}
+                          {{ $currentActive === 'notifications' ? 'bg-purple-600 text-white' : 'text-gray-300 hover:text-white hover:bg-white/10' }}">
+                    <i data-lucide="bell" class="w-5 h-5 shrink-0"></i>
+                    {{ __('app.nav.notifications') }}
+                    @if($unreadNotifications > 0)
+                        <span class="ml-auto bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}</span>
+                    @endif
                 </a>
-            @endif
+                @endunless
+            @endauth
 
             @if(Auth::user() && Auth::user()->role === 'admin')
                 <a href="/admin" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-purple-400 hover:text-purple-300 hover:bg-white/10 transition-all">
@@ -299,18 +435,31 @@
                 </div>
             </div>
             <div class="space-y-1 mb-3">
-                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                    <i data-lucide="user" class="w-4 h-4 shrink-0"></i>
-                    {{ __('app.nav.profile') }}
-                </a>
-                <a href="{{ route('profile.edit', ['tab' => 'settings']) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                    <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
-                    {{ __('app.nav.profile_settings') }}
-                </a>
-                @if(Auth::user()->isTeacher())
-                    <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
-                        <i data-lucide="book-open" class="w-4 h-4 shrink-0"></i>
+                @if(Auth::user()->hasTeacherAccount())
+                    <a href="{{ route('teacher.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
                         {{ __('app.nav.teacher_panel') }}
+                    </a>
+                    <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="user-pen" class="w-4 h-4 shrink-0"></i>
+                        {{ __('teacher.nav.profile') }}
+                    </a>
+                    <a href="{{ route('teacher.profile.preview') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="eye" class="w-4 h-4 shrink-0"></i>
+                        {{ __('teacher.nav.public_profile') }}
+                    </a>
+                    <a href="{{ route('teacher.settings') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+                        {{ __('teacher.nav.settings') }}
+                    </a>
+                @else
+                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="user" class="w-4 h-4 shrink-0"></i>
+                        {{ __('app.nav.profile') }}
+                    </a>
+                    <a href="{{ route('profile.edit', ['tab' => 'settings']) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+                        {{ __('app.nav.profile_settings') }}
                     </a>
                 @endif
                 @if(Auth::user()->isSchool())

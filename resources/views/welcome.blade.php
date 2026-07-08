@@ -235,14 +235,14 @@
                 </a>
 
                 {{-- Desktop centre nav: flex-1 so it never overlaps right section --}}
-                <div id="wl-nav-center" class="hidden lg:flex items-center justify-center flex-1 gap-0 px-2">
-                    <a href="#features"     class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_features') }}</a>
-                    <a href="#exercises"    class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_exercises') }}</a>
-                    <a href="#piano"        class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_piano') }}</a>
-                    <a href="#ai-tutor"     class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_ai_tools') }}</a>
-                    <a href="#games"        class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_games') }}</a>
-                    <a href="#pricing"      class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_pricing') }}</a>
-                    <a href="#how-it-works" class="px-2.5 py-2 text-[0.8rem] text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_how_it_works') }}</a>
+                <div id="wl-nav-center" class="hidden lg:flex items-center justify-end flex-1 gap-0 pl-16 pr-2">
+                    <a href="#features"     class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_features') }}</a>
+                    <a href="#exercises"    class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_exercises') }}</a>
+                    <a href="#piano"        class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_piano') }}</a>
+                    <a href="#ai-tutor"     class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_ai_tools') }}</a>
+                    <a href="#games"        class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_games') }}</a>
+                    <a href="#pricing"      class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_pricing') }}</a>
+                    <a href="#how-it-works" class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_how_it_works') }}</a>
                 </div>
 
                 {{-- Desktop right: auth + search (shrink-0 so it never gets compressed) --}}
@@ -264,7 +264,7 @@
                     <form action="/search" method="GET" class="relative flex items-center ml-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
                         <input type="text" name="q" placeholder="{{ __('app.welcome.nav_search') }}"
-                               class="pl-9 pr-3 py-1.5 w-36 text-sm bg-gray-100 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent focus:w-48 transition-all duration-300">
+                               class="pl-9 pr-3 py-1.5 w-20 text-sm bg-gray-100 border border-gray-200 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent focus:w-36 transition-all duration-300">
                     </form>
                 </div>
 

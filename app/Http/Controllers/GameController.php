@@ -14,15 +14,15 @@ class GameController extends Controller
     const GUEST_PLAYS_TOTAL = 3;
 
     public const GAMES = [
-        'note-rush' => [
-            'name' => 'Note Rush',
-            'description' => 'Identify notes as fast as you can before time runs out.',
-            'icon' => 'zap',
-            'color' => 'from-yellow-400 to-orange-500',
-            'badge_color' => 'bg-orange-100 text-orange-700',
+        'note-fall' => [
+            'name' => 'Note Fall',
+            'description' => 'Notes drop from above — press the matching piano key before they hit the bottom!',
+            'icon' => 'arrow-down-to-line',
+            'color' => 'from-emerald-400 to-teal-600',
+            'badge_color' => 'bg-emerald-100 text-emerald-700',
             'difficulty' => 'Beginner',
-            'duration' => '60s',
-            'tags' => ['Notes', 'Speed'],
+            'duration' => 'Endless',
+            'tags' => ['Notes', 'Reflex'],
         ],
         'melody-memory' => [
             'name' => 'Melody Memory',
@@ -34,6 +34,16 @@ class GameController extends Controller
             'duration' => 'Endless',
             'tags' => ['Melody', 'Memory'],
         ],
+        'note-rush' => [
+            'name' => 'Note Rush',
+            'description' => 'Identify notes as fast as you can before time runs out.',
+            'icon' => 'zap',
+            'color' => 'from-yellow-400 to-orange-500',
+            'badge_color' => 'bg-orange-100 text-orange-700',
+            'difficulty' => 'Beginner',
+            'duration' => '60s',
+            'tags' => ['Notes', 'Speed'],
+        ],
         'interval-blitz' => [
             'name' => 'Interval Blitz',
             'description' => 'Name that interval before the timer runs out. 3 lives — use them wisely.',
@@ -43,26 +53,6 @@ class GameController extends Controller
             'difficulty' => 'Intermediate',
             'duration' => '~3 min',
             'tags' => ['Intervals', 'Speed'],
-        ],
-        'chord-clash' => [
-            'name' => 'Chord Clash',
-            'description' => 'Two chords play — pick the right one. How many rounds can you clear?',
-            'icon' => 'layers',
-            'color' => 'from-rose-400 to-pink-600',
-            'badge_color' => 'bg-pink-100 text-pink-700',
-            'difficulty' => 'Advanced',
-            'duration' => '~5 min',
-            'tags' => ['Chords', 'Harmony'],
-        ],
-        'note-fall' => [
-            'name' => 'Note Fall',
-            'description' => 'Notes drop from above — press the matching piano key before they hit the bottom!',
-            'icon' => 'arrow-down-to-line',
-            'color' => 'from-emerald-400 to-teal-600',
-            'badge_color' => 'bg-emerald-100 text-emerald-700',
-            'difficulty' => 'Beginner',
-            'duration' => 'Endless',
-            'tags' => ['Notes', 'Reflex'],
         ],
         'note-catcher' => [
             'name' => 'Note Catcher',
@@ -74,9 +64,19 @@ class GameController extends Controller
             'duration' => 'Endless',
             'tags' => ['Notes', 'Steering'],
         ],
+        'chord-clash' => [
+            'name' => 'Chord Clash',
+            'description' => 'Hear a chord and identify its quality. 5 levels from triads to seventh chords.',
+            'icon' => 'layers',
+            'color' => 'from-rose-400 to-pink-600',
+            'badge_color' => 'bg-pink-100 text-pink-700',
+            'difficulty' => 'Advanced',
+            'duration' => '~5 min',
+            'tags' => ['Chords', 'Harmony'],
+        ],
     ];
 
-    public function index()
+    private function indexData(): array
     {
         $user = Auth::user();
         $scores = [];
@@ -95,7 +95,27 @@ class GameController extends Controller
 
         $globalLeaderboard = GameScore::globalLeaderboard(20);
 
-        return view('games.index', compact('scores', 'perTypeLimit', 'totalLimit', 'canAccessLeaderboard', 'globalLeaderboard'));
+        return compact('scores', 'perTypeLimit', 'totalLimit', 'canAccessLeaderboard', 'globalLeaderboard');
+    }
+
+    public function index()
+    {
+        return view('games.index', $this->indexData());
+    }
+
+    public function testA()
+    {
+        return view('games.index', [...$this->indexData(), 'variant' => 'a']);
+    }
+
+    public function testB()
+    {
+        return view('games.index', [...$this->indexData(), 'variant' => 'b']);
+    }
+
+    public function testC()
+    {
+        return view('games.test-c', $this->indexData());
     }
 
     public function show(string $slug)
@@ -166,11 +186,25 @@ class GameController extends Controller
             ? route('games.score', $slug)
             : route('games.guest-track', $slug);
 
+        $maxUnlockedLevel = 1;
+        if ($user && $slug === 'melody-memory') {
+            try {
+                $unlocked = GameScore::where('user_id', $user->id)
+                    ->where('game_slug', $slug)
+                    ->where('metadata->level_unlock', 1)
+                    ->max('level_reached');
+                $maxUnlockedLevel = max(1, min(3, (int) ($unlocked ?? 1)));
+            } catch (\Exception $e) {
+                $maxUnlockedLevel = 1;
+            }
+        }
+
         return view('games.show', compact(
             'slug', 'game', 'personalBest', 'personalBestRecord',
             'perTypeLimit', 'totalLimit', 'dailyPlaysUsed', 'totalPlaysUsed', 'canPlay',
             'canAccessLeaderboard', 'scoreUrl',
-            'weeklyLeaderboard', 'allTimeLeaderboard', 'userWeeklyRank'
+            'weeklyLeaderboard', 'allTimeLeaderboard', 'userWeeklyRank',
+            'maxUnlockedLevel'
         ));
     }
 
