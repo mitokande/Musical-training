@@ -1,10 +1,25 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Exercise Setup Studio – {{ config('app.name', 'Harmoniva') }}</title>
+    <title>Exercise Setup Studio — Build Custom Ear Training | {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="Design your own ear-training workout with Harmoniva's Exercise Setup Studio. Pick the exercise type, difficulty, notes, intervals, chords, or scales, and practise exactly what you need — free.">
+    <link rel="canonical" href="{{ route('exercise-setup.index') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="Exercise Setup Studio — Harmoniva">
+    <meta property="og:description" content="Design your own custom ear-training workout — pick the exercise type, difficulty, and content, and practise exactly what you need.">
+    <meta property="og:url" content="{{ route('exercise-setup.index') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Exercise Setup Studio — Harmoniva">
+    <meta name="twitter:description" content="Design your own custom ear-training workout on Harmoniva.">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
@@ -172,6 +187,45 @@
             <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mt-2">{{ $error }}</div>
         @endforeach
     </div>
+    @endif
+
+    <!-- ===== DAILY SESSION QUOTA ===== -->
+    @php
+        $studioLimit = $studioQuota['limit'] ?? -1;
+        $studioUsed = $studioQuota['used'] ?? 0;
+        $studioExhausted = $studioLimit !== -1 && $studioUsed >= $studioLimit;
+    @endphp
+    @if(session('studio_limit_reached') || $studioExhausted)
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div class="rounded-2xl border-2 border-orange-300 bg-orange-50 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="flex-1">
+                    <div class="font-bold text-orange-800 mb-1">
+                        {{ auth()->check() ? __('app.limits.studio_free_reached_title') : __('app.limits.studio_guest_reached_title') }}
+                    </div>
+                    <p class="text-sm text-orange-700">
+                        {{ auth()->check()
+                            ? __('app.limits.studio_free_reached_desc', ['limit' => $studioLimit])
+                            : __('app.limits.studio_guest_reached_desc', ['limit' => $studioLimit]) }}
+                    </p>
+                </div>
+                @guest
+                    <a href="{{ route('register') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                        {{ __('app.limits.cta_create_account') }}
+                    </a>
+                @else
+                    <a href="{{ route('pricing.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                        {{ __('app.limits.cta_upgrade') }}
+                    </a>
+                @endguest
+            </div>
+        </div>
+    @elseif($studioLimit !== -1)
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-semibold">
+                <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+                {{ __('app.limits.sessions_used_today', ['used' => min($studioUsed, $studioLimit), 'limit' => $studioLimit]) }}
+            </div>
+        </div>
     @endif
 
     <!-- ===== MAIN LAYOUT ===== -->
@@ -881,11 +935,12 @@
                                     <div x-show="qcOpen" x-transition
                                          class="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1 min-w-[150px]">
                                         @foreach([5 => '5 Questions', 10 => '10 Questions', 15 => '15 Questions', 20 => '20 Questions'] as $count => $label)
+                                            {{-- Free plans and guests run 5-question sessions; larger sets are Premium --}}
                                             <button class="w-full text-left px-3 py-1.5 text-sm transition-colors flex items-center justify-between"
                                                     :class="questionCount === {{ $count }} ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                                    @click="{{ (!$isPremium && $count > 10) ? 'showPremiumModal = true' : 'questionCount = ' . $count . '; qcOpen = false' }}">
+                                                    @click="{{ (!$isPremium && $count > 5) ? 'showPremiumModal = true' : 'questionCount = ' . $count . '; qcOpen = false' }}">
                                                 <span>{{ $label }}</span>
-                                                @if(!$isPremium && $count > 10)<span class="text-[10px] font-bold opacity-70">PRO</span>@endif
+                                                @if(!$isPremium && $count > 5)<span class="text-[10px] font-bold opacity-70">PRO</span>@endif
                                             </button>
                                         @endforeach
                                     </div>

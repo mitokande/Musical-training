@@ -35,8 +35,12 @@ class TeacherProfile extends Model
 
     public const TIER_PREMIUM = 'premium';
 
+    public const ENTITY_TEACHER = 'teacher';
+
+    public const ENTITY_SCHOOL = 'school';
+
     protected $fillable = [
-        'user_id', 'tier', 'slug', 'status', 'admin_forced_private',
+        'user_id', 'entity_type', 'tier', 'slug', 'status', 'admin_forced_private',
         // legacy fields kept for backward compatibility
         'title', 'short_bio', 'long_bio', 'specializations',
         'teaching_subjects', 'education_background', 'experience_years',
@@ -176,18 +180,42 @@ class TeacherProfile extends Model
      * for teacher-account creation — used by the become-teacher flow and by
      * the CRM for role-based users (teacher/school/admin) without a profile.
      */
-    public static function createDraftFor(User $user): self
+    public static function createDraftFor(User $user, string $entityType = self::ENTITY_TEACHER): self
     {
+        // School drafts seed their identity from the legacy schools row when present,
+        // so /schools/{slug} carries the brand name rather than the owner's name.
+        $school = $entityType === self::ENTITY_SCHOOL ? $user->school : null;
+
         return static::create([
             'user_id' => $user->id,
+            'entity_type' => $entityType,
             'tier' => self::TIER_BASIC,
             'status' => self::STATUS_DRAFT,
             'slug' => self::generateUniqueSlug(
-                trim($user->name.' '.($user->surname ?? '')) ?: ($user->username ?? 'teacher')
+                ($school?->name)
+                    ?: (trim($user->name.' '.($user->surname ?? '')) ?: ($user->username ?? $entityType))
             ),
-            'country' => $user->country,
-            'city' => $user->city,
+            'headline' => $school?->description,
+            'about' => $school?->long_description,
+            'website_url' => $school?->website_url,
+            'social_links' => $school?->social_links,
+            'payment_link' => $school?->payment_link,
+            'public_phone' => $school?->phone,
+            'public_email' => $school?->email,
+            'country' => $school?->country ?? $user->country,
+            'city' => $school?->city ?? $user->city,
         ]);
+    }
+
+    public function isSchoolEntity(): bool
+    {
+        return $this->entity_type === self::ENTITY_SCHOOL;
+    }
+
+    /** Maps the tier to the config/plans.php key space (free|premium). */
+    public function planKey(): string
+    {
+        return $this->tier === self::TIER_PREMIUM ? 'premium' : 'free';
     }
 
     // --- Slug ---
@@ -212,12 +240,16 @@ class TeacherProfile extends Model
 
     public function displayName(): string
     {
+        if ($this->isSchoolEntity() && ($schoolName = $this->user->school?->name)) {
+            return $schoolName;
+        }
+
         return trim($this->user->name.' '.($this->user->surname ?? ''));
     }
 
     public function publicUrl(): string
     {
-        return route('teachers.show', $this->slug);
+        return route($this->isSchoolEntity() ? 'schools.show' : 'teachers.show', $this->slug);
     }
 
     public function coverImageUrl(): ?string

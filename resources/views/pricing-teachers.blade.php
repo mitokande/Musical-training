@@ -1,41 +1,36 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Teachers &amp; Schools Plan — Harmoniva</title>
-    <meta name="description" content="Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide with AI-powered ear training.">
+    <meta name="description" content="Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide — and use Harmoniva completely free when you bring enough Premium students.">
+    <link rel="canonical" href="{{ route('pricing.teachers') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="Teachers &amp; Schools Plan — Harmoniva">
+    <meta property="og:description" content="Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide with AI-powered ear training.">
+    <meta property="og:url" content="{{ route('pricing.teachers') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Teachers &amp; Schools Plan — Harmoniva">
+    <meta name="twitter:description" content="Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide with AI-powered ear training.">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&family=instrument-serif:400,400i" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/marketing.css')
     <script src="https://unpkg.com/lucide@0.460.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                        serif: ['Instrument Serif', 'Georgia', 'serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff',
-                            300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7',
-                            600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87',
-                        },
-                        accent: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' }
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
+        [x-cloak] { display: none !important; }
         body { background: #FAF7F2; overflow-x: hidden; }
 
         .gradient-text {
@@ -73,26 +68,11 @@
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-black/10 backdrop-blur-xl bg-white/80">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <a href="/" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
-                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
-                            <defs>
-                                <linearGradient id="wl-g2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#9333ea"/>
-                                    <stop offset="100%" stop-color="#fb923c"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="2" y="3" width="5.5" height="22" rx="2" fill="url(#wl-g2)"/>
-                            <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="url(#wl-g2)"/>
-                            <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="url(#wl-g2)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold tracking-tight leading-none">
-                        <span style="background: linear-gradient(135deg,#9333ea,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">H</span><span class="text-gray-900">armoniva</span>
-                    </span>
+                <a href="/" class="flex items-center group shrink-0">
+                    <img src="{{ asset('images/logo-full.png') }}" alt="Harmoniva" width="1374" height="340" class="h-[43px] sm:h-[47px] w-auto">
                 </a>
                 <div class="flex items-center gap-3">
-                    <a href="/#pricing" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                    <a href="{{ route('pricing.index') }}" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
                         ← All Plans
                     </a>
                     @auth
@@ -112,7 +92,7 @@
     <div class="h-16"></div>
 
     {{-- Hero --}}
-    <section class="py-20 sm:py-28 relative overflow-hidden" style="background: linear-gradient(135deg, #fff7ed 0%, #FAF7F2 60%, #fef3c7 100%);">
+    <section class="py-20 sm:py-24 relative overflow-hidden" style="background: linear-gradient(135deg, #fff7ed 0%, #FAF7F2 60%, #fef3c7 100%);">
         <div class="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-orange-100/60 blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-amber-50/80 blur-2xl pointer-events-none"></div>
 
@@ -123,67 +103,262 @@
             </div>
 
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-                Empower every student's<br>
-                <span class="font-serif italic font-normal gradient-text">musical journey</span>
+                Teach smarter — and<br>
+                <span class="font-serif italic font-normal gradient-text">earn it for free</span>
             </h1>
 
-            <p class="text-gray-500 text-lg max-w-2xl mx-auto mb-10">
-                Give your students the most advanced AI-powered ear training platform. Manage classrooms, track individual progress, assign exercises — all from one intuitive dashboard.
+            <p class="text-gray-500 text-lg max-w-2xl mx-auto mb-8">
+                Manage classrooms, assign exercises, and track every student's progress with AI-powered ear training. Bring enough Premium students and your own subscription is <strong class="text-gray-700">completely free</strong>.
             </p>
 
             {{-- Billing Toggle --}}
-            <div class="inline-flex items-center gap-4 mb-10 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="inline-flex items-center gap-1 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100">
                 <button @click="billingYearly = false"
                         :class="!billingYearly ? 'bg-gray-900 text-white shadow' : 'text-gray-500 hover:text-gray-700'"
-                        class="px-5 py-2 rounded-xl text-sm font-semibold transition-all">
+                        class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all">
                     Monthly
                 </button>
                 <button @click="billingYearly = true"
                         :class="billingYearly ? 'text-white shadow' : 'text-gray-500 hover:text-gray-700'"
-                        class="px-5 py-2 rounded-xl text-sm font-semibold transition-all relative"
+                        class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all relative"
                         :style="billingYearly ? 'background: linear-gradient(135deg,#ea580c,#f97316)' : ''">
                     Yearly
                     <span class="ml-2 text-xs font-bold px-2 py-0.5 rounded-full"
                           :class="billingYearly ? 'bg-white/20 text-white' : 'bg-orange-100 text-orange-700'">
-                        50%+ off
+                        Save up to 53%
                     </span>
                 </button>
             </div>
+            <p class="text-xs text-gray-400 mt-3" x-show="billingYearly" x-cloak>Two months free vs. monthly billing — best value.</p>
+        </div>
+    </section>
 
-            {{-- Price Card --}}
-            <div class="inline-block bg-white rounded-3xl shadow-xl border border-orange-100 p-8 mb-6 min-w-[280px]">
-                <div x-show="!billingYearly">
-                    <div class="flex items-end justify-center gap-1 mb-1">
-                        <span class="text-5xl font-extrabold text-gray-900">$16.90</span>
-                        <span class="text-gray-400 text-base mb-2">/month</span>
+
+    {{-- Pricing Cards: Teacher + School --}}
+    <section class="pb-8 -mt-8 relative z-10">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+
+                {{-- Teacher Card --}}
+                <div class="bg-white rounded-3xl border-2 border-orange-100 shadow-lg p-8 reveal flex flex-col relative overflow-hidden">
+                    <div class="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl" style="background:rgba(249,115,22,0.10);"></div>
+                    <div class="relative flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-11 h-11 rounded-2xl bg-orange-100 flex items-center justify-center">
+                                <i data-lucide="graduation-cap" class="w-6 h-6 text-orange-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-lg font-extrabold text-gray-900">Teachers</div>
+                                <div class="text-xs text-gray-400">Solo &amp; private instructors</div>
+                            </div>
+                        </div>
+
+                        <div x-show="!billingYearly">
+                            <div class="flex items-end gap-1 mb-1">
+                                <span class="text-5xl font-extrabold text-gray-900">$16.90</span>
+                                <span class="text-gray-400 text-base mb-2">/month</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-6">Billed monthly</p>
+                        </div>
+                        <div x-show="billingYearly" x-cloak>
+                            <div class="flex items-end gap-1 mb-1">
+                                <span class="text-5xl font-extrabold text-gray-900">$12.42</span>
+                                <span class="text-gray-400 text-base mb-2">/month</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-1">$149 billed annually</p>
+                            <span class="inline-block mb-6 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Save 27% · $53/year off</span>
+                        </div>
+
+                        <ul class="space-y-3 mb-8">
+                            @php $teacherFeatures = [
+                                'Unlimited student roster &amp; class groups',
+                                'Assign exercises &amp; learning paths',
+                                'Per-student progress reports',
+                                'AI learning-path generation',
+                                'Unlimited exercises, games &amp; templates',
+                                'Reusable assignment templates',
+                            ]; @endphp
+                            @foreach ($teacherFeatures as $f)
+                            <li class="flex items-start gap-3 text-sm">
+                                <div class="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-600"></i>
+                                </div>
+                                <span class="text-gray-700">{!! $f !!}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+
+                        <div class="mt-auto">
+                            <div class="flex items-start gap-2 mb-4 p-3 rounded-xl bg-green-50 border border-green-100">
+                                <i data-lucide="gift" class="w-4 h-4 text-green-600 shrink-0 mt-0.5"></i>
+                                <span class="text-xs text-green-800 font-medium">Bring <strong>10+ Premium students</strong> and this plan is 100% free.</span>
+                            </div>
+                            @auth
+                            <a href="{{ route('checkout.show') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                                Go to Dashboard
+                            </a>
+                            @else
+                            <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                                Start as a Teacher
+                            </a>
+                            @endauth
+                        </div>
                     </div>
-                    <p class="text-gray-400 text-sm">Billed monthly</p>
                 </div>
-                <div x-show="billingYearly">
-                    <div class="flex items-end justify-center gap-1 mb-1">
-                        <span class="text-5xl font-extrabold text-gray-900">$8.25</span>
-                        <span class="text-gray-400 text-base mb-2">/month</span>
+
+                {{-- School Card --}}
+                <div class="bg-gray-900 rounded-3xl shadow-2xl p-8 reveal flex flex-col relative overflow-hidden" style="transition-delay:0.1s">
+                    <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl" style="background:rgba(249,115,22,0.25);"></div>
+                    <div class="absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-2xl" style="background:rgba(147,51,234,0.18);"></div>
+                    <div class="relative flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-2xl bg-orange-500/20 flex items-center justify-center">
+                                    <i data-lucide="building-2" class="w-6 h-6 text-orange-300"></i>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-extrabold text-white">Music Schools</div>
+                                    <div class="text-xs text-gray-400">Multi-teacher institutions</div>
+                                </div>
+                            </div>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">Best for teams</span>
+                        </div>
+
+                        <div x-show="!billingYearly">
+                            <div class="flex items-end gap-1 mb-1">
+                                <span class="text-5xl font-extrabold text-white">$29.90</span>
+                                <span class="text-gray-400 text-base mb-2">/month</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-6">Billed monthly</p>
+                        </div>
+                        <div x-show="billingYearly" x-cloak>
+                            <div class="flex items-end gap-1 mb-1">
+                                <span class="text-5xl font-extrabold text-white">$14.08</span>
+                                <span class="text-gray-400 text-base mb-2">/month</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-1">$169 billed annually</p>
+                            <span class="inline-block mb-6 px-3 py-1 rounded-full text-xs font-bold" style="background:rgba(249,115,22,0.2);color:#fb923c;border:1px solid rgba(249,115,22,0.3);">Save over 50% · $189/year off</span>
+                        </div>
+
+                        <ul class="space-y-3 mb-8">
+                            @php $schoolFeatures = [
+                                'Everything in Teachers, plus:',
+                                'Multiple teacher &amp; assistant accounts',
+                                'Multi-department / campus setup',
+                                'School-wide analytics dashboard',
+                                'Centralized billing &amp; invoices',
+                                'Custom branding &amp; priority support',
+                            ]; @endphp
+                            @foreach ($schoolFeatures as $i => $f)
+                            <li class="flex items-start gap-3 text-sm">
+                                <div class="w-5 h-5 rounded-full {{ $i === 0 ? 'bg-white/10' : 'bg-orange-500/20 border border-orange-500/30' }} flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="{{ $i === 0 ? 'plus' : 'check' }}" class="w-3 h-3 {{ $i === 0 ? 'text-gray-300' : 'text-orange-300' }}"></i>
+                                </div>
+                                <span class="{{ $i === 0 ? 'text-gray-400 font-semibold' : 'text-gray-300' }}">{!! $f !!}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+
+                        <div class="mt-auto">
+                            <div class="flex items-start gap-2 mb-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                                <i data-lucide="gift" class="w-4 h-4 text-green-400 shrink-0 mt-0.5"></i>
+                                <span class="text-xs text-green-300 font-medium">Register <strong>20+ Premium students</strong> and your school uses Harmoniva 100% free.</span>
+                            </div>
+                            @auth
+                            <a href="{{ route('checkout.show') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                                Go to Dashboard
+                            </a>
+                            @else
+                            <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                                Start a School Account
+                            </a>
+                            @endauth
+                        </div>
                     </div>
-                    <p class="text-gray-400 text-sm">$99 billed annually</p>
-                    <span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Save over $100/year</span>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                @auth
-                <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background: linear-gradient(135deg,#ea580c,#f97316);">
-                    <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Start Now
-                </a>
-                @else
-                <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background: linear-gradient(135deg,#ea580c,#f97316);">
-                    <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Start Now — Free Trial
-                </a>
-                @endauth
-                <a href="/#pricing" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
-                    Compare all plans <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
+            <p class="text-center text-xs text-gray-400 mt-6 reveal">All plans include a free tier to explore first — no credit card required to get started.</p>
+        </div>
+    </section>
+
+
+    {{-- Bring Premium Students, Use Free --}}
+    <section class="py-20" style="background: linear-gradient(135deg, #f0fdf4 0%, #FAF7F2 55%, #ecfdf5 100%);">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 reveal">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-5">
+                    <i data-lucide="gift" class="w-4 h-4"></i>
+                    Bring Premium Students, Use Harmoniva Free
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+                    Your students grow.<br><span class="font-serif italic font-normal" style="color:#16a34a;">Your subscription is on us.</span>
+                </h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">
+                    When enough of your students go Premium, you've already brought more than enough value to Harmoniva — so your own account becomes completely free, with every feature unlocked.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal">
+                {{-- Teacher tier --}}
+                <div class="bg-white rounded-3xl border border-green-100 shadow-sm p-8">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center">
+                            <i data-lucide="graduation-cap" class="w-6 h-6 text-orange-600"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-gray-900">Teachers</div>
+                            <div class="text-xs text-gray-400">Individual instructors</div>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 mb-3">
+                        <span class="text-5xl font-extrabold" style="color:#16a34a;">10+</span>
+                        <span class="text-gray-500 font-medium">Premium students</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-5 leading-relaxed">
+                        Teachers with <strong>10 or more Premium students</strong> use Harmoniva completely free — the full Teacher plan, every feature, automatically applied.
+                    </p>
+                    <ul class="space-y-2.5">
+                        @foreach (['Applied automatically — no request needed', 'All Teacher features unlocked', 'Stays free as long as you qualify'] as $li)
+                        <li class="flex items-center gap-2.5 text-sm text-gray-700">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-500 shrink-0"></i> {{ $li }}
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                {{-- School tier --}}
+                <div class="bg-white rounded-3xl border border-green-100 shadow-sm p-8">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center">
+                            <i data-lucide="building-2" class="w-6 h-6 text-orange-600"></i>
+                        </div>
+                        <div>
+                            <div class="font-extrabold text-gray-900">Music Schools</div>
+                            <div class="text-xs text-gray-400">Institutions &amp; academies</div>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 mb-3">
+                        <span class="text-5xl font-extrabold" style="color:#16a34a;">20+</span>
+                        <span class="text-gray-500 font-medium">Premium students</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-5 leading-relaxed">
+                        Schools that reach <strong>20 or more Premium students</strong> — or register that many into their account — unlock the entire platform for free after a quick admin approval.
+                    </p>
+                    <ul class="space-y-2.5">
+                        @foreach (['Reviewed &amp; approved by the Harmoniva team', 'Every school feature unlocked for free', 'Tracked transparently in your dashboard'] as $li)
+                        <li class="flex items-center gap-2.5 text-sm text-gray-700">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-green-500 shrink-0"></i> {!! $li !!}
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-8 reveal">
+                <p class="text-sm text-gray-500">
+                    Progress toward free access is tracked live on your dashboard — you'll always know how many more Premium students you need.
+                </p>
             </div>
         </div>
     </section>
@@ -210,8 +385,8 @@
                     'features' => [
                         ['icon' => 'users', 'title' => 'Student roster management', 'desc' => 'Add, organize, and manage all your students from a single dashboard. Create class groups and sub-groups by level or instrument.'],
                         ['icon' => 'folder-plus', 'title' => 'Class groups & cohorts', 'desc' => 'Organize students into groups — by grade, instrument, skill level, or custom criteria. Assign exercises to entire groups at once.'],
-                        ['icon' => 'user-check', 'title' => 'Multiple teacher accounts', 'desc' => 'Invite co-teachers and assistants. Assign different roles and permissions so each teacher sees only their own students.'],
-                        ['icon' => 'building-2', 'title' => 'Multi-department school setup', 'desc' => 'Manage multiple departments, year levels, or campuses from a single school account with centralized billing.'],
+                        ['icon' => 'user-check', 'title' => 'Multiple teacher accounts', 'desc' => 'Invite co-teachers and assistants. Assign different roles and permissions so each teacher sees only their own students. (Schools)'],
+                        ['icon' => 'building-2', 'title' => 'Multi-department school setup', 'desc' => 'Manage multiple departments, year levels, or campuses from a single school account with centralized billing. (Schools)'],
                     ]
                 ],
                 [
@@ -302,11 +477,11 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 reveal">
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Plan Comparison</h2>
-                <p class="text-gray-500">See exactly what's included in each plan.</p>
+                <p class="text-gray-500">Free to explore · Teacher &amp; School unlock the full toolkit.</p>
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
-                <div class="overflow-x-auto"><div class="min-w-[560px]">
+                <div class="overflow-x-auto"><div class="min-w-[640px]">
                 {{-- Header --}}
                 <div class="grid grid-cols-4 gap-0 border-b border-gray-100">
                     <div class="px-5 py-4 col-span-1"></div>
@@ -314,30 +489,33 @@
                         <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Free</div>
                         <div class="text-lg font-extrabold text-gray-900">$0</div>
                     </div>
-                    <div class="px-3 py-4 text-center" style="background: rgba(147,51,234,0.04);">
-                        <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">Premium</div>
-                        <div class="text-lg font-extrabold text-gray-900">$6.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                    <div class="px-3 py-4 text-center" style="background: rgba(234,88,12,0.05);">
+                        <div class="text-xs font-bold uppercase tracking-wider text-accent-600 mb-1">Teacher</div>
+                        <div class="text-lg font-extrabold text-gray-900" x-show="!billingYearly">$16.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                        <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>$12.42<span class="text-xs text-gray-400 font-normal">/mo</span></div>
                     </div>
-                    <div class="px-3 py-4 text-center" style="background: rgba(234,88,12,0.04);">
-                        <div class="text-xs font-bold uppercase tracking-wider text-accent-600 mb-1">Teachers</div>
-                        <div class="text-lg font-extrabold text-gray-900">$16.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                    <div class="px-3 py-4 text-center" style="background: rgba(147,51,234,0.05);">
+                        <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">School</div>
+                        <div class="text-lg font-extrabold text-gray-900" x-show="!billingYearly">$29.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                        <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>$14.08<span class="text-xs text-gray-400 font-normal">/mo</span></div>
                     </div>
                 </div>
 
                 @php
                 $compRows = [
-                    ['label' => 'Exercises per day',         'free' => '3 / type',  'premium' => 'Unlimited', 'teachers' => 'Unlimited'],
-                    ['label' => 'Music games',               'free' => '3 / game',  'premium' => 'Unlimited', 'teachers' => 'Unlimited'],
-                    ['label' => 'AI Learning Path',          'free' => false,        'premium' => true,         'teachers' => true],
-                    ['label' => 'AI Music Assistant',        'free' => false,        'premium' => true,         'teachers' => true],
-                    ['label' => 'Exercise templates',        'free' => 'Up to 3',   'premium' => 'Unlimited', 'teachers' => 'Unlimited'],
-                    ['label' => 'Progress analytics',        'free' => 'Basic',     'premium' => 'Advanced',  'teachers' => 'Advanced'],
-                    ['label' => 'Student management',        'free' => false,        'premium' => false,        'teachers' => true],
-                    ['label' => 'Assign exercises to class', 'free' => false,        'premium' => false,        'teachers' => true],
-                    ['label' => 'Multiple teacher accounts', 'free' => false,        'premium' => false,        'teachers' => true],
-                    ['label' => 'School-wide analytics',     'free' => false,        'premium' => false,        'teachers' => true],
-                    ['label' => 'Custom branding',           'free' => false,        'premium' => false,        'teachers' => true],
-                    ['label' => 'Priority support',          'free' => false,        'premium' => false,        'teachers' => true],
+                    ['label' => 'Exercises & games per day',   'free' => '5 / day',   'teacher' => 'Unlimited', 'school' => 'Unlimited'],
+                    ['label' => 'AI Learning Path & Assistant', 'free' => false,       'teacher' => true,        'school' => true],
+                    ['label' => 'Exercise templates',          'free' => 'Up to 3',   'teacher' => 'Unlimited', 'school' => 'Unlimited'],
+                    ['label' => 'Progress analytics',          'free' => 'Basic',     'teacher' => 'Advanced',  'school' => 'Advanced'],
+                    ['label' => 'Student roster & management',  'free' => false,       'teacher' => true,        'school' => true],
+                    ['label' => 'Assign exercises to class',   'free' => false,       'teacher' => true,        'school' => true],
+                    ['label' => 'Active assignments',          'free' => '2',         'teacher' => 'Unlimited', 'school' => 'Unlimited'],
+                    ['label' => 'Multiple teacher accounts',   'free' => false,       'teacher' => false,       'school' => true],
+                    ['label' => 'Multi-department setup',      'free' => false,       'teacher' => false,       'school' => true],
+                    ['label' => 'School-wide analytics',       'free' => false,       'teacher' => false,       'school' => true],
+                    ['label' => 'Custom branding',             'free' => false,       'teacher' => false,       'school' => true],
+                    ['label' => 'Priority support',            'free' => false,       'teacher' => true,        'school' => true],
+                    ['label' => 'Free when you bring Premium students', 'free' => false, 'teacher' => '10+ students', 'school' => '20+ students'],
                 ];
                 @endphp
 
@@ -353,22 +531,22 @@
                             <span class="text-gray-500">{{ $row['free'] }}</span>
                         @endif
                     </div>
-                    <div class="px-3 py-3.5 text-center text-sm" style="background: rgba(147,51,234,0.02);">
-                        @if ($row['premium'] === false)
+                    <div class="px-3 py-3.5 text-center text-sm" style="background: rgba(234,88,12,0.02);">
+                        @if ($row['teacher'] === false)
                             <i data-lucide="minus" class="w-4 h-4 text-gray-300 mx-auto"></i>
-                        @elseif ($row['premium'] === true)
+                        @elseif ($row['teacher'] === true)
                             <i data-lucide="check" class="w-4 h-4 text-green-500 mx-auto"></i>
                         @else
-                            <span class="text-primary-700 font-semibold text-xs">{{ $row['premium'] }}</span>
+                            <span class="text-accent-600 font-semibold text-xs">{{ $row['teacher'] }}</span>
                         @endif
                     </div>
-                    <div class="px-3 py-3.5 text-center text-sm" style="background: rgba(234,88,12,0.02);">
-                        @if ($row['teachers'] === false)
+                    <div class="px-3 py-3.5 text-center text-sm" style="background: rgba(147,51,234,0.02);">
+                        @if ($row['school'] === false)
                             <i data-lucide="minus" class="w-4 h-4 text-gray-300 mx-auto"></i>
-                        @elseif ($row['teachers'] === true)
+                        @elseif ($row['school'] === true)
                             <i data-lucide="check" class="w-4 h-4 text-green-500 mx-auto"></i>
                         @else
-                            <span class="text-accent-600 font-semibold text-xs">{{ $row['teachers'] }}</span>
+                            <span class="text-primary-700 font-semibold text-xs">{{ $row['school'] }}</span>
                         @endif
                     </div>
                 </div>
@@ -388,18 +566,20 @@
 
             @php
             $faqs = [
+                ['q' => 'How do I use Harmoniva for free as a teacher?',
+                 'a' => 'Teachers with 10 or more active Premium students get the full Teacher plan completely free — it\'s applied automatically, no request needed. Your dashboard shows your live progress toward the threshold, and free access continues for as long as you keep enough Premium students.'],
+                ['q' => 'How does free access work for music schools?',
+                 'a' => 'Schools that reach 20 or more Premium students — or register that many into their school account — qualify for 100% free access to the entire platform. School grants go through a quick approval by the Harmoniva team, after which every feature unlocks at no cost.'],
+                ['q' => 'What\'s the difference between Monthly and Yearly billing?',
+                 'a' => 'Yearly billing gives you the equivalent of roughly two months free. Teachers pay $149/year (about $12.42/month, 27% off) and schools pay $169/year (about $14.08/month, over 50% off the monthly rate). You can switch billing cycles anytime.'],
                 ['q' => 'How many students can I manage?',
-                 'a' => 'The Teachers & Schools plan supports unlimited students. Whether you\'re a solo teacher with 10 students or a school with hundreds, the plan scales without extra per-seat charges.'],
-                ['q' => 'Can I try it before committing to a paid plan?',
-                 'a' => 'Absolutely. Create a free account and explore all features with a free trial. Your dashboard will show exactly what unlocks with an upgrade.'],
+                 'a' => 'Both the Teacher and School plans support unlimited students. Whether you\'re a solo teacher with 10 students or a school with hundreds, there are no per-seat charges for students.'],
                 ['q' => 'Can multiple teachers share one account?',
-                 'a' => 'Yes. The Teachers & Schools plan allows you to invite co-teachers and assistants, each with their own login. Administrators can set permissions to control what each teacher can access.'],
+                 'a' => 'That\'s what the School plan is for. Schools can invite co-teachers and assistants, each with their own login and permissions, all under one centralized account and invoice. The Teacher plan is designed for a single instructor.'],
                 ['q' => 'Is student data private and secure?',
-                 'a' => 'Yes. Student data is encrypted at rest and in transit. We are fully GDPR-compliant and do not share or sell data to third parties. Parental consent workflows are available for minors.'],
-                ['q' => 'Can I switch from monthly to yearly billing?',
-                 'a' => 'Yes, you can switch billing cycles at any time from your account settings. When switching to yearly, the remaining value of your current month is prorated toward the annual fee.'],
+                 'a' => 'Yes. Student data is encrypted at rest and in transit. We are fully GDPR-compliant and never share or sell data to third parties. Parental consent workflows are available for minors.'],
                 ['q' => 'Do you offer discounts for large schools or non-profits?',
-                 'a' => 'We offer custom enterprise pricing for large institutions and special rates for registered non-profit music education programs. Contact our team to discuss your specific needs.'],
+                 'a' => 'We offer custom pricing for large institutions and special rates for registered non-profit music education programs. Contact our team to discuss your needs — and remember, at 20+ Premium students your school can use Harmoniva entirely free.'],
             ];
             @endphp
 
@@ -436,7 +616,7 @@
                 Ready to transform your<br><span class="font-serif italic font-normal gradient-text">music classroom?</span>
             </h2>
             <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto">
-                Join Harmoniva today and give your students the most powerful ear training platform available. Set up takes less than 5 minutes.
+                Join Harmoniva today. Set up takes less than 5 minutes — and the more your students grow, the closer you get to using it all for free.
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -451,8 +631,8 @@
                     Start Free — No Card Needed
                 </a>
                 @endauth
-                <a href="/#pricing" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
-                    Compare all plans <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <a href="{{ route('pricing.index') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
+                    Student plans <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
 
@@ -460,7 +640,7 @@
                 <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Free to get started</span>
                 <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Cancel anytime</span>
                 <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>GDPR compliant</span>
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Priority support</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Free at 10+/20+ Premium students</span>
             </div>
         </div>
     </section>

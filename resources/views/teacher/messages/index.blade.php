@@ -1,27 +1,27 @@
 @extends('teacher.layouts.crm')
 
-@section('title', __('teacher.messaging.title'))
+@section('title', crm_trans('messaging.title'))
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
-        <h1 class="text-2xl font-bold text-gray-900">{{ __('teacher.messaging.title') }}</h1>
-        <p class="text-gray-500 text-sm mt-1">{{ __('teacher.messaging.subtitle') }}</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ crm_trans('messaging.title') }}</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ crm_trans('messaging.subtitle') }}</p>
     </div>
 </div>
 
 @unless($canReply)
     <div class="mb-6 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
         <i data-lucide="lock" class="w-4 h-4 text-amber-600 shrink-0"></i>
-        <p class="text-sm text-amber-700">{{ __('teacher.messaging.basic_readonly') }}</p>
+        <p class="text-sm text-amber-700">{{ crm_trans('messaging.basic_readonly') }}</p>
     </div>
 @endunless
 
 @if($newRecipients->isNotEmpty())
     <div class="card p-4 mb-6 flex flex-wrap items-center gap-3">
-        <span class="text-sm font-semibold text-gray-600">{{ __('teacher.messaging.new_conversation') }}:</span>
+        <span class="text-sm font-semibold text-gray-600">{{ crm_trans('messaging.new_conversation') }}:</span>
         @foreach($newRecipients as $student)
-            <form method="POST" action="{{ route('teacher.messages.start', $student) }}">
+            <form method="POST" action="{{ crm_route('messages.start', $student) }}">
                 @csrf
                 <button class="px-3 py-1.5 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">
                     {{ $student->name }} {{ $student->surname }}
@@ -35,14 +35,14 @@
     @if($conversations->isEmpty())
         <div class="p-10 text-center text-gray-500">
             <i data-lucide="message-circle" class="w-10 h-10 mx-auto mb-3 text-gray-300"></i>
-            <p class="text-sm">{{ __('teacher.messaging.no_conversations') }}</p>
+            <p class="text-sm">{{ crm_trans('messaging.no_conversations') }}</p>
         </div>
     @else
         <ul class="divide-y divide-gray-100">
             @foreach($conversations as $conversation)
                 @php $unread = $conversation->unreadCountFor(auth()->user()); @endphp
                 <li>
-                    <a href="{{ route('teacher.messages.show', $conversation) }}" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition">
+                    <a href="{{ crm_route('messages.show', $conversation) }}" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition">
                         @if($conversation->student->hasAvatar())
                             <img src="{{ $conversation->student->avatar }}" class="w-11 h-11 rounded-full object-cover" alt="">
                         @else

@@ -9,6 +9,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Stripe\StripeClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,7 +18,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Single shared Stripe API client, built lazily from config so it is only
+        // constructed when the Stripe gateway is actually used. Tests swap this
+        // binding for a fake to drive the integration without network calls.
+        $this->app->singleton(StripeClient::class, function () {
+            return new StripeClient([
+                'api_key' => (string) config('services.stripe.secret'),
+                'stripe_version' => config('services.stripe.api_version'),
+            ]);
+        });
     }
 
     /**

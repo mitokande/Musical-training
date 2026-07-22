@@ -25,10 +25,6 @@ class AiChatController extends Controller
         'it' => 'Italian',
     ];
 
-    private const DAILY_LIMIT_FREE = 3;
-
-    private const DAILY_LIMIT_PREMIUM = 10;
-
     private const MAX_WORDS_FREE = 200;
 
     private const MAX_WORDS_PREMIUM = 400;
@@ -56,7 +52,11 @@ class AiChatController extends Controller
         $accuracy = $totalQuestions > 0 ? round(($totalCorrect / $totalQuestions) * 100) : 0;
         $streak = FeedItem::currentStreakForUser($user->id);
 
-        return view('ai-chat.index', compact('history', 'user', 'profile', 'totalSessions', 'totalQuestions', 'accuracy', 'streak'));
+        // Daily question quota for the "x / y" badge in the chat UI.
+        $askAiLimit = (int) ($user->getPlanLimit('ask_ai_daily') ?? 1);
+        $askAiUsed = (int) Cache::get("ai_chat:{$user->id}:".now()->toDateString(), 0);
+
+        return view('ai-chat.index', compact('history', 'user', 'profile', 'totalSessions', 'totalQuestions', 'accuracy', 'streak', 'askAiLimit', 'askAiUsed'));
     }
 
     public function send(Request $request): RedirectResponse
@@ -72,16 +72,17 @@ class AiChatController extends Controller
         $locale = $this->resolveLocale($user->locale ?? 'en');
         $cacheKey = "ai_chat:{$user->id}:".now()->toDateString();
         $used = (int) Cache::get($cacheKey, 0);
-        $limit = $user->isPremium() ? self::DAILY_LIMIT_PREMIUM : self::DAILY_LIMIT_FREE;
+        // Central plan matrix: free roles 1/day, premium 10/day, -1 unlimited.
+        $limit = (int) ($user->getPlanLimit('ask_ai_daily') ?? 1);
 
-        if ($used >= $limit) {
+        if ($limit !== -1 && $used >= $limit) {
             $msg = self::LIMIT_MESSAGES[$locale] ?? self::LIMIT_MESSAGES['en'];
 
             return redirect()->route('ai-chat.index')->with('chat_error', $msg);
         }
 
-        $maxWords = $user->isPremium() ? self::MAX_WORDS_PREMIUM : self::MAX_WORDS_FREE;
-        $maxTokens = $user->isPremium() ? 600 : 320;
+        $maxWords = $user->isEffectivelyPremium() ? self::MAX_WORDS_PREMIUM : self::MAX_WORDS_FREE;
+        $maxTokens = $user->isEffectivelyPremium() ? 600 : 320;
 
         $history = session('ai_chat_history', []);
         $userMsg = $request->input('message');

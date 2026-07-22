@@ -34,7 +34,7 @@ class StudentAssignmentCompleted extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject($studentName.' completed "'.$this->assignment->title.'"')
             ->line($studentName.' completed the assignment **'.$this->assignment->title.'** with a score of '.number_format((float) $this->attempt->score, 1).'%.')
-            ->action('View the results', route('teacher.assignments.show', $this->assignment));
+            ->action('View the results', route($notifiable->crmRouteName('assignments.show'), $this->assignment));
     }
 
     public function toArray(object $notifiable): array
@@ -45,7 +45,7 @@ class StudentAssignmentCompleted extends Notification implements ShouldQueue
             'title' => $this->assignment->title,
             'student_id' => $this->recipient->student_id,
             'score' => (float) $this->attempt->score,
-            'url' => route('teacher.assignments.show', $this->assignment),
+            'url' => route($notifiable->crmRouteName('assignments.show'), $this->assignment),
         ];
     }
 }

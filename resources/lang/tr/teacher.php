@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'nav' => [
         'dashboard' => 'Panel',
         'students' => 'Öğrenciler',
@@ -21,14 +20,12 @@ return [
         'tier_basic' => 'Temel',
         'tier_premium' => 'Premium',
     ],
-
     'become' => [
         'title' => 'Öğretmen Ol',
-        'description' => 'Ücretsiz bir Temel öğretmen hesabı oluştur, herkese açık öğretmen profilini hazırla ve Harmoniva\'da öğrencilere ulaş.',
+        'description' => "Ücretsiz bir Temel öğretmen hesabı oluştur, herkese açık öğretmen profilini hazırla ve Harmoniva'da öğrencilere ulaş.",
         'button' => 'Öğretmen Hesabı Oluştur',
         'created' => 'Öğretmen hesabın oluşturuldu. Profilini tamamla ve incelemeye gönder.',
     ],
-
     'dashboard' => [
         'at_a_glance' => 'Genel Bakış',
         'unread_messages' => 'Okunmamış mesajlar',
@@ -49,6 +46,17 @@ return [
         'notif_review' => 'Yeni bir değerlendirme aldınız',
         'title' => 'Öğretmen Paneli',
         'welcome' => 'Tekrar hoş geldin, :name',
+        'welcome_subtitle' => 'Öğrencilerini yönetmene yardımcı olmaya hazır mısın?',
+        'hero_dashboard' => 'Panelim',
+        'hero_notifications' => 'Bildirimler',
+        'hero_messages' => 'Mesajlar',
+        'hero_profile' => 'Profilim',
+        'hero_students' => 'Öğrencilerim',
+        'hero_calendar' => 'Takvimim',
+        'hero_assignments' => 'Ödevler',
+        'hero_exercise_setup' => 'Egzersiz Kurulumu',
+        'hero_content' => 'İçeriğim',
+        'hero_settings' => 'Ayarlar',
         'profile_status' => 'Profil Durumu',
         'complete_profile' => 'Profilini tamamla',
         'submit_for_review' => 'İncelemeye gönder',
@@ -71,10 +79,10 @@ return [
         'nav_classes_desc' => 'Grup sınıflarınız',
         'nav_assignments_title' => 'Ödevler',
         'nav_assignments_desc' => 'Ödev oluştur ve takip et',
-        'nav_content_title' => 'Yayınlanan İçeriğiniz',
-        'nav_content_desc' => 'Makaleler ve videolar',
-        'nav_documents_title' => 'Belgeleriniz',
-        'nav_documents_desc' => 'Profilinizdeki medya ve dosyalar',
+        'nav_content_title' => 'İçeriğim',
+        'nav_content_desc' => 'Belgeler, makaleler ve videolar',
+        'nav_documents_title' => 'Fotoğraflar ve Sertifikalar',
+        'nav_documents_desc' => 'Profilinizdeki herkese açık galeri',
         'nav_profile_title' => 'Profiliniz',
         'nav_profile_desc' => 'Herkese açık öğretmen profili',
         'nav_calendar_title' => 'Takviminiz',
@@ -82,7 +90,6 @@ return [
         'nav_settings_title' => 'Ayarlar',
         'nav_settings_desc' => 'Hesap ve tercihler',
     ],
-
     'status' => [
         'draft' => 'Taslak',
         'submitted_for_review' => 'İncelemede',
@@ -97,15 +104,14 @@ return [
         'rejected_hint' => 'Yayınlanabilmesi için profilinizde değişiklik yapılması gerekiyor.',
         'suspended_hint' => 'Profiliniz askıya alındı ve herkese açık değil. Ayrıntılar için destek ile iletişime geçin.',
     ],
-
     'profile' => [
         'title' => 'Öğretmen Profili',
-        'subtitle' => 'Harmoniva\'daki herkese açık öğretmen profiliniz',
+        'subtitle' => "Harmoniva'daki herkese açık öğretmen profiliniz",
         'section_general' => 'Genel Bilgiler',
         'section_music' => 'Müzik Profili',
         'section_services' => 'Hizmetler ve Dersler',
         'section_videos' => 'Videolar',
-        'section_media' => 'Belgeler ve Fotoğraflar',
+        'section_media' => 'Fotoğraflar ve Sertifikalar',
         'section_payment_links' => 'Ödeme Bağlantıları',
         'section_seo' => 'SEO',
         'save_draft' => 'Kaydet',
@@ -117,7 +123,6 @@ return [
         'add_more' => 'Daha fazla ekle',
         'remove' => 'Kaldır',
     ],
-
     'fields' => [
         'headline' => 'Kısa başlık',
         'headline_placeholder' => 'örn. 10 yıl konservatuvar deneyimli piyano öğretmeni',
@@ -169,7 +174,6 @@ return [
         'cover_image' => 'Kapak görseli',
         'upload_cover' => 'Kapak görseli yükle',
     ],
-
     'services' => [
         'title' => 'Hizmetler',
         'add' => 'Hizmet ekle',
@@ -182,7 +186,6 @@ return [
         'price_text' => 'Fiyat (isteğe bağlı, serbest metin)',
         'active' => 'Aktif',
     ],
-
     'videos' => [
         'title' => 'Videolar',
         'add' => 'Video ekle',
@@ -191,11 +194,12 @@ return [
         'youtube_url' => 'YouTube adresi',
         'invalid_youtube_url' => 'Lütfen geçerli bir YouTube video adresi girin.',
     ],
-
     'media' => [
-        'title' => 'Belgeler ve Fotoğraflar',
+        'title' => 'Fotoğraflar ve Sertifikalar',
+        'intro' => 'Profilinizde herkese açık gösterilen fotoğraf ve sertifikalar. Görseller büyütülerek açılır; PDF sertifikalar yeni sekmede açılır.',
+        'public_hint' => 'JPG, PNG, WebP veya PDF — en fazla 10 MB. Bunları profilinizde herkes görebilir.',
         'add' => 'Dosya yükle',
-        'none' => 'Henüz dosya yüklenmedi.',
+        'none' => 'Henüz fotoğraf veya sertifika yüklenmedi.',
         'kind' => 'Tür',
         'kind_photo' => 'Fotoğraf',
         'kind_document' => 'Belge',
@@ -203,10 +207,10 @@ return [
         'visibility' => 'Görünürlük',
         'visibility_private' => 'Sadece bana',
         'visibility_public' => 'Herkese',
+        'visibility_students' => 'Öğrencilerim',
         'visibility_shared' => 'Paylaştıklarım',
         'download' => 'İndir',
     ],
-
     'payment_links' => [
         'title' => 'Harici Ödeme Bağlantıları',
         'intro' => 'Kendi ödeme sağlayıcınızdan ödeme bağlantıları ekleyin (örn. Stripe, PayPal, iyzico). Ödemeler seçtiğiniz harici sağlayıcı tarafından işlenir — Harmoniva ödeme toplamaz veya işlemez.',
@@ -225,7 +229,6 @@ return [
         'premium_required' => 'Harici ödeme bağlantıları bir Öğretmen Premium özelliğidir.',
         'external_disclaimer' => 'Ödeme, öğretmenin seçtiği harici ödeme sağlayıcısı tarafından işlenir.',
     ],
-
     'public' => [
         'contact' => 'İletişim',
         'empty_hint_about' => 'Hakkımda metniniz burada görünecek. Öğretmen Profili sekmesinden doldurun.',
@@ -245,7 +248,7 @@ return [
         'articles' => 'Makaleler',
         'videos' => 'Videolar',
         'education' => 'Eğitim',
-        'documents_photos' => 'Belgeler ve Fotoğraflar',
+        'documents_photos' => 'Fotoğraflar ve Sertifikalar',
         'booking' => 'Ders al',
         'booking_unavailable' => 'Bu öğretmen henüz çevrimiçi randevu kabul etmiyor.',
         'booking_coming_soon' => 'Randevu alma özelliği yakında geliyor.',
@@ -269,7 +272,6 @@ return [
         'follow_login_prompt' => 'Takip edebilmek için üye olmanız veya giriş yapmanız gerekir.',
         'booking_rules_intro' => 'Ders talep etmek için yukarıdaki takvimden uygun bir saat seçin. Talebiniz onay için öğretmene iletilir ve yanıt verildiğinde bilgilendirilirsiniz. Katılamayacaksanız lütfen önceden iptal edin.',
     ],
-
     'settings' => [
         'title' => 'Ayarlar',
         'subtitle' => 'Öğretmen hesabınız için hesap ayarları',
@@ -287,8 +289,12 @@ return [
         'avatar_updated' => 'Profil fotoğrafı güncellendi.',
         'language_saved' => 'Dil tercihi kaydedildi.',
         'account' => 'Hesap',
+        'edit' => 'Düzenle',
+        'cancel' => 'Vazgeç',
+        'username' => 'Kullanıcı adı',
+        'account_updated' => 'Hesap bilgileri güncellendi.',
+        'email_verify_hint' => 'E-posta adresinizi değiştirirseniz yeni adresi doğrulamanız gerekir.',
     ],
-
     'admin' => [
         'title' => 'Öğretmen Profilleri',
         'queue' => 'Moderasyon kuyruğu',
@@ -311,7 +317,6 @@ return [
         'no_profiles' => 'Bu durumda öğretmen profili yok.',
         'submitted_at' => 'Gönderildi',
     ],
-
     'students' => [
         'title' => 'Öğrencilerim',
         'subtitle' => 'Öğrencilerinizi, davetlerinizi ve ilişkilerinizi yönetin.',
@@ -377,20 +382,18 @@ return [
             'no_activity' => 'Henüz kaydedilmiş etkinlik yok.',
         ],
     ],
-
     'invitations' => [
         'title' => 'Öğretmen daveti',
-        'invited_you' => ':teacher sizi Harmoniva\'da öğrencisi olarak bağlanmaya davet etti.',
+        'invited_you' => ":teacher sizi Harmoniva'da öğrencisi olarak bağlanmaya davet etti.",
         'accept' => 'Daveti kabul et',
         'decline_hint' => 'Bu öğretmeni tanımıyorsanız bu daveti göz ardı edebilirsiniz.',
         'unusable' => 'Bu davet artık geçerli değil. Süresi dolmuş veya iptal edilmiş olabilir.',
         'error_unusable' => 'Bu davet artık geçerli değil.',
         'error_not_pending' => 'Bu talep onay beklemiyor.',
     ],
-
     'my_teachers' => [
         'title' => 'Öğretmenlerim',
-        'subtitle' => 'Harmoniva\'da bağlı olduğunuz öğretmenler.',
+        'subtitle' => "Harmoniva'da bağlı olduğunuz öğretmenler.",
         'pending' => 'Onayınız bekleniyor',
         'approve' => 'Onayla',
         'decline' => 'Reddet',
@@ -404,7 +407,6 @@ return [
         'status_teacher-declined' => 'Talep reddedildi.',
         'status_teacher-revoked' => 'İlişki sonlandırıldı.',
     ],
-
     'classes' => [
         'title' => 'Sınıflar',
         'subtitle' => 'Daha kolay ödev ve takip için öğrencilerinizi sınıflara ayırın.',
@@ -428,7 +430,6 @@ return [
         'edit' => 'Sınıfı düzenle',
         'save' => 'Kaydet',
     ],
-
     'assignments' => [
         'title' => 'Ödevler',
         'subtitle' => 'Standart Harmoniva alıştırmalarından ödev oluşturun ve sonuçları takip edin.',
@@ -486,6 +487,67 @@ return [
         'edit' => 'Düzenle',
         'edit_question' => 'Soruyu düzenle',
         'edit_hint' => 'Her satıra bir seçenek (veya virgülle ayrılmış). Doğru cevap listede kalmalı. Notalar, ses ve notasyon kaydedince otomatik güncellenir.',
+        'question_params' => 'Soru ayarları',
+        'answer_choices' => 'Yanıt şıkları',
+        'answer_choices_hint' => 'Doğru cevap (yeşil) çalınan sese bağlıdır ve buradan değiştirilemez — diğer şıkları dilediğiniz gibi düzenleyebilirsiniz.',
+        'f_target' => 'Nota',
+        'f_octave' => 'Oktav',
+        'f_clef' => 'Anahtar',
+        'f_reference_note' => 'Referans nota',
+        'f_note1' => 'Birinci nota',
+        'f_note2' => 'İkinci nota',
+        'f_note2_octave' => 'İkinci nota oktavı',
+        'f_interval' => 'Aralık',
+        'f_direction' => 'Yön',
+        'f_interval_a' => 'Aralık A (iki nota)',
+        'f_interval_b' => 'Aralık B (iki nota)',
+        'f_chord_type' => 'Akor türü',
+        'f_root_note' => 'Kök nota',
+        'f_inversion' => 'Çevrim',
+        'f_voicing' => 'Seslendirme',
+        'f_scale_type' => 'Dizi türü',
+        'f_tempo' => 'Tempo',
+        'f_time_signature' => 'Ölçü sayısı',
+        'f_bars' => 'Ölçü',
+        'f_key_signature' => 'Tonalite',
+        'f_notes' => 'Melodi notaları',
+        'clef_treble' => 'Sol anahtarı',
+        'clef_bass' => 'Fa anahtarı',
+        'clef_alto' => 'Do anahtarı',
+        'direction_ascending' => 'Çıkıcı',
+        'direction_descending' => 'İnici',
+        'rhythm_pattern' => 'Ritim deseni',
+        'rhythm_pattern_hint' => 'Deseni nota düğmeleriyle oluşturun — seçilen ölçü sayısını ve ölçü birimini tam doldurmalıdır. Yanıt şıkları yeni desene göre otomatik yeniden üretilir.',
+        'rhythm_empty' => 'Desen boş — aşağıdan nota ekleyin.',
+        'rhythm_remove_token' => 'Bu notayı kaldır',
+        'rhythm_beats_label' => 'vuruş',
+        'dictation_rhythm_title' => 'Ritim kalıpları',
+        'dictation_rhythm_hint' => 'Ölçü sayısını değiştirirseniz melodi yeni ölçüye göre yeniden üretilir. Seçili ritim kalıplarıyla melodiyi yeniden üretmek için yukarıdaki kutuyu işaretleyin.',
+        'dictation_regenerate_label' => 'Melodiyi seçili ritim kalıplarıyla yeniden üret',
+        'choices_keyboard_note' => 'Bu alıştırma piyano klavyesiyle cevaplanır; düzenlenecek yanıt şıkkı yoktur.',
+        'choices_pair_note' => 'Yanıt şıkları iki aralığın kendisidir — soldaki Aralık A / Aralık B alanlarından düzenleyebilirsiniz.',
+        'choices_auto_note' => 'Yanıt şıkları kaydettikten sonra soru içeriğinden otomatik üretilir.',
+        'edit_error_invalid_note' => 'Bilinmeyen nota: ":note".',
+        'edit_error_invalid_interval' => 'Bilinmeyen aralık: ":interval".',
+        'edit_error_invalid_value' => ':field için geçersiz değer.',
+        'edit_error_out_of_range' => ':note, :clef anahtarının çalınabilir aralığının dışında.',
+        'edit_error_unbuildable' => 'Bu aralık, seçilen nota ve oktavdan kurulamıyor.',
+        'edit_error_unison' => 'İki nota aynı — çıkıcı/inici sorusu için iki farklı ses gerekir.',
+        'edit_error_invalid_pair' => 'Aralık çiftleri virgülle ayrılmış iki nota olmalıdır (örn. "C,E"): ":pair".',
+        'edit_error_equal_pairs' => 'İki aralık aynı büyüklükte — sorunun doğru cevabı olmaz.',
+        'edit_error_empty_pattern' => 'Ritim deseni boş.',
+        'edit_error_rest_start' => 'Ritim deseni es ile başlayamaz.',
+        'edit_error_pattern_length' => 'Desen :expected ölçüsünü tam doldurmuyor.',
+        'edit_error_no_rhythm_values' => 'Melodiyi yeniden üretmek için en az bir ritim kalıbı seçin.',
+        'edit_error_empty_melody' => 'Melodide nota yok.',
+        'edit_error_melody_rhythm_mismatch' => 'Melodide :notes nota, ritimde :values değer var — bire bir eşleşmelidir.',
+        'ph_title' => 'örn. Aralık Tanıma — 1. Hafta',
+        'ph_description' => 'örn. Bu ödevde melodik aralıkları kulaktan tanımayı çalışacaksınız.',
+        'ph_instructions' => 'örn. Her soruyu dikkatle dinleyin ve en az %80 doğruluk hedefleyin.',
+        'ph_question_count' => 'örn. 10',
+        'ph_max_attempts' => 'örn. 3',
+        'ph_daily_minutes' => 'örn. 15',
+        'ph_weekly_minutes' => 'örn. 60',
         'preview' => 'Ödevi gör',
         'cancel' => 'İptal',
         'save' => 'Kaydet',
@@ -532,7 +594,6 @@ return [
         'status_assignment-archived' => 'Ödev arşivlendi.',
         'status_assignment-deleted' => 'Taslak silindi.',
     ],
-
     'student_assignments' => [
         'title' => 'Ödevlerim',
         'subtitle' => 'Öğretmenlerinizin size verdiği ödevler.',
@@ -548,7 +609,6 @@ return [
         'overdue' => 'Gecikmiş',
         'instructions' => 'Yönergeler',
     ],
-
     'messaging' => [
         'title' => 'Mesajlar',
         'subtitle' => 'Öğrencilerinizle özel görüşmeler.',
@@ -558,15 +618,14 @@ return [
         'type_message' => 'Bir mesaj yazın…',
         'send' => 'Gönder',
         'attachments' => 'Ekler (PDF veya görsel, en fazla 3 × 10MB)',
-        'basic_readonly' => 'Öğretmen Temel hesapları mesaj alabilir ancak yanıtlayamaz. Yanıtlamak için Öğretmen Premium\'a geçin.',
+        'basic_readonly' => "Öğretmen Temel hesapları mesaj alabilir ancak yanıtlayamaz. Yanıtlamak için Öğretmen Premium'a geçin.",
         'unread' => 'okunmamış',
         'error_no_relationship' => 'Mesajlaşma, aktif ve onaylı bir öğretmen-öğrenci ilişkisi gerektirir.',
         'error_not_participant' => 'Bu görüşmenin bir parçası değilsiniz.',
-        'error_basic_cannot_reply' => 'Öğretmen Temel hesapları mesaj gönderemez. Öğretmen Premium\'a geçin.',
+        'error_basic_cannot_reply' => "Öğretmen Temel hesapları mesaj gönderemez. Öğretmen Premium'a geçin.",
         'error_attachment_type' => 'Yalnızca PDF ve görsel ekleri izin verilir.',
         'error_attachment_size' => 'Ekler en fazla 10MB olabilir.',
     ],
-
     'appointments' => [
         'title' => 'Takvim',
         'subtitle' => 'Uygunluğunuzu ve ders randevularınızı yönetin.',
@@ -611,7 +670,6 @@ return [
         'error_slot_unavailable' => 'Bu zaman aralığı artık uygun değil. Lütfen başka bir aralık seçin.',
         'error_invalid_transition' => 'Bu işlem randevunun mevcut durumunda mümkün değil.',
     ],
-
     'my_appointments' => [
         'title' => 'Randevularım',
         'subtitle' => 'Öğretmenlerle ders randevularınız.',
@@ -629,7 +687,6 @@ return [
         'status_appointment-cancelled' => 'Randevu iptal edildi.',
         'status_reschedule-requested' => 'Yeniden planlama talebi gönderildi.',
     ],
-
     'booking' => [
         'guest_hint' => 'Uygun ders saatlerini görmek ve randevu talep etmek için giriş yapın.',
         'preview_disabled_hint' => 'Randevu takviminiz henüz etkin değil. Çevrimiçi randevuyu etkinleştirip uygunluk ekledikten sonra öğrenciler buradan ders alabilecek.',
@@ -642,7 +699,6 @@ return [
         'login_to_book' => 'Ders almak için giriş yapın',
         'times_in_timezone' => 'Saatler :tz diliminde gösterilir',
     ],
-
     'reviews' => [
         'rating' => 'Puan',
         'write' => 'Yorum yaz',
@@ -655,10 +711,12 @@ return [
         'report' => 'Bildir',
         'reviews_count' => ':count değerlendirme',
     ],
-
     'content' => [
-        'title' => 'İçerik',
-        'subtitle' => 'Herkese açık profilinizde makaleler, videolar, belgeler ve fotoğraflar yayınlayın.',
+        'title' => 'İçeriğim',
+        'subtitle' => 'Belge arşivinizi, makalelerinizi ve videolarınızı tek yerden yönetin.',
+        'tab_documents' => 'Belgelerim',
+        'tab_articles' => 'Makalelerim',
+        'tab_videos' => 'Videolarım',
         'new_article' => 'Yeni makale',
         'articles' => 'Makaleler',
         'no_articles' => 'Henüz makale yok. İlk makalenizle bilginizi paylaşın.',
@@ -668,15 +726,39 @@ return [
         'video_title' => 'Video başlığı',
         'add' => 'Ekle',
         'no_videos' => 'Henüz video yok. Öğretiminizi sergilemek için bir YouTube videosu ekleyin.',
-        'documents' => 'Belgeler (PDF)',
-        'documents_hint' => 'Sertifikalar, ders programları veya ders materyalleri yükleyin. Herkese açık belgeler profilinizde görünür; özel olanlar yalnızca size görünür.',
+        'documents' => 'Belgeler',
+        'documents_hint' => 'PDF belgeleriniz, ders materyalleriniz ve notalarınız için özel arşiviniz. Her dosyaya kimin erişebileceğini siz seçin.',
         'document_title' => 'Belge başlığı (isteğe bağlı)',
         'upload_document' => 'Belge yükle',
         'no_documents' => 'Henüz belge yüklenmedi.',
-        'visibility_public' => 'Herkese açık — profilimde görünür',
-        'visibility_private' => 'Özel — yalnızca ben',
-        'photos' => 'Fotoğraflar',
-        'photos_hint' => 'Herkese açık profilinizde gösterilen stüdyo, konser veya ders fotoğrafları.',
-        'upload_photo' => 'Fotoğraf yükle',
+        'delete_document_confirm' => 'Bu belge silinsin mi?',
+        'max_size_hint' => 'PDF veya görsel, en fazla 10 MB.',
+        'needs_profile' => 'Belge yüklemek için öğretmen profilinizi tamamlayın.',
+        'visibility' => 'Kimler erişebilir',
+        'visibility_private' => 'Sadece ben',
+        'visibility_students' => 'Öğrencilerim',
+        'visibility_shared' => 'Paylaştıklarım',
+        'details' => 'Ayrıntılar',
+        'download' => 'İndir',
+        'share' => 'Paylaş',
+        'share_article' => 'Makaleyi paylaş',
+        'share_with_students' => 'Öğrencilerle paylaş',
+        'no_students' => 'Henüz aktif öğrenciniz yok.',
+        'shared_count' => '{1} :count öğrenciyle paylaşıldı|[2,*] :count öğrenciyle paylaşıldı',
+    ],
+    // Ücretsiz seviye CRM kota metinleri. Sayılar config/plans.php'den gelir.
+    'limits' => [
+        'students_reached' => 'Ücretsiz öğrenci limitine ulaştınız (:limit). Premium öğrenciler sınırsızdır — daha fazla ücretsiz öğrenci eklemek için Premium\'a geçin.',
+        'assignments_reached' => 'Aktif ödev limitine ulaştınız (:limit). Yeni ödev için bir ödevi arşivleyin veya Premium\'a geçin.',
+        'assignment_ai_premium' => 'AI destekli ödev hazırlama bir Premium özelliğidir.',
+        'messages_reached' => 'Günlük mesaj limitine ulaştınız (:limit). Mesajlaşmaya devam etmek için Premium\'a geçin.',
+        'documents_reached' => 'Doküman yükleme limitine ulaştınız (:limit). Daha fazla doküman için Premium\'a geçin.',
+        'students_counter' => ':used / :limit ücretsiz öğrenci',
+        'assignments_counter' => ':used / :limit aktif ödev',
+        'documents_counter' => ':used / :limit doküman',
+        'messages_counter' => 'Bugün :used / :limit mesaj',
+        'teachers_counter' => ':used / :limit öğretmen',
+        'incentive_teacher' => 'İpucu: :discount+ premium öğrenciyle Premium indirimi kazanırsınız; :free+ premium öğrenciyle Harmoniva\'yı tamamen ücretsiz, tam Premium haklarıyla kullanırsınız.',
+        'incentive_school' => 'İpucu: :free+ premium öğrenciyle okulunuz Harmoniva\'yı tamamen ücretsiz, tam Premium haklarıyla kullanır.',
     ],
 ];

@@ -93,11 +93,18 @@ class PracticeMelodicInterval extends Component
             ]]);
 
             $music = app(MusicTheoryService::class);
-            $distractorCount = count($resolvedPool) <= 2 ? 1 : 3;
             $allIntervals = array_values(self::INTERVAL_POOL_MAP);
-            $distractorPool = $distractorCount > 1 && count($resolvedPool) < 4
-                ? $allIntervals
-                : $resolvedPool;
+            if (count($resolvedPool) === 1) {
+                // A single-interval pool cannot supply its own distractors —
+                // draw from the full canonical set instead.
+                $distractorCount = 3;
+                $distractorPool = $allIntervals;
+            } else {
+                $distractorCount = count($resolvedPool) <= 2 ? 1 : 3;
+                $distractorPool = $distractorCount > 1 && count($resolvedPool) < 4
+                    ? $allIntervals
+                    : $resolvedPool;
+            }
             $this->practiceDataArray = $generated->map(function ($q) use ($music, $distractorCount, $distractorPool) {
                 $data = $this->serializeOnePractice($q);
                 $correct = $data['interval'];
@@ -135,7 +142,13 @@ class PracticeMelodicInterval extends Component
             'currentPractice' => $currentPractice,
             'currentPracticeIndex' => $this->currentPracticeIndex,
             'intervalOptions' => $data['options'] ?? null,
-            'clef' => $this->clef,
+            // Teacher-assignment/LP questions carry their own clef; the
+            // component-level clef only covers the Exercise Setup flow.
+            // Named staffClef because Livewire injects public properties into
+            // the view AFTER render data — a 'clef' key here would be
+            // clobbered by the $clef property (always 'treble' outside the
+            // Studio flow).
+            'staffClef' => $data['clef'] ?? $this->clef,
         ]);
     }
 

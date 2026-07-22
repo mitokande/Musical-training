@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DailyExerciseCount;
 use App\Models\ExerciseSession;
 use App\Models\ExerciseSetupTemplate;
 use App\Models\UserPractice;
 use App\Services\AiUsageLogger;
+use App\Services\UsageQuotaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,12 +38,31 @@ class ExerciseSetupController extends Controller
         $recentSessions = $user
             ? $user->exerciseSessions()->orderByDesc('started_at')->take(5)->get()
             : collect();
-        $isPremium = $user?->isPremium() ?? false;
-        $savedPlansLimit = $user ? $user->getPlanLimit('saved_plans_limit') : 3;
+        $isPremium = $user?->isEffectivelyPremium() ?? false;
+        $savedPlansLimit = $user ? $user->getPlanLimit('saved_plans_limit') : 0;
         $preselectedType = $request->query('type');
 
+        // Daily studio session quota for the limit badge / CTA.
+        $usage = app(UsageQuotaService::class);
+        if (! $user) {
+            $studioQuota = [
+                'limit' => (int) config('plans.guest.studio_daily_sessions', 2),
+                'used' => $usage->guestUsed($request, UsageQuotaService::FEATURE_STUDIO_SESSIONS),
+                'guest' => true,
+            ];
+        } elseif ($user->isAdmin() || $isPremium) {
+            $studioQuota = ['limit' => -1, 'used' => 0, 'guest' => false];
+        } else {
+            $limit = (int) ($user->getPlanLimit('studio_daily_sessions') ?? -1);
+            $studioQuota = [
+                'limit' => $limit,
+                'used' => $limit === -1 ? 0 : $usage->userUsed($user, UsageQuotaService::FEATURE_STUDIO_SESSIONS),
+                'guest' => false,
+            ];
+        }
+
         return view('exercise-setup', compact(
-            'templates', 'recentSessions', 'isPremium', 'savedPlansLimit', 'preselectedType'
+            'templates', 'recentSessions', 'isPremium', 'savedPlansLimit', 'preselectedType', 'studioQuota'
         ));
     }
 
@@ -63,29 +82,40 @@ class ExerciseSetupController extends Controller
 
         $user = $request->user();
         $settings = json_decode($validated['settings'], true) ?? [];
-        $aiMode = ($validated['ai_mode'] ?? false) && ($user?->isPremium() ?? false);
+        $aiMode = ($validated['ai_mode'] ?? false) && ($user?->isEffectivelyPremium() ?? false);
 
-        // Enforce free daily limit
         $slug = self::EXERCISE_SLUGS[$validated['exercise_type']] ?? null;
         if (! $slug) {
             return back()->withErrors(['exercise_type' => 'Geçersiz egzersiz türü.']);
         }
 
-        if ($user && $user->isFree()) {
-            $practiceId = $this->slugToPracticeId($slug);
-            if ($practiceId) {
-                $limit = $user->getPlanLimit('daily_exercises_per_type');
-                $remaining = DailyExerciseCount::getRemainingForUser($user->id, $practiceId, $limit);
-                if ($remaining <= 0) {
-                    return back()->withErrors(['limit' => 'Günlük egzersiz limitinize ulaştınız. Sınırsız pratik için Premium\'a geçin.']);
-                }
+        $usage = app(UsageQuotaService::class);
+        $questionCount = (int) $validated['question_count'];
+
+        // Session-size cap: guests and free plans launch 5-question sessions.
+        $cap = $user
+            ? (int) ($user->getPlanLimit('session_question_cap') ?? -1)
+            : (int) config('plans.guest.session_question_cap', 5);
+        if (! ($user?->isAdmin()) && $cap !== -1) {
+            $questionCount = min($questionCount, $cap);
+        }
+
+        // Daily studio session quota. Guests: plans.guest.studio_daily_sessions
+        // per day (server-side guest id); free plans: studio_daily_sessions/day.
+        if (! $user) {
+            if ($usage->guestRemaining($request, UsageQuotaService::FEATURE_STUDIO_SESSIONS, 'studio_daily_sessions') <= 0) {
+                return back()->with('studio_limit_reached', 'guest');
+            }
+        } elseif (! $user->isAdmin() && ! $user->isEffectivelyPremium()) {
+            if ($usage->userRemaining($user, UsageQuotaService::FEATURE_STUDIO_SESSIONS, 'studio_daily_sessions') <= 0) {
+                return back()->with('studio_limit_reached', 'free');
             }
         }
 
         $sessionData = array_merge($settings, [
             'exercise_type' => $validated['exercise_type'],
             'difficulty' => $difficulty,
-            'question_count' => (int) $validated['question_count'],
+            'question_count' => $questionCount,
             'ai_mode' => $aiMode,
         ]);
 
@@ -95,6 +125,13 @@ class ExerciseSetupController extends Controller
         session(['exercise_back_url' => '/exercise-setup']);
         session()->forget('learning_path_session');
 
+        // Consume one session from the daily quota (limited accounts only).
+        if (! $user) {
+            $usage->guestIncrement($request, UsageQuotaService::FEATURE_STUDIO_SESSIONS);
+        } elseif (! $user->isAdmin() && ! $user->isEffectivelyPremium()) {
+            $usage->userIncrement($user, UsageQuotaService::FEATURE_STUDIO_SESSIONS);
+        }
+
         // Create audit record only for authenticated users
         if ($user) {
             ExerciseSession::create([
@@ -102,7 +139,7 @@ class ExerciseSetupController extends Controller
                 'template_id' => $validated['template_id'] ?? null,
                 'exercise_type' => $validated['exercise_type'],
                 'difficulty' => $difficulty,
-                'question_count' => (int) $validated['question_count'],
+                'question_count' => $questionCount,
                 'ai_mode' => $aiMode,
                 'settings_json' => $sessionData,
             ]);

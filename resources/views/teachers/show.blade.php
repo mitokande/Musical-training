@@ -1,11 +1,19 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
+        // Teachers and music schools share this page; school profiles pull
+        // school.{key} label overrides and fall back to teacher.{key}.
+        $isSchoolProfile = $profile->isSchoolEntity();
+        $trans = fn (string $key, array $replace = []) => $isSchoolProfile && \Illuminate\Support\Facades\Lang::has('school.'.$key)
+            ? __('school.'.$key, $replace)
+            : __('teacher.'.$key, $replace);
+
         $teacherName = $profile->displayName();
         $seoTitle = $profile->seo_title ?: ($teacherName.($profile->expertise ? ' — '.$profile->expertise : ''));
         $seoDescription = $profile->seo_description ?: \Illuminate\Support\Str::limit(strip_tags((string) $profile->about), 160);
@@ -19,20 +27,25 @@
         <link rel="canonical" href="{{ $profile->publicUrl() }}">
         <meta name="description" content="{{ $seoDescription }}">
         <meta property="og:type" content="profile">
+        <meta property="og:site_name" content="Harmoniva">
         <meta property="og:title" content="{{ $seoTitle }}">
         <meta property="og:description" content="{{ $seoDescription }}">
         <meta property="og:url" content="{{ $profile->publicUrl() }}">
-        @if($profile->user->hasAvatar())
-            <meta property="og:image" content="{{ $profile->user->avatar }}">
-        @endif
+        <meta property="og:image" content="{{ $profile->user->hasAvatar() ? $profile->user->avatar : asset('images/og-image.png') }}">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ $seoTitle }}">
+        <meta name="twitter:description" content="{{ $seoDescription }}">
+        <meta name="twitter:image" content="{{ $profile->user->hasAvatar() ? $profile->user->avatar : asset('images/og-image.png') }}">
         <script type="application/ld+json">
-        {!! json_encode([
+        {!! json_encode(array_filter([
             '@context' => 'https://schema.org',
-            '@type' => 'Person',
+            // Schools are LocalBusiness entities; individual teachers are Persons.
+            '@type' => $isSchoolProfile ? 'MusicSchool' : 'Person',
             'name' => $teacherName,
-            'jobTitle' => $profile->expertise,
+            'jobTitle' => $isSchoolProfile ? null : $profile->expertise,
             'description' => $seoDescription,
             'url' => $profile->publicUrl(),
+            'mainEntityOfPage' => $profile->publicUrl(),
             'image' => $profile->user->hasAvatar() ? $profile->user->avatar : null,
             'address' => array_filter([
                 '@type' => 'PostalAddress',
@@ -40,29 +53,23 @@
                 'addressLocality' => $profile->city,
             ]),
             'knowsLanguage' => $profile->languages,
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+            'aggregateRating' => ($reviewStats['count'] ?? 0) > 0 ? [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $reviewStats['average'],
+                'reviewCount' => $reviewStats['count'],
+                'bestRating' => 5,
+                'worstRating' => 1,
+            ] : null,
+        ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
         </script>
     @endif
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/marketing.css')
     <script src="https://unpkg.com/lucide@0.460.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
-                    colors: {
-                        primary: { 50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7c3aed',800:'#6b21a8',900:'#581c87' },
-                        accent: { 400:'#fb923c',500:'#f97316',600:'#ea580c' }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         [x-cloak] { display: none !important; }
         .card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07); }
@@ -78,7 +85,7 @@
 
 @if($isPreview)
     <div class="bg-amber-500 text-white text-center text-sm font-semibold py-2 px-4">
-        {{ __('teacher.public.preview_banner') }}
+        {{ $trans('public.preview_banner') }}
     </div>
 @endif
 
@@ -124,7 +131,14 @@
                     {{-- Info: right of the photo (flex column so actions align to photo bottom) --}}
                     <div class="flex-1 min-w-0 flex flex-col">
                         {{-- Name --}}
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $teacherName }}</h1>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                            {{ $teacherName }}
+                            @if($isSchoolProfile)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 ring-1 ring-teal-200">
+                                    <i data-lucide="building-2" class="w-3.5 h-3.5"></i> {{ $trans('public.school_badge') }}
+                                </span>
+                            @endif
+                        </h1>
 
                         {{-- Short headline: first line, italic, colorful, ~20% smaller, max 55 chars --}}
                         @if($profile->headline)
@@ -134,7 +148,7 @@
                         {{-- Lessons · format/duration/price · location · languages --}}
                         @php
                             $primaryService = $profile->services->first();
-                            $formatParts = collect($profile->teaching_formats ?? [])->map(fn ($f) => __('teacher.fields.format_'.$f))->all();
+                            $formatParts = collect($profile->teaching_formats ?? [])->map(fn ($f) => $trans('fields.format_'.$f))->all();
                             if ($primaryService) {
                                 if ($primaryService->duration_minutes) $formatParts[] = $primaryService->duration_minutes.' min';
                                 if ($primaryService->price_text) $formatParts[] = $primaryService->price_text;
@@ -160,13 +174,13 @@
                             <span class="inline-flex items-center gap-1.5">
                                 <i data-lucide="star" class="w-4 h-4 text-amber-400"></i>
                                 @if(($reviewStats['count'] ?? 0) > 0)
-                                    <b class="text-gray-800">{{ $reviewStats['average'] }}</b>&nbsp;/ 5 · {{ __('teacher.reviews.reviews_count', ['count' => $reviewStats['count']]) }}
+                                    <b class="text-gray-800">{{ $reviewStats['average'] }}</b>&nbsp;/ 5 · {{ $trans('reviews.reviews_count', ['count' => $reviewStats['count']]) }}
                                 @else
-                                    {{ __('teacher.public.no_reviews') }}
+                                    {{ $trans('public.no_reviews') }}
                                 @endif
                             </span>
                             <span class="inline-flex items-center gap-1.5">
-                                <i data-lucide="eye" class="w-4 h-4"></i> {{ number_format($profile->view_count) }} {{ __('teacher.public.views') }}
+                                <i data-lucide="eye" class="w-4 h-4"></i> {{ number_format($profile->view_count) }} {{ $trans('public.views') }}
                             </span>
                         </div>
 
@@ -175,15 +189,15 @@
                         <div class="flex flex-wrap items-center gap-2.5 mt-auto pt-5">
                             @auth
                                 <a href="{{ route('messages', ['to' => $user->username]) }}" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 text-[15px] font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition">
-                                    <i data-lucide="message-circle" class="w-4 h-4"></i> {{ __('teacher.public.message_teacher') }}
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i> {{ $trans('public.message_teacher') }}
                                 </a>
                             @else
                                 <button type="button" @click="msgModal = true" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 text-[15px] font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition">
-                                    <i data-lucide="message-circle" class="w-4 h-4"></i> {{ __('teacher.public.message_teacher') }}
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i> {{ $trans('public.message_teacher') }}
                                 </button>
                             @endauth
                             <button type="button" @click="document.getElementById('reviewsSection')?.scrollIntoView({behavior:'smooth'})" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 text-[15px] font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition">
-                                <i data-lucide="star" class="w-4 h-4"></i> {{ __('teacher.public.write_review') }}
+                                <i data-lucide="star" class="w-4 h-4"></i> {{ $trans('public.write_review') }}
                             </button>
                         </div>
                     </div>
@@ -192,7 +206,7 @@
 
             {{-- About: always visible (reduced heading gap + bottom padding) --}}
             <div class="card px-6 pt-6 pb-4 sm:px-7 sm:pt-7 sm:pb-5">
-                <h2 class="font-bold text-gray-900 text-lg mb-2">{{ __('teacher.public.about') }}</h2>
+                <h2 class="font-bold text-gray-900 text-lg mb-2">{{ $trans('public.about') }}</h2>
                 @if($profile->about)
                     @php
                         $aboutLen = mb_strlen($profile->about);
@@ -201,15 +215,15 @@
                     @endphp
                     {{-- Content kept on single lines so whitespace-pre-line does not inject phantom line breaks --}}
                     <div x-data="{ expanded: false }" class="text-[15px] text-gray-600 leading-relaxed">
-                        <p x-show="!expanded" class="whitespace-pre-line"><span class="sm:hidden">{{ $aboutMobile }}</span><span class="hidden sm:inline">{{ $aboutDesktop }}</span>@if($aboutLen > 300)<button type="button" @click="expanded = true" class="font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap block text-right mt-1 sm:inline sm:ml-5 sm:mt-0 {{ $aboutLen <= 500 ? 'sm:hidden' : '' }}">{{ __('teacher.public.see_more') }}</button>@endif</p>
-                        <p x-show="expanded" x-cloak class="whitespace-pre-line">{{ $profile->about }}<button type="button" @click="expanded = false" class="font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap block text-right mt-1 sm:inline sm:ml-5 sm:mt-0">{{ __('teacher.public.see_less') }}</button></p>
+                        <p x-show="!expanded" class="whitespace-pre-line"><span class="sm:hidden">{{ $aboutMobile }}</span><span class="hidden sm:inline">{{ $aboutDesktop }}</span>@if($aboutLen > 300)<button type="button" @click="expanded = true" class="font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap block text-right mt-1 sm:inline sm:ml-5 sm:mt-0 {{ $aboutLen <= 500 ? 'sm:hidden' : '' }}">{{ $trans('public.see_more') }}</button>@endif</p>
+                        <p x-show="expanded" x-cloak class="whitespace-pre-line">{{ $profile->about }}<button type="button" @click="expanded = false" class="font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap block text-right mt-1 sm:inline sm:ml-5 sm:mt-0">{{ $trans('public.see_less') }}</button></p>
                     </div>
                 @else
-                    <p class="text-[15px] text-gray-400 italic">{{ $isPreview ? __('teacher.public.empty_hint_about') : '—' }}</p>
+                    <p class="text-[15px] text-gray-400 italic">{{ $isPreview ? $trans('public.empty_hint_about') : '—' }}</p>
                 @endif
 
                 @if($profile->teaching_methodology)
-                    <h3 class="font-bold text-gray-900 mt-6 mb-2">{{ __('teacher.public.methodology') }}</h3>
+                    <h3 class="font-bold text-gray-900 mt-6 mb-2">{{ $trans('public.methodology') }}</h3>
                     <p class="text-[15px] text-gray-600 whitespace-pre-line leading-relaxed">{{ $profile->teaching_methodology }}</p>
                 @endif
             </div>
@@ -217,10 +231,10 @@
             {{-- Jump buttons: Services / Articles / Videos / Reviews — aligned with the About box --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 @foreach([
-                    'servicesSection' => __('teacher.public.services'),
-                    'articlesSection' => __('teacher.public.articles'),
-                    'videosSection' => __('teacher.public.videos'),
-                    'reviewsSection' => __('teacher.public.reviews'),
+                    'servicesSection' => $trans('public.services'),
+                    'articlesSection' => $trans('public.articles'),
+                    'videosSection' => $trans('public.videos'),
+                    'reviewsSection' => $trans('public.reviews'),
                 ] as $target => $label)
                     <button type="button" @click="document.getElementById('{{ $target }}')?.scrollIntoView({behavior:'smooth'})"
                             class="w-full px-3 py-2.5 rounded-xl text-[15px] font-semibold text-center bg-white text-gray-700 border border-gray-200 hover:bg-primary-50 hover:text-primary-700 transition">
@@ -235,7 +249,7 @@
             {{-- Education: shown right after About when present --}}
             @if($profile->educations->isNotEmpty())
                 <div class="card p-6 sm:p-7">
-                    <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.education') }}</h2>
+                    <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.education') }}</h2>
                     <div class="space-y-4">
                         @foreach($profile->educations as $education)
                             <div class="flex items-start gap-3">
@@ -257,7 +271,7 @@
             {{-- Book a lesson (mobile only, placed right after Education) --}}
             <div class="card p-6 lg:hidden">
                 <h2 class="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-5 h-5 text-primary-500"></i> {{ __('teacher.public.booking') }}
+                    <i data-lucide="calendar" class="w-5 h-5 text-primary-500"></i> {{ $trans('public.booking') }}
                 </h2>
                 @include('teachers.partials.booking-mini', [
                     'slug' => $profile->slug,
@@ -268,7 +282,7 @@
 
             {{-- Services (always shown, even when empty) --}}
             <div class="card p-6 sm:p-7 scroll-mt-6" id="servicesSection">
-                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.services') }}</h2>
+                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.services') }}</h2>
                 <div class="space-y-3">
                     @forelse($profile->services as $service)
                         <div class="border border-gray-100 rounded-2xl p-4 sm:p-5">
@@ -278,7 +292,7 @@
                                     <p class="text-sm text-gray-500 mt-0.5">
                                         {{ implode(' · ', array_filter([
                                             $service->lesson_type,
-                                            $service->format ? __('teacher.fields.format_'.$service->format) : null,
+                                            $service->format ? $trans('fields.format_'.$service->format) : null,
                                             $service->duration_minutes ? $service->duration_minutes.' min' : null,
                                         ])) }}
                                     </p>
@@ -290,7 +304,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-[15px] text-gray-400">{{ __('teacher.public.no_services') }}</p>
+                        <p class="text-[15px] text-gray-400">{{ $trans('public.no_services') }}</p>
                     @endforelse
                 </div>
             </div>
@@ -298,14 +312,16 @@
             {{-- Contact (mobile only, placed right after Services) --}}
             @include('teachers.partials.contact', ['wrapperClass' => 'lg:hidden'])
 
-            {{-- Documents & photos: shown above Articles (mobile + desktop), always visible --}}
-            <div class="card p-6 sm:p-7">
-                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.documents_photos') }}</h2>
+            {{-- Photos & Certificates: shown above Articles (mobile + desktop), always visible --}}
+            <div class="card p-6 sm:p-7" x-data="{ lb: false, lbSrc: '', lbTitle: '' }">
+                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.documents_photos') }}</h2>
                 @if($publicPhotos->isNotEmpty())
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($publicPhotos as $item)
-                            @if($item->kind === 'photo')
-                                <img src="{{ $item->publicUrl() }}" alt="{{ $item->title }}" class="w-full h-36 object-cover rounded-2xl">
+                            @if($item->isImage())
+                                <button type="button" @click="lb=true; lbSrc=@js($item->publicUrl()); lbTitle=@js($item->title ?: $item->original_name)" class="block group">
+                                    <img src="{{ $item->publicUrl() }}" alt="{{ $item->title }}" class="w-full h-36 object-cover rounded-2xl transition group-hover:opacity-90">
+                                </button>
                             @else
                                 <a href="{{ $item->publicUrl() }}" target="_blank" rel="noopener" class="flex items-center gap-2 p-4 bg-gray-50 rounded-2xl text-[15px] text-gray-700 hover:bg-gray-100">
                                     <i data-lucide="file-text" class="w-5 h-5 text-primary-500 shrink-0"></i>
@@ -314,16 +330,26 @@
                             @endif
                         @endforeach
                     </div>
+
+                    {{-- Lightbox popup --}}
+                    <div x-show="lb" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none" @keydown.escape.window="lb=false">
+                        <div class="absolute inset-0 bg-black/80" @click="lb=false"></div>
+                        <div class="relative max-w-4xl max-h-[90vh]">
+                            <img :src="lbSrc" :alt="lbTitle" class="max-w-full max-h-[85vh] rounded-xl object-contain">
+                            <p class="text-center text-white/80 text-sm mt-3" x-text="lbTitle"></p>
+                            <button type="button" @click="lb=false" class="absolute -top-3 -right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center text-gray-700 hover:text-gray-900 shadow-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                    </div>
                 @else
-                    <p class="text-[15px] text-gray-400">{{ __('teacher.media.none') }}</p>
+                    <p class="text-[15px] text-gray-400">{{ $trans('media.none') }}</p>
                 @endif
             </div>
 
             {{-- Articles (always shown, even when empty) --}}
             <div class="card p-6 sm:p-7 scroll-mt-6" id="articlesSection">
-                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.articles') }}</h2>
+                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.articles') }}</h2>
                 @if($articles->isEmpty())
-                    <p class="text-[15px] text-gray-400">{{ __('teacher.public.no_articles') }}</p>
+                    <p class="text-[15px] text-gray-400">{{ $trans('public.no_articles') }}</p>
                 @else
                     <div class="grid sm:grid-cols-2 gap-4">
                         @foreach($articles as $article)
@@ -344,9 +370,9 @@
 
             {{-- Videos (always shown, even when empty) --}}
             <div class="card p-6 sm:p-7 scroll-mt-6" id="videosSection">
-                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.videos') }}</h2>
+                <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.videos') }}</h2>
                 @if($profile->videos->isEmpty())
-                    <p class="text-[15px] text-gray-400">{{ __('teacher.public.no_videos') }}</p>
+                    <p class="text-[15px] text-gray-400">{{ $trans('public.no_videos') }}</p>
                 @else
                     <div class="grid sm:grid-cols-2 gap-4">
                         @foreach($profile->videos as $video)
@@ -370,19 +396,19 @@
             {{-- Reviews (always shown): Write a Review form + list newest → oldest --}}
             <div class="card p-6 sm:p-7 scroll-mt-6" id="reviewsSection">
                 <h2 class="font-bold text-gray-900 text-lg mb-4">
-                    {{ __('teacher.public.reviews') }}
+                    {{ $trans('public.reviews') }}
                     @if(($reviewStats['count'] ?? 0) > 0)<span class="text-gray-400 font-semibold">({{ $reviewStats['count'] }})</span>@endif
                 </h2>
 
                 @if(session('status') === 'review-saved')
                     <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
-                        <p class="text-sm text-green-700">{{ __('teacher.reviews.status_review-saved') }}</p>
+                        <p class="text-sm text-green-700">{{ $trans('reviews.status_review-saved') }}</p>
                     </div>
                 @endif
 
                 {{-- Write a Review — always visible --}}
                 <div class="border border-gray-100 rounded-2xl p-5 mb-5">
-                    <h3 class="font-bold text-gray-900 mb-3">{{ __('teacher.reviews.write') }}</h3>
+                    <h3 class="font-bold text-gray-900 mb-3">{{ $trans('reviews.write') }}</h3>
                     @auth
                         <form method="POST" action="{{ route('teachers.reviews.store', $profile->slug) }}" x-data="{ rating: {{ $myReview?->rating ?? 5 }} }">
                             @csrf
@@ -394,25 +420,25 @@
                                 </template>
                                 <input type="hidden" name="rating" :value="rating">
                             </div>
-                            <textarea name="body" rows="3" maxlength="2000" placeholder="{{ __('teacher.reviews.body_placeholder') }}" class="w-full rounded-xl border-gray-300 text-[15px] mb-3">{{ old('body', $myReview?->body ?? '') }}</textarea>
-                            <button class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition">{{ __('teacher.reviews.submit') }}</button>
+                            <textarea name="body" rows="3" maxlength="2000" placeholder="{{ $trans('reviews.body_placeholder') }}" class="w-full rounded-xl border-gray-300 text-[15px] mb-3">{{ old('body', $myReview?->body ?? '') }}</textarea>
+                            <button class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition">{{ $trans('reviews.submit') }}</button>
                             @error('body')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
                         </form>
                         @unless($canReview ?? false)
-                            <p class="text-xs text-gray-400 mt-3">{{ __('teacher.reviews.error_not_eligible') }}</p>
+                            <p class="text-xs text-gray-400 mt-3">{{ $trans('reviews.error_not_eligible') }}</p>
                         @endunless
                     @else
-                        <p class="text-[15px] text-gray-500 mb-3">{{ __('teacher.public.message_login_required') }}</p>
+                        <p class="text-[15px] text-gray-500 mb-3">{{ $trans('public.message_login_required') }}</p>
                         <div class="flex gap-2">
-                            <a href="{{ route('login') }}" class="inline-flex px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition">{{ __('teacher.public.login') }}</a>
-                            <a href="{{ route('register') }}" class="inline-flex px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[15px] font-semibold rounded-xl transition">{{ __('teacher.public.register') }}</a>
+                            <a href="{{ route('login') }}" class="inline-flex px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition">{{ $trans('public.login') }}</a>
+                            <a href="{{ route('register') }}" class="inline-flex px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[15px] font-semibold rounded-xl transition">{{ $trans('public.register') }}</a>
                         </div>
                     @endauth
                 </div>
 
                 {{-- Existing reviews, newest → oldest --}}
                 @if(($reviews ?? collect())->isEmpty())
-                    <p class="text-[15px] text-gray-400">{{ __('teacher.public.no_reviews') }}</p>
+                    <p class="text-[15px] text-gray-400">{{ $trans('public.no_reviews') }}</p>
                 @else
                     <div class="space-y-3">
                         @foreach($reviews as $review)
@@ -433,7 +459,7 @@
                                     @if(auth()->id() === $profile->user_id)
                                         <form method="POST" action="{{ route('teacher-reviews.report', $review) }}">
                                             @csrf
-                                            <button class="text-xs font-semibold text-gray-400 hover:text-red-600">{{ __('teacher.reviews.report') }}</button>
+                                            <button class="text-xs font-semibold text-gray-400 hover:text-red-600">{{ $trans('reviews.report') }}</button>
                                         </form>
                                     @endif
                                 </div>
@@ -455,11 +481,11 @@
                     <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="lock" class="w-6 h-6 text-primary-600"></i>
                     </div>
-                    <h3 class="font-bold text-gray-900 text-lg mb-1">{{ __('teacher.public.message_teacher') }}</h3>
-                    <p class="text-[15px] text-gray-600 mb-5">{{ __('teacher.public.message_login_required') }}</p>
+                    <h3 class="font-bold text-gray-900 text-lg mb-1">{{ $trans('public.message_teacher') }}</h3>
+                    <p class="text-[15px] text-gray-600 mb-5">{{ $trans('public.message_login_required') }}</p>
                     <div class="flex gap-2">
-                        <a href="{{ route('login') }}" class="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition">{{ __('teacher.public.login') }}</a>
-                        <a href="{{ route('register') }}" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition">{{ __('teacher.public.register') }}</a>
+                        <a href="{{ route('login') }}" class="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition">{{ $trans('public.login') }}</a>
+                        <a href="{{ route('register') }}" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition">{{ $trans('public.register') }}</a>
                     </div>
                 </div>
             </div>
@@ -470,7 +496,7 @@
             {{-- Book a lesson: compact fixed weekly booking widget (desktop; on mobile it's rendered after Education) --}}
             <div class="card p-6 hidden lg:block" id="bookingPanel">
                 <h2 class="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                    <i data-lucide="calendar" class="w-5 h-5 text-primary-500"></i> {{ __('teacher.public.booking') }}
+                    <i data-lucide="calendar" class="w-5 h-5 text-primary-500"></i> {{ $trans('public.booking') }}
                 </h2>
                 @include('teachers.partials.booking-mini', [
                     'slug' => $profile->slug,
@@ -486,7 +512,7 @@
             <div class="card p-6">
                 <div class="flex items-center justify-between gap-2 mb-4">
                     <h2 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-                        <i data-lucide="rss" class="w-5 h-5 text-primary-500"></i> {{ __('teacher.public.feed') }}
+                        <i data-lucide="rss" class="w-5 h-5 text-primary-500"></i> {{ $trans('public.feed') }}
                     </h2>
                     @auth
                         @if(auth()->id() !== $user->id)
@@ -511,7 +537,7 @@
                             @endif
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm">
-                                    <span class="font-semibold text-gray-900">{{ $actor->name ?? '' }}</span>
+                                    <span class="font-semibold text-gray-900">{{ $actor ? $actor->fullName() : '' }}</span>
                                     <span class="text-gray-400">· {{ $item->created_at->diffForHumans() }}</span>
                                 </p>
                                 <div class="mt-1 text-sm text-gray-700">
@@ -533,7 +559,7 @@
                                             <p class="text-gray-600">
                                                 <i data-lucide="user-plus" class="w-4 h-4 inline-block align-text-bottom"></i>
                                                 {{ __('app.social.started_following') }}
-                                                @if($item->subject)<span class="font-semibold text-gray-900">{{ $item->subject->name }}</span>@endif
+                                                @if($item->subject)<span class="font-semibold text-gray-900">{{ $item->subject->fullName() }}</span>@endif
                                             </p>
                                             @break
                                     @endswitch
@@ -541,7 +567,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-sm text-gray-400">{{ __('teacher.public.no_feed') }}</p>
+                        <p class="text-sm text-gray-400">{{ $trans('public.no_feed') }}</p>
                     @endforelse
                 </div>
             </div>
@@ -550,7 +576,7 @@
             @if($showBookingPanel && $publicPaymentLinks->isNotEmpty())
                 <div class="card p-6">
                     <h2 class="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                        <i data-lucide="credit-card" class="w-5 h-5 text-primary-500"></i> {{ __('teacher.public.payment_links') }}
+                        <i data-lucide="credit-card" class="w-5 h-5 text-primary-500"></i> {{ $trans('public.payment_links') }}
                     </h2>
                     <div class="space-y-2">
                         @foreach($publicPaymentLinks as $link)
@@ -564,14 +590,14 @@
                             </a>
                         @endforeach
                     </div>
-                    <p class="text-xs text-gray-400 mt-3">{{ __('teacher.payment_links.external_disclaimer') }}</p>
+                    <p class="text-xs text-gray-400 mt-3">{{ $trans('payment_links.external_disclaimer') }}</p>
                 </div>
             @endif
 
             {{-- Instruments / expertise chips --}}
             @if($profile->primary_instrument || $profile->instruments->isNotEmpty() || !empty($profile->expertise_areas))
                 <div class="card p-6">
-                    <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.teaches') }}</h2>
+                    <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.teaches') }}</h2>
                     <div class="flex flex-wrap gap-2">
                         @if($profile->primary_instrument)
                             <span class="px-3.5 py-1.5 rounded-full text-sm font-semibold bg-primary-600 text-white">{{ $profile->primary_instrument }}</span>
@@ -595,11 +621,11 @@
                     <div class="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="user-plus" class="w-6 h-6 text-primary-600"></i>
                     </div>
-                    <h3 class="font-bold text-gray-900 text-lg mb-1">{{ __('teacher.public.follow_teacher') }}</h3>
-                    <p class="text-[15px] text-gray-600 mb-5">{{ __('teacher.public.follow_login_prompt') }}</p>
+                    <h3 class="font-bold text-gray-900 text-lg mb-1">{{ $trans('public.follow_teacher') }}</h3>
+                    <p class="text-[15px] text-gray-600 mb-5">{{ $trans('public.follow_login_prompt') }}</p>
                     <div class="flex gap-2">
-                        <a href="{{ route('login') }}" class="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition">{{ __('teacher.public.login') }}</a>
-                        <a href="{{ route('register') }}" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition">{{ __('teacher.public.register') }}</a>
+                        <a href="{{ route('login') }}" class="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition">{{ $trans('public.login') }}</a>
+                        <a href="{{ route('register') }}" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition">{{ $trans('public.register') }}</a>
                     </div>
                 </div>
             </div>

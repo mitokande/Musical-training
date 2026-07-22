@@ -4,8 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Auth screens (login/register/password) — keep them out of search. --}}
+    <meta name="robots" content="noindex">
     <title>{{ config('app.name', 'Harmoniva') }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
+    @include('partials.google-analytics')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
@@ -220,23 +224,8 @@
     <nav class="site-nav fixed top-0 left-0 right-0 z-50">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow shrink-0">
-                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
-                            <defs>
-                                <linearGradient id="gs-g" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#9333ea"/>
-                                    <stop offset="100%" stop-color="#fb923c"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="2" y="3" width="5.5" height="22" rx="2" fill="url(#gs-g)"/>
-                            <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="url(#gs-g)"/>
-                            <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="url(#gs-g)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold tracking-tight leading-none">
-                        <span style="background: linear-gradient(135deg,#9333ea,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">H</span><span class="text-gray-900">armoniva</span>
-                    </span>
+                <a href="{{ url('/') }}" class="flex items-center group shrink-0">
+                    <img src="{{ asset('images/logo-full.png') }}" alt="Harmoniva" width="1374" height="340" class="h-[43px] sm:h-[47px] w-auto">
                 </a>
                 <div class="flex items-center gap-2">
                     {{-- Desktop: Login / Register buttons --}}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -154,6 +155,12 @@
 
                 {{-- Nav --}}
                 <nav class="space-y-1">
+                    <button @click="gotoSection('progress')"
+                            :class="mode === 'main' && activeSection === 'progress' ? 'nav-btn-active' : 'text-gray-600 hover:bg-gray-50'"
+                            class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0"></i>
+                        Progress
+                    </button>
                     <button @click="gotoSection('general')"
                             :class="mode === 'main' && activeSection === 'general' ? 'nav-btn-active' : 'text-gray-600 hover:bg-gray-50'"
                             class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all">
@@ -165,12 +172,6 @@
                             class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all">
                         <i data-lucide="music" class="w-4 h-4 flex-shrink-0"></i>
                         {{ __('app.profile.music_profile') }}
-                    </button>
-                    <button @click="gotoSection('progress')"
-                            :class="mode === 'main' && activeSection === 'progress' ? 'nav-btn-active' : 'text-gray-600 hover:bg-gray-50'"
-                            class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all">
-                        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0"></i>
-                        Progress
                     </button>
                     <button @click="switchMode('questionnaire')"
                             :class="mode === 'questionnaire' ? 'nav-btn-active' : 'text-gray-600 hover:bg-gray-50'"
@@ -192,7 +193,7 @@
         <div class="flex-1 min-w-0">
 
             {{-- ============ MAIN FLOW ============ --}}
-            <div x-show="mode === 'main'" class="space-y-6">
+            <div x-show="mode === 'main'" class="flex flex-col space-y-6">
 
                 {{-- === ÜST PROGRESS KARTI === --}}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -287,7 +288,8 @@
                 </div>
 
                 {{-- ===== BÖLÜM 1: GENEL BİLGİLER ===== --}}
-                <div id="general" class="section-anchor space-y-4">
+                {{-- Pratik Türü Dağılımı (Progress) altına taşındı: order ile sıralanıyor --}}
+                <div id="general" class="section-anchor space-y-4" style="order: 2">
 
                     {{-- Genel bilgiler kartı --}}
                     <div x-data="{ editing: {{ $errors->any() ? 'true' : 'false' }} }" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -375,7 +377,7 @@
                 </div>
 
                 {{-- ===== BÖLÜM 2: MÜZİK PROFİLİ ===== --}}
-                <div id="music" class="section-anchor">
+                <div id="music" class="section-anchor" style="order: 3">
                     @php
                         $allInterests = __('app.profile.interests_options');
                         $selectedInterests = old('interests', $profile->interests ?? []);
@@ -514,8 +516,8 @@
                     </div>
                 </div>
 
-                {{-- ===== BÖLÜM 3: PROGRESS ===== --}}
-                <div id="progress" class="section-anchor space-y-4">
+                {{-- ===== BÖLÜM 3: PROGRESS (Pratik Türü Dağılımı) — Genel Bilgiler/Müzik Profili'nin üstüne alındı --}}
+                <div id="progress" class="section-anchor space-y-4" style="order: 1">
 
                     {{-- Practice Breakdown --}}
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -735,11 +737,11 @@
                     </h2>
                     @if(auth()->user()->hasTeacherAccount())
                         <p class="text-sm text-gray-500 mb-4">{{ __('teacher.profile.subtitle') }}</p>
-                        <a href="{{ route('teacher.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                        <a href="{{ route(auth()->user()->crmRouteName('dashboard')) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
                             <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                             {{ __('teacher.dashboard.title') }}
                         </a>
-                    @else
+                    @elseif(!auth()->user()->isSchool())
                         <p class="text-sm text-gray-500 mb-4">{{ __('teacher.become.description') }}</p>
                         <form method="POST" action="{{ route('teacher.become') }}">
                             @csrf
@@ -748,6 +750,13 @@
                                 {{ __('teacher.become.button') }}
                             </button>
                         </form>
+                    @else
+                        {{-- School accounts get their panel automatically on first visit --}}
+                        <p class="text-sm text-gray-500 mb-4">{{ __('teacher.profile.subtitle') }}</p>
+                        <a href="{{ route('school.dashboard') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                            <i data-lucide="building-2" class="w-4 h-4"></i>
+                            {{ __('app.nav.school_panel') }}
+                        </a>
                     @endif
                 </div>
 

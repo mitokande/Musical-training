@@ -31,7 +31,7 @@ class AppointmentRequested extends Notification implements ShouldQueue
                 ->timezone($this->appointment->timezone ?? config('app.timezone'))
                 ->format('F j, Y H:i').'.')
             ->line($this->appointment->topic ? 'Topic: '.$this->appointment->topic : '')
-            ->action('Review the request', route('teacher.calendar.index'));
+            ->action('Review the request', route($notifiable->crmRouteName('calendar.index')));
     }
 
     public function toArray(object $notifiable): array
@@ -41,7 +41,7 @@ class AppointmentRequested extends Notification implements ShouldQueue
             'appointment_id' => $this->appointment->id,
             'student_id' => $this->appointment->student_id,
             'starts_at' => $this->appointment->starts_at->toIso8601String(),
-            'url' => route('teacher.calendar.index'),
+            'url' => route($notifiable->crmRouteName('calendar.index')),
         ];
     }
 }

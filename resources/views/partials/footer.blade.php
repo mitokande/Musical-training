@@ -18,8 +18,9 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
 <style>
     .ft-link { transition: color 0.15s ease; }
     .ft-link:hover { color: #fff; }
-    .ft-social { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; transition: background 0.15s ease; }
-    .ft-social:hover { background: rgba(255,255,255,0.14); }
+    .ft-social { width: 38px; height: 38px; border-radius: 8px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.28); display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, border-color 0.15s ease; }
+    .ft-social:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.5); }
+    .ft-social svg { width: 22px; height: 22px; }
 </style>
 
 <footer class="bg-gray-950 text-gray-400 mt-0 border-t border-gray-800/60">
@@ -31,19 +32,7 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             {{-- A. Brand Column --}}
             <div class="col-span-2 sm:col-span-2 lg:col-span-2">
                 <div class="flex items-center gap-2.5 mb-4">
-                    <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
-                            <defs>
-                                <linearGradient id="ft-logo-g" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#9333ea"/>
-                                    <stop offset="100%" stop-color="#fb923c"/>
-                                </linearGradient>
-                            </defs>
-                            <rect x="2" y="3" width="5.5" height="22" rx="2" fill="url(#ft-logo-g)"/>
-                            <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="url(#ft-logo-g)"/>
-                            <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="url(#ft-logo-g)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('images/logo-icon.png') }}" alt="" class="w-[48px] h-[48px] sm:w-[52px] sm:h-[52px] shrink-0">
                     <span class="font-bold text-2xl text-white tracking-tight leading-none">
                         <span style="background:linear-gradient(135deg,#c084fc,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">H</span>armoniva
                     </span>
@@ -54,18 +43,28 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
                 </p>
 
                 {{-- Social Icons --}}
-                <div class="flex items-center gap-2">
-                    <a href="#" class="ft-social" aria-label="YouTube">
-                        <i data-lucide="youtube" class="w-4 h-4"></i>
+                <div class="flex items-center flex-wrap gap-2.5">
+                    <a href="https://www.youtube.com/@HarmonivaApp" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="YouTube">
+                        <i data-lucide="youtube" class="w-[22px] h-[22px]"></i>
                     </a>
-                    <a href="#" class="ft-social" aria-label="Instagram">
-                        <i data-lucide="instagram" class="w-4 h-4"></i>
+                    <a href="https://www.instagram.com/harmonivaapp/" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="Instagram">
+                        <i data-lucide="instagram" class="w-[22px] h-[22px]"></i>
                     </a>
-                    <a href="#" class="ft-social" aria-label="Twitter / X">
-                        <i data-lucide="twitter" class="w-4 h-4"></i>
+                    <a href="https://www.facebook.com/profile.php?id=61591747961788" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="Facebook">
+                        <i data-lucide="facebook" class="w-[22px] h-[22px]"></i>
                     </a>
-                    <a href="#" class="ft-social" aria-label="Facebook">
-                        <i data-lucide="facebook" class="w-4 h-4"></i>
+                    <a href="https://www.linkedin.com/in/harmoniva-ear-training-30412b423/" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="LinkedIn">
+                        <i data-lucide="linkedin" class="w-[22px] h-[22px]"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@harmonivaapp" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="TikTok">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.11v12.55a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 0 1 0-5.18c.27 0 .53.04.77.12v-3.17a5.73 5.73 0 0 0-.77-.05A5.72 5.72 0 1 0 15.3 15.5V9.01a7.32 7.32 0 0 0 4.28 1.37V7.27a4.28 4.28 0 0 1-2.98-1.45Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://x.com/HarmonivaApp" target="_blank" rel="noopener noreferrer" class="ft-social" aria-label="X">
+                        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M18.9 2h3.3l-7.2 8.24L23.5 22h-6.65l-5.2-6.8L5.7 22H2.4l7.7-8.8L1.5 2h6.82l4.7 6.22L18.9 2Zm-1.16 18h1.83L7.34 3.9H5.38L17.74 20Z"/>
+                        </svg>
                     </a>
                 </div>
             </div>
@@ -102,6 +101,8 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-300 mb-4">{{ __('app.footer.resources') }}</h4>
                 <ul class="space-y-2.5 text-sm">
                     <li><a href="/help"               class="ft-link">{{ __('app.footer.help_center') }}</a></li>
+                    <li><a href="/how-it-works"       class="ft-link">{{ __('app.footer.how_it_works_guide') }}</a></li>
+                    <li><a href="/find-teachers"      class="ft-link">{{ __('app.footer.find_teachers') }}</a></li>
                     <li><a href="/faq"                class="ft-link">{{ __('app.footer.faq') }}</a></li>
                     <li><a href="/blog"               class="ft-link">{{ __('app.footer.articles') }}</a></li>
                     <li><a href="/ear-training-guide" class="ft-link">{{ __('app.footer.ear_training_guide') }}</a></li>

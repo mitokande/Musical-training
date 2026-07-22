@@ -63,7 +63,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-2">
                         <div class="text-sm">
-                            <a href="{{ $actor ? url('/u/'.$actor->username) : '#' }}" class="font-semibold text-gray-900 hover:underline">{{ $actor->name ?? __('app.social.someone') }}</a>
+                            <a href="{{ $actor ? url('/u/'.$actor->username) : '#' }}" class="font-semibold text-gray-900 hover:underline">{{ $actor ? $actor->fullName() : __('app.social.someone') }}</a>
                             <span class="text-gray-400">· {{ $item->created_at->diffForHumans() }}</span>
                         </div>
                         @if($item->type === 'post' && $actor && $actor->id === auth()->id())
@@ -98,7 +98,7 @@
                                     <i data-lucide="user-plus" class="w-4 h-4 inline-block align-text-bottom"></i>
                                     {{ __('app.social.started_following') }}
                                     @if($item->subject)
-                                        <a href="{{ url('/u/'.$item->subject->username) }}" class="font-semibold text-gray-900 hover:underline">{{ $item->subject->name }}</a>
+                                        <a href="{{ url('/u/'.$item->subject->username) }}" class="font-semibold text-gray-900 hover:underline">{{ $item->subject->fullName() }}</a>
                                     @endif
                                 </p>
                                 @break

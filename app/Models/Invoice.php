@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Invoice extends Model
 {
     protected $fillable = [
-        'user_id', 'subscription_id', 'invoice_number', 'amount',
+        'user_id', 'subscription_id', 'invoice_number', 'billing_cycle', 'amount',
         'tax_amount', 'total_amount', 'currency', 'status',
-        'paid_at', 'payment_method', 'notes',
+        'paid_at', 'refunded_at', 'payment_method', 'provider', 'provider_reference', 'notes',
     ];
 
     protected function casts(): array
@@ -20,6 +20,7 @@ class Invoice extends Model
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -35,8 +36,8 @@ class Invoice extends Model
 
     public static function generateNumber(): string
     {
-        $prefix = 'INV-' . date('Ym');
-        $lastInvoice = static::where('invoice_number', 'like', $prefix . '%')
+        $prefix = 'INV-'.date('Ym');
+        $lastInvoice = static::where('invoice_number', 'like', $prefix.'%')
             ->orderBy('invoice_number', 'desc')
             ->first();
 
@@ -44,6 +45,6 @@ class Invoice extends Model
             ? ((int) substr($lastInvoice->invoice_number, -4)) + 1
             : 1;
 
-        return $prefix . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 }

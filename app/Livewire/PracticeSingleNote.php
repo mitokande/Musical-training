@@ -7,6 +7,7 @@ use App\Models\LearningPathExercise;
 use App\Models\Practice;
 use App\Models\UserPractice;
 use App\Services\LearningPathQuestionGenerator;
+use App\Services\MusicTheoryService;
 use Livewire\Component;
 
 class PracticeSingleNote extends Component
@@ -123,9 +124,19 @@ class PracticeSingleNote extends Component
             'practices' => $this->practiceDataArray,
             'currentGroupNotes' => $currentGroupNotes,
             'groupSize' => $this->groupSize,
-            'answerMode' => $this->answerMode,
+            // Learning Path lessons carry answer_mode on each question
+            // ('note-names' labels the piano keys); the component-level
+            // answerMode only covers the Exercise Setup flow. Named
+            // questionAnswerMode / staffClef because Livewire injects public
+            // properties into the view AFTER render data — 'answerMode' and
+            // 'clef' keys here would be clobbered by the $answerMode/$clef
+            // properties (stuck at their defaults outside the Studio flow).
+            'questionAnswerMode' => $currentGroupNotes[0]['answer_mode'] ?? $this->answerMode,
             'allowedNotes' => $this->allowedNotes,
-            'clef' => $this->clef,
+            // Teacher-assignment snapshots carry their own clef + reference
+            // note; the component-level clef only covers Exercise Setup.
+            'staffClef' => $currentGroupNotes[0]['clef'] ?? $this->clef,
+            'referenceNote' => $currentGroupNotes[0]['reference_note'] ?? null,
             'currentPracticeIndex' => $this->currentPracticeIndex,
             'totalQuestions' => $totalQuestions,
             'currentQuestionNumber' => $currentQuestionNumber,
@@ -149,7 +160,10 @@ class PracticeSingleNote extends Component
 
         $data = $this->getCurrentPracticeData();
         $target = $data['target'] ?? '';
-        $isCorrect = strtolower(trim($answer)) === strtolower(trim($target));
+        // A piano key is a pitch, not a spelling — accept enharmonic
+        // equivalents (the keyboard emits sharp names, lessons may teach Bb).
+        $isCorrect = strtolower(trim($answer)) === strtolower(trim($target))
+            || app(MusicTheoryService::class)->notesAreEnharmonic(trim($answer), trim($target));
 
         $userPractice->total_questions++;
         if ($isCorrect) {

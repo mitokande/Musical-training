@@ -9,7 +9,7 @@
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
             You've used all {{ $dailyLimit }} free plays today. Upgrade to Premium for unlimited games every day.
         </p>
-        <a href="{{ route('profile.edit') }}"
+        <a href="{{ route('checkout.show') }}"
            class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
             Upgrade to Premium
         </a>

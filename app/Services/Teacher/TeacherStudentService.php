@@ -24,12 +24,16 @@ class TeacherStudentService
 {
     public const EMAIL_INVITATION_TTL_DAYS = 14;
 
-    public function __construct(private TeacherSubscriptionBenefitService $benefits) {}
+    public function __construct(
+        private TeacherSubscriptionBenefitService $benefits,
+        private CrmQuotaService $quota,
+    ) {}
 
     /** Flow A: teacher sends a relationship request to an existing user. */
     public function requestExistingUser(User $teacher, User $student): TeacherStudentRelationship
     {
         $this->assertCanTarget($teacher, $student);
+        $this->assertUnderStudentLimit($teacher, $student);
 
         $relationship = $this->freshRelationship(
             $teacher,
@@ -53,6 +57,12 @@ class TeacherStudentService
 
         if ($existing = User::where('email', $email)->first()) {
             $this->assertCanTarget($teacher, $existing);
+            $this->assertUnderStudentLimit($teacher, $existing);
+        } else {
+            // Unregistered invitee: plan unknown, so the cap is re-checked
+            // (with the real plan) at accept time. Block early only when even
+            // a free student could no longer be added.
+            $this->assertUnderStudentLimit($teacher, null);
         }
 
         $duplicate = TeacherStudentInvitation::pending()
@@ -110,6 +120,7 @@ class TeacherStudentService
 
         $teacher = $invitation->teacher;
         $this->assertCanTarget($teacher, $student);
+        $this->assertUnderStudentLimit($teacher, $student);
 
         $relationship = DB::transaction(function () use ($teacher, $student, $invitation) {
             $relationship = $this->freshRelationship(
@@ -239,6 +250,20 @@ class TeacherStudentService
             TeacherStudentRelationship::STATUS_PENDING_TEACHER_REQUEST,
         ], true)) {
             throw new InvalidArgumentException(__('teacher.students.error_already_related'));
+        }
+    }
+
+    /**
+     * Free-tier accounts may hold at most max_free_students free-plan
+     * students (active + pending). Premium-plan students never count and are
+     * unlimited — the premium-student incentive depends on that.
+     */
+    private function assertUnderStudentLimit(User $teacher, ?User $student): void
+    {
+        if (! $this->quota->canAddStudent($teacher, $student)) {
+            throw new InvalidArgumentException(__('teacher.limits.students_reached', [
+                'limit' => $this->quota->limit($teacher, 'max_free_students'),
+            ]));
         }
     }
 

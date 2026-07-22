@@ -109,6 +109,9 @@
         $practiceTimeSig    = $currentPractice->time_signature ?? $dictationTimeSignature ?? '4/4';
         $practiceKeyRoot    = $currentPractice->key_signature ?? 'C';
         $practiceTonic      = $currentPractice->tonic ?? $practiceKeyRoot;
+        // Learning Path questions carry their own mode; the component-level
+        // $dictationMode only reflects Exercise Setup Studio settings.
+        $practiceMode       = $currentPractice->mode ?? $dictationMode;
         $practiceClef       = $currentPractice->clef ?? 'treble';
         $practiceTempo      = $currentPractice->tempo ?? $dictationTempo ?? 50;
         $practiceBars       = $currentPractice->bars ?? 2;
@@ -127,7 +130,7 @@
                     <div class="text-center">
                         <h1 class="text-xl font-bold text-white">Melodic Dictation</h1>
                         <p class="text-white/80 text-sm">
-                            {{ $dictationMode === 'minor' ? $practiceTonic : $practiceKeyRoot }} {{ $dictationMode === 'minor' ? 'minor' : 'Major' }}
+                            {{ $practiceMode === 'minor' ? $practiceTonic : $practiceKeyRoot }} {{ $practiceMode === 'minor' ? 'minor' : 'Major' }}
                             &middot; {{ $practiceTimeSig }}
                             &middot; {{ $practiceTempo }} BPM
                         </p>

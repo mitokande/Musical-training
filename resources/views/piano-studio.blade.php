@@ -1,18 +1,33 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Piano Studio - {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display. Free online piano studio by Harmoniva.">
+    <link rel="canonical" href="{{ route('piano.studio') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="Piano Studio — Harmoniva">
+    <meta property="og:description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display.">
+    <meta property="og:url" content="{{ route('piano.studio') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Piano Studio — Harmoniva">
+    <meta name="twitter:description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display.">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Compiled Tailwind (marketing bundle) -->
+    @vite('resources/css/marketing.css')
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@0.460.0"></script>
@@ -26,36 +41,6 @@
     <!-- VexFlow for music notation -->
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#faf5ff',
-                            100: '#f3e8ff',
-                            200: '#e9d5ff',
-                            300: '#d8b4fe',
-                            400: '#c084fc',
-                            500: '#a855f7',
-                            600: '#9333ea',
-                            700: '#7c3aed',
-                            800: '#6b21a8',
-                            900: '#581c87',
-                        },
-                        accent: {
-                            400: '#fb923c',
-                            500: '#f97316',
-                            600: '#ea580c',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
         .hero-gradient {

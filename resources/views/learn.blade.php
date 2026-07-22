@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Learning Path - {{ config('app.name', 'Harmoniva') }}</title>
+    <title>Structured Learning Path — Free Ear Training Course | {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="Follow Harmoniva's structured ear-training Learning Path — a free, step-by-step course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.">
+    <link rel="canonical" href="{{ route('learn') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="Structured Learning Path — Harmoniva">
+    <meta property="og:description" content="A free, step-by-step ear-training course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.">
+    <meta property="og:url" content="{{ route('learn') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Structured Learning Path — Harmoniva">
+    <meta name="twitter:description" content="A free, step-by-step ear-training course from beginner to advanced.">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

@@ -57,7 +57,10 @@ class PracticeChord extends Component
                 'allowed_root_notes' => ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
                 'voicing' => $settings['voicing'] ?? 'block',
                 'include_inversions' => $settings['include_inversions'] ?? false,
-                'distractor_pool' => self::ALL_CHORD_TYPES,
+                // Wrong options come from the user's selected types; the
+                // generator tops up from the canonical vocabulary when the
+                // selection leaves fewer than 3 distractors.
+                'distractor_pool' => $chordTypes,
                 'clef' => $settings['clef'] ?? 'treble',
             ]]);
             $generated = $generator->generate($exercise, $count)->values()
@@ -82,7 +85,9 @@ class PracticeChord extends Component
     public function render()
     {
         $currentPractice = $this->buildModelFromData(ChordPractice::class, $this->getCurrentPracticeData());
-        $chordTypes = $this->settings['chord_types'] ?? self::ALL_CHORD_TYPES;
+        // Empty for Learning Path / DB-sourced questions — the blade then
+        // relies on each question's own other_options (4 buttons).
+        $chordTypes = $this->settings['chord_types'] ?? [];
 
         return view('livewire.practice-chord', [
             'practices' => $this->practiceDataArray,

@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('app.nav.games') }} — {{ config('app.name', 'Harmoniva') }}</title>
+    {{-- Layout test variant on a throwaway URL (/games/c) — never index it. --}}
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="{{ route('games.index') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800,900" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/marketing.css')
     <script src="https://unpkg.com/lucide@0.460.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] } } }
-        }
-    </script>
 
     <style>
         :root {

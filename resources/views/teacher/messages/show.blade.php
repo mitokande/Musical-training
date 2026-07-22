@@ -1,10 +1,10 @@
 @extends('teacher.layouts.crm')
 
-@section('title', __('teacher.messaging.title'))
+@section('title', crm_trans('messaging.title'))
 
 @section('content')
-<a href="{{ route('teacher.messages.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
-    <i data-lucide="arrow-left" class="w-4 h-4"></i> {{ __('teacher.messaging.title') }}
+<a href="{{ crm_route('messages.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i> {{ crm_trans('messaging.title') }}
 </a>
 
 <div class="max-w-3xl">
@@ -18,8 +18,8 @@
         @endif
         <div>
             <p class="font-bold text-gray-900">{{ $conversation->student->name }} {{ $conversation->student->surname }}</p>
-            <a href="{{ route('teacher.students.show', $conversation->student) }}" class="text-xs font-semibold text-primary-600 hover:text-primary-800">
-                {{ __('teacher.students.view_profile') }} →
+            <a href="{{ crm_route('students.show', $conversation->student) }}" class="text-xs font-semibold text-primary-600 hover:text-primary-800">
+                {{ crm_trans('students.view_profile') }} →
             </a>
         </div>
     </div>
@@ -27,10 +27,26 @@
     @include('teacher-messages.partials.thread', ['messages' => $messages, 'attachmentRoute' => 'teacher-messages.attachment'])
 
     @if($canReply)
-        @include('teacher-messages.partials.composer', ['action' => route('teacher.messages.store', $conversation)])
+        @php
+            $crmQuota = app(\App\Services\Teacher\CrmQuotaService::class);
+            $messageLimit = $crmQuota->limit(auth()->user(), 'daily_teacher_messages');
+            $messagesUsed = $messageLimit === -1 ? 0 : app(\App\Services\UsageQuotaService::class)
+                ->userUsed(auth()->user(), \App\Services\UsageQuotaService::FEATURE_TEACHER_MESSAGES);
+        @endphp
+        @if($messageLimit !== -1)
+            <div class="mt-4 flex items-center gap-2">
+                <span class="px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold">
+                    {{ __('teacher.limits.messages_counter', ['used' => min($messagesUsed, $messageLimit), 'limit' => $messageLimit]) }}
+                </span>
+            </div>
+        @endif
+        @if($errors->has('body'))
+            <div class="mt-3 px-4 py-3 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-700">{{ $errors->first('body') }}</div>
+        @endif
+        @include('teacher-messages.partials.composer', ['action' => crm_route('messages.store', $conversation)])
     @else
         <div class="mt-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <p class="text-sm text-amber-700">{{ __('teacher.messaging.basic_readonly') }}</p>
+            <p class="text-sm text-amber-700">{{ crm_trans('messaging.basic_readonly') }}</p>
         </div>
     @endif
 </div>

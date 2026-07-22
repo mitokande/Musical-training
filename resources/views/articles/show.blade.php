@@ -2,6 +2,57 @@
 
 @section('title', $article->meta_title ?: $article->title)
 @section('description', $article->meta_description ?: \Illuminate\Support\Str::limit(strip_tags((string) ($article->excerpt ?: $article->body)), 160))
+@section('og_type', 'article')
+
+@if(! $article->isPublished())
+    @section('robots', 'noindex, nofollow')
+@endif
+
+@if($article->og_image || $article->featured_image)
+    @section('og_image', asset('storage/'.($article->og_image ?: $article->featured_image)))
+@endif
+
+@section('head')
+    @if($article->published_at)
+    <meta property="article:published_time" content="{{ $article->published_at->toIso8601String() }}">
+    <meta property="article:modified_time" content="{{ ($article->updated_at ?? $article->published_at)->toIso8601String() }}">
+    @endif
+@endsection
+
+@section('structured-data')
+    @php
+        $articleAuthor = $article->author;
+        $authorProfileSlug = $articleAuthor?->teacherProfile?->slug;
+        $articleImage = $article->og_image ?: $article->featured_image;
+        $articleJsonLd = json_encode(array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $article->title,
+            'description' => $article->meta_description ?: \Illuminate\Support\Str::limit(strip_tags((string) ($article->excerpt ?: $article->body)), 160),
+            'image' => $articleImage ? asset('storage/'.$articleImage) : null,
+            'datePublished' => $article->published_at?->toIso8601String(),
+            'dateModified' => ($article->updated_at ?? $article->published_at)?->toIso8601String(),
+            'author' => $articleAuthor ? array_filter([
+                '@type' => 'Person',
+                'name' => $articleAuthor->name,
+                'url' => $authorProfileSlug ? route('teachers.show', $authorProfileSlug) : null,
+            ]) : null,
+            'publisher' => ['@id' => url('/').'#organization'],
+            'mainEntityOfPage' => route('articles.show', $article->slug),
+        ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $breadcrumbJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Blog', 'item' => url('/blog')],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $article->title, 'item' => route('articles.show', $article->slug)],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $articleJsonLd !!}</script>
+    <script type="application/ld+json">{!! $breadcrumbJsonLd !!}</script>
+@endsection
 
 @section('content')
 
@@ -50,9 +101,9 @@
             </div>
             <div>
                 @if($teacherSlug)
-                    <a href="{{ route('teachers.show', $teacherSlug) }}" class="font-semibold text-gray-900 hover:text-primary-600 transition-colors">{{ $author->name }}</a>
+                    <a href="{{ route('teachers.show', $teacherSlug) }}" class="font-semibold text-gray-900 hover:text-primary-600 transition-colors">{{ $author->fullName() }}</a>
                 @else
-                    <p class="font-semibold text-gray-900">{{ $author->name }}</p>
+                    <p class="font-semibold text-gray-900">{{ $author->fullName() }}</p>
                 @endif
                 <p class="text-sm text-gray-400">{{ __('app.articles.author_label') }}</p>
             </div>

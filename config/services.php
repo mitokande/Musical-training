@@ -39,6 +39,23 @@ return [
         'key' => env('OPENAI_API_KEY'),
     ],
 
+    // Stripe — powers the recurring Premium subscription (config('payments.driver')
+    // must be 'stripe' to activate). Keys live only in .env, never in source.
+    // Prefer a restricted key (rk_…) scoped to Checkout Sessions, Customers,
+    // Subscriptions, Invoices and Refunds over a full secret key (sk_…).
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        // Pinned API version — keeps behaviour stable across SDK upgrades and
+        // enables integration_identifier tagging on Checkout Sessions.
+        'api_version' => env('STRIPE_API_VERSION', '2026-06-24.dahlia'),
+        // Recurring Price ids for the Premium plan, keyed by billing cycle.
+        'prices' => [
+            'monthly' => env('STRIPE_PRICE_MONTHLY'),
+            'yearly' => env('STRIPE_PRICE_YEARLY'),
+        ],
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

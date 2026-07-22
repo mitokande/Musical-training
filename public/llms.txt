@@ -1,0 +1,41 @@
+# Harmoniva
+
+> Harmoniva is a free, AI-powered ear training and music education platform for musicians, students, teachers, and music schools. It teaches aural skills — recognising notes, intervals, chords, scales, rhythm, and melodic dictation — through interactive browser exercises, a structured learning path, music games, and a virtual piano studio. All core exercises are free and playable without an account.
+
+## Key pages
+
+- [Home](https://harmoniva.app/): What Harmoniva is and who it's for.
+- [How It Works](https://harmoniva.app/how-it-works): Complete guide to every feature.
+- [Structured Learning Path](https://harmoniva.app/learn): Free step-by-step ear-training course, beginner to advanced.
+- [Exercise Setup Studio](https://harmoniva.app/exercise-setup): Build a custom ear-training workout.
+- [Find Teachers & Schools](https://harmoniva.app/find-teachers): Directory of verified music teachers and schools.
+- [Games](https://harmoniva.app/games): Music-learning games.
+- [Piano Studio](https://harmoniva.app/piano-studio): Free virtual piano in the browser.
+- [Pricing](https://harmoniva.app/pricing): Free and premium plans.
+
+## Practice exercises (free, no account required)
+
+- [Single Note Recognition](https://harmoniva.app/practice/single-note-practice): Identify single notes by ear.
+- [Melodic Interval Ear Training](https://harmoniva.app/practice/melodic-interval-practice): Recognise intervals played one note after another.
+- [Harmonic Interval Ear Training](https://harmoniva.app/practice/harmonic-interval-practice): Recognise intervals played together.
+- [Interval Direction](https://harmoniva.app/practice/interval-direction-practice): Hear whether a pitch moves up or down.
+- [Interval Comparison](https://harmoniva.app/practice/interval-comparison-practice): Compare two intervals by size.
+- [Interval Construction](https://harmoniva.app/practice/interval-construction-practice): Build intervals on the staff.
+- [Chord Recognition](https://harmoniva.app/practice/chord-practice): Identify chord types and inversions.
+- [Scale & Mode Recognition](https://harmoniva.app/practice/scale-practice): Identify scales and modes.
+- [Rhythm Training](https://harmoniva.app/practice/rhythm-practice): Match a heard rhythm to its notation.
+- [Melodic Dictation](https://harmoniva.app/practice/melodic-dictation): Transcribe short melodies by ear.
+
+## Learning resources
+
+- [The Complete Ear Training Guide](https://harmoniva.app/ear-training-guide): Chapter-by-chapter ear-training guide.
+- [Music Theory Basics](https://harmoniva.app/music-theory-basics): Fundamentals of notes, intervals, scales, chords, and rhythm.
+- [Blog](https://harmoniva.app/blog): Articles on ear training and music education.
+- [FAQ](https://harmoniva.app/faq): Frequently asked questions.
+
+## Optional
+
+- [About](https://harmoniva.app/about): Mission and background.
+- [Contact](https://harmoniva.app/contact): Get in touch.
+- [For Teachers](https://harmoniva.app/teachers): How teachers use Harmoniva with students.
+- [For Schools](https://harmoniva.app/schools): How music schools use Harmoniva.

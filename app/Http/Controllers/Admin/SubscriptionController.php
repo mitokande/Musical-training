@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Services\Payments\SubscriptionService;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
@@ -60,12 +61,25 @@ class SubscriptionController extends Controller
             ->with('success', 'Subscription updated successfully.');
     }
 
-    public function destroy(Subscription $subscription)
+    /**
+     * Manually confirm payment for a pending subscription (manual gateway flow):
+     * activates the subscription, marks its invoice paid and grants Premium.
+     */
+    public function confirm(Subscription $subscription, SubscriptionService $service)
     {
-        $subscription->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-        ]);
+        if ($subscription->status === 'active') {
+            return back()->with('info', 'Subscription is already active.');
+        }
+
+        $service->activate($subscription);
+
+        return back()->with('success', 'Payment confirmed — Premium activated.');
+    }
+
+    public function destroy(Subscription $subscription, SubscriptionService $service)
+    {
+        // Cancel immediately and revoke access (admin action, not a period-end cancel).
+        $service->cancel($subscription, immediate: true);
 
         return redirect()->route('admin.subscriptions.index')
             ->with('success', 'Subscription cancelled successfully.');

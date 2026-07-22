@@ -3,6 +3,35 @@
 @section('title', 'The Complete Ear Training Guide')
 @section('description', 'A comprehensive, chapter-by-chapter guide to ear training — from absolute basics to advanced techniques. Learn what to practice, how to practice, and how to get results.')
 
+@section('structured-data')
+    @php
+        // Built inside @php so Blade does not compile the "@context"/"@type"
+        // literal keys as directives and corrupt the JSON.
+        $guideJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => 'The Complete Ear Training Guide',
+            'description' => 'A comprehensive, chapter-by-chapter guide to ear training — from absolute basics to advanced techniques.',
+            'about' => 'Ear training',
+            'inLanguage' => str_replace('_', '-', app()->getLocale()),
+            'image' => asset('images/og-image.png'),
+            'author' => ['@id' => url('/').'#organization'],
+            'publisher' => ['@id' => url('/').'#organization'],
+            'mainEntityOfPage' => route('page.ear-training-guide'),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $guideBreadcrumbJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Ear Training Guide', 'item' => route('page.ear-training-guide')],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $guideJsonLd !!}</script>
+    <script type="application/ld+json">{!! $guideBreadcrumbJsonLd !!}</script>
+@endsection
+
 @section('content')
 
 {{-- Hero --}}

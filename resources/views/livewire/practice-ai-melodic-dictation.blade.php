@@ -109,6 +109,9 @@
         $practiceTimeSig    = $currentPractice->time_signature ?? $dictationTimeSignature ?? '4/4';
         $practiceKeyRoot    = $currentPractice->key_signature ?? 'C';
         $practiceTonic      = $currentPractice->tonic ?? $practiceKeyRoot;
+        // Kept in sync with practice-melodic-dictation.blade.php: questions
+        // may carry their own mode; $dictationMode is the component default.
+        $practiceMode       = $currentPractice->mode ?? $dictationMode;
         $practiceClef       = $currentPractice->clef ?? 'treble';
         $practiceTempo      = $currentPractice->tempo ?? $dictationTempo ?? 50;
         $practiceBars       = $currentPractice->bars ?? 2;
@@ -130,7 +133,7 @@
                             AI Melodic Dictation
                         </h1>
                         <p class="text-white/80 text-sm">
-                            {{ $dictationMode === 'minor' ? $practiceTonic : $practiceKeyRoot }} {{ $dictationMode === 'minor' ? 'minor' : 'Major' }}
+                            {{ $practiceMode === 'minor' ? $practiceTonic : $practiceKeyRoot }} {{ $practiceMode === 'minor' ? 'minor' : 'Major' }}
                             &middot; {{ $practiceTimeSig }}
                             &middot; {{ $practiceTempo }} BPM
                         </p>

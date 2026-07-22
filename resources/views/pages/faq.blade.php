@@ -142,3 +142,19 @@
 </section>
 
 @endsection
+
+{{-- Rendered after the content section above, so $faqs (defined there) is in scope. --}}
+@section('structured-data')
+    @php
+        $faqJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => array_map(fn (array $faq) => [
+                '@type' => 'Question',
+                'name' => $faq['q'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $faq['a']],
+            ], $faqs),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $faqJsonLd !!}</script>
+@endsection

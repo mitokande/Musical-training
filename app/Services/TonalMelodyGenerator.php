@@ -106,6 +106,18 @@ class TonalMelodyGenerator
         ];
     }
 
+    /**
+     * Relative minor tonic of a major key (scale degree 6) — e.g. C→A, F→D.
+     * Used to label/anchor minor-mode dictation built on the relative major's
+     * key signature.
+     */
+    public function relativeMinorRoot(string $majorKeyRoot): string
+    {
+        $scale = self::MAJOR_SCALES[$majorKeyRoot] ?? self::MAJOR_SCALES['C'];
+
+        return $scale[5];
+    }
+
     // ── Melody generation ────────────────────────────────────────────────────
 
     /**
@@ -361,9 +373,6 @@ class TonalMelodyGenerator
 
             foreach ($poolMidi as $note => $midi) {
                 $dist = abs($midi - $prevMidi);
-                if ($dist === 0) {
-                    continue;
-                }
                 if (max($rangeMax, $midi) - min($rangeMin, $midi) > $maxRange) {
                     continue;
                 }
@@ -401,7 +410,7 @@ class TonalMelodyGenerator
             $notes[] = $selected['note'];
             $newMidi = $selected['midi'];
             $lastInterval = abs($newMidi - $prevMidi);
-            $lastMoveDir = $newMidi > $prevMidi ? 1 : -1;
+            $lastMoveDir = $newMidi <=> $prevMidi;
             if ($lastInterval >= 5) {
                 $leapsUsed++;
             }
@@ -425,6 +434,10 @@ class TonalMelodyGenerator
         int $leapsUsed
     ): float {
         $baseWeight = match (true) {
+            // Repeated note: only at beginner (narrow steps-only pools would
+            // otherwise deadlock on start/end parity), never twice in a row,
+            // never straight after a leap.
+            $dist === 0 => ($difficulty === 'beginner' && $lastInterval !== 0 && $lastInterval < 5) ? 2.5 : 0.0,
             $dist <= 2 => match ($difficulty) {
                 'beginner' => 10.0, 'advanced' => 6.0, default => 8.0
             },
@@ -597,18 +610,41 @@ class TonalMelodyGenerator
      *
      * Always returns the unmodified melody if accidentals would introduce a
      * tritone or other invalid melodic interval.
+     *
+     * $flavor pins the accidental treatment for focused lessons (Learning Path):
+     *   'none'     — fully diatonic: pure natural minor / no chromatic
+     *                approach tones in major ('natural' is accepted as an alias)
+     *   'harmonic' — minor: always raise the 7th on an ascending 7→1 approach
+     *   'melodic'  — minor: always raise 6+7 in ascending 6–7–1 runs
+     *   'auto'     — difficulty-based mix (Exercise Setup Studio behaviour)
+     * Major mode honours 'none' and treats everything else as 'auto'.
      */
     public function applyAccidentals(
         array $melody,
         string $majorKeyRoot,
         string $mode,
-        string $difficulty
+        string $difficulty,
+        string $flavor = 'auto'
     ): array {
         $difficulty = $this->normalizeDifficulty($difficulty);
         $scale = self::MAJOR_SCALES[$majorKeyRoot] ?? self::MAJOR_SCALES['C'];
 
+        if ($flavor === 'none' || $flavor === 'natural') {
+            return $melody;
+        }
+
         if ($mode === 'minor') {
-            $result = $this->applyMinorAccidentals($melody, $scale, $difficulty);
+            $result = match ($flavor) {
+                'harmonic' => $this->applyLeadingTone(
+                    $melody, $scale[4], $this->raiseNoteName($scale[4]), $scale[5],
+                    avoidAugSecond: $difficulty === 'beginner', natural6th: $scale[3]
+                ),
+                'melodic' => $this->applyMelodicMinorAscending(
+                    $melody, $scale[3], $this->raiseNoteName($scale[3]),
+                    $scale[4], $this->raiseNoteName($scale[4]), $scale[5]
+                ),
+                default => $this->applyMinorAccidentals($melody, $scale, $difficulty),
+            };
         } elseif ($difficulty !== 'beginner') {
             $result = $this->applyMajorChromaticAccidentals($melody, $scale, $difficulty);
         } else {
@@ -625,6 +661,172 @@ class TonalMelodyGenerator
     }
 
     /**
+     * Guarantee that a focused harmonic / melodic minor melody actually sounds
+     * its signature accidental. applyAccidentals() only raises the 7th
+     * (harmonic) or the 6th + 7th (melodic) where the diatonic melody already
+     * ascends into the tonic (…7→1, or …6→7→1); many generated lines never
+     * contain that approach, so the lesson's whole point — hearing the raised
+     * leading tone / melodic-minor climb — would be silent in most questions.
+     *
+     * When a melody lacks the ascending approach, this rewrites its final notes
+     * into a valid ascending cadence drawn from the lesson's own pool (…7→1 for
+     * harmonic, …6→7→1 for melodic) so applyAccidentals() then always raises
+     * them. Returns the melody unchanged when it already ascends into the tonic
+     * (preserving natural variety) or when the pool / level cannot host a valid
+     * cadence (the caller then rejects the candidate and retries).
+     *
+     * @param  string[]  $melody  diatonic melody, note names with octave
+     * @param  string[]  $pool  the lesson's diatonic note pool
+     * @return string[]
+     */
+    public function ensureMinorCadence(
+        array $melody,
+        string $majorKeyRoot,
+        string $flavor,
+        array $pool,
+        string $difficulty = 'intermediate'
+    ): array {
+        if (! in_array($flavor, ['harmonic', 'melodic'], true)) {
+            return $melody;
+        }
+
+        $difficulty = $this->normalizeDifficulty($difficulty);
+        $scale = self::MAJOR_SCALES[$majorKeyRoot] ?? self::MAJOR_SCALES['C'];
+        $tonicName = $scale[5];    // relative minor tonic, e.g. A
+        $seventhName = $scale[4];  // natural 7th, e.g. G
+        $sixthName = $scale[3];    // natural 6th, e.g. F
+
+        $tailLen = $flavor === 'melodic' ? 3 : 2;
+        $n = count($melody);
+        if ($n < $tailLen) {
+            return $melody;
+        }
+
+        // Already contains the lesson's signature ascent? Leave it untouched so
+        // natural melodies keep their variety. Harmonic needs any ascending
+        // 7→1; melodic needs the full 6→7→1 climb (so the raised 6th sounds,
+        // not just the leading tone).
+        if ($this->melodyHasMinorAscent($melody, $flavor, $sixthName, $seventhName, $tonicName)) {
+            return $melody;
+        }
+
+        // Locate a tonic pitch in the pool with the natural 7th a whole step
+        // below it (and, for melodic minor, the natural 6th below that), so the
+        // forced cadence stays inside the lesson register. Prefer the highest
+        // tonic so its lower neighbours are most likely to exist in the pool.
+        $midiToNote = [];
+        foreach ($pool as $p) {
+            $midiToNote[$this->noteToMidi($p)] = $p;
+        }
+        $tonicMidis = [];
+        foreach ($pool as $p) {
+            if ($this->getNoteNamePart($p) === $tonicName) {
+                $tonicMidis[] = $this->noteToMidi($p);
+            }
+        }
+        rsort($tonicMidis);
+
+        foreach ($tonicMidis as $tonicMidi) {
+            $seventhMidi = $tonicMidi - 2;  // whole step below the tonic
+            if (! isset($midiToNote[$seventhMidi])) {
+                continue;
+            }
+            $tail = [$midiToNote[$seventhMidi], $midiToNote[$tonicMidi]];
+
+            if ($flavor === 'melodic') {
+                $sixthMidi = $tonicMidi - 4;  // whole step below the 7th
+                if (! isset($midiToNote[$sixthMidi])) {
+                    continue;
+                }
+                array_unshift($tail, $midiToNote[$sixthMidi]);
+            }
+
+            $candidate = $melody;
+            array_splice($candidate, $n - $tailLen, $tailLen, $tail);
+
+            // The forced tail must not break the level's motion/range rules
+            // where it joins the body of the melody.
+            if ($this->validateMelody($candidate, $difficulty)) {
+                return $candidate;
+            }
+        }
+
+        return $melody;
+    }
+
+    /**
+     * Whether a diatonic minor melody already contains the ascending approach
+     * that applyAccidentals() raises for the given flavor: any ascending 7→1
+     * step (harmonic) or a strictly ascending 6→7→1 run (melodic).
+     *
+     * @param  string[]  $melody
+     */
+    private function melodyHasMinorAscent(
+        array $melody,
+        string $flavor,
+        string $sixthName,
+        string $seventhName,
+        string $tonicName
+    ): bool {
+        $n = count($melody);
+
+        if ($flavor === 'melodic') {
+            for ($i = 0; $i < $n - 2; $i++) {
+                if ($this->getNoteNamePart($melody[$i]) === $sixthName
+                    && $this->getNoteNamePart($melody[$i + 1]) === $seventhName
+                    && $this->getNoteNamePart($melody[$i + 2]) === $tonicName
+                    && $this->noteToMidi($melody[$i + 1]) > $this->noteToMidi($melody[$i])
+                    && $this->noteToMidi($melody[$i + 2]) > $this->noteToMidi($melody[$i + 1])
+                ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        for ($i = 0; $i < $n - 1; $i++) {
+            if ($this->getNoteNamePart($melody[$i]) === $seventhName
+                && $this->getNoteNamePart($melody[$i + 1]) === $tonicName
+                && $this->noteToMidi($melody[$i + 1]) > $this->noteToMidi($melody[$i])
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Confirm a post-accidental minor melody actually sounds its signature
+     * degree: the raised leading tone (harmonic) or the raised 6th of the
+     * melodic-minor climb (melodic — implies the raised 7th sounds too). The
+     * Learning Path generator rejects candidates that fail this so no focused
+     * minor question is left without the accidental it teaches.
+     *
+     * @param  string[]  $melody
+     */
+    public function melodyMeetsMinorFlavor(array $melody, string $majorKeyRoot, string $flavor): bool
+    {
+        if (! in_array($flavor, ['harmonic', 'melodic'], true)) {
+            return true;
+        }
+
+        $scale = self::MAJOR_SCALES[$majorKeyRoot] ?? self::MAJOR_SCALES['C'];
+        $required = $flavor === 'melodic'
+            ? $this->raiseNoteName($scale[3])   // raised 6th, e.g. F#
+            : $this->raiseNoteName($scale[4]);  // leading tone, e.g. G#
+
+        foreach ($melody as $note) {
+            if ($this->getNoteNamePart($note) === $required) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Apply harmonic / melodic minor accidentals based on difficulty:
      *  beginner    — ~35 % include leading tone only
      *  intermediate — always leading tone; ~40 % melodic minor ascending as well
@@ -632,11 +834,11 @@ class TonalMelodyGenerator
      */
     private function applyMinorAccidentals(array $melody, array $scale, string $difficulty): array
     {
-        $natural7th  = $scale[4];                          // e.g. G  in A minor
+        $natural7th = $scale[4];                          // e.g. G  in A minor
         $leadingTone = $this->raiseNoteName($natural7th);  // e.g. G#
-        $natural6th  = $scale[3];                          // e.g. F  in A minor
-        $raised6th   = $this->raiseNoteName($natural6th);  // e.g. F#
-        $tonicName   = $scale[5];                          // minor tonic, e.g. A
+        $natural6th = $scale[3];                          // e.g. F  in A minor
+        $raised6th = $this->raiseNoteName($natural6th);  // e.g. F#
+        $tonicName = $scale[5];                          // minor tonic, e.g. A
 
         if ($difficulty === 'beginner') {
             if (mt_rand(0, 99) >= 35) {
@@ -679,11 +881,11 @@ class TonalMelodyGenerator
      * Raise the natural 7th to the leading tone wherever it immediately
      * precedes the tonic in ascending pitch motion.
      *
-     * @param  bool    $avoidAugSecond  When true, skip raising if the
-     *                                  preceding note is the natural 6th
-     *                                  (prevents an aug-2nd at beginner level).
-     * @param  string  $natural6th      Name of the natural 6th (needed only
-     *                                  when $avoidAugSecond is true).
+     * @param  bool  $avoidAugSecond  When true, skip raising if the
+     *                                preceding note is the natural 6th
+     *                                (prevents an aug-2nd at beginner level).
+     * @param  string  $natural6th  Name of the natural 6th (needed only
+     *                              when $avoidAugSecond is true).
      */
     private function applyLeadingTone(
         array $melody,
@@ -694,7 +896,7 @@ class TonalMelodyGenerator
         string $natural6th = ''
     ): array {
         $result = $melody;
-        $n      = count($result);
+        $n = count($result);
 
         for ($i = 0; $i < $n - 1; $i++) {
             $noteName = $this->getNoteNamePart($result[$i]);
@@ -716,7 +918,7 @@ class TonalMelodyGenerator
                 continue;
             }
 
-            $result[$i] = $leadingTone . $this->getOctavePart($result[$i]);
+            $result[$i] = $leadingTone.$this->getOctavePart($result[$i]);
         }
 
         return $result;
@@ -736,7 +938,7 @@ class TonalMelodyGenerator
         string $tonicName
     ): array {
         $result = $melody;
-        $n      = count($result);
+        $n = count($result);
 
         for ($i = 0; $i < $n - 2; $i++) {
             $name0 = $this->getNoteNamePart($result[$i]);
@@ -755,8 +957,8 @@ class TonalMelodyGenerator
                 continue; // only raise in strictly ascending motion
             }
 
-            $result[$i]     = $raised6th . $this->getOctavePart($result[$i]);
-            $result[$i + 1] = $leadingTone . $this->getOctavePart($result[$i + 1]);
+            $result[$i] = $raised6th.$this->getOctavePart($result[$i]);
+            $result[$i + 1] = $leadingTone.$this->getOctavePart($result[$i + 1]);
         }
 
         // Also apply the plain leading tone in any remaining 7→1 approach
@@ -787,7 +989,7 @@ class TonalMelodyGenerator
         $candidates = [];
         for ($i = 1; $i < $n - 1; $i++) {
             $currentName = $this->getNoteNamePart($melody[$i]);
-            $nextName    = $this->getNoteNamePart($melody[$i + 1]);
+            $nextName = $this->getNoteNamePart($melody[$i + 1]);
 
             if (! in_array($currentName, $scale, true) || ! in_array($nextName, $scale, true)) {
                 continue;
@@ -812,23 +1014,23 @@ class TonalMelodyGenerator
         $candidates = array_slice($candidates, 0, $maxAccidentals);
         sort($candidates);
 
-        $result          = $melody;
+        $result = $melody;
         $usedPitchClasses = [];
-        $applied         = 0;
+        $applied = 0;
 
         foreach ($candidates as $i) {
             if ($applied >= $maxAccidentals) {
                 break;
             }
             $currentName = $this->getNoteNamePart($result[$i]);
-            $raised      = $this->raiseNoteName($currentName);
+            $raised = $this->raiseNoteName($currentName);
 
             if (! in_array($raised, $usedPitchClasses, true)) {
                 $usedPitchClasses[] = $raised;
                 $applied++;
             }
 
-            $result[$i] = $raised . $this->getOctavePart($result[$i]);
+            $result[$i] = $raised.$this->getOctavePart($result[$i]);
         }
 
         return $result;
@@ -885,17 +1087,17 @@ class TonalMelodyGenerator
         }
 
         $letter = strtoupper($m[1]);
-        $acc    = $m[2] ?? '';
+        $acc = $m[2] ?? '';
 
         $raisedAcc = match ($acc) {
-            'b'  => '',
+            'b' => '',
             'bb' => 'b',
-            '#'  => '##',
+            '#' => '##',
             '##' => '##', // already at maximum — leave as-is
             default => '#',
         };
 
-        return $letter . $raisedAcc;
+        return $letter.$raisedAcc;
     }
 
     // ── Note helpers ─────────────────────────────────────────────────────────

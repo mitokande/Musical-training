@@ -53,7 +53,7 @@
         </button>
         <a href="{{ route('teachers.booking', $slug) }}"
            class="flex-1 text-center py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition">
-            {{ __('teacher.booking.request') }}
+            {{ $trans('booking.request') }}
         </a>
         <button type="button" @click="next" :disabled="(page + 1) >= pages"
                 :class="(page + 1) >= pages ? 'text-gray-300 cursor-default' : 'text-gray-600 hover:bg-gray-200'"

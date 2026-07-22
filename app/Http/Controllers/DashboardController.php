@@ -19,7 +19,8 @@ class DashboardController extends Controller
             // Legacy teacher accounts land in the new Teacher CRM; the old
             // dashboards/teacher view is superseded by teacher.dashboard.
             'teacher' => redirect()->route('teacher.dashboard'),
-            'school' => view('dashboards.school', ['user' => $user]),
+            // School accounts land in the school panel (shared CRM engine).
+            'school' => redirect()->route('school.dashboard'),
             default => $this->userDashboard($user),
         };
     }

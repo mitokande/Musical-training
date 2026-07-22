@@ -61,7 +61,7 @@
                          style="width:100%; height:160px; display:flex; justify-content:center;"
                          data-note1="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave }}"
                          data-note2="{{ strtolower($currentPractice->note2) . '/' . $constructNote2Oct }}"
-                         data-clef="{{ $clef ?? 'treble' }}">
+                         data-clef="{{ $staffClef ?? 'treble' }}">
                     </div>
                 </div>
 
@@ -70,7 +70,7 @@
                     <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Your task</p>
                     <p class="text-sm sm:text-base font-semibold text-gray-700">
                         Build a <span class="text-purple-700 font-bold">{{ $currentPractice->interval }}</span>
-                        {{ ($currentPractice->direction ?? 'ascending') === 'descending' ? 'below' : 'above' }} <span class="text-purple-700 font-bold">{{ strtoupper($currentPractice->note1) }}</span>
+                        {{ ($currentPractice->direction ?? 'ascending') === 'descending' ? 'below' : 'above' }} <span class="text-purple-700 font-bold">{{ \App\Services\MusicTheoryService::toDisplaySymbol($currentPractice->note1) }}</span>
                     </p>
                 </div>
 
@@ -80,8 +80,9 @@
                         <button
                             id="playButton"
                             class="btn-primary text-white font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm sm:text-base"
-                            data-note1="{{ strtoupper($currentPractice->note1) . $currentPractice->octave }}"
-                            data-note2="{{ strtoupper($currentPractice->note2) . $constructNote2Oct }}"
+                            {{-- Proper case matters: strtoupper would turn Bb into BB and break Tone.js --}}
+                            data-note1="{{ $currentPractice->note1 . $currentPractice->octave }}"
+                            data-note2="{{ $currentPractice->note2 . $constructNote2Oct }}"
                         >
                             <i data-lucide="play" class="w-4 h-4"></i>
                             Play Starting Note
@@ -116,12 +117,12 @@
                      data-octave="{{ $constructNote2Oct }}">
                     @php
                         $displayNoteOptions = !empty($noteOptions) ? $noteOptions : (function() use ($currentPractice) {
-                            // Expanded pool including flats and double accidentals
+                            // Fallback for direct-DB questions only (LP / Exercise
+                            // Setup questions carry generator-built options).
+                            // Single-accidental spellings — the Exercise Setup palette.
                             $all = [
-                                'C','C#','Db','D','D#','Eb','E','E#','Fb',
-                                'F','F#','Gb','G','G#','Ab','A','A#','Bb',
-                                'B','B#','Cb','C##','D##','F##','G##','A##',
-                                'Dbb','Ebb','Gbb','Abb','Bbb',
+                                'C','C#','Db','D','D#','Eb','E',
+                                'F','F#','Gb','G','G#','Ab','A','A#','Bb','B',
                             ];
                             $correct = $currentPractice->note2;
                             // Exclude enharmonic equivalents
@@ -137,14 +138,24 @@
                             $correctSt = $noteChromatic($correct);
                             $others = array_values(array_filter($all, fn($n) => $noteChromatic($n) !== $correctSt));
                             shuffle($others);
-                            $opts = array_merge([$correct], array_slice($others, 0, 3));
+                            // One option per pitch class — never C# and Db together
+                            $used = [$correctSt];
+                            $picked = [];
+                            foreach ($others as $n) {
+                                if (count($picked) >= 3) break;
+                                $st = $noteChromatic($n);
+                                if ($st === null || in_array($st, $used, true)) continue;
+                                $used[] = $st;
+                                $picked[] = $n;
+                            }
+                            $opts = array_merge([$correct], $picked);
                             shuffle($opts);
                             return $opts;
                         })();
                     @endphp
                     @foreach ($displayNoteOptions as $note)
                         <button class="answer-btn bg-white border border-gray-200 rounded-xl p-4 text-center font-bold text-gray-700 hover:shadow-md transition-all text-lg hover:border-purple-400 hover:bg-purple-50"
-                                data-answer="{{ $note }}">{{ str_replace('##', 'x', $note) }}</button>
+                                data-answer="{{ $note }}">{{ \App\Services\MusicTheoryService::toDisplaySymbol($note) }}</button>
                     @endforeach
                 </div>
 
@@ -332,7 +343,10 @@
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
                                     this.classList.add('border-red-400', 'bg-red-50', 'text-red-700');
-                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target.replace('##', 'x')}.`;
+                                    const targetDisplay = window.HarmonivaNotation
+                                        ? window.HarmonivaNotation.toDisplaySymbol(target)
+                                        : target.replace('##', 'x');
+                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${targetDisplay}.`;
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                     answerButtons.forEach(b => {

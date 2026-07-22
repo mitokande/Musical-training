@@ -20,7 +20,7 @@
             </a>
         @else
             @if(auth()->user()->plan === 'free')
-            <a href="{{ route('profile.edit') }}"
+            <a href="{{ route('checkout.show') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>

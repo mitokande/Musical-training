@@ -32,6 +32,23 @@ class UpdateTeacherProfileRequest extends FormRequest
         if ($converted !== []) {
             $this->merge($converted);
         }
+
+        // Be forgiving with URL inputs: "www.example.com" is what most people
+        // type — prepend the scheme so the 'url' rule doesn't block the save.
+        $website = $this->input('website_url');
+        if (is_string($website) && trim($website) !== '' && ! preg_match('#^https?://#i', trim($website))) {
+            $this->merge(['website_url' => 'https://'.ltrim(trim($website), '/')]);
+        }
+
+        $social = $this->input('social_links');
+        if (is_array($social)) {
+            foreach ($social as $key => $link) {
+                if (is_string($link) && trim($link) !== '' && ! preg_match('#^https?://#i', trim($link))) {
+                    $social[$key] = 'https://'.ltrim(trim($link), '/');
+                }
+            }
+            $this->merge(['social_links' => $social]);
+        }
     }
 
     public function rules(): array

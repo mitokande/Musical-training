@@ -30,13 +30,6 @@ class PracticeIntervalConstruction extends Component
         'M7' => 'Major 7th',   '8ve' => 'Perfect Octave',
     ];
 
-    public const DIATONIC_NOTE_POOL = [
-        'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'Fb',
-        'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb',
-        'B', 'B#', 'Cb', 'C##', 'D##', 'F##', 'G##', 'A##',
-        'Dbb', 'Ebb', 'Gbb', 'Abb', 'Bbb',
-    ];
-
     public $currentPracticeIndex = 0;
 
     public $settings = [];
@@ -96,31 +89,12 @@ class PracticeIntervalConstruction extends Component
                 'questions' => $generator->serializeForSession($generated),
             ]]);
 
-            $music = app(MusicTheoryService::class);
-            $this->practiceDataArray = $generated->map(function ($q) use ($music) {
-                $data = $this->serializeOnePractice($q);
-                $correct = $data['note2'];
-
-                // Pick distractors from diatonic pool, excluding enharmonic equivalents
-                $pool = self::DIATONIC_NOTE_POOL;
-                shuffle($pool);
-                $distractors = [];
-                foreach ($pool as $candidate) {
-                    if (count($distractors) >= 3) {
-                        break;
-                    }
-                    if ($music->notesAreEnharmonic($candidate, $correct)) {
-                        continue;
-                    }
-                    $distractors[] = $candidate;
-                }
-
-                $options = array_merge([$correct], $distractors);
-                shuffle($options);
-                $data['options'] = $options;
-
-                return $data;
-            })->values()->toArray();
+            // Answer options are generated (and enharmonic-checked) inside
+            // LearningPathQuestionGenerator and stored on each question, so
+            // they survive serialization for both this flow and the LP flow.
+            $this->practiceDataArray = $generated
+                ->map(fn ($q) => $this->serializeOnePractice($q))
+                ->values()->toArray();
         } else {
             $this->practiceDataArray = $this->serializePractices($practices);
         }
@@ -137,7 +111,13 @@ class PracticeIntervalConstruction extends Component
             'currentPracticeIndex' => $this->currentPracticeIndex,
             'noteOptions' => $data['options'] ?? null,
             'settings' => $this->settings,
-            'clef' => $this->clef,
+            // Learning Path / teacher questions carry their own clef; the
+            // component-level clef only covers the Exercise Setup flow.
+            // Named staffClef because Livewire injects public properties into
+            // the view AFTER render data — a 'clef' key here would be
+            // clobbered by the $clef property (always 'treble' outside the
+            // Studio flow).
+            'staffClef' => $data['clef'] ?? $this->clef,
         ]);
     }
 

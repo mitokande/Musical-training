@@ -13,14 +13,24 @@ class TrackExerciseUsage
     {
         $user = auth()->user();
 
-        if (!$user || $user->isPremium() || $user->isAdmin()) {
+        if (! $user || $user->isEffectivelyPremium() || $user->isAdmin()) {
+            return $next($request);
+        }
+
+        // Session-based flows (Learning Path, Exercise Setup Studio, teacher
+        // assignments) have their own daily session quotas — the legacy
+        // per-type daily cap only applies to direct practice-page visits.
+        if (session()->has('exercise_settings')
+            || session()->has('learning_path_session')
+            || session()->has('teacher_assignment_session')
+            || session()->has('teacher_assignment_preview_session')) {
             return $next($request);
         }
 
         $slug = $request->route('slug');
         $practiceId = $this->resolvePracticeId($slug);
 
-        if (!$practiceId) {
+        if (! $practiceId) {
             return $next($request);
         }
 

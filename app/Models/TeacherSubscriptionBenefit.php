@@ -15,6 +15,10 @@ class TeacherSubscriptionBenefit extends Model
 
     public const STATUS_ACTIVE = 'active';
 
+    // School free-period grants wait for an admin approval from the
+    // Payments → Premium Incentives screen before becoming active.
+    public const STATUS_PENDING = 'pending_approval';
+
     public const STATUS_EXPIRED = 'expired';
 
     public const STATUS_REVOKED = 'revoked';
@@ -54,5 +58,10 @@ class TeacherSubscriptionBenefit extends Model
     {
         return $query->where('status', self::STATUS_ACTIVE)
             ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()));
+    }
+
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_PENDING);
     }
 }

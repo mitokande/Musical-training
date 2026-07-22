@@ -185,8 +185,7 @@ class TeacherProfileModerationTest extends TestCase
         $response = $this->actingAs($teacher)->get('/teachers/'.$teacher->teacherProfile->slug);
 
         $response->assertOk();
-        $this->assertSame('noindex, nofollow', $response->headers->get('X-Robots-Tag'));
-        $response->assertSee('noindex', false);
+        $response->assertSee('<meta name="robots" content="noindex, nofollow">', false);
     }
 
     public function test_forced_private_profile_is_hidden_from_public(): void

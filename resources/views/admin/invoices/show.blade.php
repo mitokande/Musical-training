@@ -20,7 +20,21 @@
         <span class="px-3 py-1 text-sm font-medium rounded-full {{ $invoiceStatusColors[$invoice->status] ?? 'bg-gray-100 text-gray-600' }}">
             {{ ucfirst($invoice->status) }}
         </span>
+
+        @if($invoice->status === 'paid')
+            <form method="POST" action="{{ route('admin.invoices.refund', $invoice) }}" class="ml-auto"
+                  onsubmit="return confirm('Refund this invoice and revoke the user\'s Premium access?');">
+                @csrf
+                <button type="submit" class="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition">Refund</button>
+            </form>
+        @endif
     </div>
+
+    @foreach(['success' => 'green', 'info' => 'blue', 'error' => 'red'] as $key => $color)
+        @if(session($key))
+            <div class="rounded-lg bg-{{ $color }}-50 border border-{{ $color }}-200 text-{{ $color }}-800 text-sm px-4 py-3">{{ session($key) }}</div>
+        @endif
+    @endforeach
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {{-- Invoice Header --}}

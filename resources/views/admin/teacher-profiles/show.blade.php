@@ -23,7 +23,10 @@
                         <div>
                             <h2 class="text-lg font-bold text-gray-900">{{ $profile->displayName() }}</h2>
                             <p class="text-sm text-gray-500">{{ $profile->expertise ?: '—' }} · {{ $profile->user->email }}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">/teachers/{{ $profile->slug }} · {{ number_format($profile->view_count) }} views</p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                @if($profile->isSchoolEntity())<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700">{{ __('school.admin.entity_school') }}</span> ·@endif
+                                /{{ $profile->isSchoolEntity() ? 'schools' : 'teachers' }}/{{ $profile->slug }} · {{ number_format($profile->view_count) }} views
+                            </p>
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 shrink-0">{{ __('teacher.status.'.$profile->status) }}</span>
@@ -56,7 +59,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a href="{{ route('teachers.show', $profile->slug) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">
+                    <a href="{{ $profile->publicUrl() }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">
                         <i data-lucide="external-link" class="w-4 h-4"></i> {{ __('teacher.admin.preview_public') }}
                     </a>
                 </div>

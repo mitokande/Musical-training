@@ -27,7 +27,7 @@ class TeacherRelationshipAccepted extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject($studentName.' is now your student 🎉')
             ->line($studentName.' accepted your request and is now connected to you on Harmoniva.')
-            ->action('Open your student list', route('teacher.students.index'));
+            ->action('Open your student list', route($notifiable->crmRouteName('students.index')));
     }
 
     public function toArray(object $notifiable): array
@@ -36,7 +36,7 @@ class TeacherRelationshipAccepted extends Notification implements ShouldQueue
             'type' => 'teacher_relationship_accepted',
             'student_id' => $this->student->id,
             'student_name' => trim($this->student->name.' '.$this->student->surname),
-            'url' => route('teacher.students.index'),
+            'url' => route($notifiable->crmRouteName('students.index')),
         ];
     }
 }

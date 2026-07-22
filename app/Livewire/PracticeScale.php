@@ -88,15 +88,24 @@ class PracticeScale extends Component
 
     public function render()
     {
-        $currentPractice = $this->buildModelFromData(ScalePractice::class, $this->getCurrentPracticeData());
+        $data = $this->getCurrentPracticeData();
+        $currentPractice = $this->buildModelFromData(ScalePractice::class, $data);
         $scaleTypes = $this->settings['scale_types'] ?? [];
+
+        // Teacher-assignment snapshots may carry a per-question playback
+        // tempo (slow|normal|fast); the component-level tempo only covers
+        // the Exercise Setup flow.
+        $questionTempo = $data['tempo'] ?? null;
+        $tempo = in_array($questionTempo, ['slow', 'normal', 'fast'], true)
+            ? $questionTempo
+            : $this->scaleTempo;
 
         return view('livewire.practice-scale', [
             'practices' => $this->practiceDataArray,
             'currentPractice' => $currentPractice,
             'currentPracticeIndex' => $this->currentPracticeIndex,
             'scaleTypes' => $scaleTypes,
-            'scaleTempo' => $this->scaleTempo,
+            'scaleTempo' => $tempo,
         ]);
     }
 

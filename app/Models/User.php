@@ -26,6 +26,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'plan',
+        'plan_expires_at',
+        'plan_cycle',
+        'stripe_customer_id',
         'locale',
         'google_id',
         'avatar_url',
@@ -51,7 +54,18 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_active_at' => 'datetime',
             'suspended_at' => 'datetime',
             'is_restricted' => 'boolean',
+            'plan_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Full display name: first name + surname (trimmed). Used wherever a person
+     * should be shown by their complete name — feed, articles, public surfaces.
+     * Falls back to the first name alone when no surname is set.
+     */
+    public function fullName(): string
+    {
+        return trim($this->name.' '.($this->surname ?? '')) ?: (string) $this->name;
     }
 
     // --- Role helpers ---
@@ -92,17 +106,75 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Route name to land on after login. Teachers go straight to their CRM;
-     * everyone else keeps the existing profile landing.
+     * Route name to land on after login. Teachers go straight to their CRM,
+     * schools to the school panel; everyone else keeps the profile landing.
      */
     public function homeRoute(): string
     {
+        if ($this->crmNamespace() === 'school') {
+            return 'school.dashboard';
+        }
+
         return $this->hasTeacherAccount() ? 'teacher.dashboard' : 'profile.edit';
     }
 
     public function isSchool(): bool
     {
         return $this->role === 'school';
+    }
+
+    // --- CRM namespace (shared teacher/school panel) ---
+
+    /**
+     * Which CRM namespace this user's panel lives under. The teacher CRM and
+     * the school panel share controllers/blades; only the route prefix and
+     * skin differ. Schools are recognised by profile entity_type or role.
+     */
+    public function crmNamespace(): string
+    {
+        if ($this->isSchool() || ($this->teacherProfile?->isSchoolEntity() ?? false)) {
+            return 'school';
+        }
+
+        return 'teacher';
+    }
+
+    /** Fully-qualified route name inside the user's CRM namespace. */
+    public function crmRouteName(string $suffix): string
+    {
+        return $this->crmNamespace().'.'.$suffix;
+    }
+
+    /** Whether this user is an active member teacher of at least one school. */
+    public function hasActiveSchoolMembership(): bool
+    {
+        return once(fn () => SchoolTeacherRelationship::query()
+            ->where('teacher_id', $this->id)
+            ->where('status', SchoolTeacherRelationship::STATUS_ACTIVE)
+            ->exists());
+    }
+
+    /** User ids of this school's active member teachers. */
+    public function memberTeacherIds(): array
+    {
+        return once(fn () => SchoolTeacherRelationship::query()
+            ->where('school_id', $this->id)
+            ->where('status', SchoolTeacherRelationship::STATUS_ACTIVE)
+            ->pluck('teacher_id')
+            ->all());
+    }
+
+    /**
+     * Owner ids whose student relationships this CRM account may see:
+     * schools aggregate their member teachers' rosters, teachers only their own.
+     */
+    public function crmOwnerIds(): array
+    {
+        if ($this->teacherProfile?->isSchoolEntity() ?? false) {
+            return array_values(array_unique([$this->id, ...$this->memberTeacherIds()]));
+        }
+
+        return [$this->id];
     }
 
     // --- Plan helpers ---
@@ -132,13 +204,37 @@ class User extends Authenticatable implements MustVerifyEmail
         return ! is_null($this->password);
     }
 
+    /**
+     * Whether this account currently enjoys premium entitlements: either a
+     * paid premium plan, or an earned free-period benefit from the teacher /
+     * school premium-student incentive (e.g. 10 premium students → the
+     * teacher uses Harmoniva completely free with premium rights).
+     */
+    public function isEffectivelyPremium(): bool
+    {
+        if ($this->isPremium()) {
+            return true;
+        }
+
+        return once(fn () => $this->teacherSubscriptionBenefits()
+            ->active()
+            ->where('type', TeacherSubscriptionBenefit::TYPE_FREE_PERIOD)
+            ->exists());
+    }
+
+    /** Plan key used for entitlement lookups ('free'|'premium'). */
+    public function effectivePlanKey(): string
+    {
+        return $this->isEffectivelyPremium() ? 'premium' : $this->plan;
+    }
+
     public function canAccess(string $feature): bool
     {
         if ($this->isAdmin()) {
             return true;
         }
 
-        $value = config("plans.{$this->role}.{$this->plan}.{$feature}");
+        $value = config("plans.{$this->role}.{$this->effectivePlanKey()}.{$feature}");
 
         if (is_null($value)) {
             return false;
@@ -165,12 +261,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 ->keyBy(fn ($plan) => $plan->role.'.'.$plan->type);
         });
 
-        $plan = $plans->get("{$this->role}.{$this->plan}");
+        $planKey = $this->effectivePlanKey();
+
+        $plan = $plans->get("{$this->role}.{$planKey}");
         if ($plan && is_array($plan->features) && array_key_exists($feature, $plan->features)) {
             return $plan->features[$feature];
         }
 
-        return config("plans.{$this->role}.{$this->plan}.{$feature}");
+        return config("plans.{$this->role}.{$planKey}.{$feature}");
     }
 
     // --- Relationships ---
@@ -244,6 +342,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Subscription::class);
     }
 
+    /** The current in-period, active paid subscription (if any). */
+    public function activeSubscription(): ?Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->latest('starts_at')
+            ->first();
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
@@ -307,10 +417,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(TeacherStudentReward::class, 'student_id');
     }
 
-    /** Active, mutually approved relationship between this teacher and a student. */
+    /**
+     * Active, mutually approved relationship between this CRM account and a
+     * student. Schools also count their member teachers' active students.
+     */
     public function hasActiveStudent(int $studentId): bool
     {
-        return $this->studentRelationships()
+        return TeacherStudentRelationship::query()
+            ->whereIn('teacher_id', $this->crmOwnerIds())
             ->where('student_id', $studentId)
             ->where('status', TeacherStudentRelationship::STATUS_ACTIVE)
             ->exists();

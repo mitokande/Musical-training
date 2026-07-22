@@ -29,7 +29,7 @@ class TeacherProfileRejected extends Notification implements ShouldQueue
             $mail->line('Reviewer notes: '.$this->reason);
         }
 
-        return $mail->action('Edit your profile', route('teacher.profile.edit'));
+        return $mail->action('Edit your profile', route($notifiable->crmRouteName('profile.edit')));
     }
 
     public function toArray(object $notifiable): array
@@ -38,7 +38,7 @@ class TeacherProfileRejected extends Notification implements ShouldQueue
             'type' => 'teacher_profile_rejected',
             'teacher_profile_id' => $this->profile->id,
             'reason' => $this->reason,
-            'url' => route('teacher.profile.edit'),
+            'url' => route($notifiable->crmRouteName('profile.edit')),
         ];
     }
 }

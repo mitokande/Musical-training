@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -66,26 +67,6 @@
     <aside x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
            class="fixed top-16 left-0 z-40 w-[270px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col lg:translate-x-0" x-cloak>
 
-        {{-- Logo --}}
-        <div class="flex items-center gap-2.5 px-5 h-16 border-b border-gray-100 shrink-0">
-            <div class="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center shadow-sm shrink-0">
-                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5">
-                    <defs>
-                        <linearGradient id="adm-g" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#9333ea"/>
-                            <stop offset="100%" stop-color="#fb923c"/>
-                        </linearGradient>
-                    </defs>
-                    <rect x="2" y="3" width="5.5" height="22" rx="2" fill="url(#adm-g)"/>
-                    <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="url(#adm-g)"/>
-                    <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="url(#adm-g)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <span class="font-bold text-xl tracking-tight leading-none">
-                <span style="background: linear-gradient(135deg,#9333ea,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">H</span><span class="text-gray-900">armoniva</span> <span class="text-primary-600 text-sm font-semibold">Admin</span>
-            </span>
-        </div>
-
         {{-- Navigation --}}
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1" x-data="{
             openMenus: JSON.parse(localStorage.getItem('admin_menus') || '{}'),
@@ -100,12 +81,22 @@
 
             {{-- Users --}}
             <div>
-                <button @click="toggle('users')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.users.*') ? 'active' : 'text-gray-700' }}">
+                <button @click="toggle('users')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.member-reviews.*') || request()->routeIs('admin.teacher-profiles.*') || request()->routeIs('admin.teacher-reviews.*') ? 'active' : 'text-gray-700' }}">
                     <span class="flex items-center gap-3"><i data-lucide="users" class="w-[18px] h-[18px]"></i> Members</span>
                     <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="isOpen('users') ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="isOpen('users')" x-collapse class="ml-6 mt-1 space-y-0.5">
-                    <a href="{{ route('admin.users.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.users.index') && !request()->has('segment') ? 'active' : 'text-gray-600' }}">All Members</a>
+                    <a href="{{ route('admin.users.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.users.index') ? 'active' : 'text-gray-600' }}">All Members</a>
+                    <a href="{{ route('admin.member-reviews.index') }}" class="sidebar-sub-item flex items-center px-3 py-2 text-sm {{ request()->routeIs('admin.member-reviews.*') || request()->routeIs('admin.teacher-profiles.*') || request()->routeIs('admin.teacher-reviews.*') ? 'active' : 'text-gray-600' }}">
+                        Reviews
+                        @php
+                            $pendingModeration = \App\Models\TeacherProfile::where('status', 'submitted_for_review')->count()
+                                + \App\Models\TeacherReview::whereNotNull('reported_at')->count();
+                        @endphp
+                        @if($pendingModeration > 0)
+                            <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{{ $pendingModeration }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('admin.users.segments') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.users.segments') ? 'active' : 'text-gray-600' }}">Segments</a>
                     <a href="{{ route('admin.users.create') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.users.create') ? 'active' : 'text-gray-600' }}">Add Member</a>
                 </div>
@@ -162,13 +153,20 @@
 
             {{-- Payments --}}
             <div>
-                <button @click="toggle('payments')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.plans.*') || request()->routeIs('admin.subscriptions.*') || request()->routeIs('admin.invoices.*') || request()->routeIs('admin.coupons.*') ? 'active' : 'text-gray-700' }}">
+                <button @click="toggle('payments')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.plans.*') || request()->routeIs('admin.subscriptions.*') || request()->routeIs('admin.invoices.*') || request()->routeIs('admin.coupons.*') || request()->routeIs('admin.incentives.*') ? 'active' : 'text-gray-700' }}">
                     <span class="flex items-center gap-3"><i data-lucide="credit-card" class="w-[18px] h-[18px]"></i> Payments</span>
                     <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="isOpen('payments') ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="isOpen('payments')" x-collapse class="ml-6 mt-1 space-y-0.5">
                     <a href="{{ route('admin.plans.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.plans.*') ? 'active' : 'text-gray-600' }}">Plans</a>
                     <a href="{{ route('admin.subscriptions.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.subscriptions.*') ? 'active' : 'text-gray-600' }}">Subscriptions</a>
+                    <a href="{{ route('admin.incentives.index') }}" class="sidebar-sub-item flex items-center justify-between px-3 py-2 text-sm {{ request()->routeIs('admin.incentives.*') ? 'active' : 'text-gray-600' }}">
+                        <span>Premium Incentives</span>
+                        @php $pendingIncentives = \App\Models\TeacherSubscriptionBenefit::pending()->count(); @endphp
+                        @if($pendingIncentives > 0)
+                            <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-orange-500 rounded-full">{{ $pendingIncentives }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('admin.invoices.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.invoices.*') ? 'active' : 'text-gray-600' }}">Invoices</a>
                     <a href="{{ route('admin.coupons.index') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.coupons.*') ? 'active' : 'text-gray-600' }}">Coupons</a>
                 </div>
@@ -210,24 +208,6 @@
             {{-- Community Feed --}}
             <a href="{{ route('admin.community.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.community.*') ? 'active' : 'text-gray-700' }}">
                 <i data-lucide="rss" class="w-[18px] h-[18px]"></i> Community Feed
-            </a>
-
-            {{-- Teacher Profiles --}}
-            <a href="{{ route('admin.teacher-profiles.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.teacher-profiles.*') ? 'active' : 'text-gray-700' }}">
-                <i data-lucide="graduation-cap" class="w-[18px] h-[18px]"></i> Teacher Profiles
-                @php $pendingTeacherProfiles = \App\Models\TeacherProfile::where('status', 'submitted_for_review')->count(); @endphp
-                @if($pendingTeacherProfiles > 0)
-                    <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{{ $pendingTeacherProfiles }}</span>
-                @endif
-            </a>
-
-            {{-- Teacher Reviews --}}
-            <a href="{{ route('admin.teacher-reviews.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.teacher-reviews.*') ? 'active' : 'text-gray-700' }}">
-                <i data-lucide="star" class="w-[18px] h-[18px]"></i> Teacher Reviews
-                @php $reportedReviews = \App\Models\TeacherReview::whereNotNull('reported_at')->count(); @endphp
-                @if($reportedReviews > 0)
-                    <span class="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600">{{ $reportedReviews }}</span>
-                @endif
             </a>
 
             {{-- Messages --}}

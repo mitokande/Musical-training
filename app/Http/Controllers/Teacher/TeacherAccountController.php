@@ -18,6 +18,12 @@ class TeacherAccountController extends Controller
     {
         $user = $request->user();
 
+        // School accounts get their (school-entity) profile auto-provisioned
+        // in the school panel — never a teacher-entity draft from here.
+        if ($user->isSchool()) {
+            return redirect()->route('school.dashboard');
+        }
+
         if ($user->teacherProfile()->exists()) {
             return redirect()->route('teacher.profile.edit');
         }

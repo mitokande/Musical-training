@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'nav' => [
         'dashboard' => 'Übersicht',
         'students' => 'Schüler',
@@ -21,14 +20,12 @@ return [
         'tier_basic' => 'Basis',
         'tier_premium' => 'Premium',
     ],
-
     'become' => [
         'title' => 'Lehrer werden',
         'description' => 'Erstelle ein kostenloses Basis-Lehrerkonto, baue dein öffentliches Lehrerprofil auf und erreiche Schüler auf Harmoniva.',
         'button' => 'Lehrerkonto erstellen',
         'created' => 'Dein Lehrerkonto wurde erstellt. Vervollständige dein Profil und reiche es zur Prüfung ein.',
     ],
-
     'dashboard' => [
         'at_a_glance' => 'Auf einen Blick',
         'unread_messages' => 'Ungelesene Nachrichten',
@@ -49,6 +46,17 @@ return [
         'notif_review' => 'Du hast eine neue Bewertung erhalten',
         'title' => 'Lehrer-Dashboard',
         'welcome' => 'Willkommen zurück, :name',
+        'welcome_subtitle' => 'Bereit, dir bei der Verwaltung deiner Schüler zu helfen?',
+        'hero_dashboard' => 'Mein Dashboard',
+        'hero_notifications' => 'Benachrichtigungen',
+        'hero_messages' => 'Nachrichten',
+        'hero_profile' => 'Mein Profil',
+        'hero_students' => 'Meine Schüler',
+        'hero_calendar' => 'Mein Kalender',
+        'hero_assignments' => 'Aufgaben',
+        'hero_exercise_setup' => 'Übung einrichten',
+        'hero_content' => 'Meine Inhalte',
+        'hero_settings' => 'Einstellungen',
         'profile_status' => 'Profilstatus',
         'complete_profile' => 'Vervollständige dein Profil',
         'submit_for_review' => 'Zur Prüfung einreichen',
@@ -82,7 +90,6 @@ return [
         'nav_settings_title' => 'Einstellungen',
         'nav_settings_desc' => 'Konto & Präferenzen',
     ],
-
     'status' => [
         'draft' => 'Entwurf',
         'submitted_for_review' => 'In Prüfung',
@@ -97,7 +104,6 @@ return [
         'rejected_hint' => 'Dein Profil benötigt Änderungen, bevor es veröffentlicht werden kann.',
         'suspended_hint' => 'Dein Profil ist gesperrt und nicht öffentlich sichtbar. Kontaktiere den Support für Details.',
     ],
-
     'profile' => [
         'title' => 'Lehrerprofil',
         'subtitle' => 'Dein öffentliches Lehrerprofil auf Harmoniva',
@@ -117,7 +123,6 @@ return [
         'add_more' => 'Weitere hinzufügen',
         'remove' => 'Entfernen',
     ],
-
     'fields' => [
         'headline' => 'Kurze Überschrift',
         'headline_placeholder' => 'z. B. Klavierlehrer mit 10 Jahren Konservatoriumserfahrung',
@@ -169,7 +174,6 @@ return [
         'cover_image' => 'Titelbild',
         'upload_cover' => 'Titelbild hochladen',
     ],
-
     'services' => [
         'title' => 'Dienstleistungen',
         'add' => 'Dienstleistung hinzufügen',
@@ -182,7 +186,6 @@ return [
         'price_text' => 'Preis (optional, Freitext)',
         'active' => 'Aktiv',
     ],
-
     'videos' => [
         'title' => 'Videos',
         'add' => 'Video hinzufügen',
@@ -191,9 +194,10 @@ return [
         'youtube_url' => 'YouTube-URL',
         'invalid_youtube_url' => 'Bitte gib eine gültige YouTube-Video-URL ein.',
     ],
-
     'media' => [
         'title' => 'Dokumente & Fotos',
+        'intro' => 'Fotos und Zertifikate, die öffentlich in deinem Profil angezeigt werden. Bilder öffnen sich vergrößert; PDF-Zertifikate öffnen sich in einem neuen Tab.',
+        'public_hint' => 'JPG, PNG, WebP oder PDF — bis zu 10 MB. Diese sind für alle in deinem Profil sichtbar.',
         'add' => 'Datei hochladen',
         'none' => 'Noch keine Dateien hochgeladen.',
         'kind' => 'Typ',
@@ -201,11 +205,12 @@ return [
         'kind_document' => 'Dokument',
         'file' => 'Datei',
         'visibility' => 'Sichtbarkeit',
-        'visibility_public' => 'Öffentlich (im Profil angezeigt)',
         'visibility_private' => 'Privat (nur du und Administratoren)',
+        'visibility_public' => 'Öffentlich (im Profil angezeigt)',
+        'visibility_students' => 'Meine Schüler',
+        'visibility_shared' => 'Geteilt',
         'download' => 'Herunterladen',
     ],
-
     'payment_links' => [
         'title' => 'Externe Zahlungslinks',
         'intro' => 'Füge Zahlungslinks deines eigenen Zahlungsanbieters hinzu (z. B. Stripe, PayPal, iyzico). Zahlungen werden vom von dir gewählten externen Anbieter verarbeitet — Harmoniva sammelt oder verarbeitet keine Zahlungen.',
@@ -224,7 +229,6 @@ return [
         'premium_required' => 'Externe Zahlungslinks sind eine Lehrer-Premium-Funktion.',
         'external_disclaimer' => 'Die Zahlung wird vom vom Lehrer gewählten externen Zahlungsanbieter verarbeitet.',
     ],
-
     'public' => [
         'contact' => 'Kontakt',
         'empty_hint_about' => 'Dein Über-mich-Text erscheint hier. Fülle ihn im Reiter Lehrerprofil aus.',
@@ -268,7 +272,6 @@ return [
         'follow_login_prompt' => 'Du musst dich registrieren oder anmelden, um diesem Lehrer zu folgen.',
         'booking_rules_intro' => 'Wähle eine verfügbare Zeit aus dem Kalender oben, um eine Stunde anzufragen. Deine Anfrage wird zur Bestätigung an den Lehrer gesendet, und du wirst benachrichtigt, sobald er antwortet. Bitte sage rechtzeitig ab, wenn du nicht teilnehmen kannst.',
     ],
-
     'settings' => [
         'title' => 'Einstellungen',
         'subtitle' => 'Kontoeinstellungen für dein Lehrerkonto',
@@ -286,8 +289,12 @@ return [
         'avatar_updated' => 'Profilfoto aktualisiert.',
         'language_saved' => 'Spracheinstellung gespeichert.',
         'account' => 'Konto',
+        'edit' => 'Bearbeiten',
+        'cancel' => 'Abbrechen',
+        'username' => 'Benutzername',
+        'account_updated' => 'Kontoinformationen aktualisiert.',
+        'email_verify_hint' => 'Wenn Sie Ihre E-Mail-Adresse ändern, müssen Sie die neue Adresse bestätigen.',
     ],
-
     'admin' => [
         'title' => 'Lehrerprofile',
         'queue' => 'Moderationswarteschlange',
@@ -310,7 +317,6 @@ return [
         'no_profiles' => 'Keine Lehrerprofile in diesem Status.',
         'submitted_at' => 'Eingereicht',
     ],
-
     'students' => [
         'title' => 'Meine Schüler',
         'subtitle' => 'Verwalte deine Schüler, Einladungen und Beziehungen.',
@@ -376,7 +382,6 @@ return [
             'no_activity' => 'Noch keine Aktivität aufgezeichnet.',
         ],
     ],
-
     'invitations' => [
         'title' => 'Lehrereinladung',
         'invited_you' => ':teacher hat dich eingeladen, dich als Schüler auf Harmoniva zu verbinden.',
@@ -386,7 +391,6 @@ return [
         'error_unusable' => 'Diese Einladung ist nicht mehr gültig.',
         'error_not_pending' => 'Diese Anfrage wartet nicht auf Bestätigung.',
     ],
-
     'my_teachers' => [
         'title' => 'Meine Lehrer',
         'subtitle' => 'Lehrer, mit denen du auf Harmoniva verbunden bist.',
@@ -403,7 +407,6 @@ return [
         'status_teacher-declined' => 'Anfrage abgelehnt.',
         'status_teacher-revoked' => 'Beziehung beendet.',
     ],
-
     'classes' => [
         'title' => 'Klassen',
         'subtitle' => 'Gruppiere deine Schüler in Klassen für einfachere Aufgabenverteilung und Nachverfolgung.',
@@ -427,7 +430,6 @@ return [
         'edit' => 'Klasse bearbeiten',
         'save' => 'Speichern',
     ],
-
     'assignments' => [
         'title' => 'Aufgaben',
         'subtitle' => 'Erstelle Hausaufgaben aus den Standard-Übungen von Harmoniva und verfolge die Ergebnisse.',
@@ -440,6 +442,7 @@ return [
         'ai_applied' => 'KI-Vorschlag auf das Formular unten angewendet. Überprüfen und generieren.',
         'ai_unavailable' => 'KI-Unterstützung ist derzeit nicht verfügbar.',
         'ai_failed' => 'Die Anfrage konnte nicht interpretiert werden. Bitte passe sie an und versuche es erneut.',
+        'ai_error' => 'Der KI-Dienst ist derzeit nicht verfügbar. Bitte versuche es in Kürze erneut.',
         'ai_unsupported' => 'Diese Anfrage wird nicht unterstützt:',
         'manual_section' => 'Hausaufgaben-Einstellungen',
         'field_title' => 'Titel',
@@ -450,6 +453,10 @@ return [
         'type_learning_path' => 'Lernpfad-Übung',
         'type_ai_generated' => 'KI-gestützte Hausaufgabe',
         'type_practice_goal' => 'Übungsziel (ohne Fragen)',
+        'field_attachments' => 'Angehängte Dateien (aus der Medienbibliothek)',
+        'attachments' => 'Anhänge',
+        'no_media' => 'Deine Medienbibliothek ist leer.',
+        'upload_media' => 'Datei hochladen',
         'field_practice_type' => 'Übungstyp',
         'field_lp_exercise' => 'Lernpfad-Übung',
         'field_difficulty' => 'Schwierigkeit',
@@ -477,6 +484,73 @@ return [
         'regenerate' => 'Neu generieren',
         'regenerate_all' => 'Alle Fragen neu generieren',
         'remove' => 'Entfernen',
+        'edit' => 'Bearbeiten',
+        'edit_question' => 'Frage bearbeiten',
+        'edit_hint' => 'Eine Option pro Zeile (oder durch Komma getrennt). Die richtige Antwort muss in der Liste bleiben. Noten, Audio und Notation werden nach dem Speichern automatisch aktualisiert.',
+        'question_params' => 'Frageparameter',
+        'answer_choices' => 'Antwortmöglichkeiten',
+        'answer_choices_hint' => 'Die richtige Antwort (grün) ist mit dem abgespielten Audio verknüpft und kann hier nicht geändert werden – bearbeite die anderen Optionen beliebig.',
+        'f_target' => 'Note',
+        'f_octave' => 'Oktave',
+        'f_clef' => 'Schlüssel',
+        'f_reference_note' => 'Referenzton',
+        'f_note1' => 'Erste Note',
+        'f_note2' => 'Zweite Note',
+        'f_note2_octave' => 'Oktave der zweiten Note',
+        'f_interval' => 'Intervall',
+        'f_direction' => 'Richtung',
+        'f_interval_a' => 'Intervall A (zwei Noten)',
+        'f_interval_b' => 'Intervall B (zwei Noten)',
+        'f_chord_type' => 'Akkordtyp',
+        'f_root_note' => 'Grundton',
+        'f_inversion' => 'Umkehrung',
+        'f_voicing' => 'Lage',
+        'f_scale_type' => 'Tonleitertyp',
+        'f_tempo' => 'Tempo',
+        'f_time_signature' => 'Taktart',
+        'f_bars' => 'Takte',
+        'f_key_signature' => 'Tonart',
+        'f_notes' => 'Melodienoten',
+        'clef_treble' => 'Violinschlüssel',
+        'clef_bass' => 'Bassschlüssel',
+        'clef_alto' => 'Altschlüssel',
+        'direction_ascending' => 'Aufsteigend',
+        'direction_descending' => 'Absteigend',
+        'rhythm_pattern' => 'Rhythmusmuster',
+        'rhythm_pattern_hint' => 'Baue das Muster mit den Notenschaltflächen – es muss die ausgewählten Takte und die Taktart exakt ausfüllen. Die Antwortmöglichkeiten werden für das neue Muster automatisch neu erzeugt.',
+        'rhythm_empty' => 'Das Muster ist leer – füge unten Noten hinzu.',
+        'rhythm_remove_token' => 'Diese Note entfernen',
+        'rhythm_beats_label' => 'Schläge',
+        'dictation_rhythm_title' => 'Rhythmus-Bausteine',
+        'dictation_rhythm_hint' => 'Das Ändern der Taktart erzeugt die Melodie neu, damit sie zum neuen Metrum passt. Aktiviere das Kästchen oben, um die Melodie mit den ausgewählten Rhythmuswerten neu zu erzeugen.',
+        'dictation_regenerate_label' => 'Die Melodie mit den ausgewählten Rhythmuswerten neu erzeugen',
+        'choices_keyboard_note' => 'Diese Übung wird auf der Klaviatur beantwortet und hat daher keine bearbeitbaren Antwortmöglichkeiten.',
+        'choices_pair_note' => 'Die Antwortmöglichkeiten sind die beiden Intervalle selbst – bearbeite sie links über Intervall A / Intervall B.',
+        'choices_auto_note' => 'Die Antwortmöglichkeiten werden nach dem Speichern automatisch aus dem Frageinhalt erzeugt.',
+        'edit_error_invalid_note' => 'Unbekannte Note: ":note".',
+        'edit_error_invalid_interval' => 'Unbekanntes Intervall: ":interval".',
+        'edit_error_invalid_value' => 'Ungültiger Wert für :field.',
+        'edit_error_out_of_range' => ':note liegt außerhalb des spielbaren Bereichs des :clef-Schlüssels.',
+        'edit_error_unbuildable' => 'Dieses Intervall lässt sich aus der gewählten Note und Oktave nicht bilden.',
+        'edit_error_unison' => 'Die beiden Noten sind identisch – eine auf-/absteigende Frage braucht zwei verschiedene Tonhöhen.',
+        'edit_error_invalid_pair' => 'Intervallpaare müssen zwei durch Komma getrennte Noten sein (z. B. "C,E"): ":pair".',
+        'edit_error_equal_pairs' => 'Die beiden Intervalle sind gleich groß – die Frage hätte keine richtige Antwort.',
+        'edit_error_empty_pattern' => 'Das Rhythmusmuster ist leer.',
+        'edit_error_rest_start' => 'Ein Rhythmusmuster darf nicht mit einer Pause beginnen.',
+        'edit_error_pattern_length' => 'Das Muster füllt :expected nicht exakt aus.',
+        'edit_error_no_rhythm_values' => 'Wähle mindestens einen Rhythmuswert, um die Melodie neu zu erzeugen.',
+        'edit_error_empty_melody' => 'Die Melodie hat keine Noten.',
+        'edit_error_melody_rhythm_mismatch' => 'Die Melodie hat :notes Noten, der Rhythmus aber :values Werte – sie müssen eins zu eins übereinstimmen.',
+        'ph_title' => 'z. B. Intervallerkennung — Woche 1',
+        'ph_description' => 'z. B. In dieser Aufgabe übst du das Erkennen melodischer Intervalle nach Gehör.',
+        'ph_instructions' => 'z. B. Höre jede Frage aufmerksam an und strebe mindestens 80 % Genauigkeit an.',
+        'ph_question_count' => 'z. B. 10',
+        'ph_max_attempts' => 'z. B. 3',
+        'ph_daily_minutes' => 'z. B. 15',
+        'ph_weekly_minutes' => 'z. B. 60',
+        'preview' => 'Aufgabe lösen',
+        'cancel' => 'Abbrechen',
+        'save' => 'Speichern',
         'locked_note' => 'Diese Aufgabe wurde gesendet — ihre Fragen sind gesperrt und können nicht mehr geändert werden.',
         'send' => 'Aufgabe senden',
         'send_title' => 'An Schüler senden',
@@ -514,12 +588,12 @@ return [
         'status_questions-regenerated' => 'Fragen neu generiert.',
         'status_question-regenerated' => 'Frage neu generiert.',
         'status_question-removed' => 'Frage entfernt.',
+        'status_question-updated' => 'Frage aktualisiert.',
         'status_assignment-sent' => 'Aufgabe an deine Schüler gesendet.',
         'status_assignment-duplicated' => 'Aufgabe als neuer Entwurf dupliziert.',
         'status_assignment-archived' => 'Aufgabe archiviert.',
         'status_assignment-deleted' => 'Entwurf gelöscht.',
     ],
-
     'student_assignments' => [
         'title' => 'Meine Aufgaben',
         'subtitle' => 'Hausaufgaben, die dir von deinen Lehrern zugewiesen wurden.',
@@ -535,7 +609,6 @@ return [
         'overdue' => 'Überfällig',
         'instructions' => 'Anweisungen',
     ],
-
     'messaging' => [
         'title' => 'Nachrichten',
         'subtitle' => 'Private Gespräche mit deinen Schülern.',
@@ -553,7 +626,6 @@ return [
         'error_attachment_type' => 'Nur PDF- und Bildanhänge sind erlaubt.',
         'error_attachment_size' => 'Anhänge dürfen maximal 10 MB groß sein.',
     ],
-
     'appointments' => [
         'title' => 'Kalender',
         'subtitle' => 'Verwalte deine Verfügbarkeit und Unterrichtstermine.',
@@ -598,7 +670,6 @@ return [
         'error_slot_unavailable' => 'Dieses Zeitfenster ist nicht mehr verfügbar. Bitte wähle ein anderes.',
         'error_invalid_transition' => 'Diese Aktion ist im aktuellen Status des Termins nicht möglich.',
     ],
-
     'my_appointments' => [
         'title' => 'Meine Termine',
         'subtitle' => 'Deine Unterrichtstermine mit Lehrern.',
@@ -616,7 +687,6 @@ return [
         'status_appointment-cancelled' => 'Termin storniert.',
         'status_reschedule-requested' => 'Verschiebungsanfrage gesendet.',
     ],
-
     'booking' => [
         'guest_hint' => 'Melde dich an, um verfügbare Unterrichtszeiten zu sehen und einen Termin anzufragen.',
         'preview_disabled_hint' => 'Dein Buchungskalender ist noch nicht aktiviert. Schüler können hier Unterricht buchen, sobald du die Online-Buchung aktivierst und Verfügbarkeit hinzufügst.',
@@ -629,7 +699,6 @@ return [
         'login_to_book' => 'Melde dich an, um eine Stunde zu buchen',
         'times_in_timezone' => 'Zeiten angezeigt in :tz',
     ],
-
     'reviews' => [
         'rating' => 'Bewertung',
         'write' => 'Bewertung schreiben',
@@ -642,10 +711,12 @@ return [
         'report' => 'Melden',
         'reviews_count' => ':count Bewertungen',
     ],
-
     'content' => [
         'title' => 'Inhalte',
         'subtitle' => 'Veröffentliche Artikel, Videos, Dokumente und Fotos in deinem öffentlichen Profil.',
+        'tab_documents' => 'Meine Dokumente',
+        'tab_articles' => 'Meine Artikel',
+        'tab_videos' => 'Meine Videos',
         'new_article' => 'Neuer Artikel',
         'articles' => 'Artikel',
         'no_articles' => 'Noch keine Artikel. Teile dein Wissen mit deinem ersten Artikel.',
@@ -660,10 +731,19 @@ return [
         'document_title' => 'Dokumenttitel (optional)',
         'upload_document' => 'Dokument hochladen',
         'no_documents' => 'Noch keine Dokumente hochgeladen.',
-        'visibility_public' => 'Öffentlich — in meinem Profil sichtbar',
+        'delete_document_confirm' => 'Dieses Dokument löschen?',
+        'max_size_hint' => 'PDF oder Bild, bis zu 10 MB.',
+        'needs_profile' => 'Vervollständige dein Lehrerprofil, um Dokumente hochzuladen.',
+        'visibility' => 'Wer hat Zugriff',
         'visibility_private' => 'Privat — nur ich',
-        'photos' => 'Fotos',
-        'photos_hint' => 'Studio-, Konzert- oder Unterrichtsfotos, die in deinem öffentlichen Profil angezeigt werden.',
-        'upload_photo' => 'Foto hochladen',
+        'visibility_students' => 'Meine Schüler',
+        'visibility_shared' => 'Ausgewählte Schüler',
+        'details' => 'Details',
+        'download' => 'Herunterladen',
+        'share' => 'Teilen',
+        'share_article' => 'Artikel teilen',
+        'share_with_students' => 'Mit Schülern teilen',
+        'no_students' => 'Du hast noch keine aktiven Schüler.',
+        'shared_count' => '{1} mit :count Schüler geteilt|[2,*] mit :count Schülern geteilt',
     ],
 ];

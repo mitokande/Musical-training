@@ -1,7 +1,7 @@
 {{-- Contact + socials card. Expects: $profile, $socials. Optional: $wrapperClass. --}}
 @if(($profile->show_email && $profile->public_email) || ($profile->show_phone && $profile->public_phone) || $profile->website_url || $socials->isNotEmpty())
     <div class="card p-6 {{ $wrapperClass ?? '' }}">
-        <h2 class="font-bold text-gray-900 text-lg mb-4">{{ __('teacher.public.contact') }}</h2>
+        <h2 class="font-bold text-gray-900 text-lg mb-4">{{ $trans('public.contact') }}</h2>
         <div class="space-y-3 text-[15px]">
             @if($profile->show_email && $profile->public_email)
                 <p class="flex items-center gap-2.5 text-gray-700"><i data-lucide="mail" class="w-4 h-4 text-primary-500"></i> {{ $profile->public_email }}</p>

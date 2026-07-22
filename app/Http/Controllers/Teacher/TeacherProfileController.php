@@ -91,7 +91,7 @@ class TeacherProfileController extends Controller
         $this->authorize('update', $profile);
 
         $request->validate([
-            'cover' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'cover' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ]);
 
         if ($profile->cover_image_path) {
@@ -160,7 +160,10 @@ class TeacherProfileController extends Controller
         // legacy role-based accounts (teacher/school/admin) may not have a
         // profile row yet — create their draft on first use.
         return $request->user()->teacherProfile
-            ?? TeacherProfile::createDraftFor($request->user());
+            ?? TeacherProfile::createDraftFor(
+                $request->user(),
+                $request->user()->isSchool() ? TeacherProfile::ENTITY_SCHOOL : TeacherProfile::ENTITY_TEACHER
+            );
     }
 
     /** Minimum content required before a profile may enter the review queue. */

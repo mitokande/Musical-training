@@ -31,3 +31,8 @@ Schedule::command('support:fetch-mail')->everyFiveMinutes()->withoutOverlapping(
 Schedule::call(function () {
     app(TeacherSubscriptionBenefitService::class)->expireLapsedBenefits();
 })->daily()->name('teacher:expire-benefits')->withoutOverlapping();
+
+// --- Paid subscriptions ---
+
+// Expire paid subscriptions whose period has ended (downgrades lapsed users).
+Schedule::command('subscriptions:expire')->hourly()->withoutOverlapping();

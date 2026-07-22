@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -72,16 +73,18 @@
                     $heroUnreadNotif = Auth::user()->unreadNotifications()->count();
                     $heroUnreadMsg = app(\App\Services\Teacher\TeacherMessagingService::class)->unreadTotalFor(Auth::user());
                     $teacherHeroLinks = [
-                        ['href' => route('teacher.dashboard'),        'icon' => 'layout-dashboard', 'label' => __('teacher.dashboard.hero_dashboard'),      'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('dashboard')),        'icon' => 'layout-dashboard', 'label' => __('teacher.dashboard.hero_dashboard'),      'badge' => 0],
                         ['href' => route('notifications.index'),      'icon' => 'bell',             'label' => __('teacher.dashboard.hero_notifications'),  'badge' => $heroUnreadNotif],
-                        ['href' => route('teacher.messages.index'),   'icon' => 'message-circle',   'label' => __('teacher.dashboard.hero_messages'),       'badge' => $heroUnreadMsg],
-                        ['href' => route('teacher.profile.edit'),     'icon' => 'user-pen',         'label' => __('teacher.dashboard.hero_profile'),        'badge' => 0],
-                        ['href' => route('teacher.students.index'),   'icon' => 'users',            'label' => __('teacher.dashboard.hero_students'),       'badge' => 0],
-                        ['href' => route('teacher.calendar.index'),   'icon' => 'calendar',         'label' => __('teacher.dashboard.hero_calendar'),       'badge' => 0],
-                        ['href' => route('teacher.assignments.index'),'icon' => 'clipboard-list',   'label' => __('teacher.dashboard.hero_assignments'),    'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('messages.index')),   'icon' => 'message-circle',   'label' => __('teacher.dashboard.hero_messages'),       'badge' => $heroUnreadMsg],
+                        ['href' => route(auth()->user()->crmRouteName('profile.edit')),     'icon' => 'user-pen',         'label' => __('teacher.dashboard.hero_profile'),        'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('students.index')),   'icon' => 'users',            'label' => __('teacher.dashboard.hero_students'),       'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('calendar.index')),   'icon' => 'calendar',         'label' => __('teacher.dashboard.hero_calendar'),       'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('assignments.index')),'icon' => 'clipboard-list',   'label' => __('teacher.dashboard.hero_assignments'),    'badge' => 0],
                         ['href' => url('/exercise-setup'),            'icon' => 'wand-sparkles',    'label' => __('teacher.dashboard.hero_exercise_setup'), 'badge' => 0],
-                        ['href' => route('teacher.content.index'),    'icon' => 'newspaper',        'label' => __('teacher.dashboard.hero_content'),        'badge' => 0],
-                        ['href' => route('teacher.settings'),         'icon' => 'settings',         'label' => __('teacher.dashboard.hero_settings'),       'badge' => 0],
+                        ['href' => url('/ai-exercises'),              'icon' => 'sparkles',         'label' => __('app.nav.ai_exercises'),                  'badge' => 0],
+                        ['href' => url('/games'),                     'icon' => 'gamepad-2',        'label' => __('app.nav.games'),                         'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('content.index')),    'icon' => 'newspaper',        'label' => __('teacher.dashboard.hero_content'),        'badge' => 0],
+                        ['href' => route(auth()->user()->crmRouteName('settings')),         'icon' => 'settings',         'label' => __('teacher.dashboard.hero_settings'),       'badge' => 0],
                     ];
                 @endphp
                 <div class="relative z-10">
@@ -323,7 +326,7 @@
                     </div>
                     <h3 class="font-bold text-lg mb-2">{{ __('app.dashboard.upgrade_premium') }}</h3>
                     <p class="text-white/90 text-sm mb-5">{{ __('app.dashboard.premium_description') }}</p>
-                    <a href="/pricing" class="block text-center w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
+                    <a href="{{ route('checkout.show') }}" class="block text-center w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
                         {{ __('app.dashboard.learn_more') }}
                     </a>
                 </div>

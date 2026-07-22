@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('app.nav.games') }} — {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="{{ __('app.welcome.games_description') }}">
+    @if(($variant ?? null) !== null)
+    {{-- A/B test variants live on throwaway URLs (/games/a, /games/b) — never index them. --}}
+    <meta name="robots" content="noindex, nofollow">
+    @endif
+    <link rel="canonical" href="{{ route('games.index') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="{{ __('app.nav.games') }} — Harmoniva">
+    <meta property="og:description" content="{{ __('app.welcome.games_description') }}">
+    <meta property="og:url" content="{{ route('games.index') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ __('app.nav.games') }} — Harmoniva">
+    <meta name="twitter:description" content="{{ __('app.welcome.games_description') }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800,900" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/marketing.css')
     <script src="https://unpkg.com/lucide@0.460.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] } } }
-        }
-    </script>
 
     @php
     $v = $variant ?? null;
@@ -141,7 +154,7 @@
                     <i data-lucide="clock" class="w-3.5 h-3.5 flex-shrink-0"></i>
                     {{ __('app.games.free_plan_limit', ['limit' => $perTypeLimit]) }}
                     <span class="text-white/30">·</span>
-                    <a href="{{ route('profile.edit') }}" class="underline decoration-dotted hover:text-amber-200 transition-colors">{{ __('app.games.upgrade_unlimited') }}</a>
+                    <a href="{{ route('checkout.show') }}" class="underline decoration-dotted hover:text-amber-200 transition-colors">{{ __('app.games.upgrade_unlimited') }}</a>
                 </div>
                 @endif
             @endauth

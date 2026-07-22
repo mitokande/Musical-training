@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     'nav' => [
         'dashboard' => 'Painel',
         'students' => 'Alunos',
@@ -21,14 +20,12 @@ return [
         'tier_basic' => 'Básico',
         'tier_premium' => 'Premium',
     ],
-
     'become' => [
         'title' => 'Torne-se professor',
         'description' => 'Crie uma conta de professor Básica gratuita, construa seu perfil público de professor e alcance alunos no Harmoniva.',
         'button' => 'Criar conta de professor',
         'created' => 'Sua conta de professor foi criada. Complete seu perfil e envie para revisão.',
     ],
-
     'dashboard' => [
         'at_a_glance' => 'Resumo',
         'unread_messages' => 'Mensagens não lidas',
@@ -49,6 +46,17 @@ return [
         'notif_review' => 'Você recebeu uma nova avaliação',
         'title' => 'Painel do professor',
         'welcome' => 'Bem-vindo de volta, :name',
+        'welcome_subtitle' => 'Pronto para ajudar você a gerir seus alunos?',
+        'hero_dashboard' => 'Meu painel',
+        'hero_notifications' => 'Notificações',
+        'hero_messages' => 'Mensagens',
+        'hero_profile' => 'Meu perfil',
+        'hero_students' => 'Meus alunos',
+        'hero_calendar' => 'Meu calendário',
+        'hero_assignments' => 'Tarefas',
+        'hero_exercise_setup' => 'Configurar exercício',
+        'hero_content' => 'Meu conteúdo',
+        'hero_settings' => 'Configurações',
         'profile_status' => 'Status do perfil',
         'complete_profile' => 'Complete seu perfil',
         'submit_for_review' => 'Enviar para revisão',
@@ -82,7 +90,6 @@ return [
         'nav_settings_title' => 'Configurações',
         'nav_settings_desc' => 'Conta e preferências',
     ],
-
     'status' => [
         'draft' => 'Rascunho',
         'submitted_for_review' => 'Em revisão',
@@ -97,7 +104,6 @@ return [
         'rejected_hint' => 'Seu perfil precisa de alterações antes de poder ser publicado.',
         'suspended_hint' => 'Seu perfil está suspenso e não está visível publicamente. Entre em contato com o suporte para detalhes.',
     ],
-
     'profile' => [
         'title' => 'Perfil do professor',
         'subtitle' => 'Seu perfil público de professor no Harmoniva',
@@ -117,7 +123,6 @@ return [
         'add_more' => 'Adicionar mais',
         'remove' => 'Remover',
     ],
-
     'fields' => [
         'headline' => 'Título breve',
         'headline_placeholder' => 'ex. Professor de piano com 10 anos de experiência em conservatório',
@@ -169,7 +174,6 @@ return [
         'cover_image' => 'Imagem de capa',
         'upload_cover' => 'Enviar imagem de capa',
     ],
-
     'services' => [
         'title' => 'Serviços',
         'add' => 'Adicionar serviço',
@@ -182,7 +186,6 @@ return [
         'price_text' => 'Preço (opcional, texto livre)',
         'active' => 'Ativo',
     ],
-
     'videos' => [
         'title' => 'Vídeos',
         'add' => 'Adicionar vídeo',
@@ -191,9 +194,10 @@ return [
         'youtube_url' => 'URL do YouTube',
         'invalid_youtube_url' => 'Insira uma URL de vídeo do YouTube válida.',
     ],
-
     'media' => [
         'title' => 'Documentos e fotos',
+        'intro' => 'Fotos e certificados exibidos publicamente no seu perfil. As imagens abrem ampliadas; os certificados em PDF abrem em uma nova aba.',
+        'public_hint' => 'JPG, PNG, WebP ou PDF — até 10 MB. Todos podem ver isto no seu perfil.',
         'add' => 'Enviar arquivo',
         'none' => 'Ainda não há arquivos enviados.',
         'kind' => 'Tipo',
@@ -201,11 +205,12 @@ return [
         'kind_document' => 'Documento',
         'file' => 'Arquivo',
         'visibility' => 'Visibilidade',
-        'visibility_public' => 'Público (exibido no perfil)',
         'visibility_private' => 'Privado (apenas você e administradores)',
+        'visibility_public' => 'Público (exibido no perfil)',
+        'visibility_students' => 'Meus alunos',
+        'visibility_shared' => 'Compartilhado',
         'download' => 'Baixar',
     ],
-
     'payment_links' => [
         'title' => 'Links de pagamento externos',
         'intro' => 'Adicione links de pagamento do seu próprio provedor (ex. Stripe, PayPal, iyzico). Os pagamentos são processados pelo provedor externo que você escolher — o Harmoniva não coleta nem processa pagamentos.',
@@ -224,7 +229,6 @@ return [
         'premium_required' => 'Links de pagamento externos são um recurso do Professor Premium.',
         'external_disclaimer' => 'O pagamento é processado pelo provedor de pagamento externo selecionado pelo professor.',
     ],
-
     'public' => [
         'contact' => 'Contato',
         'empty_hint_about' => 'Seu texto Sobre mim aparecerá aqui. Preencha-o na aba Perfil do professor.',
@@ -268,7 +272,6 @@ return [
         'follow_login_prompt' => 'Você precisa se cadastrar ou entrar para seguir este professor.',
         'booking_rules_intro' => 'Escolha um horário disponível no calendário acima para solicitar uma aula. Sua solicitação é enviada ao professor para confirmação, e você será notificado assim que ele responder. Cancele com antecedência se não puder mais comparecer.',
     ],
-
     'settings' => [
         'title' => 'Configurações',
         'subtitle' => 'Configurações da sua conta de professor',
@@ -286,8 +289,12 @@ return [
         'avatar_updated' => 'Foto de perfil atualizada.',
         'language_saved' => 'Preferência de idioma salva.',
         'account' => 'Conta',
+        'edit' => 'Editar',
+        'cancel' => 'Cancelar',
+        'username' => 'Nome de usuário',
+        'account_updated' => 'Informações da conta atualizadas.',
+        'email_verify_hint' => 'Se você alterar seu e-mail, precisará verificar o novo endereço.',
     ],
-
     'admin' => [
         'title' => 'Perfis de professores',
         'queue' => 'Fila de moderação',
@@ -310,7 +317,6 @@ return [
         'no_profiles' => 'Nenhum perfil de professor neste estado.',
         'submitted_at' => 'Enviado',
     ],
-
     'students' => [
         'title' => 'Meus alunos',
         'subtitle' => 'Gerencie seus alunos, convites e relações.',
@@ -376,7 +382,6 @@ return [
             'no_activity' => 'Ainda não há atividade registrada.',
         ],
     ],
-
     'invitations' => [
         'title' => 'Convite de professor',
         'invited_you' => ':teacher convidou você para se conectar como seu aluno no Harmoniva.',
@@ -386,7 +391,6 @@ return [
         'error_unusable' => 'Este convite não é mais válido.',
         'error_not_pending' => 'Esta solicitação não está aguardando aprovação.',
     ],
-
     'my_teachers' => [
         'title' => 'Meus professores',
         'subtitle' => 'Professores com quem você está conectado no Harmoniva.',
@@ -403,7 +407,6 @@ return [
         'status_teacher-declined' => 'Solicitação recusada.',
         'status_teacher-revoked' => 'Relação encerrada.',
     ],
-
     'classes' => [
         'title' => 'Turmas',
         'subtitle' => 'Agrupe seus alunos em turmas para facilitar a atribuição e o acompanhamento.',
@@ -427,7 +430,6 @@ return [
         'edit' => 'Editar turma',
         'save' => 'Salvar',
     ],
-
     'assignments' => [
         'title' => 'Tarefas',
         'subtitle' => 'Crie deveres a partir dos exercícios padrão do Harmoniva e acompanhe os resultados.',
@@ -440,6 +442,7 @@ return [
         'ai_applied' => 'Sugestão da IA aplicada ao formulário abaixo. Revise e gere.',
         'ai_unavailable' => 'A assistência de IA não está disponível no momento.',
         'ai_failed' => 'Não foi possível interpretar a solicitação. Ajuste-a e tente novamente.',
+        'ai_error' => 'O serviço de IA está indisponível no momento. Tente novamente em breve.',
         'ai_unsupported' => 'Esta solicitação não é suportada:',
         'manual_section' => 'Configurações do dever',
         'field_title' => 'Título',
@@ -450,6 +453,10 @@ return [
         'type_learning_path' => 'Exercício do Percurso de Aprendizagem',
         'type_ai_generated' => 'Dever assistido por IA',
         'type_practice_goal' => 'Meta de prática (sem perguntas)',
+        'field_attachments' => 'Arquivos anexados (da biblioteca de mídia)',
+        'attachments' => 'Anexos',
+        'no_media' => 'Sua biblioteca de mídia está vazia.',
+        'upload_media' => 'Enviar um arquivo',
         'field_practice_type' => 'Tipo de exercício',
         'field_lp_exercise' => 'Exercício do Percurso de Aprendizagem',
         'field_difficulty' => 'Dificuldade',
@@ -477,6 +484,73 @@ return [
         'regenerate' => 'Regenerar',
         'regenerate_all' => 'Regenerar todas as perguntas',
         'remove' => 'Remover',
+        'edit' => 'Editar',
+        'edit_question' => 'Editar pergunta',
+        'edit_hint' => 'Uma opção por linha (ou separadas por vírgula). A resposta correta deve permanecer na lista. Notas, áudio e notação são atualizados automaticamente após salvar.',
+        'question_params' => 'Parâmetros da pergunta',
+        'answer_choices' => 'Opções de resposta',
+        'answer_choices_hint' => 'A resposta correta (verde) está ligada ao áudio reproduzido e não pode ser alterada aqui — edite livremente as outras opções.',
+        'f_target' => 'Nota',
+        'f_octave' => 'Oitava',
+        'f_clef' => 'Clave',
+        'f_reference_note' => 'Nota de referência',
+        'f_note1' => 'Primeira nota',
+        'f_note2' => 'Segunda nota',
+        'f_note2_octave' => 'Oitava da segunda nota',
+        'f_interval' => 'Intervalo',
+        'f_direction' => 'Direção',
+        'f_interval_a' => 'Intervalo A (duas notas)',
+        'f_interval_b' => 'Intervalo B (duas notas)',
+        'f_chord_type' => 'Tipo de acorde',
+        'f_root_note' => 'Nota fundamental',
+        'f_inversion' => 'Inversão',
+        'f_voicing' => 'Disposição',
+        'f_scale_type' => 'Tipo de escala',
+        'f_tempo' => 'Tempo',
+        'f_time_signature' => 'Fórmula de compasso',
+        'f_bars' => 'Compassos',
+        'f_key_signature' => 'Tonalidade',
+        'f_notes' => 'Notas da melodia',
+        'clef_treble' => 'Clave de sol',
+        'clef_bass' => 'Clave de fá',
+        'clef_alto' => 'Clave de dó',
+        'direction_ascending' => 'Ascendente',
+        'direction_descending' => 'Descendente',
+        'rhythm_pattern' => 'Padrão rítmico',
+        'rhythm_pattern_hint' => 'Monte o padrão com os botões de notas — ele deve preencher exatamente os compassos e a fórmula de compasso selecionados. As opções de resposta são regeradas automaticamente para o novo padrão.',
+        'rhythm_empty' => 'O padrão está vazio — adicione notas abaixo.',
+        'rhythm_remove_token' => 'Remover esta nota',
+        'rhythm_beats_label' => 'tempos',
+        'dictation_rhythm_title' => 'Blocos rítmicos',
+        'dictation_rhythm_hint' => 'Alterar a fórmula de compasso regenera a melodia para se ajustar ao novo metro. Marque a caixa acima para regenerar a melodia com os valores rítmicos selecionados.',
+        'dictation_regenerate_label' => 'Regenerar a melodia usando os valores rítmicos selecionados',
+        'choices_keyboard_note' => 'Este exercício é respondido no teclado do piano, portanto não tem opções de resposta para editar.',
+        'choices_pair_note' => 'As opções de resposta são os dois intervalos em si — edite-os por meio de Intervalo A / Intervalo B à esquerda.',
+        'choices_auto_note' => 'As opções de resposta são geradas automaticamente a partir do conteúdo da pergunta após salvar.',
+        'edit_error_invalid_note' => 'Nota desconhecida: ":note".',
+        'edit_error_invalid_interval' => 'Intervalo desconhecido: ":interval".',
+        'edit_error_invalid_value' => 'Valor inválido para :field.',
+        'edit_error_out_of_range' => ':note está fora da extensão tocável da clave de :clef.',
+        'edit_error_unbuildable' => 'Este intervalo não pode ser construído a partir da nota e da oitava selecionadas.',
+        'edit_error_unison' => 'As duas notas são idênticas — uma pergunta ascendente/descendente precisa de duas alturas diferentes.',
+        'edit_error_invalid_pair' => 'Os pares de intervalos devem ser duas notas separadas por vírgula (ex.: "C,E"): ":pair".',
+        'edit_error_equal_pairs' => 'Os dois intervalos têm o mesmo tamanho — a pergunta não teria resposta correta.',
+        'edit_error_empty_pattern' => 'O padrão rítmico está vazio.',
+        'edit_error_rest_start' => 'Um padrão rítmico não pode começar com uma pausa.',
+        'edit_error_pattern_length' => 'O padrão não preenche exatamente :expected.',
+        'edit_error_no_rhythm_values' => 'Selecione pelo menos um valor rítmico para regenerar a melodia.',
+        'edit_error_empty_melody' => 'A melodia não tem notas.',
+        'edit_error_melody_rhythm_mismatch' => 'A melodia tem :notes notas, mas o ritmo tem :values valores — eles devem corresponder um a um.',
+        'ph_title' => 'ex.: Reconhecimento de intervalos — Semana 1',
+        'ph_description' => 'ex.: Nesta tarefa você praticará o reconhecimento auditivo de intervalos melódicos.',
+        'ph_instructions' => 'ex.: Ouça cada pergunta com atenção e busque pelo menos 80% de acerto.',
+        'ph_question_count' => 'ex.: 10',
+        'ph_max_attempts' => 'ex.: 3',
+        'ph_daily_minutes' => 'ex.: 15',
+        'ph_weekly_minutes' => 'ex.: 60',
+        'preview' => 'Resolver tarefa',
+        'cancel' => 'Cancelar',
+        'save' => 'Salvar',
         'locked_note' => 'Este dever foi enviado — suas perguntas estão bloqueadas e não podem mais ser alteradas.',
         'send' => 'Enviar tarefa',
         'send_title' => 'Enviar aos alunos',
@@ -514,12 +588,12 @@ return [
         'status_questions-regenerated' => 'Perguntas regeneradas.',
         'status_question-regenerated' => 'Pergunta regenerada.',
         'status_question-removed' => 'Pergunta removida.',
+        'status_question-updated' => 'Pergunta atualizada.',
         'status_assignment-sent' => 'Tarefa enviada aos seus alunos.',
         'status_assignment-duplicated' => 'Tarefa duplicada como novo rascunho.',
         'status_assignment-archived' => 'Tarefa arquivada.',
         'status_assignment-deleted' => 'Rascunho excluído.',
     ],
-
     'student_assignments' => [
         'title' => 'Minhas tarefas',
         'subtitle' => 'Deveres atribuídos a você pelos seus professores.',
@@ -535,7 +609,6 @@ return [
         'overdue' => 'Atrasado',
         'instructions' => 'Instruções',
     ],
-
     'messaging' => [
         'title' => 'Mensagens',
         'subtitle' => 'Conversas privadas com seus alunos.',
@@ -553,7 +626,6 @@ return [
         'error_attachment_type' => 'Apenas anexos PDF e de imagem são permitidos.',
         'error_attachment_size' => 'Os anexos podem ter no máximo 10MB.',
     ],
-
     'appointments' => [
         'title' => 'Calendário',
         'subtitle' => 'Gerencie sua disponibilidade e os agendamentos de aulas.',
@@ -598,7 +670,6 @@ return [
         'error_slot_unavailable' => 'Este horário não está mais disponível. Escolha outro.',
         'error_invalid_transition' => 'Esta ação não é possível no estado atual do agendamento.',
     ],
-
     'my_appointments' => [
         'title' => 'Meus agendamentos',
         'subtitle' => 'Seus agendamentos de aulas com professores.',
@@ -616,7 +687,6 @@ return [
         'status_appointment-cancelled' => 'Agendamento cancelado.',
         'status_reschedule-requested' => 'Solicitação de reagendamento enviada.',
     ],
-
     'booking' => [
         'guest_hint' => 'Faça login para ver os horários de aula disponíveis e solicitar um agendamento.',
         'preview_disabled_hint' => 'Seu calendário de agendamento ainda não está ativado. Os alunos poderão agendar aulas aqui assim que você ativar o agendamento online e adicionar disponibilidade.',
@@ -629,7 +699,6 @@ return [
         'login_to_book' => 'Faça login para agendar uma aula',
         'times_in_timezone' => 'Horários exibidos em :tz',
     ],
-
     'reviews' => [
         'rating' => 'Avaliação',
         'write' => 'Escrever uma avaliação',
@@ -642,10 +711,12 @@ return [
         'report' => 'Denunciar',
         'reviews_count' => ':count avaliações',
     ],
-
     'content' => [
         'title' => 'Conteúdo',
         'subtitle' => 'Publique artigos, vídeos, documentos e fotos no seu perfil público.',
+        'tab_documents' => 'Meus documentos',
+        'tab_articles' => 'Meus artigos',
+        'tab_videos' => 'Meus vídeos',
         'new_article' => 'Novo artigo',
         'articles' => 'Artigos',
         'no_articles' => 'Ainda não há artigos. Compartilhe seu conhecimento com seu primeiro artigo.',
@@ -660,10 +731,19 @@ return [
         'document_title' => 'Título do documento (opcional)',
         'upload_document' => 'Enviar documento',
         'no_documents' => 'Ainda não há documentos enviados.',
-        'visibility_public' => 'Público — visível no meu perfil',
+        'delete_document_confirm' => 'Excluir este documento?',
+        'max_size_hint' => 'PDF ou imagem, até 10 MB.',
+        'needs_profile' => 'Complete seu perfil de professor para enviar documentos.',
+        'visibility' => 'Quem pode acessar',
         'visibility_private' => 'Privado — apenas eu',
-        'photos' => 'Fotos',
-        'photos_hint' => 'Fotos de estúdio, concerto ou aula exibidas no seu perfil público.',
-        'upload_photo' => 'Enviar foto',
+        'visibility_students' => 'Meus alunos',
+        'visibility_shared' => 'Alunos selecionados',
+        'details' => 'Detalhes',
+        'download' => 'Baixar',
+        'share' => 'Compartilhar',
+        'share_article' => 'Compartilhar artigo',
+        'share_with_students' => 'Compartilhar com alunos',
+        'no_students' => 'Você ainda não tem alunos ativos.',
+        'shared_count' => '{1} compartilhado com :count aluno|[2,*] compartilhado com :count alunos',
     ],
 ];

@@ -151,8 +151,10 @@ class PracticeController extends Controller
             $target = app(MusicTheoryService::class)->getDirection($question->note1, $octave1, $question->note2, $octave2);
         }
 
-        // For interval construction: accept enharmonic equivalents
-        if ($practiceId === 6) {
+        // Note-answer types (single note = 1, interval construction = 6):
+        // accept enharmonic equivalents — the piano answer keyboard emits
+        // sharp names while questions may store flat spellings.
+        if (in_array($practiceId, [1, 6], true)) {
             $music = app(MusicTheoryService::class);
             $isCorrect = strtolower(trim($answer)) === strtolower(trim($target))
                 || $music->notesAreEnharmonic(trim($answer), trim($target));
@@ -237,7 +239,9 @@ class PracticeController extends Controller
         $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
-        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+        // Note-answer types accept enharmonic equivalents: the piano answer
+        // keyboard emits sharp names while lessons may teach flat spellings.
+        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 
@@ -308,7 +312,9 @@ class PracticeController extends Controller
         $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
-        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+        // Note-answer types accept enharmonic equivalents: the piano answer
+        // keyboard emits sharp names while lessons may teach flat spellings.
+        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 
@@ -355,7 +361,9 @@ class PracticeController extends Controller
         $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
-        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+        // Note-answer types accept enharmonic equivalents: the piano answer
+        // keyboard emits sharp names while lessons may teach flat spellings.
+        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 
@@ -399,7 +407,9 @@ class PracticeController extends Controller
         $isCorrect = $normalizedAnswer === $normalizedCorrect;
 
         // For interval construction: also accept enharmonic equivalents
-        if (! $isCorrect && $practiceType === 'interval-construction-practice') {
+        // Note-answer types accept enharmonic equivalents: the piano answer
+        // keyboard emits sharp names while lessons may teach flat spellings.
+        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
             $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
         }
 

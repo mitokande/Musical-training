@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
+use App\Services\Payments\SubscriptionService;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -43,6 +44,19 @@ class InvoiceController extends Controller
 
         return redirect()->route('admin.invoices.show', $invoice)
             ->with('success', 'Invoice updated successfully.');
+    }
+
+    /**
+     * Refund a paid invoice through the active gateway: marks it refunded,
+     * cancels the subscription and revokes Premium.
+     */
+    public function refund(Invoice $invoice, SubscriptionService $service)
+    {
+        if ($service->refund($invoice)) {
+            return back()->with('success', 'Invoice refunded and access revoked.');
+        }
+
+        return back()->with('error', 'Only paid invoices can be refunded.');
     }
 
     public function destroy(Invoice $invoice)

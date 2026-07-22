@@ -20,7 +20,7 @@
             </a>
         @else
             @if(auth()->user()->plan === 'free')
-            <a href="{{ route('profile.edit') }}"
+            <a href="{{ route('checkout.show') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>
@@ -561,6 +561,14 @@
                 },
 
                 triggerLevelUp() {
+                    // Guest gate: level 1 completed as a guest ends the run
+                    // with a sign-up prompt instead of advancing to level 2.
+                    if (window.gameLevelAllowed && !window.gameLevelAllowed(this.currentLevel + 1)) {
+                        this.score += 500;
+                        this.endGame();
+                        window.showGameSignupModal();
+                        return;
+                    }
                     this.score += 500;
                     this.highestLevel = Math.max(this.highestLevel, this.currentLevel);
                     this.currentLevel++;

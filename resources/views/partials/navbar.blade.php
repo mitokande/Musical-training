@@ -16,21 +16,8 @@
         <div class="flex items-center justify-between h-16">
 
             {{-- Logo --}}
-            <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                {{-- Icon mark: black box, white H --}}
-                <div class="w-11 h-11 rounded-xl bg-gray-900 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow shrink-0">
-                    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
-                        <rect x="2" y="3" width="5.5" height="22" rx="2" fill="white"/>
-                        <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="white"/>
-                        <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                {{-- Wordmark --}}
-                <div class="block">
-                    <span class="font-bold text-xl sm:text-2xl tracking-tight leading-none">
-                        <span style="background: linear-gradient(135deg,#9333ea,#fb923c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">H</span><span class="text-gray-900">armoniva</span>
-                    </span>
-                </div>
+            <a href="{{ url('/') }}" class="flex items-center group shrink-0">
+                <img src="{{ asset('images/logo-full.png') }}" alt="Harmoniva" width="1374" height="340" class="h-[43px] sm:h-[52px] w-auto">
             </a>
 
             {{-- Desktop Navigation --}}
@@ -77,19 +64,20 @@
                         // Profile → the teacher's public, shareable profile URL (/teachers/{slug}).
                         // Falls back to the owner preview when no slug exists yet (legacy teacher role).
                         $tp = Auth::user()->teacherProfile;
-                        $teacherPublicUrl = ($tp && $tp->slug) ? route('teachers.show', $tp->slug) : route('teacher.profile.preview');
+                        $teacherPublicUrl = ($tp && $tp->slug)
+                            ? route($tp->isSchoolEntity() ? 'schools.show' : 'teachers.show', $tp->slug)
+                            : route(Auth::user()->crmRouteName('profile.preview'));
 
-                        // Order (left→right): Dashboard, Feed, Notifications, Messages, Profile, My Students, Calendar.
-                        // Notifications + Messages carry unread badges; the shared trailing
-                        // Notifications/Messages blocks below are suppressed for teachers.
+                        // Order (left→right): Dashboard, Feed, Notifications, Profile, My Students, Calendar.
+                        // Notifications carries an unread badge; Messages lives in the CRM inbox
+                        // (sidebar), so it is intentionally omitted from this top nav for teachers.
                         $navItems = [
-                            ['href' => route('teacher.dashboard'),       'label' => __('app.nav.dashboard'),          'icon' => 'layout-dashboard', 'key' => 'teacher'],
-                            ['href' => route('teacher.feed'),            'label' => __('app.nav.feed'),               'icon' => 'rss',              'key' => 'feed'],
+                            ['href' => route(Auth::user()->crmRouteName('dashboard')),       'label' => __('app.nav.dashboard'),          'icon' => 'layout-dashboard', 'key' => 'teacher'],
+                            ['href' => route(Auth::user()->crmRouteName('feed')),            'label' => __('app.nav.feed'),               'icon' => 'rss',              'key' => 'feed'],
                             ['href' => route('notifications.index'),     'label' => __('app.nav.notifications'),      'icon' => 'bell',             'key' => 'notifications', 'badge' => $unreadNotifications],
-                            ['href' => route('teacher.messages.index'),  'label' => __('app.nav.messages'),           'icon' => 'message-circle',   'key' => 'messages',      'badge' => $unreadMessages],
                             ['href' => $teacherPublicUrl,                'label' => __('teacher.nav.profile'),        'icon' => 'user-pen',         'key' => 'my-profile'],
-                            ['href' => route('teacher.students.index'),  'label' => __('teacher.dashboard.hero_students'), 'icon' => 'users',       'key' => 'students'],
-                            ['href' => route('teacher.calendar.index'),  'label' => __('teacher.nav.calendar'),       'icon' => 'calendar',         'key' => 'calendar'],
+                            ['href' => route(Auth::user()->crmRouteName('students.index')),  'label' => __('teacher.dashboard.hero_students'), 'icon' => 'users',       'key' => 'students'],
+                            ['href' => route(Auth::user()->crmRouteName('calendar.index')),  'label' => __('teacher.nav.calendar'),       'icon' => 'calendar',         'key' => 'calendar'],
                         ];
                     } elseif ($isStudent) {
                         $navItems = [
@@ -100,26 +88,29 @@
                             ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
                         ];
                     } else {
+                        // Guest / default top bar. Home shows the icon only (no label) to keep the
+                        // bar on a single line; the Progress entry is intentionally omitted here.
                         $navItems = [
-                            ['href' => '/dashboard', 'label' => __('app.nav.home'), 'icon' => 'home', 'key' => 'dashboard'],
+                            ['href' => '/dashboard', 'label' => __('app.nav.home'), 'icon' => 'home', 'key' => 'dashboard', 'icon_only' => true],
                             ['href' => '/learn', 'label' => __('app.nav.practice'), 'icon' => 'music-2', 'key' => 'learn'],
                             ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
                             ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
                             ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
                             ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
-                            ['href' => '/progress', 'label' => __('app.nav.progress'), 'icon' => 'trending-up', 'key' => 'progress'],
                         ];
                     }
                 @endphp
                 
                 @foreach($navItems as $item)
+                    @php $iconOnly = $item['icon_only'] ?? false; @endphp
                     <a href="{{ $item['href'] }}"
-                       class="relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                       @if($iconOnly) title="{{ $item['label'] }}" aria-label="{{ $item['label'] }}" @endif
+                       class="relative flex items-center {{ $iconOnly ? '' : 'gap-2' }} px-3 py-2 rounded-lg text-sm font-medium transition-all
                               {{ $currentActive === $item['key']
                                  ? 'bg-purple-50 text-purple-700'
                                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}">
                         <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4 {{ ($item['key'] === 'notifications' && ($item['badge'] ?? 0) > 0) ? 'text-purple-600' : '' }}"></i>
-                        {{ $item['label'] }}
+                        @unless($iconOnly){{ $item['label'] }}@endunless
                         @if(($item['badge'] ?? 0) > 0)
                             <span class="absolute -top-0.5 -right-0.5 bg-purple-600 text-white text-[10px] font-bold rounded-full px-1.5 min-w-[18px] text-center leading-4">{{ $item['badge'] > 9 ? '9+' : $item['badge'] }}</span>
                         @endif
@@ -225,22 +216,22 @@
                             </a>
                         @elseif(Auth::user()->hasTeacherAccount())
                             {{-- Teacher accounts: CRM-centric menu, old profile pages are gone --}}
-                            <a href="{{ route('teacher.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{{ route(Auth::user()->crmRouteName('dashboard')) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="layout-dashboard" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('app.nav.teacher_panel') }}
                             </a>
 
-                            <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{{ route(Auth::user()->crmRouteName('profile.edit')) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="user-pen" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('teacher.nav.profile') }}
                             </a>
 
-                            <a href="{{ route('teacher.profile.preview') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{{ route(Auth::user()->crmRouteName('profile.preview')) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('teacher.nav.public_profile') }}
                             </a>
 
-                            <a href="{{ route('teacher.settings') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{{ route(Auth::user()->crmRouteName('settings')) }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('teacher.nav.settings') }}
                             </a>
@@ -262,7 +253,7 @@
                         @endif
 
                         @if(!$isAdmin && Auth::user()->isSchool())
-                            <a href="{{ route('school.profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <a href="{{ route('school.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                 <i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i>
                                 {{ __('app.nav.school_panel') }}
                             </a>
@@ -436,19 +427,19 @@
             </div>
             <div class="space-y-1 mb-3">
                 @if(Auth::user()->hasTeacherAccount())
-                    <a href="{{ route('teacher.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <a href="{{ route(Auth::user()->crmRouteName('dashboard')) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
                         {{ __('app.nav.teacher_panel') }}
                     </a>
-                    <a href="{{ route('teacher.profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <a href="{{ route(Auth::user()->crmRouteName('profile.edit')) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <i data-lucide="user-pen" class="w-4 h-4 shrink-0"></i>
                         {{ __('teacher.nav.profile') }}
                     </a>
-                    <a href="{{ route('teacher.profile.preview') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <a href="{{ route(Auth::user()->crmRouteName('profile.preview')) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <i data-lucide="eye" class="w-4 h-4 shrink-0"></i>
                         {{ __('teacher.nav.public_profile') }}
                     </a>
-                    <a href="{{ route('teacher.settings') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <a href="{{ route(Auth::user()->crmRouteName('settings')) }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
                         {{ __('teacher.nav.settings') }}
                     </a>
@@ -463,7 +454,7 @@
                     </a>
                 @endif
                 @if(Auth::user()->isSchool())
-                    <a href="{{ route('school.profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                    <a href="{{ route('school.dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <i data-lucide="building-2" class="w-4 h-4 shrink-0"></i>
                         {{ __('app.nav.school_panel') }}
                     </a>

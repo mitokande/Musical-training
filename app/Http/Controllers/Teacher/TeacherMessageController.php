@@ -52,10 +52,10 @@ class TeacherMessageController extends Controller
         try {
             $conversation = $this->messaging->conversationBetween($request->user(), $student);
         } catch (InvalidArgumentException $e) {
-            return redirect()->route('teacher.messages.index')->withErrors(['conversation' => $e->getMessage()]);
+            return redirect()->route(crm_prefix().'.messages.index')->withErrors(['conversation' => $e->getMessage()]);
         }
 
-        return redirect()->route('teacher.messages.show', $conversation);
+        return redirect()->route(crm_prefix().'.messages.show', $conversation);
     }
 
     public function show(Request $request, TeacherConversation $conversation)
@@ -92,7 +92,7 @@ class TeacherMessageController extends Controller
             return back()->withErrors(['body' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('teacher.messages.show', $conversation);
+        return redirect()->route(crm_prefix().'.messages.show', $conversation);
     }
 
     /** Authorized attachment download for either participant. */

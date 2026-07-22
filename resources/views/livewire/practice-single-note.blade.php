@@ -32,8 +32,10 @@
                      style="background:#fafafa;">
                     <div id="output" style="width:100%;height:145px;"
                          data-group-size="{{ $groupSize }}"
-                         data-answer-mode="{{ $answerMode }}"
-                         data-clef="{{ $clef }}"
+                         data-answer-mode="{{ $questionAnswerMode }}"
+                         data-question-id="{{ $currentGroupNotes[0]['id'] ?? 1 }}"
+                         data-clef="{{ $staffClef }}"
+                         data-reference="{{ $referenceNote ?? '' }}"
                          data-group-targets="{{ json_encode(array_map(fn($n) => strtolower($n['target']).'/'.$n['octave'], $currentGroupNotes)) }}"
                          data-allowed-notes="{{ json_encode(array_values($allowedNotes)) }}">
                     </div>
@@ -86,7 +88,7 @@
                                            transition-all shadow-md hover:shadow-lg hover:bg-indigo-50 hover:border-indigo-400
                                            flex flex-col items-center justify-end pb-2"
                                     data-note="{{ $note }}">
-                                @if($answerMode === 'note-names')
+                                @if($questionAnswerMode === 'note-names')
                                 <span class="text-xs font-bold text-gray-600 pointer-events-none">{{ $note }}</span>
                                 @endif
                             </button>
@@ -113,7 +115,7 @@
                                            border:1px solid #1f2937;
                                            box-shadow:2px 4px 6px rgba(0,0,0,.4);
                                            z-index:10;">
-                                @if($answerMode === 'note-names')
+                                @if($questionAnswerMode === 'note-names')
                                 <div class="pointer-events-none flex flex-col items-center justify-center" style="gap:1px;line-height:1.1;">
                                     <span class="font-bold text-white text-center" style="font-size:11px;">{{ \App\Services\MusicTheoryService::toDisplaySymbol($bk['sharp']) }}</span>
                                     <span class="font-semibold text-center" style="font-size:10px;color:rgba(255,255,255,0.7);">{{ \App\Services\MusicTheoryService::toDisplaySymbol($bk['flat']) }}</span>
@@ -188,21 +190,42 @@
             const cfg        = clefConfig[clef] || clefConfig.treble;
             const clefOctave = cfg.octave;
 
-            // Pick a random reference note (natural, different from the target)
-            // in the same octave as the first question's target note.
+            // Reference note: teacher assignments store one on the question
+            // (editable in the review modal); otherwise pick a random natural
+            // different from the target, in the target's octave.
             const naturalPool  = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
             const firstTarget  = groupTargets[0] || '';
             const targetOctave = firstTarget.split('/')[1] || clefOctave;
             const targetLetter = ((firstTarget.split('/')[0] || 'c').charAt(0)).toUpperCase();
-            const refCandidates = naturalPool.filter(n => n !== targetLetter);
-            const refLetter    = refCandidates.length
-                ? refCandidates[Math.floor(Math.random() * refCandidates.length)]
-                : 'C';
-            const refNoteVF   = refLetter.toLowerCase() + '/' + targetOctave;
-            const refNoteTone = refLetter + targetOctave;
+            const storedRef    = (outputDiv.dataset.reference || '').trim();
+            const refMatch     = storedRef.match(/^([A-G][#b]?)(\d)$/);
+            let refLetter, refOctave;
+            if (refMatch) {
+                refLetter = refMatch[1];
+                refOctave = refMatch[2];
+            } else {
+                const refCandidates = naturalPool.filter(n => n !== targetLetter);
+                refLetter = refCandidates.length
+                    ? refCandidates[Math.floor(Math.random() * refCandidates.length)]
+                    : 'C';
+                refOctave = targetOctave;
+            }
+            const refNoteVF   = refLetter.toLowerCase() + '/' + refOctave;
+            const refNoteTone = refLetter + refOctave;
 
             // 40 BPM — 1 beat = 1500ms
             const BPM_MS = 1500;
+
+            // A piano key is a pitch, not a spelling: normalize enharmonic
+            // names so the sharp-emitting keyboard matches flat-spelled
+            // targets (Db lesson ⇒ C# key is correct) and vice versa.
+            const ENHARMONIC = { 'db':'c#', 'eb':'d#', 'gb':'f#', 'ab':'g#', 'bb':'a#',
+                                 'cb':'b', 'fb':'e', 'e#':'f', 'b#':'c' };
+            const pitchKey = n => {
+                const k = (n || '').toLowerCase();
+                return ENHARMONIC[k] || k;
+            };
+            const samePitch = (a, b) => pitchKey(a) === pitchKey(b);
 
             // ── VexFlow helpers ───────────────────────────────────────────
             const VF = Vex.Flow;
@@ -292,9 +315,11 @@
                     const tgtVF    = groupTargets[i] || (ans.toLowerCase() + '/' + clefOctave);
                     const tgtName  = tgtVF.split('/')[0];
                     const tgtOctave = tgtVF.split('/')[1] || clefOctave;
-                    const isRight  = ans.toLowerCase() === tgtName.toLowerCase();
-                    // Render user answer at the question's octave, not the keyboard's fixed octave
-                    vA.push(mkNote(ans.toLowerCase() + '/' + tgtOctave,
+                    const isRight  = samePitch(ans, tgtName);
+                    // Render user answer at the question's octave, not the keyboard's
+                    // fixed octave — using the target's spelling when the answer is
+                    // right, so a correct C#-key press on a Db question shows Db.
+                    vA.push(mkNote((isRight ? tgtName : ans.toLowerCase()) + '/' + tgtOctave,
                                    isRight ? '#16a34a' : '#dc2626'));
                 });
 
@@ -305,7 +330,7 @@
                 answers.forEach((ans, i) => {
                     const tgtVF   = groupTargets[i] || (ans.toLowerCase() + '/' + clefOctave);
                     const tgtName = tgtVF.split('/')[0];
-                    const isRight = ans.toLowerCase() === tgtName.toLowerCase();
+                    const isRight = samePitch(ans, tgtName);
 
                     if (isRight) {
                         vB.push(makeGhost());
@@ -410,7 +435,7 @@
                 let allCorrect = true;
                 userAnswers.forEach((ans, i) => {
                     const tgt = (groupTargets[i] || '').split('/')[0];
-                    const ok = ans.toLowerCase() === tgt.toLowerCase();
+                    const ok = samePitch(ans, tgt);
                     if (!ok) allCorrect = false;
                     dotSet(i, ok ? 'correct' : 'wrong');
                 });
@@ -439,14 +464,18 @@
                 if (deleteBtn) deleteBtn.classList.add('hidden');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
-                // Server record
+                // Server record — the real question id matters: LP / Exercise
+                // Setup sessions grade and track progress by it (a hardcoded 1
+                // used to grade every answer against question 1 and the lesson
+                // could never complete).
+                const questionId = parseInt(outputDiv.dataset.questionId || '1', 10) || 1;
                 fetch('/api/practice/check-answer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                     },
-                    body: JSON.stringify({ practice_id: 1, question_id: 1, answer: userAnswers[0] || '' }),
+                    body: JSON.stringify({ practice_id: 1, question_id: questionId, answer: userAnswers[0] || '' }),
                 }).then(r => r.json()).then(d => {
                     if (d.xp !== undefined) { const el = document.getElementById('xpEarned'); if (el) el.textContent = d.xp; }
                     if (d.correctCount !== undefined) { const el = document.getElementById('scoreCorrect'); if (el) el.textContent = d.correctCount; }

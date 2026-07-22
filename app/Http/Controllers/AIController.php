@@ -199,12 +199,6 @@ class AIController extends Controller
                                 }
                             }
                         }
-                        // Construction stores its answer options as the `_options`
-                        // relation (not a model attribute), so promote it so the
-                        // options survive into the session question array.
-                        if (! isset($attrs['options']) && $q->relationLoaded('_options')) {
-                            $attrs['options'] = $q->getRelation('_options');
-                        }
                         // Harmonic interval answer options mirror the Exercise Setup
                         // grid (PracticeHarmonicInterval::mount): correct interval + 3
                         // distractors from the canonical ES 12-interval palette. The
@@ -218,31 +212,10 @@ class AIController extends Controller
                             shuffle($options);
                             $attrs['options'] = $options;
                         }
-                        // Interval-construction answer options mirror the Exercise Setup
-                        // component (PracticeIntervalConstruction::mount): the diatonically
-                        // spelled correct note + 3 distractors from the same ES diatonic
-                        // pool, never an enharmonic equivalent of the answer. The
-                        // generator's own _options draw from a wider pool (double-sharp/
-                        // double-flat spellings the ES UI never shows).
-                        if ($practiceType->slug === 'interval-construction-practice') {
-                            $music = app(MusicTheoryService::class);
-                            $correct = $attrs['note2'];
-                            $pool = PracticeIntervalConstruction::DIATONIC_NOTE_POOL;
-                            shuffle($pool);
-                            $distractors = [];
-                            foreach ($pool as $candidate) {
-                                if (count($distractors) >= 3) {
-                                    break;
-                                }
-                                if ($music->notesAreEnharmonic($candidate, $correct)) {
-                                    continue;
-                                }
-                                $distractors[] = $candidate;
-                            }
-                            $options = array_merge([$correct], $distractors);
-                            shuffle($options);
-                            $attrs['options'] = $options;
-                        }
+                        // Interval-construction options come straight from the
+                        // generator: single-accidental Exercise Setup palette, one
+                        // option per pitch class, never an enharmonic respelling
+                        // of the answer.
                         // Hard chord sessions mix voicing per question — Exercise Setup
                         // offers block and arpeggiated playback and the mixed view
                         // already supports both via data-voicing.

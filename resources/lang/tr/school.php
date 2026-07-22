@@ -1,0 +1,109 @@
+<?php
+
+return [
+
+    'nav' => [
+        'role_teacher' => 'Müzik Okulu',
+        'teachers' => 'Öğretmenler',
+        'view_as_student' => 'Herkese açık profili gör',
+    ],
+
+    'dashboard' => [
+        'title' => 'Okul Paneli',
+        'subtitle' => 'Okulunuzu, öğretmenlerinizi ve öğrencilerinizi tek yerden yönetin.',
+        'stat_pending_students' => 'Onay bekleyen',
+        'stat_new_students_month' => 'Bu ay yeni',
+        'teacher_stats' => 'Öğretmen istatistikleri',
+        'stat_active_teachers' => 'Aktif öğretmen',
+        'stat_pending_teachers' => 'Onay bekleyen',
+        'stat_member_students' => 'Öğrencileri',
+        'stat_member_classes' => 'Sınıfları',
+        'stat_member_assignments' => 'Ödevleri',
+        'stat_member_avg_score' => 'Ort. puan',
+    ],
+
+    'profile' => [
+        'title' => 'Okul Profili',
+        'subtitle' => 'Herkese açık okul profilinizi yönetin.',
+    ],
+
+    'public' => [
+        'school_badge' => 'Müzik Okulu',
+        'message_teacher' => 'Okula mesaj gönder',
+    ],
+
+    'admin' => [
+        'entity_school' => 'Müzik Okulu',
+    ],
+
+    'teachers' => [
+        'title' => 'Öğretmenler',
+        'subtitle' => 'Okulunuza öğretmen ekleyin, onları öğrencileriyle birlikte yönetin.',
+        'add_teacher' => 'Öğretmen ekle',
+        'no_teachers' => 'Henüz öğretmen yok. Başlamak için ilk öğretmeninizi davet edin.',
+        'active_since' => ':date tarihinden beri üye',
+        'student_count' => ':count öğrenci',
+        'pending_approval' => 'Öğretmenin onayı bekleniyor',
+        'view_profile' => 'Görüntüle',
+        'remove_teacher' => 'Öğretmeni çıkar',
+        'remove_confirm' => 'Bu öğretmen okulunuzdan çıkarılsın mı? Hesabı ve öğrencileri etkilenmez.',
+        'back_to_list' => 'Tüm öğretmenler',
+        'public_profile' => 'Herkese açık profil',
+        'stat_students' => 'Aktif öğrenci',
+        'stat_classes' => 'Sınıf',
+        'stat_assignments' => 'Ödev',
+        'their_students' => 'Bu öğretmenin öğrencileri',
+        'no_students' => 'Bu öğretmenin henüz aktif öğrencisi yok.',
+        'view_student' => 'Görüntüle',
+        'pending_invitations' => 'Bekleyen davetler',
+        'no_invitations' => 'Bekleyen davet yok.',
+        'search_users' => 'Kullanıcı ara',
+        'invite_by_email' => 'E-posta ile davet et',
+        'share_link' => 'Bağlantı paylaş',
+        'search_placeholder' => 'Ad, soyad veya tam e-posta',
+        'send_request' => 'İstek gönder',
+        'invite_name' => 'Ad (isteğe bağlı)',
+        'invite_email' => 'E-posta adresi',
+        'send_invitation' => 'Davet gönder',
+        'link_expires' => 'Son geçerlilik',
+        'create_link' => 'Bağlantı oluştur',
+        'copy_link' => 'Bağlantıyı kopyala',
+        'revoke' => 'İptal et',
+        'status_relationship-requested' => 'Üyelik isteği gönderildi.',
+        'status_invitation-sent' => 'Davet e-postası gönderildi.',
+        'status_invitation-link-created' => 'Davet bağlantısı oluşturuldu.',
+        'status_invitation-revoked' => 'Davet iptal edildi.',
+        'status_relationship-revoked' => 'Öğretmen okulunuzdan çıkarıldı.',
+        'error_self' => 'Kendi hesabınızı öğretmen olarak ekleyemezsiniz.',
+        'error_target_school' => 'Okul hesapları öğretmen olarak eklenemez.',
+        'error_already_related' => 'Bu kullanıcı zaten üye veya bekleyen bir isteği var.',
+        'error_duplicate_invitation' => 'Bu e-posta için bekleyen bir davet zaten var.',
+        'error_limit_reached' => 'Planınız en fazla :limit öğretmene izin veriyor. Daha fazlası için yükseltin.',
+    ],
+
+    'my_schools' => [
+        'title' => 'Okullarım',
+        'subtitle' => 'Ders verdiğiniz müzik okulları ve bekleyen üyelik istekleri.',
+        'no_schools' => 'Henüz hiçbir okulun üyesi değilsiniz.',
+        'pending' => 'Üyelik isteği — onayınız bekleniyor',
+        'since' => ':date tarihinden beri üye',
+        'view_public_profile' => 'Okul profilini gör',
+        'approve' => 'Kabul et',
+        'decline' => 'Reddet',
+        'leave' => 'Okuldan ayrıl',
+        'leave_confirm' => 'Bu okuldan ayrılmak istiyor musunuz? Kendi hesabınız ve öğrencileriniz size kalır.',
+        'status_school-approved' => 'Okula katıldınız.',
+        'status_school-declined' => 'İstek reddedildi.',
+        'status_school-left' => 'Okuldan ayrıldınız.',
+        'status_school-joined' => 'Okula katıldınız. Öğretmen paneliniz hazır.',
+    ],
+
+    'invitations' => [
+        'title' => 'Okul daveti',
+        'invited_you' => ':school sizi müzik okuluna öğretmen olarak davet etti.',
+        'accept' => 'Daveti kabul et',
+        'decline_hint' => 'Bu okulu tanımıyorsanız daveti görmezden gelebilirsiniz.',
+        'unusable' => 'Bu davet artık geçerli değil.',
+    ],
+
+];

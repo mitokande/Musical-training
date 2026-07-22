@@ -3,6 +3,35 @@
 @section('title', 'Music Theory Basics')
 @section('description', 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly for musicians of all levels.')
 
+@section('structured-data')
+    @php
+        // Built inside @php so Blade does not compile the "@context"/"@type"
+        // literal keys as directives and corrupt the JSON.
+        $theoryJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => 'Music Theory Basics',
+            'description' => 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly.',
+            'about' => 'Music theory',
+            'inLanguage' => str_replace('_', '-', app()->getLocale()),
+            'image' => asset('images/og-image.png'),
+            'author' => ['@id' => url('/').'#organization'],
+            'publisher' => ['@id' => url('/').'#organization'],
+            'mainEntityOfPage' => route('page.music-theory-basics'),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $theoryBreadcrumbJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Music Theory Basics', 'item' => route('page.music-theory-basics')],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $theoryJsonLd !!}</script>
+    <script type="application/ld+json">{!! $theoryBreadcrumbJsonLd !!}</script>
+@endsection
+
 @section('content')
 
 {{-- Hero --}}

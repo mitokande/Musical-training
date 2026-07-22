@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Subscription extends Model
 {
     protected $fillable = [
-        'user_id', 'plan_id', 'status', 'starts_at', 'ends_at',
-        'cancelled_at', 'trial_ends_at', 'amount', 'currency',
-        'payment_provider', 'external_id',
+        'user_id', 'plan_id', 'status', 'billing_cycle', 'auto_renew',
+        'starts_at', 'ends_at', 'cancelled_at', 'trial_ends_at',
+        'amount', 'currency', 'payment_provider', 'external_id',
     ];
 
     protected function casts(): array
@@ -22,6 +22,7 @@ class Subscription extends Model
             'cancelled_at' => 'datetime',
             'trial_ends_at' => 'datetime',
             'amount' => 'decimal:2',
+            'auto_renew' => 'boolean',
         ];
     }
 

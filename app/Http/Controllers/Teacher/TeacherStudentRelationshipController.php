@@ -78,7 +78,7 @@ class TeacherStudentRelationshipController extends Controller
 
         $this->students->revokeByTeacher($relationship);
 
-        return redirect()->route('teacher.students.index')->with('status', 'relationship-revoked');
+        return redirect()->route(crm_prefix().'.students.index')->with('status', 'relationship-revoked');
     }
 
     private function maskEmail(string $email): string

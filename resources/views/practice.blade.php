@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $slug ?? 'Practice' }} - {{ config('app.name', 'Harmoniva') }}</title>
+    <title>{{ config('practice_seo.'.($slug ?? '').'.title', 'Ear Training Practice') }} — {{ config('app.name', 'Harmoniva') }}</title>
+    @include('partials.practice-seo')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

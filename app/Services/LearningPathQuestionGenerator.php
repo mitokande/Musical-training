@@ -21,6 +21,7 @@ class LearningPathQuestionGenerator
         private MusicTheoryService $music,
         private TonalMelodyGenerator $melodyGenerator,
         private RhythmDistractorService $rhythmDistractor,
+        private DictationRhythmService $dictationRhythm,
     ) {}
 
     public function generate(LearningPathExercise $exercise, int $questionCount): Collection
@@ -136,17 +137,26 @@ class LearningPathQuestionGenerator
         $octaves = $cfg['octave_range'] ?? ['4'];
         $clef = $cfg['clef'] ?? null;
         $directions = $this->resolveDirections($cfg['direction'] ?? 'ascending');
-        $allIntervals = array_keys(MusicTheoryService::INTERVAL_SEMITONES);
+        $canonicalPool = $this->canonicalIntervalPool();
 
         // The adaptive AI flow weights weak intervals by repeating them in
         // allowed_intervals; distractor decisions must use the distinct set so
         // the option list never contains duplicates.
         $distinctIntervals = array_values(array_unique($intervals));
-        $distractorCount = count($distinctIntervals) <= 2 ? 1 : 3;
-        $distractorPool = $distractorCount > 1 && count($distinctIntervals) < 4
-            ? $allIntervals
-            : $distinctIntervals;
-        $canonicalPool = $this->canonicalIntervalPool();
+        if (count($distinctIntervals) === 1) {
+            // A single-interval pool cannot supply its own distractors — draw
+            // from the canonical set so the question still has real options.
+            $distractorCount = 3;
+            $distractorPool = $canonicalPool;
+        } else {
+            $distractorCount = count($distinctIntervals) <= 2 ? 1 : 3;
+            // Canonical pool (not INTERVAL_SEMITONES keys) so enharmonic
+            // aliases (Augmented 4th / Diminished 5th / Tritone) cannot
+            // surface as two same-sounding options in one question.
+            $distractorPool = $distractorCount > 1 && count($distinctIntervals) < 4
+                ? $canonicalPool
+                : $distinctIntervals;
+        }
 
         $pool = [];
         foreach ($intervals as $interval) {
@@ -157,42 +167,45 @@ class LearningPathQuestionGenerator
             foreach ($notes as $note) {
                 foreach ($directions as $direction) {
                     $signedSemitones = $direction === 'descending' ? -$semitones : $semitones;
+                    // One pool variant per valid octave placement (not one random
+                    // pick) so small configs still yield varied questions.
                     if ($clef !== null) {
                         $validOctaves = $this->octavesWithinClefRange($note, $signedSemitones, $clef);
-                        if (empty($validOctaves)) {
+                    } else {
+                        $validOctaves = array_map('intval', $octaves);
+                    }
+                    foreach ($validOctaves as $octave) {
+                        $result = $direction === 'descending'
+                            ? $this->music->preferredNoteBelowByInterval($note, $octave, $interval)
+                            : $this->music->preferredNoteAboveByInterval($note, $octave, $interval);
+                        if ($result === null) {
                             continue;
                         }
-                        $octave = $validOctaves[array_rand($validOctaves)];
-                    } else {
-                        $octave = (int) $octaves[array_rand($octaves)];
-                    }
-                    $result = $direction === 'descending'
-                        ? $this->music->preferredNoteBelowByInterval($note, $octave, $interval)
-                        : $this->music->preferredNoteAboveByInterval($note, $octave, $interval);
-                    if ($result === null) {
-                        continue;
-                    }
 
-                    $distractors = $this->selectDistractors(
-                        $interval,
-                        $canonicalPool,
-                        $cfg,
-                        'interval',
-                        fn () => $this->music->buildOptions($interval, $distractorPool, $distractorCount)
-                    );
-                    $fullOptions = array_merge([$interval], $distractors);
-                    shuffle($fullOptions);
+                        $distractors = $this->selectDistractors(
+                            $interval,
+                            $canonicalPool,
+                            $cfg,
+                            'interval',
+                            fn () => $this->music->buildOptions($interval, $distractorPool, $distractorCount)
+                        );
+                        $fullOptions = array_merge([$interval], $distractors);
+                        shuffle($fullOptions);
 
-                    $q = new MelodicIntervalPractice;
-                    $q->id = null;
-                    $q->interval = $interval;
-                    $q->note1 = $note;
-                    $q->note2 = $result['note'];
-                    $q->octave = $octave;
-                    $q->note2_octave = $result['octave'];
-                    $q->direction = $direction;
-                    $q->options = $fullOptions;
-                    $pool[] = $q;
+                        $q = new MelodicIntervalPractice;
+                        $q->id = null;
+                        $q->interval = $interval;
+                        $q->note1 = $note;
+                        $q->note2 = $result['note'];
+                        $q->octave = $octave;
+                        $q->note2_octave = $result['octave'];
+                        $q->direction = $direction;
+                        if ($clef !== null) {
+                            $q->clef = $clef;
+                        }
+                        $q->options = $fullOptions;
+                        $pool[] = $q;
+                    }
                 }
             }
         }
@@ -208,8 +221,23 @@ class LearningPathQuestionGenerator
         $notes = $cfg['allowed_notes'] ?? ['C', 'D', 'E', 'F', 'G'];
         $octaves = $cfg['octave_range'] ?? ['4'];
         $clef = $cfg['clef'] ?? null;
-        $allIntervals = array_keys(MusicTheoryService::INTERVAL_SEMITONES);
         $canonicalPool = $this->canonicalIntervalPool();
+
+        // Same distractor rules as the melodic path: distinct set (adaptive AI
+        // repeats intervals to weight them), single-interval pools draw from
+        // the canonical set, and the canonical pool (never INTERVAL_SEMITONES
+        // keys) keeps enharmonic aliases from appearing as two same-sounding
+        // options in one question.
+        $distinctIntervals = array_values(array_unique($intervals));
+        if (count($distinctIntervals) === 1) {
+            $distractorCount = 3;
+            $distractorPool = $canonicalPool;
+        } else {
+            $distractorCount = count($distinctIntervals) <= 2 ? 1 : 3;
+            $distractorPool = $distractorCount > 1 && count($distinctIntervals) < 4
+                ? $canonicalPool
+                : $distinctIntervals;
+        }
 
         $pool = [];
         foreach ($intervals as $interval) {
@@ -218,39 +246,42 @@ class LearningPathQuestionGenerator
                 continue;
             }
             foreach ($notes as $note) {
+                // One pool variant per valid octave placement (not one random
+                // pick) so small configs still yield varied questions.
                 if ($clef !== null) {
                     $validOctaves = $this->octavesWithinClefRange($note, $semitones, $clef);
-                    if (empty($validOctaves)) {
+                } else {
+                    $validOctaves = array_map('intval', $octaves);
+                }
+                foreach ($validOctaves as $octave) {
+                    $result = $this->music->preferredNoteAboveByInterval($note, $octave, $interval);
+                    if ($result === null) {
                         continue;
                     }
-                    $octave = $validOctaves[array_rand($validOctaves)];
-                } else {
-                    $octave = (int) $octaves[array_rand($octaves)];
-                }
-                $result = $this->music->preferredNoteAboveByInterval($note, $octave, $interval);
-                if ($result === null) {
-                    continue;
-                }
 
-                $distractors = $this->selectDistractors(
-                    $interval,
-                    $canonicalPool,
-                    $cfg,
-                    'interval',
-                    fn () => $this->music->buildOptions($interval, $allIntervals, 3)
-                );
-                $fullOptions = array_merge([$interval], $distractors);
-                shuffle($fullOptions);
+                    $distractors = $this->selectDistractors(
+                        $interval,
+                        $canonicalPool,
+                        $cfg,
+                        'interval',
+                        fn () => $this->music->buildOptions($interval, $distractorPool, $distractorCount)
+                    );
+                    $fullOptions = array_merge([$interval], $distractors);
+                    shuffle($fullOptions);
 
-                $q = new HarmonicIntervalPractice;
-                $q->id = null;
-                $q->interval = $interval;
-                $q->note1 = $note;
-                $q->note2 = $result['note'];
-                $q->octave = $octave;
-                $q->note2_octave = $result['octave'];
-                $q->options = $fullOptions;
-                $pool[] = $q;
+                    $q = new HarmonicIntervalPractice;
+                    $q->id = null;
+                    $q->interval = $interval;
+                    $q->note1 = $note;
+                    $q->note2 = $result['note'];
+                    $q->octave = $octave;
+                    $q->note2_octave = $result['octave'];
+                    if ($clef !== null) {
+                        $q->clef = $clef;
+                    }
+                    $q->options = $fullOptions;
+                    $pool[] = $q;
+                }
             }
         }
 
@@ -263,10 +294,13 @@ class LearningPathQuestionGenerator
     {
         $semitones = $cfg['allowed_intervals_semitones'] ?? [1, 2];
         $notes = $cfg['allowed_notes'] ?? ['C', 'D', 'E', 'F', 'G'];
-        // Explicit octave (Learning Path config) wins; otherwise both notes are
-        // kept inside the clef's playable range.
+        // Explicit octave (legacy Learning Path config) wins; otherwise both
+        // notes are kept inside the clef's playable range. `clef` may be an
+        // array — each question variant then draws its register from a
+        // randomly chosen clef in the set.
         $octaveCfg = isset($cfg['octave']) ? (int) $cfg['octave'] : null;
-        $clef = $cfg['clef'] ?? 'treble';
+        $clefCfg = $cfg['clef'] ?? 'treble';
+        $clefs = array_values((array) $clefCfg) ?: ['treble'];
 
         $pool = [];
         foreach ($semitones as $st) {
@@ -274,6 +308,7 @@ class LearningPathQuestionGenerator
             $intervalName = $this->music->intervalNameFromSemitones($st);
             foreach ($notes as $note) {
                 // Ascending variant
+                $clef = $clefs[array_rand($clefs)];
                 $octavesUp = $octaveCfg !== null
                     ? [$octaveCfg]
                     : $this->octavesWithinClefRange($note, $st, $clef);
@@ -300,6 +335,7 @@ class LearningPathQuestionGenerator
                 }
 
                 // Descending variant
+                $clef = $clefs[array_rand($clefs)];
                 $octavesDown = $octaveCfg !== null
                     ? [$octaveCfg]
                     : $this->octavesWithinClefRange($note, -$st, $clef);
@@ -335,35 +371,23 @@ class LearningPathQuestionGenerator
     {
         $intervals = $cfg['allowed_intervals'] ?? ['Major 2nd'];
         $roots = $cfg['allowed_root_notes'] ?? ['C', 'D', 'E', 'F', 'G'];
-        // Explicit octave (Learning Path / AI config) wins; otherwise pick an
-        // octave that keeps root and target inside the clef's playable range.
+        // Explicit octave (legacy / ad-hoc config) wins; otherwise every octave
+        // that keeps root and target inside the clef's playable range
+        // (CLEF_RANGES) yields a pool variant — the Exercise Setup rule.
         $octaveCfg = isset($cfg['octave']) ? (int) $cfg['octave'] : null;
         $clef = $cfg['clef'] ?? null;
-
-        // Full expanded diatonic note pool (naturals, flats, sharps, double accidentals)
-        $allDiatonicNotes = [
-            'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'Fb',
-            'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb',
-            'B', 'B#', 'Cb', 'C##', 'D##', 'E##', 'F##', 'G##', 'A##', 'B##',
-            'Dbb', 'Ebb', 'Fbb', 'Gbb', 'Abb', 'Bbb', 'Cbb',
-        ];
-
-        // Configs that supply distractor settings (legacy ad-hoc configs) get the
-        // correct answer + distractors generated here from a clean single-accidental
-        // pool. Without them — Exercise Setup, Learning Path, and the AI difficulty
-        // flow, which all follow the ES rules — the diatonic-spelling path below
-        // applies and callers rebuild the answer options themselves.
-        $hasDistractorCfg = isset($cfg['distractor_count']) || isset($cfg['distractor_mode']);
-
-        // Single-accidental diatonic spellings only, used for AI distractors so
-        // answer options stay readable (no double sharps/flats).
-        $cleanDiatonicPool = array_values(array_filter(
-            $allDiatonicNotes,
-            // Case-sensitive: 'Bb' (B-flat) must not match the double-flat 'bb'
-            fn ($n) => ! preg_match('/(##|bb|x)$/', $n)
-        ));
-
         $directions = $this->resolveDirections($cfg['direction'] ?? 'ascending');
+
+        // Answer options use single-accidental spellings only (the Exercise
+        // Setup palette). E#/Fb are valid correct answers (e.g. Tritone above
+        // B → E#) but never distractors — a student shouldn't have to weigh
+        // E# against F as two different wrong choices.
+        $distractorPool = array_values(array_diff(
+            array_keys(MusicTheoryService::NOTE_SEMITONES),
+            ['E#', 'Fb']
+        ));
+        $distractorCount = max(1, (int) ($cfg['distractor_count'] ?? 3));
+        $nearMode = ($cfg['distractor_mode'] ?? null) === 'near';
 
         $pool = [];
         foreach ($intervals as $interval) {
@@ -375,86 +399,90 @@ class LearningPathQuestionGenerator
                 foreach ($directions as $direction) {
                     $signedSemitones = $direction === 'descending' ? -$semitones : $semitones;
                     if ($octaveCfg !== null) {
-                        $octave = $octaveCfg;
+                        $validOctaves = [$octaveCfg];
                     } elseif ($clef !== null) {
                         $validOctaves = $this->octavesWithinClefRange($root, $signedSemitones, $clef);
-                        if (empty($validOctaves)) {
-                            continue;
-                        }
-                        $octave = $validOctaves[array_rand($validOctaves)];
                     } else {
-                        $octave = 4;
+                        $validOctaves = [4];
                     }
-
-                    if ($hasDistractorCfg) {
+                    foreach ($validOctaves as $octave) {
+                        // Diatonic (letter-correct) spelling for the answer.
+                        // preferred* already falls back to a readable chromatic
+                        // spelling when the strict diatonic result would need a
+                        // double accidental.
                         $result = $direction === 'descending'
                             ? $this->music->preferredNoteBelowByInterval($root, $octave, $interval)
                             : $this->music->preferredNoteAboveByInterval($root, $octave, $interval);
-                        if ($result === null) {
+                        // B#/Cb survive preferred* (single accidental) but are
+                        // excluded from NOTE_SEMITONES — their written octave
+                        // differs from the sounding one, breaking playback.
+                        // Respell chromatically instead of dropping the combo.
+                        if ($result !== null && ! isset(MusicTheoryService::NOTE_SEMITONES[$result['note']])) {
+                            $result = $direction === 'descending'
+                                ? $this->music->noteBelowByInterval($root, $octave, $interval)
+                                : $this->music->noteAboveByInterval($root, $octave, $interval);
+                        }
+                        if ($result === null || ! isset(MusicTheoryService::NOTE_SEMITONES[$result['note']])) {
                             continue;
                         }
 
                         $correctNote = $result['note'];
 
-                        // Diatonic distractors excluding any enharmonic equivalent of
-                        // the correct answer; honour the configured distractor count.
-                        $distractorCount = max(1, (int) ($cfg['distractor_count'] ?? 3));
+                        // Distractors: 'near' mode ranks the pool by chromatic
+                        // closeness (half-step discrimination); default mode
+                        // draws at random. Either way each option is a distinct
+                        // pitch class — never an enharmonic respelling of the
+                        // answer or of another option.
+                        $candidates = $nearMode
+                            ? $this->music->notesByCloseness($correctNote, $distractorPool)
+                            : $this->shuffled($distractorPool);
                         $distractors = [];
-                        $shuffled = $cleanDiatonicPool;
-                        shuffle($shuffled);
-                        foreach ($shuffled as $candidate) {
+                        $usedPitchClasses = [$this->music->parseNoteChromatic($correctNote)];
+                        foreach ($candidates as $candidate) {
                             if (count($distractors) >= $distractorCount) {
                                 break;
                             }
-                            if ($this->music->notesAreEnharmonic($candidate, $correctNote)) {
+                            $pc = $this->music->parseNoteChromatic($candidate);
+                            if ($pc === null || in_array($pc, $usedPitchClasses, true)) {
                                 continue;
                             }
+                            $usedPitchClasses[] = $pc;
                             $distractors[] = $candidate;
                         }
-                    } else {
-                        // Use diatonic spelling for the correct answer
-                        $result = $direction === 'descending'
-                            ? $this->music->preferredNoteBelowByInterval($root, $octave, $interval)
-                            : $this->music->diatonicNoteAboveByInterval($root, $octave, $interval);
-                        if ($result === null) {
-                            continue;
-                        }
 
-                        $correctNote = $result['note'];
+                        $options = array_merge([$correctNote], $distractors);
+                        shuffle($options);
 
-                        // Build distractors: exclude enharmonic equivalents of the correct answer
-                        $distractors = [];
-                        $shuffled = $allDiatonicNotes;
-                        shuffle($shuffled);
-                        foreach ($shuffled as $candidate) {
-                            if (count($distractors) >= 3) {
-                                break;
-                            }
-                            if ($this->music->notesAreEnharmonic($candidate, $correctNote)) {
-                                continue;
-                            }
-                            $distractors[] = $candidate;
+                        $q = new IntervalConstructionPractice;
+                        $q->id = null;
+                        $q->interval = $interval;
+                        $q->note1 = $root;
+                        $q->note2 = $correctNote;
+                        $q->octave = $octave;
+                        $q->note2_octave = $result['octave'];
+                        $q->direction = $direction;
+                        if ($clef !== null) {
+                            $q->clef = $clef;
                         }
+                        // Plain attribute (not a relation) so the options survive
+                        // serializeForSession/reconstructFromSession for both the
+                        // Learning Path and Exercise Setup flows.
+                        $q->options = $options;
+                        $pool[] = $q;
                     }
-
-                    $options = array_merge([$correctNote], $distractors);
-                    shuffle($options);
-
-                    $q = new IntervalConstructionPractice;
-                    $q->id = null;
-                    $q->interval = $interval;
-                    $q->note1 = $root;
-                    $q->note2 = $correctNote;
-                    $q->octave = $octave;
-                    $q->note2_octave = $result['octave'];
-                    $q->direction = $direction;
-                    $q->setRelation('_options', $options);
-                    $pool[] = $q;
                 }
             }
         }
 
         return collect($this->shuffleTake($pool, $count));
+    }
+
+    /** Return a shuffled copy of an array (shuffle() mutates in place). */
+    private function shuffled(array $items): array
+    {
+        shuffle($items);
+
+        return $items;
     }
 
     // ── INTERVAL COMPARISON ──────────────────────────────────────────────────
@@ -497,29 +525,30 @@ class LearningPathQuestionGenerator
                 $validRoots = ['C'];
             }
 
-            // Pick independent roots for the normal and reversed variants.
-            $root1 = $validRoots[array_rand($validRoots)];
-            $root2 = $validRoots[array_rand($validRoots)];
-            $st1 = $naturalSemitones[$root1];
-            $st2 = $naturalSemitones[$root2];
+            // One normal + one reversed variant per valid root — the full
+            // transposition space, not one random pick per pair, so questions
+            // do not keep repeating the same two notes.
+            foreach ($validRoots as $root) {
+                $st = $naturalSemitones[$root];
 
-            $q = new IntervalComparisonPractice;
-            $q->id = null;
-            $q->interval_a = $root1.','.$semToNote[$st1 + $semA];
-            $q->interval_b = $root1.','.$semToNote[$st1 + $semB];
-            $q->target = $target;
-            $q->octave = $octave;
-            $q->clef = $clef;
-            $pool[] = $q;
+                $q = new IntervalComparisonPractice;
+                $q->id = null;
+                $q->interval_a = $root.','.$semToNote[$st + $semA];
+                $q->interval_b = $root.','.$semToNote[$st + $semB];
+                $q->target = $target;
+                $q->octave = $octave;
+                $q->clef = $clef;
+                $pool[] = $q;
 
-            $qRev = new IntervalComparisonPractice;
-            $qRev->id = null;
-            $qRev->interval_a = $root2.','.$semToNote[$st2 + $semB];
-            $qRev->interval_b = $root2.','.$semToNote[$st2 + $semA];
-            $qRev->target = $target === 'a' ? 'b' : 'a';
-            $qRev->octave = $octave;
-            $qRev->clef = $clef;
-            $pool[] = $qRev;
+                $qRev = new IntervalComparisonPractice;
+                $qRev->id = null;
+                $qRev->interval_a = $root.','.$semToNote[$st + $semB];
+                $qRev->interval_b = $root.','.$semToNote[$st + $semA];
+                $qRev->target = $target === 'a' ? 'b' : 'a';
+                $qRev->octave = $octave;
+                $qRev->clef = $clef;
+                $pool[] = $qRev;
+            }
         }
 
         return collect($this->shuffleTake($pool, $count));
@@ -529,62 +558,133 @@ class LearningPathQuestionGenerator
 
     private function generateScales(array $cfg, int $count): Collection
     {
-        $scaleTypes = $cfg['allowed_scale_types'] ?? ['major'];
+        $scaleTypes = array_map([$this, 'canonicalScaleType'], $cfg['allowed_scale_types'] ?? ['Major']);
         $roots = $cfg['allowed_root_notes'] ?? ['C'];
         $direction = $cfg['direction'] ?? 'ascending';
-        $distractors = $cfg['distractor_pool'] ?? ['natural-minor', 'dorian'];
+        $distractors = array_map([$this, 'canonicalScaleType'], $cfg['distractor_pool'] ?? ['Natural Minor', 'Dorian']);
 
-        // Explicit octave (Learning Path / AI config) wins; otherwise pick an
-        // octave that keeps the whole scale (root + octave span) inside the
-        // selected clef's playable range (CLEF_RANGES).
+        // Studio parity: 'both'/'mixed' mixes ascending and descending
+        // questions in one session.
+        $directions = in_array($direction, ['both', 'mixed'], true)
+            ? ['ascending', 'descending']
+            : [$direction];
+
+        // Explicit octave (legacy Learning Path / AI config) wins; otherwise
+        // pick an octave that keeps the whole scale (root + octave span)
+        // inside the selected clef's playable range (CLEF_RANGES).
         $octaveCfg = isset($cfg['octave']) ? (string) $cfg['octave'] : null;
         $clef = $cfg['clef'] ?? null;
 
         $pool = [];
         foreach ($scaleTypes as $type) {
             foreach ($roots as $root) {
-                if ($octaveCfg !== null) {
-                    $octave = $octaveCfg;
-                } elseif ($clef !== null) {
-                    $validOctaves = $this->octavesWithinClefRange($root, 12, $clef);
-                    if (empty($validOctaves)) {
+                foreach ($directions as $dir) {
+                    // Classical theory descends the melodic minor as natural
+                    // minor, so a descending jazz-form question would be
+                    // theoretically ambiguous — in mixed mode the melodic
+                    // minor only gets ascending variants.
+                    if ($dir === 'descending' && count($directions) > 1 && $type === 'Melodic Minor') {
                         continue;
                     }
-                    $octave = (string) $validOctaves[array_rand($validOctaves)];
-                } else {
-                    $octave = '4';
-                }
 
-                $otherOptions = $this->music->buildOptions($type, $distractors, min(3, count($distractors)));
+                    if ($octaveCfg !== null) {
+                        $octave = $octaveCfg;
+                    } elseif ($clef !== null) {
+                        $validOctaves = $this->octavesWithinClefRange($root, 12, $clef);
+                        if (empty($validOctaves)) {
+                            continue;
+                        }
+                        $octave = (string) $validOctaves[array_rand($validOctaves)];
+                    } else {
+                        $octave = '4';
+                    }
 
-                $q = new ScalePractice;
-                $q->id = null;
-                $q->scale_type = $type;
-                $q->root_note = $root;
-                $q->direction = $direction;
-                $q->octave = $octave;
-                if ($clef !== null) {
-                    $q->clef = $clef;
+                    $otherOptions = $this->music->buildOptions($type, $distractors, min(3, count($distractors)));
+
+                    $q = new ScalePractice;
+                    $q->id = null;
+                    $q->scale_type = $type;
+                    $q->root_note = $root;
+                    $q->direction = $dir;
+                    $q->octave = $octave;
+                    if ($clef !== null) {
+                        $q->clef = $clef;
+                    }
+                    // Playback tempo preset (slow|normal|fast) — teacher assignments.
+                    if (! empty($cfg['scale_tempo'])) {
+                        $q->tempo = $cfg['scale_tempo'];
+                    }
+                    $q->other_options = $otherOptions;
+                    $pool[] = $q;
                 }
-                $q->other_options = $otherOptions;
-                $pool[] = $q;
             }
         }
 
         return collect($this->shuffleTake($pool, $count));
     }
 
+    /**
+     * Map legacy lowercase scale slugs (old LP seed configs) to the canonical
+     * ScalePractice::scaleIntervals() keys. Unknown names pass through
+     * unchanged. Without this, an unmapped name silently falls back to Major
+     * intervals at playback while the answer key keeps the original label —
+     * the question sounds wrong.
+     */
+    private function canonicalScaleType(string $type): string
+    {
+        return [
+            'major' => 'Major',
+            'natural-minor' => 'Natural Minor',
+            'harmonic-minor' => 'Harmonic Minor',
+            'melodic-minor' => 'Melodic Minor',
+            'ionian' => 'Ionian',
+            'dorian' => 'Dorian',
+            'phrygian' => 'Phrygian',
+            'lydian' => 'Lydian',
+            'mixolydian' => 'Mixolydian',
+            'aeolian' => 'Aeolian',
+            'locrian' => 'Locrian',
+            'pentatonic-major' => 'Major Pentatonic',
+            'pentatonic-minor' => 'Minor Pentatonic',
+            'blues' => 'Blues Scale',
+            'chromatic' => 'Chromatic Scale',
+            'whole-tone' => 'Whole Tone Scale',
+        ][$type] ?? $type;
+    }
+
     // ── CHORDS ───────────────────────────────────────────────────────────────
 
     private function generateChords(array $cfg, int $count): Collection
     {
-        $chordTypes = $cfg['allowed_chord_types'] ?? ['major', 'minor'];
+        $chordTypes = array_map(
+            fn ($t) => $this->canonicalChordType($t),
+            $cfg['allowed_chord_types'] ?? ['Major', 'Minor']
+        );
         $roots = $cfg['allowed_root_notes'] ?? ['C', 'D', 'E', 'F', 'G'];
         $voicing = $cfg['voicing'] ?? 'block';
-        $inversions = $cfg['include_inversions'] ?? false;
-        $distractors = $cfg['distractor_pool'] ?? ['augmented', 'diminished'];
+        $distractors = array_map(
+            fn ($t) => $this->canonicalChordType($t),
+            $cfg['distractor_pool'] ?? []
+        );
+        // An empty pool (synthesis lessons) means "the lesson's own types are
+        // the answer vocabulary"; chordDistractors() tops up from the canonical
+        // pool when that still leaves fewer than 3 wrong options.
+        if (empty($distractors)) {
+            $distractors = $chordTypes;
+        }
 
-        $inversionValues = $inversions ? [0, 1, 2] : [0];
+        // Focused inversion lessons pass explicit inversion_values (e.g. [1]
+        // for a first-inversion-only lesson). include_inversions=true keeps
+        // the Exercise Setup behavior of mixing root position with both
+        // inversions.
+        if (! empty($cfg['inversion_values'])) {
+            $inversionValues = array_values(array_intersect(
+                array_map('intval', (array) $cfg['inversion_values']),
+                [0, 1, 2]
+            )) ?: [0];
+        } else {
+            $inversionValues = ($cfg['include_inversions'] ?? false) ? [0, 1, 2] : [0];
+        }
 
         // Explicit octave (Learning Path / AI config) wins; otherwise pick an
         // octave that keeps every chord tone (root + widest interval) inside
@@ -620,7 +720,7 @@ class LearningPathQuestionGenerator
                         $octave = '4';
                     }
 
-                    $otherOptions = $this->music->buildOptions($type, $distractors, min(3, count($distractors)));
+                    $otherOptions = $this->chordDistractors($type, $distractors);
 
                     $q = new ChordPractice;
                     $q->id = null;
@@ -641,6 +741,84 @@ class LearningPathQuestionGenerator
         return collect($this->shuffleTake($pool, $count));
     }
 
+    /**
+     * Map legacy lowercase chord slugs (old LP seed configs) to the canonical
+     * ChordPractice::chordIntervals() keys. Unknown names pass through
+     * unchanged. Without this, an unmapped type silently falls back to Major
+     * intervals at playback while the answer key keeps the original label —
+     * the question sounds wrong.
+     */
+    private function canonicalChordType(string $type): string
+    {
+        return [
+            'major' => 'Major',
+            'minor' => 'Minor',
+            'diminished' => 'Diminished',
+            'augmented' => 'Augmented',
+            'sus2' => 'Sus2',
+            'sus4' => 'Sus4',
+            'major7' => 'Major 7th',
+            'dominant7' => 'Dominant 7th',
+            'minor7' => 'Minor 7th',
+            'minor-major7' => 'Minor Major 7th',
+            'half-diminished7' => 'Half-Diminished 7th',
+            'half-diminished' => 'Half-Diminished 7th',
+            'diminished7' => 'Diminished 7th',
+            'augmented7' => 'Augmented 7th',
+            'major6' => 'Major 6th',
+            'minor6' => 'Minor 6th',
+            'add9' => 'Add9',
+            'minor-add9' => 'Minor Add9',
+        ][strtolower($type)] ?? $type;
+    }
+
+    /**
+     * Pick 3 wrong answer options for a chord question. Excludes the correct
+     * type and any acoustic twin of it (a pool entry with the identical
+     * interval set, e.g. the legacy 'Half Diminished' alias of
+     * 'Half-Diminished 7th' — two buttons would both be right). Narrow pools
+     * are topped up from the full canonical vocabulary so no question ever
+     * renders with fewer than 4 choices.
+     */
+    private function chordDistractors(string $correct, array $pool): array
+    {
+        $intervals = ChordPractice::chordIntervals();
+        $correctIntervals = $intervals[$correct] ?? null;
+
+        // Dedupe by sound, not just by name: two options that share an
+        // interval set (e.g. 'Half Diminished' + 'Half-Diminished 7th') are
+        // the same chord twice.
+        $filter = function (array $candidates, array $taken) use ($correct, $intervals, $correctIntervals): array {
+            $seenSounds = array_map(fn ($n) => $intervals[$n] ?? $n, $taken);
+            if ($correctIntervals !== null) {
+                $seenSounds[] = $correctIntervals;
+            }
+            $out = [];
+            foreach ($candidates as $name) {
+                $sound = $intervals[$name] ?? $name;
+                if ($name === $correct || in_array($name, $taken) || in_array($name, $out) || in_array($sound, $seenSounds, true)) {
+                    continue;
+                }
+                $seenSounds[] = $sound;
+                $out[] = $name;
+            }
+
+            return $out;
+        };
+
+        $options = $filter($pool, []);
+        shuffle($options);
+        $options = array_slice($options, 0, 3);
+
+        if (count($options) < 3) {
+            $fallback = $filter(array_keys($intervals), $options);
+            shuffle($fallback);
+            $options = array_merge($options, array_slice($fallback, 0, 3 - count($options)));
+        }
+
+        return $options;
+    }
+
     // ── RHYTHM ───────────────────────────────────────────────────────────────
 
     private function generateRhythm(array $cfg, int $count): Collection
@@ -651,6 +829,7 @@ class LearningPathQuestionGenerator
         $difficulty = $cfg['rhythm_difficulty'] ?? 'medium';
         $allowedValues = $cfg['allowed_note_values'] ?? null;
         $includeRests = $cfg['include_rests'] ?? false;
+        $excludeCells = $cfg['exclude_cells'] ?? [];
 
         $pool = [];
 
@@ -687,14 +866,30 @@ class LearningPathQuestionGenerator
                             $cells[] = ['len' => $len, 'tokens' => [$token]];
                         }
                     }
-                    // eighth_rest: two per beat (8r + 8r = 1 quarter-beat)
+                    // eighth_rest pairs with an eighth note inside one beat: rest on the
+                    // beat (the canonical off-beat figure) or note-then-rest. Two eighth
+                    // rests in a row are never generated — that duration is notated as a
+                    // quarter rest.
                     if (in_array('eighth_rest', $allowedValues)) {
-                        $cells[] = ['len' => 1, 'tokens' => ['eighth_rest', 'eighth_rest']];
+                        $cells[] = ['len' => 1, 'tokens' => ['eighth_rest', 'eighth']];
+                        $cells[] = ['len' => 1, 'tokens' => ['eighth', 'eighth_rest']];
                     }
                 }
             }
 
-            for ($i = 0; $i < max(20, $count * 2); $i++) {
+            // Lesson-scoped cell exclusion: drop cells whose exact token sequence is
+            // listed (comma-joined), e.g. the syncopated 'eighth,quarter,eighth' cell
+            // in a lesson that teaches dotted figures. A 1-beat non-excluded cell must
+            // remain so the meter can still be filled — seeded configs guarantee this.
+            if (! empty($excludeCells)) {
+                $cells = array_values(array_filter(
+                    $cells,
+                    fn ($c) => ! in_array(implode(',', $c['tokens']), $excludeCells, true)
+                ));
+            }
+
+            $seenPatterns = [];
+            for ($i = 0; $i < max(80, $count * 8); $i++) {
                 $pattern = $this->assembleRhythmBars($cells, $beats, $bars);
                 if (empty($pattern)) {
                     continue;
@@ -708,9 +903,20 @@ class LearningPathQuestionGenerator
                     }
                 }
 
+                // Skip patterns already in the pool so narrow configs still
+                // produce as many distinct rhythms as the space allows.
+                $patternKey = implode(',', $pattern);
+                if (isset($seenPatterns[$patternKey])) {
+                    continue;
+                }
+                $seenPatterns[$patternKey] = true;
+
                 // Near-miss distractors via RhythmDistractorService; fall back to random
                 // assembly if the service cannot produce enough variants (e.g. all-whole-note bar).
-                $otherOptions = $this->rhythmDistractor->generate($pattern, $timeSig, $difficulty);
+                // Constrain distractors to the lesson vocabulary so focused lessons never
+                // surface note values they have not taught yet (e.g. sixteenths in an
+                // eighth-note lesson).
+                $otherOptions = $this->rhythmDistractor->generate($pattern, $timeSig, $difficulty, $allowedValues);
                 if (count($otherOptions) < 3) {
                     for ($j = 0; count($otherOptions) < 3 && $j < 12; $j++) {
                         $alt = $this->assembleRhythmBars($cells, $beats, $bars);
@@ -803,15 +1009,20 @@ class LearningPathQuestionGenerator
                         $fitting = $calm; // a 1-beat calm cell always exists, so the bar still completes
                     }
                 }
-                // Bars must start on a note beat; rest cells that would exceed the budget are
-                // removed per-cell so that smaller rests remain available.
+                // Bars must start on a sounded note — a cell whose FIRST token is a rest
+                // cannot open the bar (a note-then-rest cell like [eighth, eighth_rest]
+                // may). Rest cells that would exceed the budget are removed per-cell so
+                // that smaller rests remain available.
                 $restBudget = $maxRestBeats - $restBeatsUsed;
                 $fitting = array_values(array_filter($fitting, function ($c) use ($isRest, $barStart, $restBudget) {
                     if (! $isRest($c)) {
                         return true;
                     }
+                    if ($barStart && str_contains($c['tokens'][0], '_rest')) {
+                        return false;
+                    }
 
-                    return ! $barStart && $c['len'] <= $restBudget;
+                    return $c['len'] <= $restBudget;
                 }));
                 // Safety net: if all candidates were rest-filtered, fall back to non-rest cells.
                 if (empty($fitting)) {
@@ -911,7 +1122,7 @@ class LearningPathQuestionGenerator
 
     private function generateMelodicDictation(array $cfg, int $count): Collection
     {
-        $notePool = $cfg['note_pool'] ?? ['C4', 'D4', 'E4', 'F4', 'G4'];
+        $notePool = $cfg['note_pool'] ?? [];
         $melodyLength = $cfg['melody_length'] ?? 4;
         $clef = $cfg['clef'] ?? 'treble';
         $keySigs = $cfg['key_signatures'] ?? ['C'];
@@ -920,24 +1131,72 @@ class LearningPathQuestionGenerator
         $bars = $cfg['bars'] ?? 1;
         $difficulty = $cfg['difficulty'] ?? 'beginner';
         $mode = $cfg['mode'] ?? 'major'; // 'major' or 'minor'
+        // Focused Learning Path lessons pin the accidental treatment
+        // (none/harmonic/melodic); 'auto' = Studio difficulty-based mix.
+        $accidentals = $cfg['accidentals'] ?? $cfg['minor_flavor'] ?? 'auto';
 
         // Melodies are generated tonally inside the configured key: the
         // TonalMelodyGenerator anchors start/end on tonic-triad degrees and
         // enforces stepwise-dominant, leap-resolved, range-capped motion.
+        // A configured note_pool gives a focused lesson register (single-key
+        // lessons only — pool notes must be diatonic to the key); without one
+        // the Studio clef range (CLEF_RANGES) supplies the pool per key.
         $contexts = [];
         foreach ($keySigs as $keySig) {
-            $contexts[$keySig] = $this->melodyGenerator->contextFromPool($notePool, $keySig, $mode);
+            $contexts[$keySig] = ! empty($notePool)
+                ? $this->melodyGenerator->contextFromPool($notePool, $keySig, $mode)
+                : $this->melodyGenerator->contextForKey($keySig, $mode, $clef);
+        }
+
+        // Rhythmic dictation: the melody length follows the generated
+        // beat-pattern rhythm (same engine as the Exercise Setup flow), so
+        // notes[] and note_values[] are always in sync.
+        $timeSig = $cfg['time_signature'] ?? '4/4';
+        $allowedNoteValues = array_values(array_filter(
+            $cfg['allowed_note_values'] ?? ['quarter', 'eighth'],
+            fn ($v) => ! str_ends_with((string) $v, '_rest'),
+        ));
+        if (empty($allowedNoteValues)) {
+            $allowedNoteValues = ['quarter'];
         }
 
         $unique = [];
         $seen = [];
 
-        for ($i = 0; $i < max($count * 4, 40) && count($unique) < $count * 2; $i++) {
+        // Narrow focused pools (e.g. a 3-note beginner lesson) collide often —
+        // allow plenty of attempts so the full question count is still reached.
+        for ($i = 0; $i < max($count * 12, 120) && count($unique) < $count * 2; $i++) {
             $keySig = $keySigs[array_rand($keySigs)];
-            $melody = $this->melodyGenerator->generateMelody($melodyLength, $contexts[$keySig], $difficulty);
-            $melody = $this->melodyGenerator->applyAccidentals($melody, $keySig, $mode, $difficulty);
 
-            $key = implode(',', $melody);
+            $noteValues = null;
+            $length = $melodyLength;
+            if ($includeRhythm) {
+                $noteValues = $this->dictationRhythm->generateBeatPatternRhythm($bars, $timeSig, $allowedNoteValues);
+                $length = count($noteValues);
+            }
+
+            $melody = $this->melodyGenerator->generateMelody($length, $contexts[$keySig], $difficulty);
+
+            // Focused harmonic / melodic minor lessons must actually sound their
+            // signature accidental (leading tone, raised 6–7) in every question —
+            // force an ascending cadence into the tonic when the generated line
+            // lacks one, so applyAccidentals() has something to raise.
+            $isFocusedMinor = $mode === 'minor' && in_array($accidentals, ['harmonic', 'melodic'], true);
+            if ($isFocusedMinor) {
+                $melody = $this->melodyGenerator->ensureMinorCadence(
+                    $melody, $keySig, $accidentals, $contexts[$keySig]['pool'], $difficulty
+                );
+            }
+
+            $melody = $this->melodyGenerator->applyAccidentals($melody, $keySig, $mode, $difficulty, $accidentals);
+
+            // Reject any focused-minor candidate the cadence guarantee couldn't
+            // secure, so no question is left without its target accidental.
+            if ($isFocusedMinor && ! $this->melodyGenerator->melodyMeetsMinorFlavor($melody, $keySig, $accidentals)) {
+                continue;
+            }
+
+            $key = $keySig.'|'.implode(',', $melody).'|'.($noteValues ? implode(',', $noteValues) : '');
             if (isset($seen[$key])) {
                 continue;
             }
@@ -949,9 +1208,18 @@ class LearningPathQuestionGenerator
             $q->bars = $bars;
             $q->clef = $clef;
             $q->key_signature = $keySig;
-            $q->tonic = $keySig;
+            // Minor lessons notate in the relative major's key signature but
+            // are anchored (and labelled) on the relative minor tonic.
+            $q->tonic = $mode === 'minor'
+                ? $this->melodyGenerator->relativeMinorRoot($keySig)
+                : $keySig;
+            $q->mode = $mode;
             $q->tempo = rand($tempoRange[0], $tempoRange[1]);
             $q->include_rhythm = $includeRhythm;
+            if ($noteValues !== null) {
+                $q->note_values = $noteValues;
+                $q->time_signature = $timeSig;
+            }
             $unique[] = $q;
         }
 
@@ -968,6 +1236,10 @@ class LearningPathQuestionGenerator
         $octaveCfg = $cfg['octave_range'] ?? null;
         $clef = $cfg['clef'] ?? null;
         $distractorCount = $cfg['distractor_count'] ?? 3;
+        // Per-lesson key labelling ('note-names' | 'keyboard') travels on the
+        // question so the practice blade can honour it in the LP flow, where
+        // no exercise_settings exist.
+        $answerMode = $cfg['answer_mode'] ?? null;
 
         $pool = [];
         foreach ($notes as $note) {
@@ -982,7 +1254,7 @@ class LearningPathQuestionGenerator
                 $octaveRange = ['4'];
             }
             foreach ($octaveRange as $octave) {
-                $distractors = $this->music->buildOptions($note, $notes, min(3, count($notes) - 1));
+                $distractors = $this->music->buildOptions($note, $notes, min($distractorCount, count($notes) - 1));
                 $allOptions = array_merge([$note], $distractors);
                 shuffle($allOptions);
 
@@ -992,11 +1264,60 @@ class LearningPathQuestionGenerator
                 $q->target_type = 'note';
                 $q->other_options = implode(',', $allOptions);
                 $q->octave = $octave;
+                if ($clef !== null) {
+                    $q->clef = $clef;
+                }
+                if ($answerMode !== null) {
+                    $q->answer_mode = $answerMode;
+                }
+                $q->reference_note = $this->pickReferenceNote($note, (int) $octave, $clef);
                 $pool[] = $q;
             }
         }
 
         return collect($this->shuffleTake($pool, $count));
+    }
+
+    /**
+     * Reference note played before a single-note question: a natural note
+     * with a different letter than the target, in the same octave, kept
+     * inside the clef's playable range when a clef is known.
+     */
+    private function pickReferenceNote(string $target, int $octave, ?string $clef): string
+    {
+        $naturals = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        $targetLetter = strtoupper(substr($target, 0, 1));
+
+        if ($clef === null) {
+            $candidates = array_values(array_filter($naturals, fn ($n) => $n !== $targetLetter));
+
+            return $candidates[array_rand($candidates)].$octave;
+        }
+
+        // Prefer the target's own octave; when the target sits at the edge of
+        // the clef range (e.g. C4 in bass, where every other natural of octave
+        // 4 is out of range), fall back to a neighbouring octave rather than
+        // leaving the clef's playable range.
+        [$min, $max] = $this->music->clefRangeMidi($clef);
+        foreach ([$octave, $octave - 1, $octave + 1] as $oct) {
+            $candidates = [];
+            foreach ($naturals as $n) {
+                if ($n === $targetLetter) {
+                    continue;
+                }
+                $midi = $this->music->midiNumber($n, $oct);
+                if ($midi !== null && $midi >= $min && $midi <= $max) {
+                    $candidates[] = $n.$oct;
+                }
+            }
+            if (! empty($candidates)) {
+                return $candidates[array_rand($candidates)];
+            }
+        }
+
+        $candidates = array_values(array_filter($naturals, fn ($n) => $n !== $targetLetter));
+
+        return $candidates[array_rand($candidates)].$octave;
     }
 
     // ── UTILITIES ────────────────────────────────────────────────────────────
@@ -1006,17 +1327,63 @@ class LearningPathQuestionGenerator
         return $this->music->intervalPairSemitones($pair);
     }
 
+    /**
+     * Pick $count questions from the pool, maximising variety: distinct
+     * questions are always exhausted before anything repeats, and when the
+     * pool is smaller than $count the repeats are spread out (never the same
+     * question twice in a row) instead of naive duplication.
+     */
     private function shuffleTake(array $pool, int $count): array
     {
         if (empty($pool)) {
             return [];
         }
-        while (count($pool) < $count) {
-            $pool = array_merge($pool, $pool);
-        }
+
         shuffle($pool);
 
-        return array_slice($pool, 0, $count);
+        $unique = [];
+        $seen = [];
+        foreach ($pool as $q) {
+            $key = $this->questionVariantKey($q);
+            if (! isset($seen[$key])) {
+                $seen[$key] = true;
+                $unique[] = $q;
+            }
+        }
+
+        $result = array_slice($unique, 0, $count);
+
+        while (count($result) < $count) {
+            $cycle = $unique;
+            shuffle($cycle);
+            // Avoid an immediate repeat at the seam between cycles.
+            if (count($cycle) > 1
+                && $this->questionVariantKey(end($result)) === $this->questionVariantKey($cycle[0])) {
+                [$cycle[0], $cycle[1]] = [$cycle[1], $cycle[0]];
+            }
+            foreach ($cycle as $q) {
+                if (count($result) >= $count) {
+                    break;
+                }
+                $result[] = $q;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Identity of a question for variety purposes: the musical content only.
+     * Options order, tempo jitter and ids are ignored so two questions that
+     * merely differ in shuffled choices still count as the same question.
+     */
+    private function questionVariantKey(object $q): string
+    {
+        $attrs = $q->getAttributes();
+        unset($attrs['id'], $attrs['options'], $attrs['other_options'], $attrs['tempo']);
+        ksort($attrs);
+
+        return md5(json_encode($attrs));
     }
 
     private function beatsPerMeasure(string $timeSig): int

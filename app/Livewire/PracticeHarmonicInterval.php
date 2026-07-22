@@ -113,7 +113,13 @@ class PracticeHarmonicInterval extends Component
             'currentPractice' => $currentPractice,
             'currentPracticeIndex' => $this->currentPracticeIndex,
             'intervalOptions' => $data['options'] ?? null,
-            'clef' => $this->clef,
+            // Teacher-assignment/LP questions carry their own clef; the
+            // component-level clef only covers the Exercise Setup flow.
+            // Named staffClef because Livewire injects public properties into
+            // the view AFTER render data — a 'clef' key here would be
+            // clobbered by the $clef property (always 'treble' outside the
+            // Studio flow).
+            'staffClef' => $data['clef'] ?? $this->clef,
         ]);
     }
 

@@ -4,15 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\FeedItem;
 use App\Models\GameScore;
+use App\Services\UsageQuotaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GameController extends Controller
 {
-    const GUEST_PLAYS_PER_TYPE = 1;
-
-    const GUEST_PLAYS_TOTAL = 3;
-
     public const GAMES = [
         'note-fall' => [
             'name' => 'Note Fall',
@@ -173,13 +170,14 @@ class GameController extends Controller
                 ? GameScore::userRank($user->id, $slug, weekly: true)
                 : null;
         } else {
-            // Guest: session-based tracking (one-time, not daily)
-            $guestPlays = session('guest_game_plays', []);
-            $dailyPlaysUsed = $guestPlays[$slug] ?? 0;
-            $totalPlaysUsed = array_sum($guestPlays);
-            $perTypeLimit = self::GUEST_PLAYS_PER_TYPE;
-            $totalLimit = self::GUEST_PLAYS_TOTAL;
-            $canPlay = $dailyPlaysUsed < $perTypeLimit && $totalPlaysUsed < $totalLimit;
+            // Guest: server-side per-game daily counter (renews every day).
+            // Only Level 1 is playable; level 2+ prompts sign-up in the UI.
+            $usage = app(UsageQuotaService::class);
+            $dailyPlaysUsed = $usage->guestUsed(request(), UsageQuotaService::FEATURE_GAME_PREFIX.$slug);
+            $totalPlaysUsed = $dailyPlaysUsed;
+            $perTypeLimit = (int) config('plans.guest.games_daily_plays_per_type', 1);
+            $totalLimit = -1; // no separate all-games cap; each game is capped per day
+            $canPlay = $dailyPlaysUsed < $perTypeLimit;
         }
 
         $scoreUrl = $user
@@ -199,12 +197,15 @@ class GameController extends Controller
             }
         }
 
+        // Guests may only play level 1; higher levels prompt sign-up.
+        $guestMaxLevel = $user ? null : (int) config('plans.guest.games_max_level', 1);
+
         return view('games.show', compact(
             'slug', 'game', 'personalBest', 'personalBestRecord',
             'perTypeLimit', 'totalLimit', 'dailyPlaysUsed', 'totalPlaysUsed', 'canPlay',
             'canAccessLeaderboard', 'scoreUrl',
             'weeklyLeaderboard', 'allTimeLeaderboard', 'userWeeklyRank',
-            'maxUnlockedLevel'
+            'maxUnlockedLevel', 'guestMaxLevel'
         ));
     }
 
@@ -212,14 +213,13 @@ class GameController extends Controller
     {
         abort_unless(array_key_exists($slug, self::GAMES), 404);
 
-        $guestPlays = session('guest_game_plays', []);
-        $guestPlays[$slug] = ($guestPlays[$slug] ?? 0) + 1;
-        session(['guest_game_plays' => $guestPlays]);
+        // Guest scores are never persisted — only the daily play counter is.
+        $usage = app(UsageQuotaService::class);
+        $feature = UsageQuotaService::FEATURE_GAME_PREFIX.$slug;
+        $usage->guestIncrement($request, $feature);
 
-        $playsThisType = $guestPlays[$slug];
-        $totalPlays = array_sum($guestPlays);
-        $canPlayAgain = $playsThisType < self::GUEST_PLAYS_PER_TYPE
-                         && $totalPlays < self::GUEST_PLAYS_TOTAL;
+        $perTypeLimit = (int) config('plans.guest.games_daily_plays_per_type', 1);
+        $canPlayAgain = $usage->guestUsed($request, $feature) < $perTypeLimit;
 
         return response()->json([
             'success' => true,

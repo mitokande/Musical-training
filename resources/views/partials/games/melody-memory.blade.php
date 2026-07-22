@@ -20,7 +20,7 @@
             </a>
         @else
             @if(auth()->user()->plan === 'free')
-            <a href="{{ route('profile.edit') }}"
+            <a href="{{ route('checkout.show') }}"
                class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
                 {{ __('app.games.upgrade_premium') }}
             </a>
@@ -106,8 +106,7 @@
         {{-- Level info cards (tıklanabilir, açık olanlar) --}}
         <div class="flex gap-2 justify-center flex-wrap">
             <template x-for="lvl in [1,2,3]" :key="lvl">
-                <button @click="isLevelUnlocked(lvl) && startLevel(lvl)"
-                        :disabled="!isLevelUnlocked(lvl)"
+                <button @click="isLevelUnlocked(lvl) ? startLevel(lvl) : (window.GAME_GUEST_MAX_LEVEL && window.showGameSignupModal())"
                         class="flex flex-col items-center px-4 py-2.5 rounded-xl border transition-all"
                         :class="lvl === recommendedLevel
                             ? 'border-purple-400/60 bg-purple-400/8 hover:bg-purple-400/14 cursor-pointer'
@@ -518,6 +517,11 @@ function melodyMemoryGame() {
         // ── Start a level ─────────────────────────────────────────────────────
         startLevel(level) {
             if (!this.isLevelUnlocked(level)) return;
+            // Guests may only play level 1 — anything higher prompts sign-up.
+            if (window.gameLevelAllowed && !window.gameLevelAllowed(level)) {
+                window.showGameSignupModal();
+                return;
+            }
             if (window.HarmonivaAudio) HarmonivaAudio.warmup();
             this.currentLevel      = level;
             this.consecutiveStreak = 0;
@@ -678,6 +682,16 @@ function melodyMemoryGame() {
 
         _onLevelComplete() {
             const next = this.currentLevel + 1;
+            // Guest gate: completing level 1 as a guest ends the run with a
+            // sign-up prompt instead of unlocking level 2.
+            if (window.gameLevelAllowed && !window.gameLevelAllowed(next)) {
+                this._saveScore(false, this.currentLevel);
+                this.isNewBest = false;
+                this.phase = 'gameover';
+                this.$nextTick(() => lucide.createIcons());
+                window.showGameSignupModal();
+                return;
+            }
             if (next <= 3) {
                 this.maxUnlockedLevel = Math.max(this.maxUnlockedLevel, next);
                 this._saveScore(true, next);

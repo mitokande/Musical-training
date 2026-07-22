@@ -20,22 +20,31 @@ class TeacherProfileModerationController extends Controller
     public function index(Request $request): View
     {
         $status = $request->query('status', 'all');
+        $entity = $request->query('entity', 'all'); // all | teacher | school
 
         $profiles = TeacherProfile::with('user')
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($entity !== 'all', fn ($q) => $q->where('entity_type', $entity))
             ->latest('submitted_at')
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
 
         $counts = TeacherProfile::selectRaw('status, count(*) as total')
+            ->when($entity !== 'all', fn ($q) => $q->where('entity_type', $entity))
             ->groupBy('status')
             ->pluck('total', 'status');
+
+        $entityCounts = TeacherProfile::selectRaw('entity_type, count(*) as total')
+            ->groupBy('entity_type')
+            ->pluck('total', 'entity_type');
 
         return view('admin.teacher-profiles.index', [
             'profiles' => $profiles,
             'counts' => $counts,
             'status' => $status,
+            'entity' => $entity,
+            'entityCounts' => $entityCounts,
         ]);
     }
 

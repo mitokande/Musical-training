@@ -16,13 +16,26 @@
             'all' => __('teacher.admin.all'),
         ];
     @endphp
-    <div class="flex flex-wrap gap-2 mb-6">
+    <div class="flex flex-wrap gap-2 mb-3">
         @foreach($tabs as $key => $label)
-            <a href="{{ route('admin.teacher-profiles.index', ['status' => $key]) }}"
+            <a href="{{ route('admin.teacher-profiles.index', ['status' => $key, 'entity' => $entity]) }}"
                class="px-4 py-2 rounded-lg text-sm font-semibold transition {{ $status === $key ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
                 {{ $label }}
                 @if($key !== 'all' && ($counts[$key] ?? 0) > 0)
                     <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] {{ $status === $key ? 'bg-white/20' : 'bg-gray-100 text-gray-500' }}">{{ $counts[$key] }}</span>
+                @endif
+            </a>
+        @endforeach
+    </div>
+
+    {{-- Entity filter: teachers vs music schools --}}
+    <div class="flex flex-wrap gap-2 mb-6">
+        @foreach(['all' => __('teacher.admin.all'), 'teacher' => __('teacher.nav.role_teacher'), 'school' => __('school.admin.entity_school')] as $key => $label)
+            <a href="{{ route('admin.teacher-profiles.index', ['status' => $status, 'entity' => $key]) }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $entity === $key ? 'bg-gray-800 text-white' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200' }}">
+                {{ $label }}
+                @if($key !== 'all' && ($entityCounts[$key] ?? 0) > 0)
+                    <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] {{ $entity === $key ? 'bg-white/20' : 'bg-gray-100 text-gray-500' }}">{{ $entityCounts[$key] }}</span>
                 @endif
             </a>
         @endforeach
@@ -50,8 +63,13 @@
                                     <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">{{ strtoupper(substr($profile->user->name, 0, 1)) }}</div>
                                 @endif
                                 <div>
-                                    <p class="font-semibold text-gray-900">{{ $profile->displayName() }}</p>
-                                    <p class="text-xs text-gray-400">{{ $profile->user->email }} · /teachers/{{ $profile->slug }}</p>
+                                    <p class="font-semibold text-gray-900">
+                                        {{ $profile->displayName() }}
+                                        @if($profile->isSchoolEntity())
+                                            <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700">{{ __('school.admin.entity_school') }}</span>
+                                        @endif
+                                    </p>
+                                    <p class="text-xs text-gray-400">{{ $profile->user->email }} · /{{ $profile->isSchoolEntity() ? 'schools' : 'teachers' }}/{{ $profile->slug }}</p>
                                 </div>
                             </div>
                         </td>

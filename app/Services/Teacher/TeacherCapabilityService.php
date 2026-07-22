@@ -15,20 +15,30 @@ use App\Models\User;
  */
 class TeacherCapabilityService
 {
-    /** Capabilities every teacher account has, regardless of tier. */
+    /**
+     * Capabilities every teacher account has, regardless of tier.
+     * Student management, assignments and messaging are basic-tier features
+     * with hard quotas (CrmQuotaService): 5 free students, 2 active
+     * assignments, 5 sent messages/day, 5 documents. Premium removes the caps.
+     */
     private const BASIC_CAPABILITIES = [
         'viewTeacherCrm',
         'editProfile',
         'submitProfileForReview',
         'receiveMessages',
+        'replyToMessages',
+        'manageStudents',
+        'createAssignments',
+    ];
+
+    /** Capabilities exclusive to school accounts (entity_type=school), any tier. */
+    private const SCHOOL_CAPABILITIES = [
+        'manageTeachers',
     ];
 
     /** Capabilities that require the premium teacher tier. */
     private const PREMIUM_CAPABILITIES = [
-        'replyToMessages',
-        'manageStudents',
         'createClasses',
-        'createAssignments',
         'viewStudentAnalytics',
         'manageAvailability',
         'acceptAppointments',
@@ -48,8 +58,21 @@ class TeacherCapabilityService
             return true;
         }
 
+        if (in_array($capability, self::SCHOOL_CAPABILITIES, true)) {
+            return $user->teacherProfile?->isSchoolEntity() ?? false;
+        }
+
         if (in_array($capability, self::PREMIUM_CAPABILITIES, true)) {
-            return $user->teacherTier() === TeacherProfile::TIER_PREMIUM;
+            // School accounts get the full toolset on every tier — their
+            // limits (max teachers/students) come from config/plans.php.
+            // An active school membership grants the premium toolset to a
+            // member teacher for as long as the membership lasts.
+            // An earned free-period benefit (premium-student incentive) also
+            // unlocks the premium toolset for as long as it is active.
+            return $user->teacherTier() === TeacherProfile::TIER_PREMIUM
+                || ($user->teacherProfile?->isSchoolEntity() ?? false)
+                || $user->hasActiveSchoolMembership()
+                || $user->isEffectivelyPremium();
         }
 
         return false;
@@ -58,7 +81,7 @@ class TeacherCapabilityService
     /** Full capability map, e.g. for rendering locked/unlocked CRM navigation. */
     public function capabilities(User $user): array
     {
-        $all = array_merge(self::BASIC_CAPABILITIES, self::PREMIUM_CAPABILITIES);
+        $all = array_merge(self::BASIC_CAPABILITIES, self::SCHOOL_CAPABILITIES, self::PREMIUM_CAPABILITIES);
 
         return collect($all)
             ->mapWithKeys(fn (string $cap) => [$cap => $this->can($user, $cap)])
@@ -120,5 +143,10 @@ class TeacherCapabilityService
     public function canUseAIHomeworkBuilder(User $user): bool
     {
         return $this->can($user, 'useAIHomeworkBuilder');
+    }
+
+    public function canManageTeachers(User $user): bool
+    {
+        return $this->can($user, 'manageTeachers');
     }
 }

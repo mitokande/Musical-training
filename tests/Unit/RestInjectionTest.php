@@ -2,7 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Livewire\PracticeMelodicDictation;
 use App\Models\LearningPathExercise;
+use App\Services\DictationRhythmService;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
 use App\Services\RhythmDistractorService;
@@ -25,11 +27,12 @@ class RestInjectionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $groupingSvc  = new RhythmGroupingService;
+        $groupingSvc = new RhythmGroupingService;
         $this->generator = new LearningPathQuestionGenerator(
             new MusicTheoryService,
             new TonalMelodyGenerator,
             new RhythmDistractorService($groupingSvc),
+            new DictationRhythmService,
         );
     }
 
@@ -46,7 +49,7 @@ class RestInjectionTest extends TestCase
     public function test_inject_one_rest_replaces_exactly_one_token(): void
     {
         $pattern = ['quarter', 'quarter', 'half'];
-        $result  = $this->callInjectOneRest($pattern);
+        $result = $this->callInjectOneRest($pattern);
 
         $this->assertNotNull($result);
         $rests = array_filter($result, fn ($t) => str_contains($t, '_rest'));
@@ -77,7 +80,7 @@ class RestInjectionTest extends TestCase
             [['quarter', 'eighth'],  'eighth_rest'],
         ];
         foreach ($pairs as [$pattern, $expectedRest]) {
-            $result  = $this->callInjectOneRest($pattern);
+            $result = $this->callInjectOneRest($pattern);
             $this->assertNotNull($result);
             $this->assertContains($expectedRest, $result, "Expected {$expectedRest} in result");
         }
@@ -87,7 +90,7 @@ class RestInjectionTest extends TestCase
     {
         // Only sixteenth notes (too short to map) after position 0
         $pattern = ['quarter', 'sixteenth', 'sixteenth', 'sixteenth', 'sixteenth'];
-        $result  = $this->callInjectOneRest($pattern);
+        $result = $this->callInjectOneRest($pattern);
         $this->assertNull($result, 'Should return null when no eligible token exists');
     }
 
@@ -106,17 +109,17 @@ class RestInjectionTest extends TestCase
     private function makeRhythmExercise(bool $includeRests, string $timeSig = '4/4'): LearningPathExercise
     {
         return new LearningPathExercise(['config_json' => [
-            'practice_type'    => 'rhythm-practice',
-            'time_signatures'  => [$timeSig],
-            'tempo_range'      => [80, 80],
-            'bars'             => 1,
-            'include_rests'    => $includeRests,
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => [$timeSig],
+            'tempo_range' => [80, 80],
+            'bars' => 1,
+            'include_rests' => $includeRests,
         ]]);
     }
 
     public function test_rhythm_with_rests_enabled_produces_exactly_one_rest_per_question(): void
     {
-        $exercise  = $this->makeRhythmExercise(true);
+        $exercise = $this->makeRhythmExercise(true);
         $questions = $this->generator->generate($exercise, 10);
 
         $this->assertCount(10, $questions);
@@ -133,7 +136,7 @@ class RestInjectionTest extends TestCase
 
     public function test_rhythm_with_rests_disabled_produces_no_rests(): void
     {
-        $exercise  = $this->makeRhythmExercise(false);
+        $exercise = $this->makeRhythmExercise(false);
         $questions = $this->generator->generate($exercise, 10);
 
         $this->assertCount(10, $questions);
@@ -151,7 +154,7 @@ class RestInjectionTest extends TestCase
     public function test_rhythm_rest_duration_is_never_smaller_than_eighth(): void
     {
         $forbidden = ['sixteenth_rest', 'thirty_second_rest'];
-        $exercise  = $this->makeRhythmExercise(true);
+        $exercise = $this->makeRhythmExercise(true);
         $questions = $this->generator->generate($exercise, 15);
 
         foreach ($questions as $q) {
@@ -167,7 +170,7 @@ class RestInjectionTest extends TestCase
 
     public function test_rhythm_rest_question_first_token_is_never_rest(): void
     {
-        $exercise  = $this->makeRhythmExercise(true);
+        $exercise = $this->makeRhythmExercise(true);
         $questions = $this->generator->generate($exercise, 20);
 
         foreach ($questions as $q) {
@@ -184,7 +187,7 @@ class RestInjectionTest extends TestCase
 
     public function test_rhythm_with_rests_in_3_4(): void
     {
-        $exercise  = $this->makeRhythmExercise(true, '3/4');
+        $exercise = $this->makeRhythmExercise(true, '3/4');
         $questions = $this->generator->generate($exercise, 10);
 
         foreach ($questions as $q) {
@@ -199,10 +202,10 @@ class RestInjectionTest extends TestCase
 
     // ── injectOneRestIntoMelody via reflection ───────────────────────────────
 
-    private function makeComponent(): \App\Livewire\PracticeMelodicDictation
+    private function makeComponent(): PracticeMelodicDictation
     {
         // Instantiate without triggering mount
-        return new \App\Livewire\PracticeMelodicDictation;
+        return new PracticeMelodicDictation;
     }
 
     private function callInjectMelodyRest(array $notes, array $noteValues): array
@@ -216,7 +219,7 @@ class RestInjectionTest extends TestCase
 
     public function test_melody_rest_injection_produces_exactly_one_rest(): void
     {
-        $notes      = ['C4', 'D4', 'E4', 'F4'];
+        $notes = ['C4', 'D4', 'E4', 'F4'];
         $noteValues = ['quarter', 'quarter', 'quarter', 'quarter'];
 
         [$newNotes, $newValues] = $this->callInjectMelodyRest($notes, $noteValues);
@@ -227,7 +230,7 @@ class RestInjectionTest extends TestCase
 
     public function test_melody_rest_position_has_null_pitch(): void
     {
-        $notes      = ['C4', 'D4', 'E4', 'F4', 'G4'];
+        $notes = ['C4', 'D4', 'E4', 'F4', 'G4'];
         $noteValues = ['quarter', 'quarter', 'quarter', 'quarter', 'quarter'];
 
         [$newNotes, $newValues] = $this->callInjectMelodyRest($notes, $noteValues);
@@ -247,7 +250,7 @@ class RestInjectionTest extends TestCase
 
     public function test_melody_rest_never_at_position_zero(): void
     {
-        $notes      = ['C4', 'D4', 'E4', 'F4'];
+        $notes = ['C4', 'D4', 'E4', 'F4'];
         $noteValues = ['quarter', 'quarter', 'quarter', 'quarter'];
 
         for ($i = 0; $i < 40; $i++) {
@@ -261,7 +264,7 @@ class RestInjectionTest extends TestCase
 
     public function test_melody_rest_duration_not_smaller_than_eighth(): void
     {
-        $notes      = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+        $notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
         $noteValues = ['quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter'];
 
         for ($i = 0; $i < 20; $i++) {
@@ -272,7 +275,7 @@ class RestInjectionTest extends TestCase
 
     public function test_melody_notes_and_values_stay_same_length(): void
     {
-        $notes      = ['C4', 'D4', 'E4', 'F4', 'G4'];
+        $notes = ['C4', 'D4', 'E4', 'F4', 'G4'];
         $noteValues = ['quarter', 'eighth', 'eighth', 'half', 'quarter'];
 
         [$newNotes, $newValues] = $this->callInjectMelodyRest($notes, $noteValues);
@@ -285,7 +288,7 @@ class RestInjectionTest extends TestCase
     {
         // When no rest injection is performed, all pitches stay intact.
         // We test the component class directly without calling injectOneRestIntoMelody.
-        $notes      = ['C4', 'D4', 'E4'];
+        $notes = ['C4', 'D4', 'E4'];
         $noteValues = ['quarter', 'quarter', 'quarter'];
 
         // Control: no rest injection → no nulls

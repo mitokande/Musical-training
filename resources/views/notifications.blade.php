@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -61,6 +62,8 @@
                         'teacher_message_received' => 'message-circle',
                         'student_assignment_received' => 'clipboard-list',
                         'student_reward_received' => 'gift',
+                        'student_document_shared' => 'file-text',
+                        'student_article_shared' => 'newspaper',
                         'user_followed' => 'user-plus',
                         'teacher_relationship_requested', 'teacher_relationship_accepted' => 'user-check',
                         'teacher_relationship_declined', 'teacher_relationship_revoked' => 'user-x',
@@ -86,6 +89,12 @@
                                     @break
                                 @case('student_reward_received')
                                     {{ ($data['teacher_name'] ?? '') }} — {{ __('app.notifications.msg_reward') }}{{ !empty($data['label']) ? ' · '.$data['label'] : '' }}
+                                    @break
+                                @case('student_document_shared')
+                                    {{ ($data['teacher'] ?? '') }} — {{ __('app.notifications.msg_document_shared') }}: {{ $data['title'] ?? '' }}
+                                    @break
+                                @case('student_article_shared')
+                                    {{ ($data['teacher'] ?? '') }} — {{ __('app.notifications.msg_article_shared') }}: {{ $data['title'] ?? '' }}
                                     @break
                                 @case('user_followed')
                                     {{ ($data['follower_name'] ?? '') }} — {{ __('app.notifications.msg_followed') }}

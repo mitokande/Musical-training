@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\IntervalDirectionPracticeController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LearningPathExerciseController;
 use App\Http\Controllers\Admin\MelodicIntervalPracticeController;
+use App\Http\Controllers\Admin\MemberReviewController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\MusicTheoryApiController;
 use App\Http\Controllers\Admin\PianoStudioController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SingleNotePracticeController;
+use App\Http\Controllers\Admin\SubscriptionBenefitController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SupportInboxController;
 use App\Http\Controllers\Admin\SystemHealthController;
@@ -43,6 +45,8 @@ use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\AiCoachController;
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\MidiViewerController;
 use App\Http\Controllers\EmailTrackingController;
@@ -51,6 +55,7 @@ use App\Http\Controllers\GameController as MusicGameController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\MyAppointmentsController;
+use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\MyTeachersController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
@@ -58,34 +63,48 @@ use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\TeacherPublicProfileController;
-use App\Http\Controllers\SchoolProfileController;
+use App\Http\Controllers\School\SchoolTeacherController;
+use App\Http\Controllers\School\SchoolTeacherInvitationController;
+use App\Http\Controllers\School\SchoolTeacherRelationshipController;
+use App\Http\Controllers\SchoolInvitationAcceptController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StudentAssignmentController;
 use App\Http\Controllers\StudentTeacherMessageController;
 use App\Http\Controllers\Teacher\TeacherAccountController;
-use App\Http\Controllers\Teacher\TeacherAssignmentController;
-use App\Http\Controllers\Teacher\TeacherCalendarController;
-use App\Http\Controllers\Teacher\TeacherClassController;
-use App\Http\Controllers\Teacher\TeacherContentController;
-use App\Http\Controllers\Teacher\TeacherDashboardController;
-use App\Http\Controllers\Teacher\TeacherInvitationController;
-use App\Http\Controllers\Teacher\TeacherMediaController;
 use App\Http\Controllers\Teacher\TeacherMessageController;
-use App\Http\Controllers\Teacher\TeacherPaymentLinkController;
-use App\Http\Controllers\Teacher\TeacherProfileController;
-use App\Http\Controllers\Teacher\TeacherServiceController;
-use App\Http\Controllers\Teacher\TeacherStudentController;
-use App\Http\Controllers\Teacher\TeacherStudentRelationshipController;
-use App\Http\Controllers\Teacher\TeacherVideoController;
 use App\Http\Controllers\TeacherBookingController;
 use App\Http\Controllers\TeacherInvitationAcceptController;
 use App\Http\Controllers\TeacherReviewController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
+use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
+// `/` is the English / x-default landing page. Non-English visitors (locale
+// resolved by SetLocale from user/session/IP) are redirected to their locale
+// URL so every landing URL always serves exactly one language — required for
+// the canonical + hreflang setup in welcome.blade.php to be truthful.
 Route::get('/', function () {
+    $locale = app()->getLocale();
+
+    if (in_array($locale, ['de', 'fr', 'es', 'pt', 'tr', 'it'])) {
+        return redirect('/'.$locale, 302);
+    }
+
+    app()->setLocale('en');
+
     return view('welcome');
-});
+})->middleware('cache.headers:public;max_age=300;etag');
+
+// Locale-prefixed landing pages (indexable per-language variants; `en` lives at `/`).
+// Each is listed in the sitemap and cross-linked via hreflang tags in welcome.blade.php.
+Route::get('/{locale}', function (string $locale) {
+    app()->setLocale($locale);
+    session(['locale' => $locale]);
+
+    return view('welcome');
+})->whereIn('locale', ['de', 'fr', 'es', 'pt', 'tr', 'it'])
+    ->middleware('cache.headers:public;max_age=300;etag')
+    ->name('welcome.localized');
 
 Route::get('/pricing/teachers-and-schools', function () {
     return view('pricing-teachers');
@@ -105,6 +124,8 @@ Route::get('/request-demo', fn () => view('pages.request-demo'))->name('page.req
 
 // Resources
 Route::get('/help', fn () => view('pages.help'))->name('page.help');
+// Localized guide: Turkish visitors (locale via SetLocale) get the TR version, everyone else the EN one.
+Route::get('/how-it-works', fn () => view(app()->getLocale() === 'tr' ? 'pages.how-it-works-tr' : 'pages.how-it-works'))->name('page.how-it-works');
 Route::get('/faq', fn () => view('pages.faq'))->name('page.faq');
 Route::get('/blog', fn () => view('pages.articles'))->name('page.articles');
 Route::get('/article/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
@@ -129,22 +150,34 @@ Route::get('/childrens-privacy', fn () => redirect('/privacy-policy#childrens-pr
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/learn', [PageController::class, 'learnView'])->middleware(['auth', 'verified'])->name('learn');
+// ── Checkout & Billing (Premium purchase) ─────────────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');
+    Route::get('/checkout/success/{subscription}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/pending/{subscription}', [CheckoutController::class, 'pending'])->name('checkout.pending');
+
+    Route::get('/account/billing', [BillingController::class, 'index'])->name('billing.index');
+    Route::post('/account/billing/{subscription}/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
+});
+
+// Learning Path overview is public (SEO + guest trial with daily session limits).
+Route::get('/learn', [PageController::class, 'learnView'])->name('learn');
 Route::get('/progress', [PageController::class, 'progressView'])->middleware(['auth', 'verified'])->name('progress');
 
-Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified'])->name('ai.exercises');
-Route::post('/ai-exercises/generate', [AIController::class, 'generatePractices'])->middleware(['auth', 'verified', 'throttle:10,1'])->name('ai.generate-practices');
+// AI Exercises are premium-only (plans.*.premium.ai_exercises).
+Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified', 'plan:ai_exercises'])->name('ai.exercises');
+Route::post('/ai-exercises/generate', [AIController::class, 'generatePractices'])->middleware(['auth', 'verified', 'plan:ai_exercises', 'throttle:10,1'])->name('ai.generate-practices');
 
 Route::get('/piano-studio', [PageController::class, 'pianoStudioView'])->name('piano.studio');
 
 Route::post('/api/practice/check-answer', [PracticeController::class, 'checkAnswer'])->name('api.practice.check-answer');
 
-// Learning Path Exercise routes
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/learn-exercise/{slug}', [LearningPathController::class, 'show'])->name('learning-path.show');
-    Route::post('/learn-exercise/{slug}/start', [LearningPathController::class, 'start'])->name('learning-path.start');
-});
-Route::post('/api/learning-path/check-answer', [LearningPathController::class, 'checkAnswer'])->middleware(['auth'])->name('api.learning-path.check-answer');
+// Learning Path Exercise routes — public: guests get a daily session quota
+// enforced server-side in the controller (UsageQuotaService).
+Route::get('/learn-exercise/{slug}', [LearningPathController::class, 'show'])->name('learning-path.show');
+Route::post('/learn-exercise/{slug}/start', [LearningPathController::class, 'start'])->middleware('throttle:30,1')->name('learning-path.start');
+Route::post('/api/learning-path/check-answer', [LearningPathController::class, 'checkAnswer'])->middleware('throttle:120,1')->name('api.learning-path.check-answer');
 
 Route::get('/practice/{slug}', [PageController::class, 'practiceView'])->middleware(['track.exercise'])->name('practice');
 
@@ -155,7 +188,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/exercise-setup/templates', [ExerciseSetupController::class, 'saveTemplate'])->name('exercise-setup.templates.store');
     Route::delete('/exercise-setup/templates/{template}', [ExerciseSetupController::class, 'deleteTemplate'])->name('exercise-setup.templates.destroy');
     Route::patch('/exercise-setup/templates/{template}/favorite', [ExerciseSetupController::class, 'toggleFavorite'])->name('exercise-setup.templates.favorite');
-    Route::post('/exercise-setup/ai-recommend', [ExerciseSetupController::class, 'aiRecommend'])->name('exercise-setup.ai-recommend')->middleware('throttle:5,1');
+    Route::post('/exercise-setup/ai-recommend', [ExerciseSetupController::class, 'aiRecommend'])->name('exercise-setup.ai-recommend')->middleware(['plan:ai_exercises', 'throttle:5,1']);
 });
 Route::get('/practice-mixed', [PageController::class, 'practiceMixedView'])->middleware(['auth', 'verified'])->name('practice.mixed');
 Route::post('/practice-mixed/start', [PageController::class, 'startMixedPractice'])->middleware(['auth', 'verified'])->name('practice.mixed.start');
@@ -209,8 +242,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/api/ai/generate-interval-direction-practice', [AIController::class, 'generateIntervalDirectionPractice'])->middleware(['auth', 'throttle:10,1'])->name('api.ai.generate-interval-direction-practice');
 
-// Public teacher profiles (approved profiles only; owners/admins may preview)
-Route::get('/teachers/{slug}', [TeacherPublicProfileController::class, 'show'])->name('teachers.show');
+// Public teacher & school directory + profiles (approved profiles only; owners/admins may preview)
+Route::get('/find-teachers', [TeacherPublicProfileController::class, 'index'])->name('teachers.directory');
+Route::get('/teachers/{slug}', [TeacherPublicProfileController::class, 'show'])->name('teachers.show')->defaults('entity', 'teacher');
+Route::get('/schools/{slug}', [TeacherPublicProfileController::class, 'show'])->name('schools.show')->defaults('entity', 'school');
 Route::get('/teachers/{slug}/booking', [TeacherBookingController::class, 'page'])->name('teachers.booking');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
@@ -218,106 +253,12 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 Route::post('/teacher/become', [TeacherAccountController::class, 'store'])
     ->middleware(['auth', 'verified'])->name('teacher.become');
 
-// Teacher CRM (private) — requires a teacher account (or legacy teacher/school/admin role)
-Route::middleware(['auth', 'teacher'])->prefix('teacher')->name('teacher.')->group(function () {
-    Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
-    // Teachers join the shared social dashboard/feed via a teacher-namespaced URL that
-    // renders the exact same page students see on their dashboard (dashboards.user:
-    // hero + social feed + sidebar); only the hero "Welcome back" box is teacher-specific.
-    Route::get('/feed', [DashboardController::class, 'feed'])->name('feed');
-    Route::get('/settings', [TeacherDashboardController::class, 'settings'])->name('settings');
-    Route::post('/notifications/read', [TeacherDashboardController::class, 'markNotificationsRead'])->name('notifications.read');
-
-    Route::get('/profile', [TeacherProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [TeacherProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/cover', [TeacherProfileController::class, 'updateCover'])->name('profile.cover');
-    Route::post('/profile/submit', [TeacherProfileController::class, 'submit'])->name('profile.submit');
-    Route::get('/profile/preview', [TeacherProfileController::class, 'preview'])->name('profile.preview');
-
-    Route::post('/services', [TeacherServiceController::class, 'store'])->name('services.store');
-    Route::put('/services/{service}', [TeacherServiceController::class, 'update'])->name('services.update');
-    Route::delete('/services/{service}', [TeacherServiceController::class, 'destroy'])->name('services.destroy');
-
-    Route::post('/videos', [TeacherVideoController::class, 'store'])->name('videos.store');
-    Route::delete('/videos/{video}', [TeacherVideoController::class, 'destroy'])->name('videos.destroy');
-
-    Route::post('/media', [TeacherMediaController::class, 'store'])->name('media.store');
-    Route::get('/media/{media}/download', [TeacherMediaController::class, 'download'])->name('media.download');
-    Route::delete('/media/{media}', [TeacherMediaController::class, 'destroy'])->name('media.destroy');
-
-    // Package 2: Students, invitations, classes, assignments
-    Route::get('/students', [TeacherStudentController::class, 'index'])->name('students.index');
-    Route::get('/students/search', [TeacherStudentRelationshipController::class, 'search'])
-        ->middleware('throttle:30,1')->name('students.search');
-    Route::get('/students/{student}', [TeacherStudentController::class, 'show'])->name('students.show');
-    Route::post('/students/{student}/notes', [TeacherStudentController::class, 'storeNote'])->name('students.notes.store');
-    Route::delete('/student-notes/{note}', [TeacherStudentController::class, 'destroyNote'])->name('students.notes.destroy');
-    Route::post('/student-tags', [TeacherStudentController::class, 'storeTag'])->name('students.tags.store');
-    Route::put('/students/{student}/tags', [TeacherStudentController::class, 'syncTags'])->name('students.tags.sync');
-    Route::post('/students/{student}/rewards', [TeacherStudentController::class, 'storeReward'])->name('students.rewards.store');
-
-    Route::post('/relationships', [TeacherStudentRelationshipController::class, 'store'])
-        ->middleware('throttle:20,1')->name('relationships.store');
-    Route::delete('/relationships/{relationship}', [TeacherStudentRelationshipController::class, 'destroy'])->name('relationships.destroy');
-
-    Route::post('/invitations', [TeacherInvitationController::class, 'store'])
-        ->middleware('throttle:20,1')->name('invitations.store');
-    Route::post('/invitations/link', [TeacherInvitationController::class, 'storeLink'])
-        ->middleware('throttle:10,1')->name('invitations.link');
-    Route::delete('/invitations/{invitation}', [TeacherInvitationController::class, 'destroy'])->name('invitations.destroy');
-
-    Route::get('/classes', [TeacherClassController::class, 'index'])->name('classes.index');
-    Route::post('/classes', [TeacherClassController::class, 'store'])->name('classes.store');
-    Route::get('/classes/{class}', [TeacherClassController::class, 'show'])->name('classes.show');
-    Route::put('/classes/{class}', [TeacherClassController::class, 'update'])->name('classes.update');
-    Route::post('/classes/{class}/students', [TeacherClassController::class, 'addStudent'])->name('classes.students.add');
-    Route::delete('/classes/{class}/students/{student}', [TeacherClassController::class, 'removeStudent'])->name('classes.students.remove');
-    Route::post('/classes/{class}/archive', [TeacherClassController::class, 'archive'])->name('classes.archive');
-
-    Route::get('/assignments', [TeacherAssignmentController::class, 'index'])->name('assignments.index');
-    Route::get('/assignments/create', [TeacherAssignmentController::class, 'create'])->name('assignments.create');
-    Route::post('/assignments/ai-suggest', [TeacherAssignmentController::class, 'aiSuggest'])
-        ->middleware('throttle:15,1')->name('assignments.ai-suggest');
-    Route::post('/assignments', [TeacherAssignmentController::class, 'store'])->name('assignments.store');
-    Route::get('/assignments/{assignment}', [TeacherAssignmentController::class, 'show'])->name('assignments.show');
-    Route::put('/assignments/{assignment}', [TeacherAssignmentController::class, 'update'])->name('assignments.update');
-    Route::post('/assignments/{assignment}/regenerate', [TeacherAssignmentController::class, 'regenerateQuestions'])->name('assignments.regenerate');
-    Route::post('/assignments/{assignment}/questions/{question}/regenerate', [TeacherAssignmentController::class, 'regenerateQuestion'])->name('assignments.questions.regenerate');
-    Route::put('/assignments/{assignment}/questions/{question}', [TeacherAssignmentController::class, 'updateQuestion'])->name('assignments.questions.update');
-    Route::delete('/assignments/{assignment}/questions/{question}', [TeacherAssignmentController::class, 'destroyQuestion'])->name('assignments.questions.destroy');
-    Route::get('/assignments/{assignment}/preview', [TeacherAssignmentController::class, 'preview'])->name('assignments.preview');
-    Route::post('/assignments/{assignment}/send', [TeacherAssignmentController::class, 'send'])->name('assignments.send');
-    Route::post('/assignments/{assignment}/duplicate', [TeacherAssignmentController::class, 'duplicate'])->name('assignments.duplicate');
-    Route::post('/assignments/{assignment}/archive', [TeacherAssignmentController::class, 'archive'])->name('assignments.archive');
-    Route::delete('/assignments/{assignment}', [TeacherAssignmentController::class, 'destroy'])->name('assignments.destroy');
-
-    // Package 3: Messaging + calendar
-    Route::get('/content', [TeacherContentController::class, 'index'])->name('content.index');
-
-    Route::get('/messages', [TeacherMessageController::class, 'index'])->name('messages.index');
-    Route::post('/messages/start/{student}', [TeacherMessageController::class, 'start'])->name('messages.start');
-    Route::get('/messages/{conversation}', [TeacherMessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages/{conversation}', [TeacherMessageController::class, 'store'])
-        ->middleware('throttle:30,1')->name('messages.store');
-
-    Route::get('/calendar', [TeacherCalendarController::class, 'index'])->name('calendar.index');
-    Route::put('/calendar/settings', [TeacherCalendarController::class, 'updateSettings'])->name('calendar.settings');
-    Route::post('/calendar/availability', [TeacherCalendarController::class, 'storeAvailability'])->name('calendar.availability.store');
-    Route::delete('/calendar/availability/{availability}', [TeacherCalendarController::class, 'destroyAvailability'])->name('calendar.availability.destroy');
-    Route::post('/calendar/exceptions', [TeacherCalendarController::class, 'storeException'])->name('calendar.exceptions.store');
-    Route::delete('/calendar/exceptions/{exception}', [TeacherCalendarController::class, 'destroyException'])->name('calendar.exceptions.destroy');
-    Route::post('/appointments/{appointment}/confirm', [TeacherCalendarController::class, 'confirm'])->name('appointments.confirm');
-    Route::post('/appointments/{appointment}/reject', [TeacherCalendarController::class, 'reject'])->name('appointments.reject');
-    Route::post('/appointments/{appointment}/cancel', [TeacherCalendarController::class, 'cancel'])->name('appointments.cancel');
-    Route::post('/appointments/{appointment}/reschedule', [TeacherCalendarController::class, 'reschedule'])->name('appointments.reschedule');
-    Route::post('/appointments/{appointment}/complete', [TeacherCalendarController::class, 'complete'])->name('appointments.complete');
-    Route::post('/appointments/{appointment}/no-show', [TeacherCalendarController::class, 'noShow'])->name('appointments.no-show');
-    Route::put('/appointments/{appointment}/note', [TeacherCalendarController::class, 'updateNote'])->name('appointments.note');
-
-    Route::post('/payment-links', [TeacherPaymentLinkController::class, 'store'])->name('payment-links.store');
-    Route::put('/payment-links/{paymentLink}', [TeacherPaymentLinkController::class, 'update'])->name('payment-links.update');
-    Route::delete('/payment-links/{paymentLink}', [TeacherPaymentLinkController::class, 'destroy'])->name('payment-links.destroy');
-});
+// Shared CRM (private) — the teacher CRM and the school panel run the exact same
+// controllers/blades (routes/crm.php); only the prefix, route names and skin differ.
+// Teacher access: any teacher account (or legacy teacher/admin role). School access:
+// role school (SchoolMiddleware also auto-provisions the school profile draft).
+Route::middleware(['auth', 'teacher'])->prefix('teacher')->name('teacher.')->group(base_path('routes/crm.php'));
+Route::middleware(['auth', 'school'])->prefix('school')->name('school.')->group(base_path('routes/crm.php'));
 
 // Student-facing teacher ecosystem pages
 Route::middleware(['auth'])->group(function () {
@@ -354,20 +295,40 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/assignments/media/{media}/download', [StudentAssignmentController::class, 'downloadMedia'])->name('assignments.media.download');
 });
 
-// School Routes
-Route::middleware(['auth', 'school'])->prefix('school')->name('school.')->group(function () {
-    Route::get('/profile', [SchoolProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [SchoolProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/logo', [SchoolProfileController::class, 'updateLogo'])->name('logo.update');
-});
-
 // Article Routes (teachers and schools)
 Route::middleware(['auth', 'teacher'])->group(function () {
     Route::resource('articles', ArticleController::class)->except(['show']);
 });
 
-// School Dashboard Alias
-Route::get('/school/dashboard', fn () => redirect()->route('dashboard'))->middleware(['auth', 'school'])->name('school.dashboard');
+// School-only module: member teacher management (on top of the shared CRM group)
+Route::middleware(['auth', 'school'])->prefix('school')->name('school.')->group(function () {
+    Route::get('/teachers', [SchoolTeacherController::class, 'index'])->name('teachers.index');
+    Route::get('/teachers/search', [SchoolTeacherRelationshipController::class, 'search'])
+        ->middleware('throttle:30,1')->name('teachers.search');
+    Route::get('/teachers/{teacher}', [SchoolTeacherController::class, 'show'])->name('teachers.show');
+
+    Route::post('/teacher-relationships', [SchoolTeacherRelationshipController::class, 'store'])
+        ->middleware('throttle:20,1')->name('teacher-relationships.store');
+    Route::delete('/teacher-relationships/{relationship}', [SchoolTeacherRelationshipController::class, 'destroy'])->name('teacher-relationships.destroy');
+
+    Route::post('/teacher-invitations', [SchoolTeacherInvitationController::class, 'store'])
+        ->middleware('throttle:20,1')->name('teacher-invitations.store');
+    Route::post('/teacher-invitations/link', [SchoolTeacherInvitationController::class, 'storeLink'])
+        ->middleware('throttle:10,1')->name('teacher-invitations.link');
+    Route::delete('/teacher-invitations/{invitation}', [SchoolTeacherInvitationController::class, 'destroy'])->name('teacher-invitations.destroy');
+});
+
+// Teacher-facing school ecosystem pages
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::post('/my-schools/{relationship}/approve', [MySchoolsController::class, 'approve'])->name('my-schools.approve');
+    Route::post('/my-schools/{relationship}/decline', [MySchoolsController::class, 'decline'])->name('my-schools.decline');
+    Route::delete('/my-schools/{relationship}', [MySchoolsController::class, 'destroy'])->name('my-schools.destroy');
+
+    Route::get('/school-invitations/{token}', [SchoolInvitationAcceptController::class, 'show'])->name('school-invitations.accept');
+    Route::post('/school-invitations/{token}', [SchoolInvitationAcceptController::class, 'store'])
+        ->middleware('throttle:10,1')->name('school-invitations.accept.store');
+});
 
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -405,8 +366,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('users/export', [UserController::class, 'export'])->name('users.export');
     Route::post('users/bulk-action', [UserController::class, 'bulkAction'])->name('users.bulk-action');
 
+    // Member Reviews: new-member control & approvals + review moderation
+    Route::get('member-reviews', [MemberReviewController::class, 'index'])->name('member-reviews.index');
+
     Route::resource('users', UserController::class);
     Route::post('users/{user}/toggle-restriction', [UserController::class, 'toggleRestriction'])->name('users.toggle-restriction');
+    Route::post('users/{user}/verify-email', [UserController::class, 'verifyEmail'])->name('users.verify-email');
     Route::post('users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
     Route::post('users/{user}/send-password-reset', [UserController::class, 'sendPasswordReset'])->name('users.send-password-reset');
 
@@ -434,8 +399,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Payments
     Route::resource('plans', PlanController::class);
     Route::resource('subscriptions', SubscriptionController::class)->except(['create', 'store']);
+    Route::post('subscriptions/{subscription}/confirm', [SubscriptionController::class, 'confirm'])->name('subscriptions.confirm');
     Route::resource('invoices', InvoiceController::class)->except(['create', 'store']);
+    Route::post('invoices/{invoice}/refund', [InvoiceController::class, 'refund'])->name('invoices.refund');
     Route::resource('coupons', CouponController::class);
+
+    // Premium-student incentives (teachers auto-free at 10+, schools approved at 20+)
+    Route::get('incentives', [SubscriptionBenefitController::class, 'index'])->name('incentives.index');
+    Route::post('incentives/{benefit}/approve', [SubscriptionBenefitController::class, 'approve'])->name('incentives.approve');
+    Route::post('incentives/{benefit}/revoke', [SubscriptionBenefitController::class, 'revoke'])->name('incentives.revoke');
+    Route::post('incentives/user/{user}/recalculate', [SubscriptionBenefitController::class, 'recalculate'])->name('incentives.recalculate');
 
     // AI Coach Admin
     Route::get('ai-coach-admin', [AiCoachAdminController::class, 'index'])->name('ai-coach-admin.index');
@@ -547,8 +520,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('support-inbox/attachments/{message}/{index}', [SupportInboxController::class, 'attachment'])->name('support-inbox.attachment');
 });
 
-// AI Coach
-Route::middleware(['auth', 'verified'])->group(function () {
+// AI Coach — premium-only (plans.*.premium.ai_coach).
+Route::middleware(['auth', 'verified', 'plan:ai_coach'])->group(function () {
     Route::get('/ai-coach', [AiCoachController::class, 'index'])->name('ai-coach.index');
     Route::post('/ai-coach/generate', [AiCoachController::class, 'generate'])->name('ai-coach.generate');
 });
@@ -570,6 +543,11 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // Language switch
 Route::post('/language/switch', [LanguageController::class, 'switch'])->name('language.switch');
+
+// Stripe Billing webhooks (signature-verified in the controller, CSRF-exempt).
+// Point the Stripe Dashboard endpoint here.
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'events'])
+    ->name('webhooks.stripe');
 
 // --- Email Center public endpoints ---
 // Amazon SNS event notifications (signature-validated in the controller, CSRF-exempt)

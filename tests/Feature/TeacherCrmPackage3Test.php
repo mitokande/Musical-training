@@ -90,7 +90,7 @@ class TeacherCrmPackage3Test extends TestCase
         Notification::assertSentTo($student, TeacherMessageReceived::class);
     }
 
-    public function test_basic_teacher_can_read_but_not_reply(): void
+    public function test_basic_teacher_can_read_and_reply_within_quota(): void
     {
         Notification::fake();
         $teacher = $this->basicTeacher();
@@ -103,11 +103,11 @@ class TeacherCrmPackage3Test extends TestCase
 
         // Basic teacher can open the thread…
         $this->actingAs($teacher)->get("/teacher/messages/{$conversation->id}")->assertOk();
-        // …but cannot send.
+        // …and may now reply (daily_teacher_messages quota applies instead).
         $this->actingAs($teacher)->post("/teacher/messages/{$conversation->id}", ['body' => 'Reply'])
-            ->assertSessionHasErrors('body');
+            ->assertSessionDoesntHaveErrors('body');
 
-        $this->assertSame(1, $conversation->messages()->count());
+        $this->assertSame(2, $conversation->messages()->count());
     }
 
     public function test_messaging_requires_active_relationship(): void

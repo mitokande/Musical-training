@@ -49,6 +49,77 @@ class TeacherBenefitTest extends TestCase
         }
     }
 
+    private function makeSchool(): User
+    {
+        return User::factory()->create(['role' => 'school'])->fresh();
+    }
+
+    public function test_school_free_period_needs_admin_approval_and_stays_pending(): void
+    {
+        $school = $this->makeSchool();
+        $this->addPremiumStudents($school, 20);
+
+        $this->service->recalculate($school);
+
+        $pending = $this->service->pendingBenefit($school);
+        $this->assertNotNull($pending);
+        $this->assertSame(TeacherSubscriptionBenefit::TYPE_FREE_PERIOD, $pending->type);
+        $this->assertSame(TeacherSubscriptionBenefit::STATUS_PENDING, $pending->status);
+        $this->assertNull($pending->ends_at);
+        // Still pending → not yet effectively premium.
+        $this->assertFalse($school->fresh()->isEffectivelyPremium());
+        $this->assertDatabaseHas('teacher_subscription_benefit_histories', [
+            'user_id' => $school->id, 'event' => 'pending_approval',
+        ]);
+    }
+
+    public function test_recalculating_a_pending_school_never_duplicates_the_grant(): void
+    {
+        $school = $this->makeSchool();
+        $this->addPremiumStudents($school, 20);
+
+        $this->service->recalculate($school);
+        $this->service->recalculate($school);
+        $this->service->recalculate($school);
+
+        $this->assertSame(1, TeacherSubscriptionBenefit::where('user_id', $school->id)
+            ->where('status', TeacherSubscriptionBenefit::STATUS_PENDING)->count());
+    }
+
+    public function test_admin_approval_activates_the_school_free_period(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $school = $this->makeSchool();
+        $this->addPremiumStudents($school, 20);
+        $this->service->recalculate($school);
+
+        $pending = $this->service->pendingBenefit($school);
+        $approved = $this->service->approve($pending, $admin);
+
+        $this->assertSame(TeacherSubscriptionBenefit::STATUS_ACTIVE, $approved->status);
+        $this->assertNotNull($approved->ends_at);
+        $this->assertTrue($approved->ends_at->greaterThan(now()->addMonths(11)));
+        $this->assertTrue($school->fresh()->isEffectivelyPremium());
+        $this->assertDatabaseHas('teacher_subscription_benefit_histories', [
+            'user_id' => $school->id, 'event' => 'approved', 'created_by' => $admin->id,
+        ]);
+    }
+
+    public function test_losing_eligibility_withdraws_a_pending_school_grant(): void
+    {
+        $school = $this->makeSchool();
+        $this->addPremiumStudents($school, 20);
+        $this->service->recalculate($school);
+        $this->assertNotNull($this->service->pendingBenefit($school));
+
+        // Drop below the school free threshold before approval.
+        TeacherStudentRelationship::where('teacher_id', $school->id)->limit(15)
+            ->update(['status' => TeacherStudentRelationship::STATUS_REVOKED_BY_STUDENT]);
+        $this->service->recalculate($school);
+
+        $this->assertNull($this->service->pendingBenefit($school));
+    }
+
     public function test_only_active_premium_students_count_as_eligible(): void
     {
         $teacher = $this->makeTeacher();

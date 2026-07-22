@@ -47,7 +47,7 @@ class AppointmentStatusChanged extends Notification implements ShouldQueue
 
         return $mail->action(
             'View appointment',
-            $isStudent ? route('my-appointments.index') : route('teacher.calendar.index'),
+            $isStudent ? route('my-appointments.index') : route($notifiable->crmRouteName('calendar.index')),
         );
     }
 

@@ -298,6 +298,16 @@ class MusicTheoryService
         $accidental = $accOffset === 1 ? '#' : ($accOffset === -1 ? 'b' : '');
         $spelled = $targetLetter.$accidental;
 
+        // Cb/B# are excluded from NOTE_SEMITONES (their written octave differs
+        // from the sounding one, breaking midiNumber and playback) — use the
+        // enharmonic spelling with the sounding octave instead.
+        if (! isset(self::NOTE_SEMITONES[$spelled])) {
+            $flats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+            $pc = (($targetMidi % 12) + 12) % 12;
+
+            return ['note' => $flats[$pc], 'octave' => intdiv($targetMidi, 12) - 1];
+        }
+
         return ['note' => $spelled, 'octave' => $targetOctave];
     }
 

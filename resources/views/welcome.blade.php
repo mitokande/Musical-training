@@ -1,46 +1,81 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('app.welcome.page_title') }}</title>
     <meta name="description" content="{{ __('app.welcome.page_description') }}">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
+    @php
+        $landingLocales = ['en', 'de', 'fr', 'es', 'pt', 'tr', 'it'];
+        $landingUrlFor = fn (string $l) => $l === 'en' ? url('/') : url('/'.$l);
+        $currentLandingLocale = in_array(app()->getLocale(), $landingLocales) ? app()->getLocale() : 'en';
+        $canonicalUrl = $landingUrlFor($currentLandingLocale);
+        $ogLocales = ['en' => 'en_US', 'de' => 'de_DE', 'fr' => 'fr_FR', 'es' => 'es_ES', 'pt' => 'pt_PT', 'tr' => 'tr_TR', 'it' => 'it_IT'];
+
+        // Built inside @php: Blade would otherwise compile the literal
+        // "@context" key as its @context directive and corrupt the JSON.
+        $landingJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/').'#organization',
+                    'name' => 'Harmoniva',
+                    'url' => url('/'),
+                    'logo' => asset('images/logo-full.png'),
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => url('/').'#website',
+                    'url' => url('/'),
+                    'name' => 'Harmoniva',
+                    'publisher' => ['@id' => url('/').'#organization'],
+                    'inLanguage' => $currentLandingLocale,
+                ],
+                [
+                    '@type' => 'SoftwareApplication',
+                    'name' => 'Harmoniva',
+                    'url' => url('/'),
+                    'description' => __('app.welcome.page_description'),
+                    'applicationCategory' => 'EducationalApplication',
+                    'operatingSystem' => 'Web',
+                    'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    @foreach ($landingLocales as $l)
+    <link rel="alternate" hreflang="{{ $l }}" href="{{ $landingUrlFor($l) }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="{{ __('app.welcome.page_title') }}">
+    <meta property="og:description" content="{{ __('app.welcome.page_description') }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="{{ $ogLocales[$currentLandingLocale] }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ __('app.welcome.page_title') }}">
+    <meta name="twitter:description" content="{{ __('app.welcome.page_description') }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+
+    <script type="application/ld+json">{!! $landingJsonLd !!}</script>
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&family=instrument-serif:400,400i" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@0.460.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    @vite('resources/css/landing.css')
+    <script defer src="https://unpkg.com/lucide@0.460.0"></script>
     <script defer src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                        serif: ['Instrument Serif', 'Georgia', 'serif'],
-                    },
-                    colors: {
-                        surface: {
-                            DEFAULT: '#0C0A10',
-                            raised: '#14111C',
-                            overlay: '#1C1828',
-                            soft: '#18142A',
-                        },
-                        primary: {
-                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff',
-                            300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7',
-                            600: '#9333ea', 700: '#7c3aed', 800: '#6b21a8', 900: '#581c87',
-                        },
-                        accent: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' }
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
         html { overflow-x: hidden; }
@@ -66,6 +101,28 @@
         @keyframes wave {
             0%, 100% { transform: scaleY(0.3); }
             50% { transform: scaleY(1); }
+        }
+
+        /* Hero staff (dizek) with sliding + fading notes */
+        .staff-anim { display: block; overflow: visible; }
+        .staff-anim .staff-line { animation: staff-sway 5s ease-in-out infinite; transform-origin: center; }
+        .staff-anim .staff-note {
+            animation: staff-note-slide 3.4s linear infinite;
+            will-change: transform, opacity;
+        }
+        @keyframes staff-note-slide {
+            0%   { opacity: 0; transform: translateX(108px); }
+            12%  { opacity: 1; }
+            84%  { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-14px); }
+        }
+        @keyframes staff-sway {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(0.8px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .staff-anim .staff-note { animation: none; opacity: 0; }
+            .staff-anim .staff-line { animation: none; }
         }
 
         .piano-key-white { transition: all 0.15s ease; transform-origin: top center; }
@@ -104,10 +161,7 @@
         .animate-gentle-float { animation: gentle-float 6s ease-in-out infinite; }
 
         .gradient-text {
-            background: linear-gradient(135deg, #c084fc 0%, #f97316 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #f97316;
         }
 
         .feature-card {
@@ -198,16 +252,10 @@
                 letter-spacing: 0.04em;
                 max-width: 34rem;
             }
-        }
-
-        /* ── Navbar FOUC fix: Tailwind CDN yüklenmeden önce layout'u kilitler ── */
-        #wl-nav-center  { display: none; }
-        #wl-nav-right   { display: none; }
-        #wl-nav-burger  { display: flex; }
-        @media (min-width: 1024px) {
-            #wl-nav-center { display: flex; }
-            #wl-nav-right  { display: flex; }
-            #wl-nav-burger { display: none; }
+            /* Türkçe hero metni: yatay genişlik %15 daha geniş (34rem × 1.15) */
+            html[lang="tr"] .hero-desc {
+                max-width: 39.1rem;
+            }
         }
     </style>
 </head>
@@ -221,17 +269,8 @@
             <div class="flex items-center h-16">
 
                 {{-- Logo (no negative margin — aligns with page content/piano) --}}
-                <a href="/" class="flex items-center gap-2.5 group shrink-0">
-                    <div class="w-11 h-11 rounded-xl bg-gray-900 flex items-center justify-center shadow-lg group-hover:shadow-gray-900/40 transition-shadow">
-                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
-                            <rect x="2" y="3" width="5.5" height="22" rx="2" fill="white"/>
-                            <rect x="20.5" y="3" width="5.5" height="22" rx="2" fill="white"/>
-                            <path d="M7.5 14 Q11 9 14 14 Q17 19 20.5 14" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <span class="text-2xl font-bold tracking-tight leading-none">
-                        <span style="background:linear-gradient(135deg,#9333ea,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">H</span><span class="text-gray-900">armoniva</span>
-                    </span>
+                <a href="/" class="flex items-center group shrink-0">
+                    <img src="{{ asset('images/logo-full.webp') }}" alt="Harmoniva" width="420" height="104" class="h-[48px] sm:h-[52px] w-auto">
                 </a>
 
                 {{-- Desktop centre nav: flex-1 so it never overlaps right section --}}
@@ -239,10 +278,10 @@
                     <a href="#features"     class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_features') }}</a>
                     <a href="#exercises"    class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_exercises') }}</a>
                     <a href="#piano"        class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_piano') }}</a>
-                    <a href="#ai-tutor"     class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_ai_tools') }}</a>
+                    <a href="#how-it-works" class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_how_it_works') }}</a>
                     <a href="#games"        class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_games') }}</a>
                     <a href="#pricing"      class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_pricing') }}</a>
-                    <a href="#how-it-works" class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_how_it_works') }}</a>
+                    <a href="#ai-tutor"     class="px-2.5 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-black/5 whitespace-nowrap">{{ __('app.welcome.nav_ai_tools') }}</a>
                 </div>
 
                 {{-- Desktop right: auth + search (shrink-0 so it never gets compressed) --}}
@@ -342,10 +381,10 @@
                         ['href'=>'#features',    'label'=> __('app.welcome.nav_features'),    'svg'=>'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'],
                         ['href'=>'#exercises',   'label'=> __('app.welcome.nav_exercises'),   'svg'=>'<path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>'],
                         ['href'=>'#piano',       'label'=> __('app.welcome.nav_piano'),       'svg'=>'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 4v16M10 4v10M14 4v16M18 4v10"/>'],
-                        ['href'=>'#ai-tutor',    'label'=> __('app.welcome.nav_ai_tools'),    'svg'=>'<path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/>'],
+                        ['href'=>'#how-it-works','label'=> __('app.welcome.nav_how_it_works'),'svg'=>'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'],
                         ['href'=>'#games',       'label'=> __('app.welcome.nav_games'),       'svg'=>'<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><rect x="2" y="6" width="20" height="12" rx="5"/>'],
                         ['href'=>'#pricing',     'label'=> __('app.welcome.nav_pricing'),     'svg'=>'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>'],
-                        ['href'=>'#how-it-works','label'=> __('app.welcome.nav_how_it_works'),'svg'=>'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'],
+                        ['href'=>'#ai-tutor',    'label'=> __('app.welcome.nav_ai_tools'),    'svg'=>'<path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/>'],
                     ];
                 @endphp
                 @foreach($wlLinks as $lnk)
@@ -404,14 +443,53 @@
         <div class="h-16 shrink-0"></div>
 
         <div class="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-10 text-center relative z-10">
-            <div class="flex items-end justify-center gap-1 mb-8 h-8">
-                <div class="wave-bar w-1 bg-gradient-to-t from-primary-600 to-primary-400 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-primary-600 to-accent-400 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-primary-500 to-primary-300 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-accent-500 to-accent-400 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-primary-600 to-primary-400 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-primary-500 to-accent-400 rounded-full h-8"></div>
-                <div class="wave-bar w-1 bg-gradient-to-t from-accent-600 to-primary-400 rounded-full h-8"></div>
+            <div class="flex items-center justify-center mb-8 h-8">
+                <svg class="staff-anim" width="104" height="32" viewBox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    {{-- Slightly wavy 5-line staff (dizek) --}}
+                    <g stroke="#d9c9f2" stroke-width="1" stroke-linecap="round">
+                        <path class="staff-line" d="M0 5 q13 -2.4 26 0 t26 0 t26 0 t26 0"/>
+                        <path class="staff-line" d="M0 11.5 q13 -2.4 26 0 t26 0 t26 0 t26 0"/>
+                        <path class="staff-line" d="M0 18 q13 -2.4 26 0 t26 0 t26 0 t26 0"/>
+                        <path class="staff-line" d="M0 24.5 q13 -2.4 26 0 t26 0 t26 0 t26 0"/>
+                        <path class="staff-line" d="M0 31 q13 -2.4 26 0 t26 0 t26 0 t26 0"/>
+                    </g>
+                    {{-- Sliding + fading notes in the icon colours --}}
+                    <g class="staff-note" style="animation-delay:0s">
+                        <g transform="translate(0,21)" fill="#9333ea">
+                            <ellipse cx="0" cy="0" rx="3.4" ry="2.5" transform="rotate(-22)"/>
+                            <rect x="2.7" y="-11.5" width="1.1" height="11.5" rx="0.55"/>
+                            <path d="M3.8 -11.5 q4.4 1.5 2.7 5.4 q0.5 -3 -2.7 -3.9 z"/>
+                        </g>
+                    </g>
+                    <g class="staff-note" style="animation-delay:-0.68s">
+                        <g transform="translate(0,11.5)" fill="#f97316">
+                            <ellipse cx="0" cy="0" rx="3.4" ry="2.5" transform="rotate(-22)"/>
+                            <rect x="2.7" y="-11.5" width="1.1" height="11.5" rx="0.55"/>
+                            <path d="M3.8 -11.5 q4.4 1.5 2.7 5.4 q0.5 -3 -2.7 -3.9 z"/>
+                        </g>
+                    </g>
+                    <g class="staff-note" style="animation-delay:-1.36s">
+                        <g transform="translate(0,24.5)" fill="#a855f7">
+                            <ellipse cx="0" cy="0" rx="3.4" ry="2.5" transform="rotate(-22)"/>
+                            <rect x="2.7" y="-11.5" width="1.1" height="11.5" rx="0.55"/>
+                            <path d="M3.8 -11.5 q4.4 1.5 2.7 5.4 q0.5 -3 -2.7 -3.9 z"/>
+                        </g>
+                    </g>
+                    <g class="staff-note" style="animation-delay:-2.04s">
+                        <g transform="translate(0,8)" fill="#9333ea">
+                            <ellipse cx="0" cy="0" rx="3.4" ry="2.5" transform="rotate(-22)"/>
+                            <rect x="2.7" y="-11.5" width="1.1" height="11.5" rx="0.55"/>
+                            <path d="M3.8 -11.5 q4.4 1.5 2.7 5.4 q0.5 -3 -2.7 -3.9 z"/>
+                        </g>
+                    </g>
+                    <g class="staff-note" style="animation-delay:-2.72s">
+                        <g transform="translate(0,18)" fill="#f97316">
+                            <ellipse cx="0" cy="0" rx="3.4" ry="2.5" transform="rotate(-22)"/>
+                            <rect x="2.7" y="-11.5" width="1.1" height="11.5" rx="0.55"/>
+                            <path d="M3.8 -11.5 q4.4 1.5 2.7 5.4 q0.5 -3 -2.7 -3.9 z"/>
+                        </g>
+                    </g>
+                </svg>
             </div>
 
             <div class="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-gray-900 text-white text-sm font-semibold shadow-md">
@@ -500,24 +578,28 @@
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @php
+                    // Guests get the page if it's public; auth-only pages send guests to register.
+                    $linkFor = function (string $url, bool $requiresAuth = false) {
+                        return ($requiresAuth && auth()->guest()) ? route('register') : $url;
+                    };
                     $features = [
-                        ['icon' => 'bot', 'color' => 'cyan-400', 'bg' => 'cyan-500/15', 'title' => __('app.welcome.feature_ai_title'), 'desc' => __('app.welcome.feature_ai_desc')],
-                        ['icon' => 'piano', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc')],
-                        ['icon' => 'gamepad-2', 'color' => 'green-400', 'bg' => 'green-500/15', 'title' => __('app.welcome.feature_games_title'), 'desc' => __('app.welcome.feature_games_desc')],
-                        ['icon' => 'bar-chart-3', 'color' => 'blue-400', 'bg' => 'blue-500/15', 'title' => __('app.welcome.feature_analytics_title'), 'desc' => __('app.welcome.feature_analytics_desc')],
-                        ['icon' => 'zap', 'color' => 'amber-400', 'bg' => 'amber-500/15', 'title' => __('app.welcome.feature_feedback_title'), 'desc' => __('app.welcome.feature_feedback_desc')],
-                        ['icon' => 'message-circle', 'color' => 'rose-400', 'bg' => 'rose-500/15', 'title' => __('app.welcome.feature_assistant_title'), 'desc' => __('app.welcome.feature_assistant_desc')],
+                        ['icon' => 'piano', 'color' => 'cyan-400', 'bg' => 'cyan-500/15', 'title' => __('app.welcome.feature_ai_title'), 'desc' => __('app.welcome.feature_ai_desc'), 'url' => route('piano.studio'), 'auth' => false],
+                        ['icon' => 'users', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc'), 'url' => route('feed'), 'auth' => true],
+                        ['icon' => 'gamepad-2', 'color' => 'green-400', 'bg' => 'green-500/15', 'title' => __('app.welcome.feature_games_title'), 'desc' => __('app.welcome.feature_games_desc'), 'url' => route('games.index'), 'auth' => false],
+                        ['icon' => 'bar-chart-3', 'color' => 'blue-400', 'bg' => 'blue-500/15', 'title' => __('app.welcome.feature_analytics_title'), 'desc' => __('app.welcome.feature_analytics_desc'), 'url' => route('progress'), 'auth' => true],
+                        ['icon' => 'zap', 'color' => 'amber-400', 'bg' => 'amber-500/15', 'title' => __('app.welcome.feature_feedback_title'), 'desc' => __('app.welcome.feature_feedback_desc'), 'url' => url('/practice/single-note-practice'), 'auth' => false],
+                        ['icon' => 'message-circle', 'color' => 'rose-400', 'bg' => 'rose-500/15', 'title' => __('app.welcome.feature_assistant_title'), 'desc' => __('app.welcome.feature_assistant_desc'), 'url' => route('ai-chat.index'), 'auth' => true],
                     ];
                 @endphp
 
                 @foreach ($features as $i => $f)
-                    <div class="feature-card rounded-2xl p-6 group reveal" style="transition-delay:{{ ($i * 0.05) + 0.05 }}s">
+                    <a href="{{ $linkFor($f['url'], $f['auth']) }}" class="feature-card block rounded-2xl p-6 group reveal" style="transition-delay:{{ ($i * 0.05) + 0.05 }}s">
                         <div class="w-14 h-14 rounded-2xl bg-{{ $f['bg'] }} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <i data-lucide="{{ $f['icon'] }}" class="w-6 h-6 text-{{ $f['color'] }}"></i>
                         </div>
                         <h3 class="text-white font-bold text-lg mb-2">{{ $f['title'] }}</h3>
                         <p class="text-gray-400 text-sm leading-relaxed">{{ $f['desc'] }}</p>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         </div>
@@ -542,17 +624,17 @@
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @php
                     $exercises = [
-                        ['icon' => 'arrow-up-down', 'color' => 'blue-600', 'bg' => 'blue-100', 'bar' => 'from-blue-500 to-blue-400', 'title' => __('app.welcome.ex_intervals_title'), 'desc' => __('app.welcome.ex_intervals_desc'), 'progress' => 55, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100'],
-                        ['icon' => 'layers', 'color' => 'amber-600', 'bg' => 'amber-100', 'bar' => 'from-amber-500 to-amber-400', 'title' => __('app.welcome.ex_chords_title'), 'desc' => __('app.welcome.ex_chords_desc'), 'progress' => 45, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100'],
-                        ['icon' => 'trending-up', 'color' => 'green-600', 'bg' => 'green-100', 'bar' => 'from-green-500 to-green-400', 'title' => __('app.welcome.ex_scales_title'), 'desc' => __('app.welcome.ex_scales_desc'), 'progress' => 50, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100'],
-                        ['icon' => 'activity', 'color' => 'orange-600', 'bg' => 'orange-100', 'bar' => 'from-accent-500 to-accent-400', 'title' => __('app.welcome.ex_rhythm_title'), 'desc' => __('app.welcome.ex_rhythm_desc'), 'progress' => 70, 'level' => __('app.welcome.level_beginner'), 'levelColor' => 'green-600', 'levelBg' => 'green-100'],
-                        ['icon' => 'pen-line', 'color' => 'rose-600', 'bg' => 'rose-100', 'bar' => 'from-rose-500 to-rose-400', 'title' => __('app.welcome.ex_dictation_title'), 'desc' => __('app.welcome.ex_dictation_desc'), 'progress' => 35, 'level' => __('app.welcome.level_advanced'), 'levelColor' => 'red-600', 'levelBg' => 'red-100'],
-                        ['icon' => 'sliders-horizontal', 'color' => 'purple-600', 'bg' => 'purple-100', 'bar' => 'from-purple-500 to-purple-400', 'title' => __('app.welcome.ex_setup_title'), 'desc' => __('app.welcome.ex_setup_desc'), 'progress' => 60, 'level' => __('app.welcome.level_adaptive'), 'levelColor' => 'primary-700', 'levelBg' => 'primary-100'],
+                        ['icon' => 'arrow-up-down', 'color' => 'blue-600', 'bg' => 'blue-100', 'bar' => 'from-blue-500 to-blue-400', 'title' => __('app.welcome.ex_intervals_title'), 'desc' => __('app.welcome.ex_intervals_desc'), 'progress' => 55, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100', 'url' => url('/practice/melodic-interval-practice')],
+                        ['icon' => 'layers', 'color' => 'amber-600', 'bg' => 'amber-100', 'bar' => 'from-amber-500 to-amber-400', 'title' => __('app.welcome.ex_chords_title'), 'desc' => __('app.welcome.ex_chords_desc'), 'progress' => 45, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100', 'url' => url('/practice/chord-practice')],
+                        ['icon' => 'trending-up', 'color' => 'green-600', 'bg' => 'green-100', 'bar' => 'from-green-500 to-green-400', 'title' => __('app.welcome.ex_scales_title'), 'desc' => __('app.welcome.ex_scales_desc'), 'progress' => 50, 'level' => __('app.welcome.level_intermediate'), 'levelColor' => 'amber-700', 'levelBg' => 'amber-100', 'url' => url('/practice/scale-practice')],
+                        ['icon' => 'activity', 'color' => 'orange-600', 'bg' => 'orange-100', 'bar' => 'from-accent-500 to-accent-400', 'title' => __('app.welcome.ex_rhythm_title'), 'desc' => __('app.welcome.ex_rhythm_desc'), 'progress' => 70, 'level' => __('app.welcome.level_beginner'), 'levelColor' => 'green-600', 'levelBg' => 'green-100', 'url' => url('/practice/rhythm-practice')],
+                        ['icon' => 'pen-line', 'color' => 'rose-600', 'bg' => 'rose-100', 'bar' => 'from-rose-500 to-rose-400', 'title' => __('app.welcome.ex_dictation_title'), 'desc' => __('app.welcome.ex_dictation_desc'), 'progress' => 35, 'level' => __('app.welcome.level_advanced'), 'levelColor' => 'red-600', 'levelBg' => 'red-100', 'url' => url('/practice/melodic-dictation')],
+                        ['icon' => 'sliders-horizontal', 'color' => 'purple-600', 'bg' => 'purple-100', 'bar' => 'from-purple-500 to-purple-400', 'title' => __('app.welcome.ex_setup_title'), 'desc' => __('app.welcome.ex_setup_desc'), 'progress' => 60, 'level' => __('app.welcome.level_adaptive'), 'levelColor' => 'primary-700', 'levelBg' => 'primary-100', 'url' => route('exercise-setup.index')],
                     ];
                 @endphp
 
                 @foreach ($exercises as $i => $ex)
-                    <div class="light-card rounded-2xl p-5 group reveal" style="transition-delay:{{ ($i * 0.05) + 0.05 }}s">
+                    <a href="{{ $ex['url'] }}" class="light-card block rounded-2xl p-5 group reveal" style="transition-delay:{{ ($i * 0.05) + 0.05 }}s">
                         <div class="flex items-start justify-between mb-3">
                             <div class="w-12 h-12 rounded-xl bg-{{ $ex['bg'] }} flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <i data-lucide="{{ $ex['icon'] }}" class="w-5 h-5 text-{{ $ex['color'] }}"></i>
@@ -564,7 +646,7 @@
                         <div class="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                             <div class="h-full rounded-full bg-gradient-to-r {{ $ex['bar'] }}" style="width: {{ $ex['progress'] }}%"></div>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
 
@@ -585,204 +667,6 @@
     </section>
 
 
-    {{-- ============ VIRTUAL PIANO SHOWCASE (dark) ============ --}}
-    <section id="piano" class="pt-24 sm:pt-32 pb-[80px] relative overflow-hidden" style="background: #0C0A10;">
-        <div class="absolute inset-0 pointer-events-none overflow-hidden">
-            <div class="section-glow w-[400px] h-[400px] bg-accent-500/[0.03] top-20 right-0"></div>
-        </div>
-
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative mb-[88px]">
-            <div class="grid lg:grid-cols-2 gap-12 lg:gap-x-[148px] items-start">
-                <div class="reveal">
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-400 mb-3 block">{{ __('app.welcome.piano_label') }}</span>
-                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-5">
-                        {{ __('app.welcome.piano_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.piano_title_accent') }}</span>
-                    </h2>
-                    <p class="text-gray-400 text-lg leading-relaxed">
-                        {{ __('app.welcome.piano_description') }}
-                    </p>
-                </div>
-
-                <div class="reveal flex flex-col gap-6" style="transition-delay:0.15s">
-                    <div class="flex justify-end">
-                        <a href="{{ route('piano.studio') }}" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-semibold transition-all shadow-lg shadow-accent-500/25 hover:shadow-accent-400/30 hover:-translate-y-0.5 group">
-                            Piano Studio
-                            <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i>
-                        </a>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-accent-500/15 flex items-center justify-center shrink-0">
-                                <i data-lucide="volume-2" class="w-5 h-5 text-accent-400"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_sound_title') }}</h4>
-                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_sound_desc') }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-primary-600/15 flex items-center justify-center shrink-0">
-                                <i data-lucide="music-2" class="w-5 h-5 text-primary-400"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_recognition_title') }}</h4>
-                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_recognition_desc') }}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
-                                <i data-lucide="eye" class="w-5 h-5 text-green-400"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_visual_title') }}</h4>
-                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_visual_desc') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="relative z-10 mx-0 sm:mx-[10%]" x-data="pianoSection()">
-            <div class="bg-gray-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-gray-700/50">
-                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-800">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="piano" class="w-4 h-4 text-gray-500"></i>
-                        <span class="text-xs text-gray-500 font-medium uppercase tracking-widest">{{ __('app.welcome.piano_studio_label') }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
-                        <span class="text-xs text-gray-500">{{ __('app.welcome.piano_connected') }}</span>
-                        <span class="text-xs font-semibold text-primary-400 ml-1" x-text="activeNote" x-show="activeNote" x-transition>&nbsp;</span>
-                    </div>
-                </div>
-                <div class="piano-scroll overflow-x-auto" x-ref="pianoScroll">
-                    <div class="relative" :style="containerStyle">
-                        <div class="flex h-full" :style="containerStyle">
-                            <template x-for="key in whites" :key="key.note">
-                                <button
-                                    @mousedown="playNote(key)"
-                                    @touchstart.prevent="playNote(key)"
-                                    class="piano-key-white h-full bg-gradient-to-b from-gray-50 to-white border-x border-b border-gray-300/40 rounded-b-sm shadow-sm"
-                                    :style="keyFlexStyle"
-                                ></button>
-                            </template>
-                        </div>
-                        <template x-for="key in blacks" :key="key.note">
-                            <button
-                                @mousedown.stop="playNote(key)"
-                                @touchstart.prevent.stop="playNote(key)"
-                                class="piano-key-black absolute top-0 z-10 rounded-b-md bg-gradient-to-b from-gray-700 to-gray-950 border border-gray-600/40 shadow-lg"
-                                :style="'left:' + key.offset + '; width:' + key.width + '; height: 100px;'"
-                            ></button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    {{-- ============ AI TUTOR PREVIEW (cream) ============ --}}
-    <section id="ai-tutor" class="py-24 sm:py-32 relative overflow-hidden" style="background: #FAF7F2;">
-        <div class="absolute inset-0 pointer-events-none overflow-hidden">
-            <div class="section-glow w-[500px] h-[500px] bg-primary-200/20 top-40 left-1/4"></div>
-        </div>
-
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div class="text-center mb-16 reveal">
-                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('app.welcome.ai_label') }}</span>
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                    {{ __('app.welcome.ai_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.ai_title_accent') }}</span>
-                </h2>
-                <p class="text-gray-500 max-w-xl mx-auto">{{ __('app.welcome.ai_description') }}</p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-10 items-start">
-                <div class="reveal">
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center">
-                                <i data-lucide="brain" class="w-4 h-4 text-white"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-semibold text-gray-900">{{ __('app.welcome.ai_chat_name') }}</div>
-                                <div class="text-xs text-green-500 flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ __('app.welcome.ai_chat_online') }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-5 space-y-4 min-h-[280px]">
-                            <div class="flex justify-end">
-                                <div class="bg-primary-100 text-gray-800 px-4 py-2.5 rounded-2xl rounded-br-md max-w-[80%] text-sm">
-                                    {{ __('app.welcome.ai_chat_q1') }}
-                                </div>
-                            </div>
-                            <div class="flex justify-start">
-                                <div class="bg-gray-50 text-gray-700 px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[80%] text-sm leading-relaxed border border-gray-100">
-                                    {{ __('app.welcome.ai_chat_a1') }}
-                                </div>
-                            </div>
-                            <div class="flex justify-end">
-                                <div class="bg-primary-100 text-gray-800 px-4 py-2.5 rounded-2xl rounded-br-md max-w-[80%] text-sm">
-                                    {{ __('app.welcome.ai_chat_q2') }}
-                                </div>
-                            </div>
-                            <div class="flex justify-start">
-                                <div class="bg-gray-50 text-gray-700 px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[80%] text-sm leading-relaxed border border-gray-100">
-                                    {{ __('app.welcome.ai_chat_a2') }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="px-5 pb-4">
-                            <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                                <i data-lucide="message-circle" class="w-4 h-4 text-gray-400"></i>
-                                <span class="text-sm text-gray-400">{{ __('app.welcome.ai_chat_placeholder') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-4 reveal" style="transition-delay:0.1s">
-                    <div class="light-card rounded-2xl p-6 group">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <i data-lucide="lightbulb" class="w-6 h-6 text-primary-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_recs_title') }}</h3>
-                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_recs_desc') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="light-card rounded-2xl p-6 group">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <i data-lucide="route" class="w-6 h-6 text-orange-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_path_title') }}</h3>
-                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_path_desc') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="light-card rounded-2xl p-6 group">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <i data-lucide="message-square" class="w-6 h-6 text-green-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_ask_title') }}</h3>
-                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_ask_desc') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
     {{-- ============ MUSIC GAMES (dark) ============ --}}
     <section id="games" class="py-24 sm:py-32 relative overflow-hidden" style="background: #0C0A10;">
         <div class="absolute inset-0 pointer-events-none overflow-hidden">
@@ -798,7 +682,7 @@
                     <span class="text-xs font-bold uppercase tracking-[0.2em] text-purple-400 mb-3 block">{{ __('app.welcome.games_label') }}</span>
                     <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-5">
                         {{ __('app.welcome.games_title_main') }}<br>
-                        <span class="font-serif italic font-normal" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ __('app.welcome.games_title_accent') }}</span>
+                        <span class="font-serif italic font-normal" style="color: #f97316;">{{ __('app.welcome.games_title_accent') }}</span>
                     </h2>
                     <p class="text-gray-400 text-lg leading-relaxed mb-8">
                         {{ __('app.welcome.games_description') }}
@@ -806,23 +690,23 @@
 
                     @php
                         $landingGames = [
-                            ['name' => __('app.welcome.game_note_rush_name'),      'icon' => 'zap',                'color' => 'text-yellow-400',  'bg' => 'bg-yellow-500/15'],
-                            ['name' => __('app.welcome.game_melody_memory_name'),  'icon' => 'music',              'color' => 'text-purple-400',  'bg' => 'bg-purple-500/15'],
-                            ['name' => __('app.welcome.game_interval_blitz_name'),'icon' => 'timer',              'color' => 'text-sky-400',     'bg' => 'bg-sky-500/15'],
-                            ['name' => __('app.welcome.game_chord_clash_name'),    'icon' => 'layers',             'color' => 'text-rose-400',    'bg' => 'bg-rose-500/15'],
-                            ['name' => __('app.welcome.game_note_fall_name'),      'icon' => 'arrow-down-to-line', 'color' => 'text-emerald-400', 'bg' => 'bg-emerald-500/15'],
-                            ['name' => __('app.welcome.game_note_catcher_name'),   'icon' => 'move-horizontal',    'color' => 'text-violet-400',  'bg' => 'bg-violet-500/15'],
+                            ['name' => __('app.welcome.game_note_rush_name'),      'icon' => 'zap',                'color' => 'text-yellow-400',  'bg' => 'bg-yellow-500/15',  'slug' => 'note-rush'],
+                            ['name' => __('app.welcome.game_melody_memory_name'),  'icon' => 'music',              'color' => 'text-purple-400',  'bg' => 'bg-purple-500/15',  'slug' => 'melody-memory'],
+                            ['name' => __('app.welcome.game_interval_blitz_name'),'icon' => 'timer',              'color' => 'text-sky-400',     'bg' => 'bg-sky-500/15',     'slug' => 'interval-blitz'],
+                            ['name' => __('app.welcome.game_chord_clash_name'),    'icon' => 'layers',             'color' => 'text-rose-400',    'bg' => 'bg-rose-500/15',    'slug' => 'chord-clash'],
+                            ['name' => __('app.welcome.game_note_fall_name'),      'icon' => 'arrow-down-to-line', 'color' => 'text-emerald-400', 'bg' => 'bg-emerald-500/15', 'slug' => 'note-fall'],
+                            ['name' => __('app.welcome.game_note_catcher_name'),   'icon' => 'move-horizontal',    'color' => 'text-violet-400',  'bg' => 'bg-violet-500/15',  'slug' => 'note-catcher'],
                         ];
                     @endphp
 
                     <div class="grid grid-cols-2 gap-3">
                         @foreach ($landingGames as $g)
-                        <div class="flex items-center gap-3 group min-w-0">
+                        <a href="{{ url('/games/'.$g['slug']) }}" class="flex items-center gap-3 group min-w-0">
                             <div class="w-10 h-10 rounded-xl {{ $g['bg'] }} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                 <i data-lucide="{{ $g['icon'] }}" class="w-5 h-5 {{ $g['color'] }}"></i>
                             </div>
-                            <h4 class="text-white font-semibold text-sm leading-snug truncate">{{ $g['name'] }}</h4>
-                        </div>
+                            <h4 class="text-white font-semibold text-sm leading-snug truncate group-hover:text-purple-300 transition-colors">{{ $g['name'] }}</h4>
+                        </a>
                         @endforeach
                     </div>
 
@@ -832,7 +716,7 @@
                 <div class="reveal flex flex-col gap-4 min-w-0" style="transition-delay:0.15s">
 
                     {{-- Note Fall mockup --}}
-                    <div class="relative overflow-hidden rounded-2xl">
+                    <a href="{{ url('/games/note-fall') }}" class="relative overflow-hidden rounded-2xl block group">
                         <div class="absolute inset-0 rounded-2xl blur-2xl pointer-events-none" style="background: radial-gradient(ellipse at 60% 40%, rgba(52,211,153,0.08) 0%, rgba(168,85,247,0.06) 60%, transparent 100%);"></div>
 
                         <div class="relative rounded-2xl overflow-hidden shadow-2xl select-none" style="background:#0f0a1e; border:1px solid rgba(255,255,255,0.1);">
@@ -943,7 +827,7 @@
                             </div>
 
                         </div>
-                    </div>
+                    </a>
 
                     {{-- Explore All Games button --}}
                     <div class="flex justify-end">
@@ -956,6 +840,147 @@
 
                 </div>
 
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ============ HOW IT WORKS (cream) ============ --}}
+    <section id="how-it-works" class="py-24 sm:py-32 relative overflow-hidden" style="background: #FAF7F2;">
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('app.welcome.how_label') }}</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+                    {{ __('app.welcome.how_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.how_title_accent') }}</span>
+                </h2>
+            </div>
+
+            <div class="grid gap-12 md:gap-8 md:grid-cols-3 relative">
+                <div class="hidden md:block absolute top-12 left-[calc(16.67%+20px)] right-[calc(16.67%+20px)] h-px opacity-20" style="background-image: repeating-linear-gradient(to right, #9333ea 0px, #9333ea 8px, transparent 8px, transparent 16px)"></div>
+
+                @php
+                    $steps = [
+                        ['num' => '1', 'icon' => 'headphones', 'title' => __('app.welcome.how_step1_title'), 'desc' => __('app.welcome.how_step1_desc'), 'border' => 'primary-300'],
+                        ['num' => '2', 'icon' => 'music', 'title' => __('app.welcome.how_step2_title'), 'desc' => __('app.welcome.how_step2_desc'), 'border' => 'primary-400'],
+                        ['num' => '3', 'icon' => 'trending-up', 'title' => __('app.welcome.how_step3_title'), 'desc' => __('app.welcome.how_step3_desc'), 'border' => 'accent-400'],
+                    ];
+                @endphp
+
+                @foreach ($steps as $i => $step)
+                    <div class="text-center reveal" style="transition-delay:{{ ($i * 0.1) + 0.05 }}s">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-white border-2 border-{{ $step['border'] }}/50 flex flex-col items-center justify-center mb-5 relative z-10 shadow-md">
+                            <span class="text-lg font-extrabold gradient-text leading-none">{{ $step['num'] }}</span>
+                            <i data-lucide="{{ $step['icon'] }}" class="w-4 h-4 text-gray-400 mt-0.5"></i>
+                        </div>
+                        <h3 class="text-gray-900 font-bold text-lg mb-2">{{ $step['title'] }}</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">{{ $step['desc'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="text-center mt-16 reveal">
+                <a href="{{ route('page.how-it-works') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-primary-200 text-primary-700 font-semibold text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-300 transition-all group">
+                    {{ __('app.welcome.how_learn_more') }}
+                    <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ============ VIRTUAL PIANO SHOWCASE (dark) ============ --}}
+    <section id="piano" class="pt-24 sm:pt-32 pb-[80px] relative overflow-hidden" style="background: #0C0A10;">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="section-glow w-[400px] h-[400px] bg-accent-500/[0.03] top-20 right-0"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative mb-[88px]">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-x-[148px] items-start">
+                <div class="reveal">
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-400 mb-3 block">{{ __('app.welcome.piano_label') }}</span>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-5">
+                        {{ __('app.welcome.piano_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.piano_title_accent') }}</span>
+                    </h2>
+                    <p class="text-gray-400 text-lg leading-relaxed">
+                        {{ __('app.welcome.piano_description') }}
+                    </p>
+                </div>
+
+                <div class="reveal flex flex-col gap-6" style="transition-delay:0.15s">
+                    <div class="flex justify-end">
+                        <a href="{{ route('piano.studio') }}" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-semibold transition-all shadow-lg shadow-accent-500/25 hover:shadow-accent-400/30 hover:-translate-y-0.5 group">
+                            Piano Studio
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i>
+                        </a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-accent-500/15 flex items-center justify-center shrink-0">
+                                <i data-lucide="volume-2" class="w-5 h-5 text-accent-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_sound_title') }}</h4>
+                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_sound_desc') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-primary-600/15 flex items-center justify-center shrink-0">
+                                <i data-lucide="music-2" class="w-5 h-5 text-primary-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_recognition_title') }}</h4>
+                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_recognition_desc') }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center shrink-0">
+                                <i data-lucide="eye" class="w-5 h-5 text-green-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-semibold text-sm">{{ __('app.welcome.piano_visual_title') }}</h4>
+                                <p class="text-gray-500 text-sm">{{ __('app.welcome.piano_visual_desc') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 mx-0 sm:mx-[10%]" x-data="pianoSection()">
+            <div class="bg-gray-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-gray-700/50">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-800">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="piano" class="w-4 h-4 text-gray-500"></i>
+                        <span class="text-xs text-gray-500 font-medium uppercase tracking-widest">{{ __('app.welcome.piano_studio_label') }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                        <span class="text-xs text-gray-500">{{ __('app.welcome.piano_connected') }}</span>
+                        <span class="text-xs font-semibold text-primary-400 ml-1" x-text="activeNote" x-show="activeNote" x-transition>&nbsp;</span>
+                    </div>
+                </div>
+                <div class="piano-scroll overflow-x-auto" x-ref="pianoScroll">
+                    <div class="relative" :style="containerStyle">
+                        <div class="flex h-full" :style="containerStyle">
+                            <template x-for="key in whites" :key="key.note">
+                                <button
+                                    @mousedown="playNote(key)"
+                                    @touchstart.prevent="playNote(key)"
+                                    class="piano-key-white h-full bg-gradient-to-b from-gray-50 to-white border-x border-b border-gray-300/40 rounded-b-sm shadow-sm"
+                                    :style="keyFlexStyle"
+                                ></button>
+                            </template>
+                        </div>
+                        <template x-for="key in blacks" :key="key.note">
+                            <button
+                                @mousedown.stop="playNote(key)"
+                                @touchstart.prevent.stop="playNote(key)"
+                                class="piano-key-black absolute top-0 z-10 rounded-b-md bg-gradient-to-b from-gray-700 to-gray-950 border border-gray-600/40 shadow-lg"
+                                :style="'left:' + key.offset + '; width:' + key.width + '; height: 100px;'"
+                            ></button>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1081,7 +1106,7 @@
 
                     <div class="flex flex-col gap-2.5 mt-6">
                         @auth
-                        <a href="{{ url('/dashboard') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-xl" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                        <a href="{{ route('checkout.show') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-xl" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                             {{ __('app.welcome.plan_premium_cta_dashboard') }}
                         </a>
                         @else
@@ -1136,7 +1161,7 @@
 
                     <div class="flex flex-col gap-2.5 mt-6">
                         @auth
-                        <a href="{{ url('/dashboard') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
+                        <a href="{{ route('checkout.show') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                             {{ __('app.welcome.plan_teachers_cta_start') }}
                         </a>
                         @else
@@ -1159,6 +1184,176 @@
     </section>
 
 
+    {{-- ============ STUDENTS & TEACHERS (dark) ============ --}}
+    <section class="py-24 sm:py-32 relative overflow-hidden" style="background: #0C0A10;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-400 mb-3 block">{{ __('app.welcome.roles_label') }}</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
+                    {{ __('app.welcome.roles_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.roles_title_accent') }}</span>
+                </h2>
+                <p class="text-gray-400 max-w-xl mx-auto">{{ __('app.welcome.roles_description') }}</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <a href="{{ route('page.students') }}" class="feature-card block rounded-2xl p-8 group reveal">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-primary-600/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="graduation-cap" class="w-7 h-7 text-primary-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_student_title') }}</h3>
+                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_student_subtitle') }}</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_1') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_2') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_3') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_4') }}</li>
+                    </ul>
+                </a>
+
+                <a href="{{ route('page.teachers-solution') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.1s">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-accent-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="users" class="w-7 h-7 text-accent-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_teacher_title') }}</h3>
+                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_teacher_subtitle') }}</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_1') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_2') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_3') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_4') }}</li>
+                    </ul>
+                </a>
+
+                <a href="{{ route('page.schools') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.2s">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-violet-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="building-2" class="w-7 h-7 text-violet-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_school_title') }}</h3>
+                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_school_subtitle') }}</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_1') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_2') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_3') }}</li>
+                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_4') }}</li>
+                    </ul>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ============ AI TUTOR PREVIEW (cream) ============ --}}
+    <section id="ai-tutor" class="py-24 sm:py-32 relative overflow-hidden" style="background: #FAF7F2;">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="section-glow w-[500px] h-[500px] bg-primary-200/20 top-40 left-1/4"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="text-center mb-16 reveal">
+                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('app.welcome.ai_label') }}</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+                    {{ __('app.welcome.ai_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.ai_title_accent') }}</span>
+                </h2>
+                <p class="text-gray-500 max-w-xl mx-auto">{{ __('app.welcome.ai_description') }}</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-10 items-start">
+                <div class="reveal">
+                    <a href="{{ $linkFor(route('ai-chat.index'), true) }}" class="block bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center">
+                                <i data-lucide="brain" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-gray-900">{{ __('app.welcome.ai_chat_name') }}</div>
+                                <div class="text-xs text-green-500 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ __('app.welcome.ai_chat_online') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5 space-y-4 min-h-[280px]">
+                            <div class="flex justify-end">
+                                <div class="bg-primary-100 text-gray-800 px-4 py-2.5 rounded-2xl rounded-br-md max-w-[80%] text-sm">
+                                    {{ __('app.welcome.ai_chat_q1') }}
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <div class="bg-gray-50 text-gray-700 px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[80%] text-sm leading-relaxed border border-gray-100">
+                                    {{ __('app.welcome.ai_chat_a1') }}
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <div class="bg-primary-100 text-gray-800 px-4 py-2.5 rounded-2xl rounded-br-md max-w-[80%] text-sm">
+                                    {{ __('app.welcome.ai_chat_q2') }}
+                                </div>
+                            </div>
+                            <div class="flex justify-start">
+                                <div class="bg-gray-50 text-gray-700 px-4 py-2.5 rounded-2xl rounded-bl-md max-w-[80%] text-sm leading-relaxed border border-gray-100">
+                                    {{ __('app.welcome.ai_chat_a2') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-5 pb-4">
+                            <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                                <i data-lucide="message-circle" class="w-4 h-4 text-gray-400"></i>
+                                <span class="text-sm text-gray-400">{{ __('app.welcome.ai_chat_placeholder') }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="space-y-4 reveal" style="transition-delay:0.1s">
+                    <a href="{{ $linkFor(route('ai-coach.index'), true) }}" class="light-card block rounded-2xl p-6 group">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                <i data-lucide="lightbulb" class="w-6 h-6 text-primary-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_recs_title') }}</h3>
+                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_recs_desc') }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ $linkFor(route('learn'), true) }}" class="light-card block rounded-2xl p-6 group">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                <i data-lucide="route" class="w-6 h-6 text-orange-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_path_title') }}</h3>
+                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_path_desc') }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{{ $linkFor(route('ai-chat.index'), true) }}" class="light-card block rounded-2xl p-6 group">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                <i data-lucide="message-square" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-gray-900 font-bold mb-1">{{ __('app.welcome.ai_card_ask_title') }}</h3>
+                                <p class="text-gray-500 text-sm leading-relaxed">{{ __('app.welcome.ai_card_ask_desc') }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
     {{-- ============ STATISTICS PREVIEW (dark) ============ --}}
     <section id="statistics" class="py-24 sm:py-32 relative overflow-hidden" style="background: #0C0A10;">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -1170,7 +1365,7 @@
                 <p class="text-gray-400 max-w-xl mx-auto">{{ __('app.welcome.stats_description') }}</p>
             </div>
 
-            <div class="dashboard-preview reveal" style="transition-delay:0.1s">
+            <a href="{{ $linkFor(route('progress'), true) }}" class="dashboard-preview reveal block" style="transition-delay:0.1s">
                 <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-0 sm:mb-8">
                         @php
@@ -1234,113 +1429,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-
-    {{-- ============ HOW IT WORKS (cream) ============ --}}
-    <section id="how-it-works" class="py-24 sm:py-32 relative overflow-hidden" style="background: #FAF7F2;">
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('app.welcome.how_label') }}</span>
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
-                    {{ __('app.welcome.how_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.how_title_accent') }}</span>
-                </h2>
-            </div>
-
-            <div class="grid gap-12 md:gap-8 md:grid-cols-3 relative">
-                <div class="hidden md:block absolute top-12 left-[calc(16.67%+20px)] right-[calc(16.67%+20px)] h-px opacity-20" style="background-image: repeating-linear-gradient(to right, #9333ea 0px, #9333ea 8px, transparent 8px, transparent 16px)"></div>
-
-                @php
-                    $steps = [
-                        ['num' => '1', 'icon' => 'headphones', 'title' => __('app.welcome.how_step1_title'), 'desc' => __('app.welcome.how_step1_desc'), 'border' => 'primary-300'],
-                        ['num' => '2', 'icon' => 'music', 'title' => __('app.welcome.how_step2_title'), 'desc' => __('app.welcome.how_step2_desc'), 'border' => 'primary-400'],
-                        ['num' => '3', 'icon' => 'trending-up', 'title' => __('app.welcome.how_step3_title'), 'desc' => __('app.welcome.how_step3_desc'), 'border' => 'accent-400'],
-                    ];
-                @endphp
-
-                @foreach ($steps as $i => $step)
-                    <div class="text-center reveal" style="transition-delay:{{ ($i * 0.1) + 0.05 }}s">
-                        <div class="w-16 h-16 mx-auto rounded-2xl bg-white border-2 border-{{ $step['border'] }}/50 flex flex-col items-center justify-center mb-5 relative z-10 shadow-md">
-                            <span class="text-lg font-extrabold gradient-text leading-none">{{ $step['num'] }}</span>
-                            <i data-lucide="{{ $step['icon'] }}" class="w-4 h-4 text-gray-400 mt-0.5"></i>
-                        </div>
-                        <h3 class="text-gray-900 font-bold text-lg mb-2">{{ $step['title'] }}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">{{ $step['desc'] }}</p>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-
-    {{-- ============ STUDENTS & TEACHERS (dark) ============ --}}
-    <section class="py-24 sm:py-32 relative overflow-hidden" style="background: #0C0A10;">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal">
-                <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-400 mb-3 block">{{ __('app.welcome.roles_label') }}</span>
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">
-                    {{ __('app.welcome.roles_title_main') }}<br><span class="font-serif italic font-normal gradient-text">{{ __('app.welcome.roles_title_accent') }}</span>
-                </h2>
-                <p class="text-gray-400 max-w-xl mx-auto">{{ __('app.welcome.roles_description') }}</p>
-            </div>
-
-            <div class="grid lg:grid-cols-3 gap-6">
-                <div class="feature-card rounded-2xl p-8 group reveal">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-primary-600/15 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i data-lucide="graduation-cap" class="w-7 h-7 text-primary-400"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_student_title') }}</h3>
-                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_student_subtitle') }}</p>
-                        </div>
-                    </div>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_1') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_2') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_3') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_student_item_4') }}</li>
-                    </ul>
-                </div>
-
-                <div class="feature-card rounded-2xl p-8 group reveal" style="transition-delay:0.1s">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-accent-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i data-lucide="users" class="w-7 h-7 text-accent-400"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_teacher_title') }}</h3>
-                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_teacher_subtitle') }}</p>
-                        </div>
-                    </div>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_1') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_2') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_3') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_teacher_item_4') }}</li>
-                    </ul>
-                </div>
-
-                <div class="feature-card rounded-2xl p-8 group reveal" style="transition-delay:0.2s">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-violet-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <i data-lucide="building-2" class="w-7 h-7 text-violet-400"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-white font-bold text-xl">{{ __('app.welcome.role_school_title') }}</h3>
-                            <p class="text-gray-500 text-sm">{{ __('app.welcome.role_school_subtitle') }}</p>
-                        </div>
-                    </div>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_1') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_2') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_3') }}</li>
-                        <li class="flex items-center gap-3 text-sm text-gray-400"><i data-lucide="check-circle" class="w-4 h-4 text-green-400 shrink-0"></i>{{ __('app.welcome.role_school_item_4') }}</li>
-                    </ul>
-                </div>
-            </div>
+            </a>
         </div>
     </section>
 
@@ -1398,7 +1487,25 @@
 
     {{-- ============ SCRIPTS ============ --}}
     <script>
-        lucide.createIcons();
+        // Lucide is deferred; it has executed by the time DOMContentLoaded fires.
+        document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+
+        // Tone.js (~200KB) is only needed once a piano key is played — load on demand.
+        let tonePromise = null;
+        function loadTone() {
+            if (!tonePromise) {
+                tonePromise = new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js';
+                    s.crossOrigin = 'anonymous';
+                    s.referrerPolicy = 'no-referrer';
+                    s.onload = resolve;
+                    s.onerror = () => { tonePromise = null; reject(new Error('Tone.js failed to load')); };
+                    document.head.appendChild(s);
+                });
+            }
+            return tonePromise;
+        }
 
         const reveals = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
@@ -1461,12 +1568,16 @@
                 init() {
                     this.$nextTick(() => {
                         const el = this.$refs.pianoScroll;
-                        if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+                        if (el) {
+                            el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+                            el.addEventListener('pointerover', () => loadTone().catch(() => {}), { once: true, passive: true });
+                        }
                     });
                 },
                 async playNote(key) {
                     this.activeNote = key.note;
                     try {
+                        await loadTone();
                         await Tone.start();
                         if (!sampler) initSampler();
                         const deadline = Date.now() + 6000;
@@ -1541,15 +1652,17 @@
                 keyFlexStyle: keyFlex,
                 init() {
                     this.$nextTick(() => {
-                        if (!mobile) {
-                            const el = this.$refs.pianoScroll;
-                            if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+                        const el = this.$refs.pianoScroll;
+                        if (el) {
+                            if (!mobile) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+                            el.addEventListener('pointerover', () => loadTone().catch(() => {}), { once: true, passive: true });
                         }
                     });
                 },
                 async playNote(key) {
                     this.activeNote = key.note;
                     try {
+                        await loadTone();
                         await Tone.start();
                         if (!sampler) initSampler();
                         const deadline = Date.now() + 6000;

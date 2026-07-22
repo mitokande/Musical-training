@@ -30,12 +30,20 @@ class TeacherStudentController extends Controller
 
         $teacher = $request->user();
 
-        $relationships = TeacherStudentRelationship::with('student')
-            ->where('teacher_id', $teacher->id)
+        // Schools aggregate their own roster with their member teachers'
+        // active students; plain teachers only ever see their own ($ownerIds
+        // is just their id then). Pending rows are the owner's own only.
+        $ownerIds = $teacher->crmOwnerIds();
+
+        $relationships = TeacherStudentRelationship::with(['student', 'teacher'])
+            ->whereIn('teacher_id', $ownerIds)
             ->whereIn('status', [
                 TeacherStudentRelationship::STATUS_ACTIVE,
                 TeacherStudentRelationship::STATUS_PENDING_STUDENT_APPROVAL,
             ])
+            ->where(fn ($q) => $q
+                ->where('teacher_id', $teacher->id)
+                ->orWhere('status', TeacherStudentRelationship::STATUS_ACTIVE))
             ->orderByDesc('approved_at')
             ->get();
 
@@ -68,6 +76,8 @@ class TeacherStudentController extends Controller
             'tags' => TeacherStudentTag::where('teacher_id', $teacher->id)->orderBy('name')->get(),
             'filterClass' => $classId,
             'filterTag' => $tagId,
+            // Show whose student each row is when rosters are aggregated.
+            'showTeacherColumn' => count($ownerIds) > 1,
         ]);
     }
 
@@ -77,8 +87,12 @@ class TeacherStudentController extends Controller
 
         $teacher = $request->user();
 
-        $relationship = TeacherStudentRelationship::where('teacher_id', $teacher->id)
+        // Prefer the account's own relationship row; schools fall back to a
+        // member teacher's active relationship (gate already verified access).
+        $relationship = TeacherStudentRelationship::with('teacher')
+            ->whereIn('teacher_id', $teacher->crmOwnerIds())
             ->where('student_id', $student->id)
+            ->orderByRaw('teacher_id = ? desc', [$teacher->id])
             ->firstOrFail();
 
         $practiceStats = UserPractice::where('user_id', $student->id)->get();
@@ -87,7 +101,7 @@ class TeacherStudentController extends Controller
 
         $assignmentRecipients = TeacherAssignmentRecipient::with('assignment')
             ->where('student_id', $student->id)
-            ->whereHas('assignment', fn ($q) => $q->where('teacher_id', $teacher->id))
+            ->whereHas('assignment', fn ($q) => $q->whereIn('teacher_id', $teacher->crmOwnerIds()))
             ->orderByDesc('created_at')
             ->get();
 

@@ -38,10 +38,10 @@
 
     {{-- Slots --}}
     <div x-show="loading" class="text-sm text-gray-400 mb-2">…</div>
-    <div x-show="!loading && date && slots.length === 0" class="text-sm text-gray-400 mb-2">{{ __('teacher.booking.no_slots') }}</div>
+    <div x-show="!loading && date && slots.length === 0" class="text-sm text-gray-400 mb-2">{{ $trans('booking.no_slots') }}</div>
 
     <div x-show="slots.length > 0" x-cloak class="mb-3">
-        <p class="text-sm font-semibold text-gray-600 mb-2">{{ __('teacher.booking.pick_slot') }}</p>
+        <p class="text-sm font-semibold text-gray-600 mb-2">{{ $trans('booking.pick_slot') }}</p>
         <div class="flex flex-wrap gap-1.5 mb-1.5">
             <template x-for="slot in slots" :key="slot.value">
                 <button type="button" @click="selected = slot.value"
@@ -49,15 +49,15 @@
                         class="px-3 py-2 rounded-lg text-sm font-semibold transition" x-text="slot.label"></button>
             </template>
         </div>
-        <p class="text-xs text-gray-400" x-show="timezone" x-text="'{{ __('teacher.booking.times_in_timezone', ['tz' => '']) }}' + timezone"></p>
+        <p class="text-xs text-gray-400" x-show="timezone" x-text="'{{ $trans('booking.times_in_timezone', ['tz' => '']) }}' + timezone"></p>
     </div>
 
     <form x-show="selected" x-cloak method="POST" action="{{ route('teachers.book', $slug) }}" class="space-y-2">
         @csrf
         <input type="hidden" name="starts_at" :value="selected">
-        <input type="text" name="topic" maxlength="255" placeholder="{{ __('teacher.booking.topic') }}" class="w-full rounded-xl border-gray-300 text-[15px]">
+        <input type="text" name="topic" maxlength="255" placeholder="{{ $trans('booking.topic') }}" class="w-full rounded-xl border-gray-300 text-[15px]">
         <button class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white text-[15px] font-semibold rounded-xl transition">
-            {{ __('teacher.booking.request') }}
+            {{ $trans('booking.request') }}
         </button>
     </form>
     @if ($errors->has('booking'))

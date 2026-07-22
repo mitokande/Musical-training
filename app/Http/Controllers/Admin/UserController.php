@@ -22,11 +22,57 @@ use Maatwebsite\Excel\Facades\Excel;
 class UserController extends Controller
 {
     /**
-     * Display a listing of all users.
+     * Display a listing of all users, split into segment tabs
+     * (All / Student Profiles / Teacher Profiles / School Profiles),
+     * each with its own headline stats.
      */
     public function index(Request $request)
     {
-        $users = User::query()
+        $segment = $request->query('segment', 'all');
+        if (! in_array($segment, ['all', 'students', 'teachers', 'schools'], true)) {
+            $segment = 'all';
+        }
+
+        // Teacher/school membership is orthogonal to role: a member counts as
+        // teacher/school if the role matches OR a matching-entity TeacherProfile exists.
+        $base = match ($segment) {
+            'all' => User::query(),
+            'students' => User::where('role', 'user'),
+            'teachers' => User::where(function ($q) {
+                $q->where('role', 'teacher')
+                    ->orWhereHas('teacherProfile', fn ($p) => $p->where('entity_type', TeacherProfile::ENTITY_TEACHER));
+            }),
+            'schools' => User::where(function ($q) {
+                $q->where('role', 'school')
+                    ->orWhereHas('teacherProfile', fn ($p) => $p->where('entity_type', TeacherProfile::ENTITY_SCHOOL));
+            }),
+        };
+
+        $stats = match ($segment) {
+            'all' => [
+                ['label' => 'Total Members', 'value' => (clone $base)->count(), 'icon' => 'users', 'color' => 'purple'],
+                ['label' => 'Premium Members', 'value' => (clone $base)->where('plan', 'premium')->count(), 'icon' => 'crown', 'color' => 'orange'],
+                ['label' => 'Active (7 days)', 'value' => (clone $base)->where('last_active_at', '>=', now()->subDays(7))->count(), 'icon' => 'activity', 'color' => 'green'],
+            ],
+            'students' => [
+                ['label' => 'Total Students', 'value' => (clone $base)->count(), 'icon' => 'graduation-cap', 'color' => 'blue'],
+                ['label' => 'Premium Students', 'value' => (clone $base)->where('plan', 'premium')->count(), 'icon' => 'crown', 'color' => 'orange'],
+                ['label' => 'Active (7 days)', 'value' => (clone $base)->where('last_active_at', '>=', now()->subDays(7))->count(), 'icon' => 'activity', 'color' => 'green'],
+            ],
+            'teachers' => [
+                ['label' => 'Total Teachers', 'value' => (clone $base)->count(), 'icon' => 'briefcase', 'color' => 'green'],
+                ['label' => 'Published Profiles', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_TEACHER)->where('status', TeacherProfile::STATUS_APPROVED)->count(), 'icon' => 'badge-check', 'color' => 'blue'],
+                ['label' => 'Pending Approval', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_TEACHER)->where('status', TeacherProfile::STATUS_SUBMITTED)->count(), 'icon' => 'clock', 'color' => 'amber'],
+            ],
+            'schools' => [
+                ['label' => 'Total Schools', 'value' => (clone $base)->count(), 'icon' => 'building', 'color' => 'amber'],
+                ['label' => 'Published Profiles', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_APPROVED)->count(), 'icon' => 'badge-check', 'color' => 'blue'],
+                ['label' => 'Pending Approval', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_SUBMITTED)->count(), 'icon' => 'clock', 'color' => 'amber'],
+            ],
+        };
+
+        $users = $base
+            ->with('teacherProfile')
             ->when($request->search, function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -34,7 +80,7 @@ class UserController extends Controller
                         ->orWhere('username', 'like', "%{$search}%");
                 });
             })
-            ->when($request->role, fn ($q, $role) => $q->where('role', $role))
+            ->when($segment === 'all' && $request->role, fn ($q) => $q->where('role', $request->role))
             ->when($request->plan, fn ($q, $plan) => $q->where('plan', $plan))
             ->when($request->status === 'active', fn ($q) => $q->where('last_active_at', '>=', now()->subDays(7)))
             ->when($request->status === 'inactive', function ($q) {
@@ -47,7 +93,7 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'segment', 'stats'));
     }
 
     /**
@@ -318,6 +364,25 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Manually approve (verify) a member's email address.
+     */
+    public function verifyEmail(User $user)
+    {
+        if ($user->hasVerifiedEmail()) {
+            return back()->with('error', 'This member is already verified.');
+        }
+
+        $user->markEmailAsVerified();
+
+        activity('admin')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->log('member_email_verified_manually');
+
+        return back()->with('success', "{$user->name} has been approved (email verified).");
     }
 
     /**

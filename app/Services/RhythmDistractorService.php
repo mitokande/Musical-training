@@ -31,7 +31,7 @@ class RhythmDistractorService
     private const BEAT_ALTS = [
         // ── 12 twelfths = 1 quarter beat (simple meters x/4) ─────────────────
         12 => [
-            'easy'   => [
+            'easy' => [
                 ['quarter'],
                 ['eighth', 'eighth'],
             ],
@@ -44,7 +44,7 @@ class RhythmDistractorService
                 ['sixteenth', 'eighth', 'sixteenth'],
                 ['sixteenth', 'sixteenth', 'eighth'],
             ],
-            'hard'   => [
+            'hard' => [
                 ['quarter'],
                 ['eighth', 'eighth'],
                 ['dotted-eighth', 'sixteenth'],
@@ -57,7 +57,7 @@ class RhythmDistractorService
         ],
         // ── 18 twelfths = 1 dotted-quarter beat (compound meters x/8) ────────
         18 => [
-            'easy'   => [
+            'easy' => [
                 ['dotted-quarter'],
                 ['quarter', 'eighth'],
                 ['eighth', 'quarter'],
@@ -73,7 +73,7 @@ class RhythmDistractorService
                 ['eighth', 'eighth', 'sixteenth', 'sixteenth'],
                 ['sixteenth', 'sixteenth', 'eighth', 'eighth'],
             ],
-            'hard'   => [
+            'hard' => [
                 ['dotted-quarter'],
                 ['quarter', 'eighth'],
                 ['eighth', 'quarter'],
@@ -88,7 +88,7 @@ class RhythmDistractorService
         ],
         // ── 24 twelfths = 2 quarter beats ────────────────────────────────────
         24 => [
-            'easy'   => [
+            'easy' => [
                 ['half'],
                 ['quarter', 'quarter'],
             ],
@@ -98,7 +98,7 @@ class RhythmDistractorService
                 ['dotted-quarter', 'eighth'],
                 ['eighth', 'dotted-quarter'],
             ],
-            'hard'   => [
+            'hard' => [
                 ['half'],
                 ['quarter', 'quarter'],
                 ['dotted-quarter', 'eighth'],
@@ -108,7 +108,7 @@ class RhythmDistractorService
         ],
         // ── 36 twelfths = 3 quarter beats  OR  2 dotted-quarter beats (6/8 whole bar) ──
         36 => [
-            'easy'   => [
+            'easy' => [
                 ['dotted-half'],
             ],
             'medium' => [
@@ -116,7 +116,7 @@ class RhythmDistractorService
                 ['half', 'quarter'],
                 ['quarter', 'half'],
             ],
-            'hard'   => [
+            'hard' => [
                 ['dotted-half'],
                 ['half', 'quarter'],
                 ['quarter', 'half'],
@@ -125,18 +125,18 @@ class RhythmDistractorService
         ],
         // ── 48 twelfths = whole note / 4 quarter beats ───────────────────────
         48 => [
-            'easy'   => [['whole']],
+            'easy' => [['whole']],
             'medium' => [['whole'], ['half', 'half']],
-            'hard'   => [['whole'], ['half', 'half']],
+            'hard' => [['whole'], ['half', 'half']],
         ],
         // ── 54 twelfths = 3 dotted-quarter beats (9/8 whole bar) ────────────
         54 => [
-            'easy'   => [['dotted-half', 'dotted-quarter']],
+            'easy' => [['dotted-half', 'dotted-quarter']],
             'medium' => [
                 ['dotted-half', 'dotted-quarter'],
                 ['dotted-quarter', 'dotted-half'],
             ],
-            'hard'   => [
+            'hard' => [
                 ['dotted-half', 'dotted-quarter'],
                 ['dotted-quarter', 'dotted-half'],
             ],
@@ -148,24 +148,28 @@ class RhythmDistractorService
     /**
      * Generate up to 3 near-miss distractors for the given correct rhythm.
      *
-     * @param  array   $correct     Flat token sequence of the canonical correct answer.
-     * @param  string  $timeSig     Time signature string, e.g. '4/4', '6/8'.
+     * @param  array  $correct  Flat token sequence of the canonical correct answer.
+     * @param  string  $timeSig  Time signature string, e.g. '4/4', '6/8'.
      * @param  string  $difficulty  'easy' | 'medium' | 'hard'
-     * @return array   At most 3 distinct distractor token sequences.
+     * @param  string[]|null  $allowedTokens  When set, every distractor may only use these
+     *                                        note-value tokens — keeps figures the lesson has
+     *                                        not taught yet (e.g. sixteenths in an eighth-note
+     *                                        lesson) out of the answer options. `null` = no limit.
+     * @return array At most 3 distinct distractor token sequences.
      */
-    public function generate(array $correct, string $timeSig, string $difficulty = 'medium'): array
+    public function generate(array $correct, string $timeSig, string $difficulty = 'medium', ?array $allowedTokens = null): array
     {
         [, $den] = array_map('intval', explode('/', $timeSig));
-        $beatT   = $this->groupingSvc->visualGroupTwelfths($den);
-        $totalT  = $this->sumTwelfths($correct);
+        $beatT = $this->groupingSvc->visualGroupTwelfths($den);
+        $totalT = $this->sumTwelfths($correct);
 
-        $groups     = $this->accumulateGroups($correct, $beatT);
+        $groups = $this->accumulateGroups($correct, $beatT);
         $distractors = [];
-        $attempts    = 0;
+        $attempts = 0;
 
         while (count($distractors) < 3 && $attempts < 80) {
             $attempts++;
-            $candidate = $this->makeDistractor($groups, $difficulty);
+            $candidate = $this->makeDistractor($groups, $difficulty, $allowedTokens);
             if ($candidate === null) {
                 continue;
             }
@@ -176,6 +180,11 @@ class RhythmDistractorService
                 continue;
             }
             if ($this->sumTwelfths($candidate) !== $totalT) {
+                continue;
+            }
+            // Safety net: never surface a token the lesson has not introduced,
+            // regardless of which strategy produced the candidate.
+            if ($allowedTokens !== null && ! empty(array_diff($candidate, $allowedTokens))) {
                 continue;
             }
             $distractors[] = $candidate;
@@ -190,14 +199,14 @@ class RhythmDistractorService
      * Multi-beat notes (half, dotted-half, whole) naturally form super-groups
      * of 2 or more beat units; they are never split mid-note.
      *
-     * @param  string[] $tokens
+     * @param  string[]  $tokens
      * @return array<array{tokens: string[], twelfths: int}>
      */
     public function accumulateGroups(array $tokens, int $beatTwelfths): array
     {
-        $groups  = [];
+        $groups = [];
         $current = [];
-        $sum     = 0;
+        $sum = 0;
 
         foreach ($tokens as $token) {
             $dur = $this->groupingSvc->noteTwelfths($token);
@@ -206,8 +215,8 @@ class RhythmDistractorService
 
             if ($beatTwelfths > 0 && $sum % $beatTwelfths === 0) {
                 $groups[] = ['tokens' => $current, 'twelfths' => $sum];
-                $current  = [];
-                $sum      = 0;
+                $current = [];
+                $sum = 0;
             }
         }
 
@@ -221,7 +230,7 @@ class RhythmDistractorService
 
     // ─── Strategy dispatcher ───────────────────────────────────────────────────
 
-    private function makeDistractor(array $groups, string $difficulty): ?array
+    private function makeDistractor(array $groups, string $difficulty, ?array $allowedTokens = null): ?array
     {
         // 'replace' appears twice on medium/hard to be picked more often.
         // Easy keeps one 'replace' so simple patterns (all quarters) can still vary.
@@ -234,9 +243,9 @@ class RhythmDistractorService
         foreach ($pool as $strategy) {
             $result = match ($strategy) {
                 'reorder' => $this->reorderWithin($groups),
-                'swap'    => $this->swapGroups($groups),
-                'replace' => $this->replaceGroup($groups, $difficulty),
-                default   => null,
+                'swap' => $this->swapGroups($groups),
+                'replace' => $this->replaceGroup($groups, $difficulty, $allowedTokens),
+                default => null,
             };
             if ($result !== null) {
                 return $result;
@@ -267,12 +276,12 @@ class RhythmDistractorService
 
         foreach ($eligible as $idx) {
             $tokens = $groups[$idx]['tokens'];
-            $orig   = implode(',', $tokens);
-            $perms  = $this->uniquePermutations($tokens);
+            $orig = implode(',', $tokens);
+            $perms = $this->uniquePermutations($tokens);
 
             foreach ($this->shuffled($perms) as $perm) {
                 if (implode(',', $perm) !== $orig) {
-                    $newGroups               = $groups;
+                    $newGroups = $groups;
                     $newGroups[$idx]['tokens'] = $perm;
 
                     return $this->flatten($newGroups);
@@ -290,7 +299,7 @@ class RhythmDistractorService
     private function swapGroups(array $groups): ?array
     {
         $pairs = [];
-        $n     = count($groups);
+        $n = count($groups);
 
         for ($i = 0; $i < $n - 1; $i++) {
             for ($j = $i + 1; $j < $n; $j++) {
@@ -307,8 +316,8 @@ class RhythmDistractorService
             return null;
         }
 
-        [$i, $j]                         = $pairs[array_rand($pairs)];
-        $newGroups                       = $groups;
+        [$i, $j] = $pairs[array_rand($pairs)];
+        $newGroups = $groups;
         [$newGroups[$i], $newGroups[$j]] = [$newGroups[$j], $newGroups[$i]];
 
         return $this->flatten($newGroups);
@@ -318,9 +327,9 @@ class RhythmDistractorService
      * Replace one rest-free group with a different same-duration pattern from
      * the curated BEAT_ALTS table.
      */
-    private function replaceGroup(array $groups, string $difficulty): ?array
+    private function replaceGroup(array $groups, string $difficulty, ?array $allowedTokens = null): ?array
     {
-        $level   = in_array($difficulty, ['easy', 'medium', 'hard']) ? $difficulty : 'medium';
+        $level = in_array($difficulty, ['easy', 'medium', 'hard']) ? $difficulty : 'medium';
         $indices = array_keys($groups);
         shuffle($indices);
 
@@ -332,16 +341,20 @@ class RhythmDistractorService
             }
 
             $twelfths = $g['twelfths'];
-            $alts     = self::BEAT_ALTS[$twelfths][$level] ?? [];
+            $alts = self::BEAT_ALTS[$twelfths][$level] ?? [];
             $groupStr = implode(',', $g['tokens']);
 
             $valid = array_values(array_filter(
                 $alts,
-                fn ($a) => implode(',', $a) !== $groupStr && ! $this->hasRest($a)
+                fn ($a) => implode(',', $a) !== $groupStr
+                    && ! $this->hasRest($a)
+                    // Only offer replacement figures built from note values the
+                    // lesson has already taught.
+                    && ($allowedTokens === null || empty(array_diff($a, $allowedTokens)))
             ));
 
             if (! empty($valid)) {
-                $newGroups               = $groups;
+                $newGroups = $groups;
                 $newGroups[$idx]['tokens'] = $valid[array_rand($valid)];
 
                 return $this->flatten($newGroups);
@@ -391,7 +404,7 @@ class RhythmDistractorService
         }
 
         $result = [];
-        $seen   = [];
+        $seen = [];
 
         foreach ($arr as $i => $item) {
             $rest = $arr;
@@ -399,11 +412,11 @@ class RhythmDistractorService
 
             foreach ($this->uniquePermutations($rest) as $perm) {
                 $candidate = array_merge([$item], $perm);
-                $key       = implode(',', $candidate);
+                $key = implode(',', $candidate);
 
                 if (! isset($seen[$key])) {
                     $seen[$key] = true;
-                    $result[]   = $candidate;
+                    $result[] = $candidate;
 
                     if (count($result) >= 120) {
                         return $result;

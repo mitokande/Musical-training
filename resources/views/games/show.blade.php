@@ -1,31 +1,53 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $game['name'] }} — {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="{{ $game['description'] }}">
+    <link rel="canonical" href="{{ route('games.show', $slug) }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="{{ $game['name'] }} — Harmoniva">
+    <meta property="og:description" content="{{ $game['description'] }}">
+    <meta property="og:url" content="{{ route('games.show', $slug) }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $game['name'] }} — Harmoniva">
+    <meta name="twitter:description" content="{{ $game['description'] }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+    @php
+        // Built inside @php: Blade would otherwise compile the "@context" key
+        // as its @context directive and corrupt the JSON.
+        $gameJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'VideoGame',
+            'name' => $game['name'],
+            'description' => $game['description'],
+            'url' => route('games.show', $slug),
+            'gamePlatform' => 'Web',
+            'applicationCategory' => 'Game',
+            'genre' => 'Educational',
+            'publisher' => ['@type' => 'Organization', 'name' => 'Harmoniva', 'url' => url('/')],
+            'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $gameJsonLd !!}</script>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800,900" rel="stylesheet" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/marketing.css')
     <script src="https://unpkg.com/lucide@0.460.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.3.5/Tone.js"
             integrity="sha512-F1myjNkIKU5XJtOs1HXRo/zOjiUsABgFEEGKLx/riwK82jRThZFebEnfF2HWo9eeC+iC1Nwwnn9Vj6OGq+r7rQ=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
 
     <style>
         body { background: #0f0a1e; }
@@ -126,6 +148,25 @@
         chordDesc:       @json(__('app.games.chord_desc')),
         noteFallDesc:    @json(__('app.games.note_fall_desc')),
         noteCatcherDesc: @json(__('app.games.note_catcher_desc')),
+    };
+
+    // Guest level gate: guests may only play level 1. Games call
+    // window.gameLevelAllowed(level) before starting/advancing a level and
+    // window.showGameSignupModal() when the gate rejects.
+    window.GAME_GUEST_MAX_LEVEL = @json($guestMaxLevel ?? null);
+    window.gameLevelAllowed = function (level) {
+        return !window.GAME_GUEST_MAX_LEVEL || level <= window.GAME_GUEST_MAX_LEVEL;
+    };
+    window.showGameSignupModal = function () {
+        var el = document.getElementById('game-guest-signup-modal');
+        if (el) {
+            el.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+    };
+    window.hideGameSignupModal = function () {
+        var el = document.getElementById('game-guest-signup-modal');
+        if (el) el.classList.add('hidden');
     };
 
     // Site-wide accidental display standard (mirrored in
@@ -446,5 +487,33 @@
     </script>
 
     @include('partials.guest-timer-popup', ['timerKey' => 'music-games'])
+
+    @guest
+    {{-- Level-2 gate: shown when a guest tries to go past level 1 --}}
+    <div id="game-guest-signup-modal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);"
+         onclick="if (event.target === this) window.hideGameSignupModal()">
+        <div class="relative w-full max-w-sm rounded-3xl p-8 text-center"
+             style="background: linear-gradient(145deg, #1a0f33 0%, #0f0a1e 100%); border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 40px 80px rgba(0,0,0,0.6);">
+            <button type="button" onclick="window.hideGameSignupModal()"
+                    class="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white"
+                    style="background: rgba(255,255,255,0.08);" aria-label="{{ __('app.popup.close') }}">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <div class="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                 style="background: linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(236,72,153,0.3) 100%); border: 1px solid rgba(168,85,247,0.4);">
+                <i data-lucide="lock" class="w-7 h-7 text-purple-300"></i>
+            </div>
+            <h2 class="text-white font-extrabold text-xl mb-2">{{ __('app.limits.game_level_locked_title') }}</h2>
+            <p class="text-white/50 text-sm mb-6">{{ __('app.limits.game_level_locked_desc') }}</p>
+            <a href="{{ route('register') }}"
+               class="block w-full py-3 rounded-2xl font-bold text-white text-sm mb-3"
+               style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);">{{ __('app.popup.sign_up') }}</a>
+            <a href="{{ route('login') }}"
+               class="block w-full py-2.5 rounded-2xl font-semibold text-white/60 text-sm border"
+               style="border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);">{{ __('app.popup.login') }}</a>
+        </div>
+    </div>
+    @endguest
 </body>
 </html>

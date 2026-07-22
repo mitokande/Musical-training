@@ -21,9 +21,46 @@
         </a>
     </div>
 
+    <!-- Segment Tabs -->
+    @php
+        $segmentTabs = [
+            'all' => ['label' => 'All', 'icon' => 'users'],
+            'students' => ['label' => 'Student Profiles', 'icon' => 'graduation-cap'],
+            'teachers' => ['label' => 'Teacher Profiles', 'icon' => 'briefcase'],
+            'schools' => ['label' => 'School Profiles', 'icon' => 'building'],
+        ];
+    @endphp
+    <div class="flex flex-wrap gap-2">
+        @foreach($segmentTabs as $key => $tab)
+            <a href="{{ route('admin.users.index', $key === 'all' ? [] : ['segment' => $key]) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition {{ $segment === $key ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200' }}">
+                <i data-lucide="{{ $tab['icon'] }}" class="w-4 h-4"></i>
+                {{ $tab['label'] }}
+            </a>
+        @endforeach
+    </div>
+
+    <!-- Headline Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        @foreach($stats as $stat)
+            <div class="card p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-{{ $stat['color'] }}-100 flex items-center justify-center shrink-0">
+                    <i data-lucide="{{ $stat['icon'] }}" class="w-6 h-6 text-{{ $stat['color'] }}-600"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-900">{{ number_format($stat['value']) }}</p>
+                    <p class="text-sm text-gray-500">{{ $stat['label'] }}</p>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
     <!-- Filter Bar -->
     <div class="card p-4">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <form method="GET" action="{{ route('admin.users.index') }}" class="grid grid-cols-1 sm:grid-cols-2 {{ $segment === 'all' ? 'lg:grid-cols-5' : 'lg:grid-cols-4' }} gap-4">
+            @if($segment !== 'all')
+                <input type="hidden" name="segment" value="{{ $segment }}">
+            @endif
             <!-- Search -->
             <div class="lg:col-span-2">
                 <div class="relative">
@@ -33,6 +70,7 @@
                 </div>
             </div>
 
+            @if($segment === 'all')
             <!-- Role Filter -->
             <div>
                 <select name="role" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
@@ -42,6 +80,7 @@
                     <option value="school" {{ request('role') == 'school' ? 'selected' : '' }}>Music School</option>
                 </select>
             </div>
+            @endif
 
             <!-- Plan Filter -->
             <div>
@@ -99,6 +138,9 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Plan</th>
+                        @if(in_array($segment, ['teachers', 'schools']))
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Profile</th>
+                        @endif
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Country</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Last Active</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
@@ -170,6 +212,28 @@
                                 </span>
                             @endif
                         </td>
+                        @if(in_array($segment, ['teachers', 'schools']))
+                        <td class="px-6 py-4">
+                            @if($user->teacherProfile)
+                                @php
+                                    $profileStatusColors = [
+                                        'approved' => 'bg-green-100 text-green-700',
+                                        'submitted_for_review' => 'bg-amber-100 text-amber-700',
+                                        'rejected' => 'bg-red-100 text-red-700',
+                                        'suspended' => 'bg-red-100 text-red-700',
+                                        'draft' => 'bg-gray-100 text-gray-600',
+                                        'archived' => 'bg-gray-100 text-gray-600',
+                                    ];
+                                @endphp
+                                <a href="{{ route('admin.teacher-profiles.show', $user->teacherProfile) }}"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity {{ $profileStatusColors[$user->teacherProfile->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                    {{ __('teacher.status.'.$user->teacherProfile->status) }}
+                                </a>
+                            @else
+                                <span class="text-xs text-gray-400">No profile</span>
+                            @endif
+                        </td>
+                        @endif
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $user->country ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">
                             {{ $user->last_active_at ? $user->last_active_at->diffForHumans() : 'Never' }}
@@ -206,7 +270,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
+                        <td colspan="{{ in_array($segment, ['teachers', 'schools']) ? 9 : 8 }}" class="px-6 py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
                                     <i data-lucide="users" class="w-8 h-8 text-gray-400"></i>

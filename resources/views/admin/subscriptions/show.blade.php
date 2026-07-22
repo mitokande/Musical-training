@@ -12,6 +12,8 @@
         @php
             $statusColors = [
                 'active' => 'bg-green-100 text-green-700',
+                'pending' => 'bg-amber-100 text-amber-700',
+                'past_due' => 'bg-orange-100 text-orange-700',
                 'cancelled' => 'bg-red-100 text-red-700',
                 'expired' => 'bg-gray-100 text-gray-600',
                 'trial' => 'bg-blue-100 text-blue-700',
@@ -20,7 +22,31 @@
         <span class="px-3 py-1 text-sm font-medium rounded-full {{ $statusColors[$subscription->status] ?? 'bg-gray-100 text-gray-600' }}">
             {{ ucfirst($subscription->status) }}
         </span>
+
+        <div class="ml-auto flex items-center gap-2">
+            @if($subscription->status === 'pending')
+                <form method="POST" action="{{ route('admin.subscriptions.confirm', $subscription) }}"
+                      onsubmit="return confirm('Confirm payment and activate Premium for this user?');">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition">Confirm payment</button>
+                </form>
+            @endif
+            <a href="{{ route('admin.subscriptions.edit', $subscription) }}" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Edit</a>
+            @if(!in_array($subscription->status, ['cancelled', 'expired']))
+                <form method="POST" action="{{ route('admin.subscriptions.destroy', $subscription) }}"
+                      onsubmit="return confirm('Cancel this subscription and revoke access immediately?');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition">Cancel</button>
+                </form>
+            @endif
+        </div>
     </div>
+
+    @foreach(['success' => 'green', 'info' => 'blue', 'error' => 'red'] as $key => $color)
+        @if(session($key))
+            <div class="rounded-lg bg-{{ $color }}-50 border border-{{ $color }}-200 text-{{ $color }}-800 text-sm px-4 py-3">{{ session($key) }}</div>
+        @endif
+    @endforeach
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {{-- Subscription Info --}}

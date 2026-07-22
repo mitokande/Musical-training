@@ -29,7 +29,7 @@
                             @endif
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
-                                    <span class="text-sm font-semibold text-gray-900 truncate">{{ $conv['user']->name }}</span>
+                                    <span class="text-sm font-semibold text-gray-900 truncate">{{ $conv['user']->fullName() }}</span>
                                     @if($conv['unread'] > 0)
                                         <span class="bg-purple-600 text-white text-xs font-bold rounded-full px-1.5 min-w-[18px] text-center">{{ $conv['unread'] }}</span>
                                     @endif
@@ -65,7 +65,7 @@
                                     {{ substr($activeUser->name ?? 'U', 0, 1) }}
                                 </div>
                             @endif
-                            <span class="font-semibold text-gray-900">{{ $activeUser->name }}</span>
+                            <span class="font-semibold text-gray-900">{{ $activeUser->fullName() }}</span>
                         </a>
                     </div>
 

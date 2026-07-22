@@ -1,10 +1,61 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $exercise->getLocalizedTitle() }} — {{ config('app.name') }}</title>
+    @php
+        $lpTitle = $exercise->getLocalizedTitle();
+        $lpDescription = \Illuminate\Support\Str::limit(
+            strip_tags((string) ($exercise->getLocalizedDescription() ?: $lpTitle)),
+            160
+        );
+        $lpUrl = route('learning-path.show', $exercise->slug);
+        // Built inside @php so Blade does not treat the "@context"/"@type"
+        // literal keys as directives and corrupt the JSON.
+        $lpJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Course',
+            'name' => $lpTitle,
+            'description' => $lpDescription,
+            'url' => $lpUrl,
+            'isAccessibleForFree' => true,
+            'inLanguage' => str_replace('_', '-', app()->getLocale()),
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => 'Harmoniva',
+                'url' => url('/'),
+                'logo' => asset('images/logo-full.png'),
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $lpBreadcrumbJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Learning Path', 'item' => route('learn')],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $lpTitle, 'item' => $lpUrl],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <meta name="description" content="{{ $lpDescription }}">
+    <link rel="canonical" href="{{ $lpUrl }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:title" content="{{ $lpTitle }} — Harmoniva">
+    <meta property="og:description" content="{{ $lpDescription }}">
+    <meta property="og:url" content="{{ $lpUrl }}">
+    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $lpTitle }} — Harmoniva">
+    <meta name="twitter:description" content="{{ $lpDescription }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+    <script type="application/ld+json">{!! $lpJsonLd !!}</script>
+    <script type="application/ld+json">{!! $lpBreadcrumbJsonLd !!}</script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -122,10 +173,57 @@
     </div>
 
     {{-- Question count variants --}}
-    @php $isPremiumUser = auth()->user()?->isPremium() ?? false; @endphp
+    @php
+        $isPremiumUser = auth()->user()?->isEffectivelyPremium() ?? false;
+        $quotaLimit = $sessionQuota['limit'] ?? -1;
+        $quotaUsed = $sessionQuota['used'] ?? 0;
+        $quotaExhausted = $quotaLimit !== -1 && $quotaUsed >= $quotaLimit;
+    @endphp
+
+    {{-- Daily session limit banner / limit-reached CTA --}}
+    @if(session('lp_limit_reached') || $quotaExhausted)
+        <div class="rounded-2xl border-2 border-orange-300 bg-orange-50 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex-1">
+                <div class="font-bold text-orange-800 mb-1">
+                    @guest
+                        {{ __('app.limits.lp_guest_reached_title') }}
+                    @else
+                        {{ __('app.limits.lp_free_reached_title') }}
+                    @endguest
+                </div>
+                <p class="text-sm text-orange-700">
+                    @guest
+                        {{ __('app.limits.lp_guest_reached_desc', ['limit' => $quotaLimit]) }}
+                    @else
+                        {{ __('app.limits.lp_free_reached_desc', ['limit' => $quotaLimit]) }}
+                    @endguest
+                </p>
+            </div>
+            @guest
+                <a href="{{ route('register') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                    {{ __('app.limits.cta_create_account') }}
+                </a>
+            @else
+                <a href="{{ route('pricing.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                    {{ __('app.limits.cta_upgrade') }}
+                </a>
+            @endguest
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">{{ session('error') }}</div>
+    @endif
 
     <div class="space-y-3">
-        <h2 class="text-lg font-bold text-gray-800">Choose question count</h2>
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <h2 class="text-lg font-bold text-gray-800">Choose question count</h2>
+            @if($quotaLimit !== -1)
+                <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $quotaExhausted ? 'bg-orange-100 text-orange-700' : 'bg-purple-50 text-purple-600' }}">
+                    {{ __('app.limits.sessions_used_today', ['used' => min($quotaUsed, $quotaLimit), 'limit' => $quotaLimit]) }}
+                </span>
+            @endif
+        </div>
         <p class="text-sm text-gray-500">Free users can always practice 5 questions. Upgrade to Premium for full sets.</p>
 
         <div class="grid grid-cols-3 gap-4">
@@ -178,7 +276,7 @@
                     </div>
                     <div class="text-sm font-semibold text-gray-400">Standard session</div>
                     <div class="text-xs text-gray-300 mt-1">~{{ max(1, round($exercise->estimated_duration_minutes * 0.7)) }} min</div>
-                    <a href="#"
+                    <a href="{{ auth()->check() ? route('pricing.index') : route('register') }}"
                        class="mt-3 flex items-center gap-1 text-orange-500 text-xs font-medium hover:underline">
                         Unlock <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>
@@ -215,7 +313,7 @@
                     </div>
                     <div class="text-sm font-semibold text-gray-400">Full lesson</div>
                     <div class="text-xs text-gray-300 mt-1">~{{ $exercise->estimated_duration_minutes }} min</div>
-                    <a href="#"
+                    <a href="{{ auth()->check() ? route('pricing.index') : route('register') }}"
                        class="mt-3 flex items-center gap-1 text-orange-500 text-xs font-medium hover:underline">
                         Unlock <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>

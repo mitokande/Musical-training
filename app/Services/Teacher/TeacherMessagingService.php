@@ -8,6 +8,7 @@ use App\Models\TeacherConversationMessage;
 use App\Models\TeacherStudentRelationship;
 use App\Models\User;
 use App\Notifications\Teacher\TeacherMessageReceived;
+use App\Services\UsageQuotaService;
 use Illuminate\Http\UploadedFile;
 use InvalidArgumentException;
 
@@ -23,7 +24,11 @@ class TeacherMessagingService
 
     private const MAX_ATTACHMENT_KB = 10240;
 
-    public function __construct(private TeacherCapabilityService $capabilities) {}
+    public function __construct(
+        private TeacherCapabilityService $capabilities,
+        private CrmQuotaService $quota,
+        private UsageQuotaService $usage,
+    ) {}
 
     /** Find-or-create the conversation between an active teacher-student pair. */
     public function conversationBetween(User $teacher, User $student): TeacherConversation
@@ -58,6 +63,15 @@ class TeacherMessagingService
             throw new InvalidArgumentException(__('teacher.messaging.error_basic_cannot_reply'));
         }
 
+        // Free (basic-tier) accounts: daily sent-message cap.
+        if ($isTeacherSide) {
+            $limit = $this->quota->limit($sender, 'daily_teacher_messages');
+            if ($limit !== -1
+                && $this->usage->userUsed($sender, UsageQuotaService::FEATURE_TEACHER_MESSAGES) >= $limit) {
+                throw new InvalidArgumentException(__('teacher.limits.messages_reached', ['limit' => $limit]));
+            }
+        }
+
         // Both directions require the relationship to still be active.
         $active = TeacherStudentRelationship::active()
             ->where('teacher_id', $conversation->teacher_id)
@@ -76,6 +90,10 @@ class TeacherMessagingService
 
         foreach ($attachments as $file) {
             $this->storeAttachment($message, $file);
+        }
+
+        if ($isTeacherSide) {
+            $this->usage->userIncrement($sender, UsageQuotaService::FEATURE_TEACHER_MESSAGES);
         }
 
         $conversation->update(['last_message_at' => now()]);

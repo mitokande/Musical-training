@@ -12,7 +12,7 @@ class CheckPlanFeature
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             abort(403);
         }
 
@@ -20,18 +20,20 @@ class CheckPlanFeature
             return $next($request);
         }
 
-        if (!$user->canAccess($feature)) {
+        if (! $user->canAccess($feature)) {
+            // Feature-specific upgrade copy; falls back to the generic line.
+            $key = 'app.limits.feature_'.$feature;
+            $message = __($key) !== $key ? __($key) : __('app.limits.feature_premium_generic');
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'feature_restricted',
-                    'message' => 'This feature requires a Premium plan.',
+                    'message' => $message,
                     'feature' => $feature,
                 ], 403);
             }
 
-            return redirect()->route('dashboard')->with('error',
-                'Bu özellik Premium plan gerektirir. Planınızı yükselterek erişim kazanın.'
-            );
+            return redirect()->route('dashboard')->with('error', $message);
         }
 
         return $next($request);

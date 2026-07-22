@@ -28,7 +28,7 @@ class TeacherMessageReceived extends Notification implements ShouldQueue
 
         $url = $isStudentRecipient
             ? route('teacher-messages.show', $this->conversation)
-            : route('teacher.messages.show', $this->conversation);
+            : route($notifiable->crmRouteName('messages.show'), $this->conversation);
 
         return (new MailMessage)
             ->subject('New message from '.$senderName)

@@ -345,6 +345,7 @@
                 'sixteenth': 3, 'whole_rest': 48, 'half_rest': 24,
                 'quarter_rest': 12, 'eighth_rest': 6,
                 'triplet-quarter-note': 8, // each of 3 expanded triplet-quarter notes
+                '__bar__': 0,              // inserted barline tickable — zero duration
             };
             const isBeamable = v => v === 'eighth' || v === 'dotted-eighth' ||
                                     v === 'sixteenth' || v === 'triplet-eighth';
@@ -432,8 +433,20 @@
             const expandedNames = [];
             const tuplets       = [];
             let tripletRun      = [];
+            // Draw a barline at every bar boundary so multi-bar options and reveals
+            // show their measure divisions — VexFlow only renders the terminal barline
+            // of a stave, so a 2-bar answer would otherwise read as one long measure.
+            const barTw = beatValue > 0 ? (48 * numBeats / beatValue) : 0;
+            let cumTw = 0;
             noteArray.forEach((noteName, idx) => {
                 const color = colorMap && colorMap[idx] ? colorMap[idx] : null;
+                if (barTw > 0 && cumTw > 0 && cumTw % barTw === 0) {
+                    try {
+                        staveNotes.push(new VF.BarNote());
+                        expandedNames.push('__bar__');
+                    } catch(e) {}
+                }
+                cumTw += (RHYTHM_TWELFTHS[noteName] ?? (noteName === 'triplet-quarter' ? 24 : 0));
                 if (noteName === 'triplet-eighth') {
                     // Generator emits 3 individual triplet-eighth tokens per beat group;
                     // collect them and create one Tuplet when the group is complete.
@@ -704,14 +717,18 @@
             const denR         = parseInt(timeSig.split('/')[1] || 4);
             const isCompoundR  = denR === 8;
             const isAllaBreveR = denR === 2;
-            // Compound (x/8): click every eighth note (beatMs/2), accent every 3rd.
+            // Compound (x/8): the dotted-quarter is the beat, so the displayed tempo is the
+            //   dotted-quarter BPM. Click once per beat (rawBeats/3 beats per bar), not per
+            //   eighth (which ran at 2× the written tempo).
             // Alla breve (x/2): bpm = half-note BPM; click every half-note beat, rawBeats per bar.
             // Simple (x/4): click every quarter note (beatMs), rawBeats per bar.
-            const beatsPerBar  = isCompoundR ? rawBeatsR : rawBeatsR;
-            const subdivMsR    = isCompoundR ? Math.round(beatMs / 2) : beatMs;
-            const isAccentR    = b => isCompoundR ? (b % 3 === 0) : (b === 0);
-            // For x/2, bpm = half-note BPM; noteDurations uses quarter=1, so 1 quarter = beatMs/2.
-            const noteBeatMsR  = isAllaBreveR ? beatMs / 2 : beatMs;
+            const compoundBeatsR = Math.max(1, Math.round(rawBeatsR / 3));
+            const beatsPerBar  = isCompoundR ? compoundBeatsR : rawBeatsR;
+            const subdivMsR    = beatMs; // one click per beat in every meter
+            const isAccentR    = isCompoundR ? (b => b % compoundBeatsR === 0) : (b => b === 0);
+            // quarter-note duration reference: x/2 → beatMs/2, x/8 → 2·beatMs/3
+            // (so dotted-quarter = beatMs), x/4 → beatMs.
+            const noteBeatMsR  = isAllaBreveR ? beatMs / 2 : (isCompoundR ? beatMs * 2 / 3 : beatMs);
 
             let isAnswered      = false;
             let rhythmStartTime = null;
@@ -1107,16 +1124,21 @@
                 whole_rest: 4, half_rest: 2, quarter_rest: 1, eighth_rest: 0.5,
             };
 
-            // Compound (x/8): click every eighth note (beatMs/2), accent every 3rd.
+            // Compound (x/8): the BEAT is the dotted-quarter, so the displayed tempo is the
+            //   dotted-quarter BPM. Click once per beat (num/3 beats per bar) and time notes
+            //   so a dotted-quarter lasts exactly one beat. (Previously the click ran at every
+            //   eighth — 2× the written tempo — which is why 6/8 & 9/8 lessons felt too fast.)
             // Alla breve (x/2): bpm = half-note BPM; click every half-note beat, num per bar.
             // Simple (x/4): click every quarter note (beatMs), num per bar.
             const isCompound    = den === 8;
             const isAllaBreve   = den === 2;
-            const subdivMs      = isCompound ? beatMs / 2 : beatMs;
-            const subdivsPerBar = isCompound ? num : num;
-            const isAccent      = b => isCompound ? (b % 3 === 0) : (b === 0);
-            // For x/2, bpm = half-note BPM; noteDur uses quarter=1, so 1 quarter = beatMs/2.
-            const noteBeatMs    = isAllaBreve ? beatMs / 2 : beatMs;
+            const compoundBeats = Math.max(1, Math.round(num / 3)); // dotted-quarter beats per bar
+            const subdivMs      = beatMs; // one click per beat in every meter
+            const subdivsPerBar = isCompound ? compoundBeats : num;
+            const isAccent      = isCompound ? (b => b % compoundBeats === 0) : (b => b === 0);
+            // quarter-note duration reference: x/2 → beatMs/2 (half-note beat),
+            // x/8 → 2·beatMs/3 (so dotted-quarter = beatMs), x/4 → beatMs.
+            const noteBeatMs    = isAllaBreve ? beatMs / 2 : (isCompound ? beatMs * 2 / 3 : beatMs);
 
             await window.HarmonivaAudio.prepare();
             const leadMs = 120;

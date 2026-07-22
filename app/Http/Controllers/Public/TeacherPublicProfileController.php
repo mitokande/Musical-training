@@ -15,14 +15,44 @@ use Illuminate\View\View;
 
 class TeacherPublicProfileController extends Controller
 {
+    /**
+     * Public directory of every approved teacher and school profile,
+     * linked from the How-it-Works guide and the community pages.
+     */
+    public function index(): View
+    {
+        $profiles = TeacherProfile::publiclyVisible()
+            ->with('user.school')
+            ->orderByDesc('approved_at')
+            ->get();
+
+        // One grouped query for review stats instead of N per card.
+        $reviewStats = TeacherReview::approved()
+            ->whereIn('teacher_profile_id', $profiles->pluck('id'))
+            ->selectRaw('teacher_profile_id, count(*) as reviews_count, avg(rating) as rating_avg')
+            ->groupBy('teacher_profile_id')
+            ->get()
+            ->keyBy('teacher_profile_id');
+
+        return view('pages.find-teachers', [
+            'teachers' => $profiles->where('entity_type', TeacherProfile::ENTITY_TEACHER)->values(),
+            'schools' => $profiles->where('entity_type', TeacherProfile::ENTITY_SCHOOL)->values(),
+            'reviewStats' => $reviewStats,
+        ]);
+    }
+
     public function show(Request $request, string $slug): View
     {
+        // /teachers/{slug} and /schools/{slug} share this action; the route
+        // sets the 'entity' default so cross-entity slugs 404.
+        $entity = $request->route()->parameter('entity', TeacherProfile::ENTITY_TEACHER);
+
         $profile = TeacherProfile::with([
             'user', 'educations', 'instruments',
             'services' => fn ($q) => $q->active(),
             'videos', 'media',
             'paymentLinks' => fn ($q) => $q->active(),
-        ])->where('slug', $slug)->firstOrFail();
+        ])->where('slug', $slug)->where('entity_type', $entity)->firstOrFail();
 
         $viewer = $request->user();
         $isOwner = $viewer && $viewer->id === $profile->user_id;
@@ -32,8 +62,6 @@ class TeacherPublicProfileController extends Controller
         if (! $profile->isPubliclyVisible()) {
             abort_unless($isOwner || $isAdmin, 404);
         } else {
-            // Lifts the site-wide noindex (see NoIndex middleware).
-            $request->attributes->set('allow_indexing', true);
             $this->recordView($request, $profile, $isOwner);
         }
 

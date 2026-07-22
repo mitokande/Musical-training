@@ -82,11 +82,14 @@ class TeacherAccountTest extends TestCase
         $basic = $basic->fresh();
 
         $this->assertTrue($service->canViewTeacherCrm($basic));
-        $this->assertFalse($service->canReplyToMessages($basic));
-        $this->assertFalse($service->canManageStudents($basic));
-        $this->assertFalse($service->canCreateAssignments($basic));
+        // Basic tier now includes quota-limited student management,
+        // assignments and messaging (CrmQuotaService enforces the caps).
+        $this->assertTrue($service->canReplyToMessages($basic));
+        $this->assertTrue($service->canManageStudents($basic));
+        $this->assertTrue($service->canCreateAssignments($basic));
         $this->assertFalse($service->canManageAvailability($basic));
         $this->assertFalse($service->canUseExternalPaymentLinks($basic));
+        $this->assertFalse($service->canUseAIHomeworkBuilder($basic));
 
         $premium = User::factory()->create(['role' => 'user']);
         TeacherProfile::create(['user_id' => $premium->id, 'tier' => 'premium', 'status' => 'draft', 'slug' => 'premium-t']);

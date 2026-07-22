@@ -109,21 +109,22 @@
                         'Major 7th','Dominant 7th','Minor 7th','Minor Major 7th',
                         'Half-Diminished 7th','Diminished 7th','Augmented 7th',
                         'Major 6th','Minor 6th','Add9','Minor Add9',
-                        'Half Diminished', // legacy
                     ];
-                    $selectedTypes = $chordTypes ?? $allChordTypes;
-                    $optionCount   = min(4, max(2, count($selectedTypes)));
-                    $correctType   = $currentPractice->chord_type;
-                    $otherSelected = array_values(array_filter($selectedTypes, fn($t) => strtolower($t) !== strtolower($correctType)));
-                    shuffle($otherSelected);
-                    $distractors   = array_slice($otherSelected, 0, $optionCount - 1);
-                    if (count($distractors) < $optionCount - 1) {
-                        $existing  = array_map('strtolower', array_merge([$correctType], $distractors));
-                        $extra     = array_values(array_filter($allChordTypes, fn($c) => !in_array(strtolower($c), $existing)));
+                    // Generated questions (Learning Path + exercise-setup) carry their own
+                    // pedagogically chosen distractors in other_options; use them instead of
+                    // drawing from the full vocabulary. When coming from exercise-setup the
+                    // target count equals the number of selected chord types (max 4);
+                    // otherwise default to 4 buttons.
+                    $options = array_merge([$currentPractice->chord_type], $currentPractice->other_options ?? []);
+                    $targetCount = !empty($chordTypes) && count($chordTypes) >= 2 ? min(count($chordTypes), 4) : 4;
+                    if (count($options) < $targetCount) {
+                        $pool = array_unique(array_merge(!empty($chordTypes) ? $chordTypes : [], $allChordTypes));
+                        $existing = array_map('strtolower', $options);
+                        $extra    = array_values(array_filter($pool, fn($c) => !in_array(strtolower($c), $existing)));
                         shuffle($extra);
-                        $distractors = array_merge($distractors, array_slice($extra, 0, $optionCount - 1 - count($distractors)));
+                        $options  = array_merge($options, array_slice($extra, 0, $targetCount - count($options)));
                     }
-                    $options  = array_merge([$correctType], $distractors);
+                    $options = array_slice($options, 0, $targetCount);
                     shuffle($options);
                     $gridCols = count($options) === 3 ? 'grid-cols-3' : 'grid-cols-2';
                 @endphp

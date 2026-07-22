@@ -1,0 +1,109 @@
+<?php
+
+return [
+
+    'nav' => [
+        'role_teacher' => 'Scuola di Musica',
+        'teachers' => 'Insegnanti',
+        'view_as_student' => 'Vedi profilo pubblico',
+    ],
+
+    'dashboard' => [
+        'title' => 'Pannello della Scuola',
+        'subtitle' => 'Gestisci la tua scuola, gli insegnanti e gli studenti da un unico posto.',
+        'stat_pending_students' => 'In attesa di approvazione',
+        'stat_new_students_month' => 'Nuovi questo mese',
+        'teacher_stats' => 'Statistiche insegnanti',
+        'stat_active_teachers' => 'Insegnanti attivi',
+        'stat_pending_teachers' => 'In attesa di approvazione',
+        'stat_member_students' => 'I loro studenti',
+        'stat_member_classes' => 'Le loro classi',
+        'stat_member_assignments' => 'I loro compiti',
+        'stat_member_avg_score' => 'Punteggio medio',
+    ],
+
+    'profile' => [
+        'title' => 'Profilo della Scuola',
+        'subtitle' => 'Gestisci il profilo pubblico della tua scuola.',
+    ],
+
+    'public' => [
+        'school_badge' => 'Scuola di Musica',
+        'message_teacher' => 'Invia un messaggio alla scuola',
+    ],
+
+    'admin' => [
+        'entity_school' => 'Scuola di Musica',
+    ],
+
+    'teachers' => [
+        'title' => 'Insegnanti',
+        'subtitle' => 'Aggiungi insegnanti alla tua scuola e gestiscili insieme ai loro studenti.',
+        'add_teacher' => 'Aggiungi insegnante',
+        'no_teachers' => 'Ancora nessun insegnante. Invita il tuo primo insegnante per iniziare.',
+        'active_since' => 'Membro dal :date',
+        'student_count' => ':count studenti',
+        'pending_approval' => 'In attesa dell\'approvazione dell\'insegnante',
+        'view_profile' => 'Vedi',
+        'remove_teacher' => 'Rimuovi insegnante',
+        'remove_confirm' => 'Rimuovere questo insegnante dalla tua scuola? Il suo account e i suoi studenti restano intatti.',
+        'back_to_list' => 'Tutti gli insegnanti',
+        'public_profile' => 'Profilo pubblico',
+        'stat_students' => 'Studenti attivi',
+        'stat_classes' => 'Classi',
+        'stat_assignments' => 'Compiti',
+        'their_students' => 'Studenti di questo insegnante',
+        'no_students' => 'Questo insegnante non ha ancora studenti attivi.',
+        'view_student' => 'Vedi',
+        'pending_invitations' => 'Inviti in sospeso',
+        'no_invitations' => 'Nessun invito in sospeso.',
+        'search_users' => 'Cerca utenti',
+        'invite_by_email' => 'Invita via email',
+        'share_link' => 'Condividi un link',
+        'search_placeholder' => 'Nome, cognome o email esatta',
+        'send_request' => 'Invia richiesta',
+        'invite_name' => 'Nome (facoltativo)',
+        'invite_email' => 'Indirizzo email',
+        'send_invitation' => 'Invia invito',
+        'link_expires' => 'Scade',
+        'create_link' => 'Crea link',
+        'copy_link' => 'Copia link',
+        'revoke' => 'Revoca',
+        'status_relationship-requested' => 'Richiesta di adesione inviata.',
+        'status_invitation-sent' => 'Email di invito inviata.',
+        'status_invitation-link-created' => 'Link di invito creato.',
+        'status_invitation-revoked' => 'Invito revocato.',
+        'status_relationship-revoked' => 'Insegnante rimosso dalla tua scuola.',
+        'error_self' => 'Non puoi aggiungere il tuo account come insegnante.',
+        'error_target_school' => 'Gli account scuola non possono essere aggiunti come insegnanti.',
+        'error_already_related' => 'Questo utente è già membro o ha una richiesta in sospeso.',
+        'error_duplicate_invitation' => 'Esiste già un invito in sospeso per questa email.',
+        'error_limit_reached' => 'Il tuo piano consente fino a :limit insegnanti. Aggiorna il piano per aggiungerne altri.',
+    ],
+
+    'my_schools' => [
+        'title' => 'Le Mie Scuole',
+        'subtitle' => 'Scuole di musica in cui insegni e richieste di adesione in sospeso.',
+        'no_schools' => 'Non sei ancora membro di nessuna scuola.',
+        'pending' => 'Richiesta di adesione — in attesa della tua approvazione',
+        'since' => 'Membro dal :date',
+        'view_public_profile' => 'Vedi il profilo della scuola',
+        'approve' => 'Accetta',
+        'decline' => 'Rifiuta',
+        'leave' => 'Lascia la scuola',
+        'leave_confirm' => 'Lasciare questa scuola? Manterrai il tuo account e i tuoi studenti.',
+        'status_school-approved' => 'Ti sei unito alla scuola.',
+        'status_school-declined' => 'Richiesta rifiutata.',
+        'status_school-left' => 'Hai lasciato la scuola.',
+        'status_school-joined' => 'Ti sei unito alla scuola. Il tuo pannello insegnante è pronto.',
+    ],
+
+    'invitations' => [
+        'title' => 'Invito della scuola',
+        'invited_you' => ':school ti ha invitato a unirti alla sua scuola di musica come insegnante.',
+        'accept' => 'Accetta l\'invito',
+        'decline_hint' => 'Se non conosci questa scuola, puoi semplicemente ignorare questo invito.',
+        'unusable' => 'Questo invito non è più valido.',
+    ],
+
+];

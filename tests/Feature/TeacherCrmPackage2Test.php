@@ -20,6 +20,7 @@ use App\Notifications\Teacher\StudentAssignmentReceived;
 use App\Notifications\Teacher\TeacherRelationshipRequested;
 use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
+use App\Services\RhythmGroupingService;
 use App\Services\Teacher\TeacherAssignmentConfigFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -86,16 +87,19 @@ class TeacherCrmPackage2Test extends TestCase
         Notification::assertSentTo($student, TeacherRelationshipRequested::class);
     }
 
-    public function test_basic_teacher_cannot_manage_students(): void
+    public function test_basic_teacher_can_manage_students_within_quota(): void
     {
-        $teacher = $this->basicTeacher();
-        $student = User::factory()->create();
+        Notification::fake();
 
+        $teacher = $this->basicTeacher();
+        $student = User::factory()->create(['plan' => 'free']);
+
+        // Basic tier may now add students (capped by max_free_students).
         $this->actingAs($teacher)
             ->post('/teacher/relationships', ['user_id' => $student->id])
-            ->assertForbidden();
+            ->assertSessionHas('status', 'relationship-requested');
 
-        $this->actingAs($teacher)->get('/teacher/students')->assertForbidden();
+        $this->actingAs($teacher)->get('/teacher/students')->assertOk();
     }
 
     public function test_student_can_approve_pending_relationship(): void
@@ -460,6 +464,179 @@ class TeacherCrmPackage2Test extends TestCase
         $answer = app(LearningPathQuestionGenerator::class)
             ->getAnswerFromSessionQuestion($data, 'single-note-practice');
         $this->assertSame('G', $answer);
+    }
+
+    public function test_editing_distractors_from_abcd_editor_keeps_correct_answer(): void
+    {
+        // The A/B/C/D editor submits distractors only, one per line, with the
+        // (audio-tied) correct answer excluded. Interval types store the choice
+        // list in `options` including the correct answer, so it must be re-merged
+        // and reshuffled — never dropped or duplicated.
+        $teacher = $this->premiumTeacher();
+        $this->actingAs($teacher)->post('/teacher/assignments', [
+            'title' => 'HW', 'type' => 'exercise',
+            'practice_type' => 'melodic-interval-practice', 'difficulty' => 'beginner', 'question_count' => 3,
+        ]);
+        $assignment = TeacherAssignment::latest('id')->first();
+        $question = $assignment->questions()->orderBy('position')->first();
+
+        $correct = app(LearningPathQuestionGenerator::class)
+            ->getAnswerFromSessionQuestion($question->question_data, 'melodic-interval-practice');
+        // Distractors must not accidentally equal the correct answer.
+        $distractors = array_values(array_diff(['Perfect 5th', 'Major 6th', 'Minor 7th'], [$correct]));
+
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => [],
+                'options' => implode("\n", $distractors),
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        // Interval choices live in `options`, contain the correct answer exactly
+        // once, include every submitted distractor, and are always topped back
+        // up to a full 4-choice set (an edit can never shrink the question).
+        $this->assertIsArray($data['options']);
+        $this->assertContains($correct, $data['options']);
+        $this->assertSame(1, count(array_keys($data['options'], $correct, true)));
+        foreach ($distractors as $d) {
+            $this->assertContains($d, $data['options']);
+        }
+        $this->assertCount(4, $data['options']);
+        $this->assertSame(4, count(array_unique($data['options'])));
+    }
+
+    public function test_editing_interval_recomputes_second_note_from_interval(): void
+    {
+        $teacher = $this->premiumTeacher();
+        $this->actingAs($teacher)->post('/teacher/assignments', [
+            'title' => 'HW', 'type' => 'exercise',
+            'practice_type' => 'melodic-interval-practice', 'difficulty' => 'beginner', 'question_count' => 3,
+        ]);
+        $assignment = TeacherAssignment::latest('id')->first();
+        $question = $assignment->questions()->orderBy('position')->first();
+
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => ['note1' => 'C', 'octave' => '4', 'interval' => 'Perfect 5th', 'direction' => 'ascending', 'clef' => 'treble'],
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        // note2 is derived, never stale: a Perfect 5th above C4 is G4.
+        $this->assertSame('G', $data['note2']);
+        $this->assertSame('Perfect 5th', $data['interval']);
+        // The choice list contains the new correct answer + 3 distractors.
+        $this->assertContains('Perfect 5th', $data['options']);
+        $this->assertCount(4, $data['options']);
+    }
+
+    public function test_editing_single_note_clef_stores_clef_and_reference(): void
+    {
+        $teacher = $this->premiumTeacher();
+        $this->actingAs($teacher)->post('/teacher/assignments', [
+            'title' => 'HW', 'type' => 'exercise',
+            'practice_type' => 'single-note-practice', 'difficulty' => 'beginner', 'question_count' => 3,
+        ]);
+        $assignment = TeacherAssignment::latest('id')->first();
+        $question = $assignment->questions()->orderBy('position')->first();
+
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => ['target' => 'C', 'octave' => '3', 'clef' => 'bass', 'reference_note' => ''],
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        $this->assertSame('bass', $data['clef']);
+        // An empty reference is auto-filled with a natural in the same octave.
+        $this->assertMatchesRegularExpression('/^[A-G]3$/', $data['reference_note']);
+        // The keyboard/note-name option list still contains the answer.
+        $this->assertContains('C', explode(',', $data['other_options']));
+
+        // A note outside the bass range is rejected loudly, not stored.
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => ['target' => 'C', 'octave' => '6', 'clef' => 'bass'],
+            ])->assertSessionHasErrors('questions');
+        $this->assertSame('3', $question->fresh()->question_data['octave']);
+    }
+
+    public function test_editing_rhythm_time_signature_regenerates_matching_options(): void
+    {
+        $teacher = $this->premiumTeacher();
+        $this->actingAs($teacher)->post('/teacher/assignments', [
+            'title' => 'HW', 'type' => 'exercise',
+            'practice_type' => 'rhythm-practice', 'difficulty' => 'beginner', 'question_count' => 3,
+        ]);
+        $assignment = TeacherAssignment::latest('id')->first();
+        $question = $assignment->questions()->orderBy('position')->first();
+
+        // Switch the question to 3/4 with a matching hand-built pattern.
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => [
+                    'time_signature' => '3/4', 'bars' => '1', 'tempo' => '90',
+                    'note_values' => 'quarter, eighth, eighth, quarter',
+                ],
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        $this->assertSame('3/4', $data['time_signature']);
+        $this->assertSame(['quarter', 'eighth', 'eighth', 'quarter'], $data['note_values']);
+
+        // Every regenerated distractor fills exactly one bar of 3/4 — options
+        // can never keep durations from the previous meter.
+        $grouping = app(RhythmGroupingService::class);
+        $this->assertNotEmpty($data['other_options']);
+        foreach ($data['other_options'] as $option) {
+            $total = array_sum(array_map(fn ($t) => $grouping->noteTwelfths($t), $option));
+            $this->assertSame(36, $total);
+        }
+
+        // A pattern that does not fill the meter is rejected.
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => ['time_signature' => '3/4', 'bars' => '1', 'tempo' => '90', 'note_values' => 'quarter, quarter'],
+            ])->assertSessionHasErrors('questions');
+    }
+
+    public function test_editing_dictation_time_signature_regenerates_melody_in_sync(): void
+    {
+        $teacher = $this->premiumTeacher();
+        $this->actingAs($teacher)->post('/teacher/assignments', [
+            'title' => 'HW', 'type' => 'exercise',
+            'practice_type' => 'melodic-dictation', 'difficulty' => 'intermediate', 'question_count' => 3,
+        ]);
+        $assignment = TeacherAssignment::latest('id')->first();
+        $question = $assignment->questions()->orderBy('position')->first();
+
+        $original = $question->question_data;
+        $this->assertSame('4/4', $original['time_signature']);
+        $this->assertCount(count($original['notes']), $original['note_values']);
+
+        // Changing the meter regenerates rhythm + melody to fit it.
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => ['time_signature' => '3/4'],
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        $this->assertSame('3/4', $data['time_signature']);
+        $this->assertCount(count($data['notes']), $data['note_values']);
+
+        $grouping = app(RhythmGroupingService::class);
+        $total = array_sum(array_map(fn ($t) => $grouping->noteTwelfths($t), $data['note_values']));
+        $this->assertSame(($data['bars'] ?? 1) * 36, $total);
+
+        // Explicit regeneration with chosen rhythm values is honoured.
+        $this->actingAs($teacher)
+            ->put("/teacher/assignments/{$assignment->id}/questions/{$question->id}", [
+                'fields' => [],
+                'rhythm_values' => ['quarter'],
+                'regenerate_melody' => '1',
+            ])->assertSessionHas('status', 'question-updated');
+
+        $data = $question->fresh()->question_data;
+        $this->assertSame(['quarter'], array_values(array_unique($data['note_values'])));
+        $this->assertCount(count($data['notes']), $data['note_values']);
     }
 
     public function test_editing_a_question_is_blocked_after_send(): void

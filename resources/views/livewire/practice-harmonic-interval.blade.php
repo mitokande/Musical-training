@@ -37,7 +37,7 @@
                          style="width:100%; height:180px; display:flex; justify-content:center;"
                          data-note1="{{ strtolower($currentPractice->note1) . '/' . $currentPractice->octave }}"
                          data-note2="{{ strtolower($currentPractice->note2) . '/' . ($currentPractice->note2_octave ?? $currentPractice->octave) }}"
-                         data-clef="{{ $clef }}">
+                         data-clef="{{ $staffClef }}">
                     </div>
                 </div>
 

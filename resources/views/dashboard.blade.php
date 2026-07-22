@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @include('partials.google-analytics')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -307,9 +308,9 @@
                         Unlock unlimited lessons, AI coaching, and advanced analytics.
                     </p>
                     
-                    <button class="w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
+                    <a href="{{ route('checkout.show') }}" class="block text-center w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
                         Learn More
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
