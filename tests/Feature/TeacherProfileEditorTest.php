@@ -103,6 +103,65 @@ class TeacherProfileEditorTest extends TestCase
         $this->assertDatabaseHas('teacher_services', ['id' => $service->id]);
     }
 
+    public function test_teacher_can_edit_a_service(): void
+    {
+        $teacher = $this->makeTeacher();
+        $service = $teacher->teacherProfile->services()->create([
+            'title' => 'Old title',
+            'lesson_type' => 'Piano',
+            'duration_minutes' => 30,
+        ]);
+
+        $this->actingAs($teacher)->put(route('teacher.services.update', $service), [
+            'title' => 'New title',
+            'lesson_type' => 'Guitar',
+            'format' => 'online',
+            'duration_minutes' => 45,
+            'price_text' => '$40',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teacher_services', [
+            'id' => $service->id,
+            'title' => 'New title',
+            'lesson_type' => 'Guitar',
+            'duration_minutes' => 45,
+        ]);
+    }
+
+    public function test_teacher_cannot_edit_another_teachers_service(): void
+    {
+        $a = $this->makeTeacher();
+        $b = $this->makeTeacher();
+        $service = $a->teacherProfile->services()->create(['title' => 'Lesson A']);
+
+        $this->actingAs($b)->put(route('teacher.services.update', $service), [
+            'title' => 'Hijacked',
+        ])->assertForbidden();
+
+        $this->assertDatabaseHas('teacher_services', ['id' => $service->id, 'title' => 'Lesson A']);
+    }
+
+    public function test_teacher_can_edit_a_video(): void
+    {
+        $teacher = $this->makeTeacher();
+        $video = $teacher->teacherProfile->videos()->create([
+            'title' => 'Old',
+            'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'youtube_id' => 'dQw4w9WgXcQ',
+        ]);
+
+        $this->actingAs($teacher)->put(route('teacher.videos.update', $video), [
+            'title' => 'Updated performance',
+            'url' => 'https://youtu.be/abcdEFGHijk',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teacher_videos', [
+            'id' => $video->id,
+            'title' => 'Updated performance',
+            'youtube_id' => 'abcdEFGHijk',
+        ]);
+    }
+
     // --- Payment links (Teacher Premium only) ---
 
     public function test_basic_teacher_cannot_add_payment_links(): void
@@ -127,6 +186,28 @@ class TeacherProfileEditorTest extends TestCase
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('teacher_payment_links', ['label' => 'Trial Lesson']);
+    }
+
+    public function test_premium_teacher_can_edit_payment_link(): void
+    {
+        $teacher = $this->makeTeacher('premium');
+        $link = $teacher->teacherProfile->paymentLinks()->create([
+            'label' => 'Old label', 'url' => 'https://pay.example.com/a', 'visibility' => 'public',
+        ]);
+
+        $this->actingAs($teacher)->put(route('teacher.payment-links.update', $link), [
+            'label' => 'New label',
+            'url' => 'https://pay.example.com/b',
+            'visibility' => 'approved_students',
+            'price_text' => '$50',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teacher_payment_links', [
+            'id' => $link->id,
+            'label' => 'New label',
+            'url' => 'https://pay.example.com/b',
+            'visibility' => 'approved_students',
+        ]);
     }
 
     public function test_payment_links_require_https(): void
@@ -180,6 +261,30 @@ class TeacherProfileEditorTest extends TestCase
 
         $this->actingAs($other)->get(route('teacher.media.download', $media))->assertForbidden();
         $this->actingAs($teacher)->get(route('teacher.media.download', $media))->assertOk();
+    }
+
+    public function test_teacher_can_edit_media_title(): void
+    {
+        Storage::fake('local');
+        $teacher = $this->makeTeacher();
+
+        $this->actingAs($teacher)->post(route('teacher.media.store'), [
+            'kind' => 'photo',
+            'title' => 'Old caption',
+            'file' => UploadedFile::fake()->image('recital.jpg'),
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $media = $teacher->teacherProfile->media()->first();
+
+        $this->actingAs($teacher)->put(route('teacher.media.update', $media), [
+            'title' => 'New caption',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teacher_media', [
+            'id' => $media->id,
+            'title' => 'New caption',
+            'visibility' => 'public',
+        ]);
     }
 
     public function test_disallowed_file_types_are_rejected(): void

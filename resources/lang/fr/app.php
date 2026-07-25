@@ -1012,7 +1012,7 @@ return [
         'plan_teachers_badge' => 'Enseignants & écoles',
         'plan_teachers_price' => '$16.90',
         'plan_teachers_period' => '/mois',
-        'plan_teachers_discount' => '$99/an — plus de 50% de réduction',
+        'plan_teachers_discount' => '$80/an — plus de 60% de réduction',
         'plan_teachers_tagline' => "Gestion de classe & outils à l'échelle de l'école.",
         'plan_teachers_feat_1_pre' => 'Tout Premium, plus',
         'plan_teachers_feat_1_strong' => 'gestion multi-élèves',

@@ -49,10 +49,24 @@ return [
         // Pinned API version — keeps behaviour stable across SDK upgrades and
         // enables integration_identifier tagging on Checkout Sessions.
         'api_version' => env('STRIPE_API_VERSION', '2026-06-24.dahlia'),
-        // Recurring Price ids for the Premium plan, keyed by billing cycle.
+        // Recurring Price ids for the Premium plan. Role-keyed so each tier
+        // (individual user, teacher, school) is billed its own amount; the flat
+        // 'monthly'/'yearly' keys are kept as a legacy fallback for the user tier.
         'prices' => [
             'monthly' => env('STRIPE_PRICE_MONTHLY'),
             'yearly' => env('STRIPE_PRICE_YEARLY'),
+            'user' => [
+                'monthly' => env('STRIPE_PRICE_MONTHLY'),
+                'yearly' => env('STRIPE_PRICE_YEARLY'),
+            ],
+            'teacher' => [
+                'monthly' => env('STRIPE_PRICE_TEACHER_MONTHLY'),
+                'yearly' => env('STRIPE_PRICE_TEACHER_YEARLY'),
+            ],
+            'school' => [
+                'monthly' => env('STRIPE_PRICE_SCHOOL_MONTHLY'),
+                'yearly' => env('STRIPE_PRICE_SCHOOL_YEARLY'),
+            ],
         ],
     ],
 

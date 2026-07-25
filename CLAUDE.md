@@ -162,3 +162,24 @@ Support Inbox: MX stays on this server (local Postfix/Dovecot). `SupportMailFetc
 Tracking endpoints (public, signed): `GET /email/open/{token}`, `GET /email/click/{token}?url=`, `GET|POST /email/unsubscribe/{token}` (RFC 8058 one-click). CSRF exempt: `webhooks/aws/ses/*`, `email/unsubscribe/*` (see `bootstrap/app.php`).
 
 Tests: `tests/Feature/EmailCenterTest.php`.
+
+### Analytics & error tracking (PostHog)
+
+PostHog **EU Cloud** (`https://eu.i.posthog.com`), configured entirely from `config/posthog.php`. **An empty `POSTHOG_KEY` disables everything** — the snippet is not rendered and every server call is a no-op — which is how local dev and CI stay silent. `POSTHOG_ENABLED=false` is the kill switch that keeps the key in place.
+
+Browser side (`resources/js/posthog.js`, a Vite entry — `posthog-js` is version-pinned in `package.json`, not loaded from a CDN):
+- Config is server-rendered into `window.__posthogSettings` by `resources/views/partials/posthog.blade.php`, which is included **next to `@include('partials.google-analytics')` in all 49 views that have it**. New full-page views must include both.
+- Autocapture, `capture_exceptions` (JS error tracking), and session replay with `maskAllInputs` — on-screen text is recorded and readable; only what the user *types* is masked.
+- `person_profiles: 'identified_only'`. Authenticated requests call `posthog.identify()`; a page with no authenticated user calls `posthog.reset()` **only** when a stale identity is present (`$is_identified`), so ordinary anonymous views keep their device id.
+
+Server side (`App\Services\Analytics\PostHogService`, singleton):
+- Every method is best-effort — failures are logged, never thrown back into the caller. The `lib_curl` consumer sends with a 1 ms curl timeout (fire-and-forget), so captures add no request latency. Tests force `POSTHOG_CONSUMER=noop`.
+- `distinctId()` prefers the user id, then falls back to the `distinct_id` in posthog-js's own `ph_{key}_posthog` cookie so one visitor does not become two people across the SDKs.
+- Person properties are limited to `role`/`plan`/`locale`/`country`/`signed_up_at` — deliberately no name or email. `personProperties()` and the Blade partial must stay in sync.
+
+What is captured server-side (so ad-blockers cannot drop the top of the funnel):
+- `user_registered` (with `method`: password vs google), `user_logged_in`, `email_verified` — via `App\Listeners\RecordAuthAnalytics`, wired with `Event::listen` in `AppServiceProvider::boot()`.
+- `subscription_activated` / `subscription_renewed` / `subscription_cancelled` — via `SubscriptionService::track()`. Most of these originate from a Stripe webhook where no browser exists.
+- Unhandled exceptions — the `$exceptions->report()` callback in `bootstrap/app.php`. Laravel only runs reportable callbacks for exceptions passing `shouldReport()`, so 404s and validation failures never reach error tracking.
+
+Tests: `tests/Feature/PostHogTest.php`.

@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -165,14 +166,19 @@
                             style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                         <span class="inline-flex items-center justify-center gap-2">
                             <i data-lucide="lock" style="width:16px;height:16px;"></i>
-                            Complete Purchase — {{ $sym }}<span x-text="price.toFixed(2)"></span>
+                            Continue to Secure Payment
                         </span>
                     </button>
 
-                    <p class="mt-3 text-center text-[11px] text-gray-400">
-                        <i data-lucide="shield" style="width:12px;height:12px;display:inline;vertical-align:-1px;"></i>
-                        Your payment information is processed securely.
+                    <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
+                        You'll be redirected to <span class="font-semibold text-gray-500">Stripe</span> to complete your payment securely.<br>
+                        We never see or store your card details.
                     </p>
+
+                    <div class="mt-4 flex items-center justify-center gap-2 text-[11px] text-gray-400">
+                        <i data-lucide="shield-check" style="width:13px;height:13px;color:#7c3aed;"></i>
+                        <span>256-bit SSL encrypted · Powered by Stripe</span>
+                    </div>
                 </form>
             </div>
         </div>

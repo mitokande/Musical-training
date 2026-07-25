@@ -7,6 +7,7 @@ use App\Http\Middleware\SchoolMiddleware;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TeacherMiddleware;
 use App\Http\Middleware\TrackExerciseUsage;
+use App\Services\Analytics\PostHogService;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -42,6 +43,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Ship exceptions to PostHog error tracking. Laravel only runs reportable
+        // callbacks for exceptions that pass shouldReport(), so 404s, validation
+        // failures and auth redirects are filtered out before they get here.
+        // Returning nothing lets the exception continue on to the normal log stack.
+        $exceptions->report(function (Throwable $e): void {
+            app(PostHogService::class)->captureException($e);
+        });
+
         // Oversized uploads (beyond post_max_size / client_max_body_size)
         // otherwise surface as a bare 413 page; send the user back to the
         // form with a readable validation-style error instead.

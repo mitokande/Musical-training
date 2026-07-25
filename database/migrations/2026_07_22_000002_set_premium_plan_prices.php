@@ -14,7 +14,7 @@ return new class extends Migration
     {
         $prices = [
             'user' => ['monthly' => 6.90, 'yearly' => 40.00],
-            'teacher' => ['monthly' => 16.90, 'yearly' => 149.00],
+            'teacher' => ['monthly' => 16.90, 'yearly' => 80.00],
             'school' => ['monthly' => 29.90, 'yearly' => 169.00],
         ];
 

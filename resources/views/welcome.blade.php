@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ __('app.welcome.page_title') }}</title>
@@ -287,6 +288,12 @@
                 {{-- Desktop right: auth + search (shrink-0 so it never gets compressed) --}}
                 <div id="wl-nav-right" class="hidden lg:flex items-center gap-2 ml-auto shrink-0">
                     @auth
+                        @unless(auth()->user()->isEffectivelyPremium())
+                            <a href="{{ route('checkout.show') }}" style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 0.9rem;font-size:0.875rem;font-weight:600;color:#7c3aed;background:#f3e8ff;border-radius:0.5rem;white-space:nowrap;text-decoration:none;transition:background .2s;" onmouseover="this.style.background='#e9d5ff'" onmouseout="this.style.background='#f3e8ff'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+                                {{ __('app.dashboard.upgrade_premium') }}
+                            </a>
+                        @endunless
                         <a href="{{ url('/dashboard') }}" class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-500 hover:to-primary-600 transition-all shadow-lg shadow-primary-600/25 whitespace-nowrap">
                             {{ __('app.welcome.nav_dashboard') }}
                         </a>
@@ -353,6 +360,13 @@
             {{-- Auth buttons --}}
             <div style="padding:1rem 1.25rem;border-bottom:1px solid #374151;display:flex;flex-direction:column;gap:0.625rem;flex-shrink:0;">
                 @auth
+                    @unless(auth()->user()->isEffectivelyPremium())
+                        <a href="{{ route('checkout.show') }}" onclick="wlMenuClose()"
+                           style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;font-size:0.875rem;font-weight:700;color:white;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:0.75rem;text-decoration:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/></svg>
+                            {{ __('app.dashboard.upgrade_premium') }}
+                        </a>
+                    @endunless
                     <a href="{{ url('/dashboard') }}" onclick="wlMenuClose()"
                        style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem 1rem;font-size:0.875rem;font-weight:600;color:white;background:linear-gradient(135deg,#7c3aed,#9333ea);border-radius:0.75rem;text-decoration:none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -584,8 +598,8 @@
                     };
                     $features = [
                         ['icon' => 'piano', 'color' => 'cyan-400', 'bg' => 'cyan-500/15', 'title' => __('app.welcome.feature_ai_title'), 'desc' => __('app.welcome.feature_ai_desc'), 'url' => route('piano.studio'), 'auth' => false],
-                        ['icon' => 'users', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc'), 'url' => route('feed'), 'auth' => true],
                         ['icon' => 'gamepad-2', 'color' => 'green-400', 'bg' => 'green-500/15', 'title' => __('app.welcome.feature_games_title'), 'desc' => __('app.welcome.feature_games_desc'), 'url' => route('games.index'), 'auth' => false],
+                        ['icon' => 'users', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc'), 'url' => auth()->check() ? url('/dashboard') : route('page.community-feed'), 'auth' => false],
                         ['icon' => 'bar-chart-3', 'color' => 'blue-400', 'bg' => 'blue-500/15', 'title' => __('app.welcome.feature_analytics_title'), 'desc' => __('app.welcome.feature_analytics_desc'), 'url' => route('progress'), 'auth' => true],
                         ['icon' => 'zap', 'color' => 'amber-400', 'bg' => 'amber-500/15', 'title' => __('app.welcome.feature_feedback_title'), 'desc' => __('app.welcome.feature_feedback_desc'), 'url' => url('/practice/single-note-practice'), 'auth' => false],
                         ['icon' => 'message-circle', 'color' => 'rose-400', 'bg' => 'rose-500/15', 'title' => __('app.welcome.feature_assistant_title'), 'desc' => __('app.welcome.feature_assistant_desc'), 'url' => route('ai-chat.index'), 'auth' => true],
@@ -1160,15 +1174,11 @@
                     </ul>
 
                     <div class="flex flex-col gap-2.5 mt-6">
-                        @auth
-                        <a href="{{ route('checkout.show') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
+                        {{-- Teacher/School plans are role-specific; send everyone to the dedicated
+                             Teachers & Schools page where the CTA funnels into the right account. --}}
+                        <a href="{{ route('pricing.teachers') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                             {{ __('app.welcome.plan_teachers_cta_start') }}
                         </a>
-                        @else
-                        <a href="{{ route('register') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
-                            {{ __('app.welcome.plan_teachers_cta_start') }}
-                        </a>
-                        @endauth
                         <a href="{{ route('pricing.teachers') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold text-accent-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all border border-orange-200/60">
                             {{ __('app.welcome.plan_teachers_cta_learn') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline ml-1"></i>
                         </a>

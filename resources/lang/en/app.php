@@ -1006,7 +1006,7 @@ return [
         'plan_teachers_badge' => 'Teachers & Schools',
         'plan_teachers_price' => '$16.90',
         'plan_teachers_period' => '/month',
-        'plan_teachers_discount' => '$8.25/mo billed yearly — save 50%+',
+        'plan_teachers_discount' => '$6.67/mo billed yearly — save 60%+',
         'plan_teachers_tagline' => 'Classroom management & school-wide tools.',
         'plan_teachers_feat_1_pre' => 'Everything in Premium, plus',
         'plan_teachers_feat_1_strong' => 'multi-student management',

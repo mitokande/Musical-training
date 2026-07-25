@@ -103,6 +103,32 @@ class TeacherMediaController extends Controller
     }
 
     /**
+     * Edit an existing media item's metadata. The stored file itself is never
+     * swapped here (delete + re-upload for that); only the title — and, for
+     * private document-archive items, the visibility scope — are editable.
+     */
+    public function update(Request $request, TeacherMedia $media): RedirectResponse
+    {
+        $this->authorize('update', $media->teacherProfile);
+
+        $isPhoto = $media->kind === 'photo';
+
+        $validated = $request->validate([
+            'title' => ['nullable', 'string', 'max:255'],
+            // Photos/certificates stay public; documents may change archive scope.
+            'visibility' => $isPhoto
+                ? ['nullable']
+                : ['required', 'in:private,students,shared'],
+        ]);
+
+        $media->update([
+            'title' => $validated['title'] ?? null,
+        ] + ($isPhoto ? [] : ['visibility' => $validated['visibility']]));
+
+        return back()->with('status', 'media-saved');
+    }
+
+    /**
      * Share a document from the archive with specific students ("paylaştıklarım").
      * Only the teacher's active students are eligible; newly-added students get a
      * notification and download access, existing shares are left untouched.

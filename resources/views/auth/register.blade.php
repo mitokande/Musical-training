@@ -30,7 +30,12 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('register') }}" x-data="{ role: '{{ old('role', 'user') }}' }">
+    @php
+        // Preselect the account type from a ?role= link (e.g. the Teachers & Schools
+        // pricing CTAs). Whitelisted so nothing arbitrary lands in the Alpine state.
+        $preRole = in_array(request('role'), ['user', 'teacher', 'school'], true) ? request('role') : 'user';
+    @endphp
+    <form method="POST" action="{{ route('register') }}" x-data="{ role: '{{ old('role', $preRole) }}' }">
         @csrf
 
         <!-- Account Type -->

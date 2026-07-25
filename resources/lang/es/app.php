@@ -1012,7 +1012,7 @@ return [
         'plan_teachers_badge' => 'Profesores y escuelas',
         'plan_teachers_price' => '$16.90',
         'plan_teachers_period' => '/mes',
-        'plan_teachers_discount' => '$99/año — más del 50% de descuento',
+        'plan_teachers_discount' => '$80/año — más del 60% de descuento',
         'plan_teachers_tagline' => 'Gestión de aula y herramientas para toda la escuela.',
         'plan_teachers_feat_1_pre' => 'Todo lo de Premium, más',
         'plan_teachers_feat_1_strong' => 'gestión multi-alumno',

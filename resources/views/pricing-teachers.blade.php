@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Teachers &amp; Schools Plan — Harmoniva</title>
@@ -162,11 +163,11 @@
                         </div>
                         <div x-show="billingYearly" x-cloak>
                             <div class="flex items-end gap-1 mb-1">
-                                <span class="text-5xl font-extrabold text-gray-900">$12.42</span>
+                                <span class="text-5xl font-extrabold text-gray-900">$6.67</span>
                                 <span class="text-gray-400 text-base mb-2">/month</span>
                             </div>
-                            <p class="text-gray-400 text-sm mb-1">$149 billed annually</p>
-                            <span class="inline-block mb-6 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Save 27% · $53/year off</span>
+                            <p class="text-gray-400 text-sm mb-1">$80 billed annually</p>
+                            <span class="inline-block mb-6 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Save 61% · $123/year off</span>
                         </div>
 
                         <ul class="space-y-3 mb-8">
@@ -193,15 +194,18 @@
                                 <i data-lucide="gift" class="w-4 h-4 text-green-600 shrink-0 mt-0.5"></i>
                                 <span class="text-xs text-green-800 font-medium">Bring <strong>10+ Premium students</strong> and this plan is 100% free.</span>
                             </div>
-                            @auth
+                            @if (auth()->check() && auth()->user()->role === 'teacher')
+                            {{-- Teacher account: checkout resolves the Teacher plan from the role. --}}
                             <a href="{{ route('checkout.show') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
-                                Go to Dashboard
+                                Upgrade to Teacher Premium
                             </a>
                             @else
-                            <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                            {{-- Guests (and non-teacher accounts) create a Teacher account first
+                                 so checkout can bill the Teacher plan. --}}
+                            <a href="{{ route('register', ['role' => 'teacher']) }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
                                 Start as a Teacher
                             </a>
-                            @endauth
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -264,15 +268,18 @@
                                 <i data-lucide="gift" class="w-4 h-4 text-green-400 shrink-0 mt-0.5"></i>
                                 <span class="text-xs text-green-300 font-medium">Register <strong>20+ Premium students</strong> and your school uses Harmoniva 100% free.</span>
                             </div>
-                            @auth
+                            @if (auth()->check() && auth()->user()->role === 'school')
+                            {{-- School account: checkout resolves the School plan from the role. --}}
                             <a href="{{ route('checkout.show') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
-                                Go to Dashboard
+                                Upgrade to School Premium
                             </a>
                             @else
-                            <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
+                            {{-- Guests (and non-school accounts) create a School account first
+                                 so checkout can bill the School plan. --}}
+                            <a href="{{ route('register', ['role' => 'school']) }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg" style="background: linear-gradient(135deg,#ea580c,#f97316);">
                                 Start a School Account
                             </a>
-                            @endauth
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -492,7 +499,7 @@
                     <div class="px-3 py-4 text-center" style="background: rgba(234,88,12,0.05);">
                         <div class="text-xs font-bold uppercase tracking-wider text-accent-600 mb-1">Teacher</div>
                         <div class="text-lg font-extrabold text-gray-900" x-show="!billingYearly">$16.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
-                        <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>$12.42<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                        <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>$6.67<span class="text-xs text-gray-400 font-normal">/mo</span></div>
                     </div>
                     <div class="px-3 py-4 text-center" style="background: rgba(147,51,234,0.05);">
                         <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">School</div>
@@ -571,7 +578,7 @@
                 ['q' => 'How does free access work for music schools?',
                  'a' => 'Schools that reach 20 or more Premium students — or register that many into their school account — qualify for 100% free access to the entire platform. School grants go through a quick approval by the Harmoniva team, after which every feature unlocks at no cost.'],
                 ['q' => 'What\'s the difference between Monthly and Yearly billing?',
-                 'a' => 'Yearly billing gives you the equivalent of roughly two months free. Teachers pay $149/year (about $12.42/month, 27% off) and schools pay $169/year (about $14.08/month, over 50% off the monthly rate). You can switch billing cycles anytime.'],
+                 'a' => 'Yearly billing gives you the equivalent of several months free. Teachers pay $80/year (about $6.67/month, 61% off) and schools pay $169/year (about $14.08/month, over 50% off the monthly rate). You can switch billing cycles anytime.'],
                 ['q' => 'How many students can I manage?',
                  'a' => 'Both the Teacher and School plans support unlimited students. Whether you\'re a solo teacher with 10 students or a school with hundreds, there are no per-seat charges for students.'],
                 ['q' => 'Can multiple teachers share one account?',

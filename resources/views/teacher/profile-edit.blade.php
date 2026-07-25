@@ -25,6 +25,22 @@
         </div>
     </div>
 
+    @unless(auth()->user()->isEffectivelyPremium())
+        {{-- Premium upgrade banner: unlocks payment links, content publishing, analytics, … --}}
+        <a href="{{ route('checkout.show') }}" class="flex items-center gap-4 rounded-xl p-4 mb-6 text-white shadow-md hover:opacity-95 transition-all" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+            <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <i data-lucide="crown" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-sm">{{ __('app.dashboard.upgrade_premium') }}</p>
+                <p class="text-white/85 text-xs leading-snug">{{ __('app.dashboard.premium_description') }}</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-purple-700 text-sm font-bold shrink-0">
+                {{ __('app.dashboard.upgrade_premium') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </span>
+        </a>
+    @endunless
+
     @if($profile->isPubliclyVisible())
         <div class="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-xl flex items-center gap-3 text-sm">
             <i data-lucide="link" class="w-4 h-4 text-primary-600 shrink-0"></i>
@@ -268,11 +284,14 @@
             <div>
                 <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('fields.seo_title') }}</label>
                 <input type="text" name="seo_title" value="{{ old('seo_title', $profile->seo_title) }}" maxlength="255"
+                       placeholder="{{ crm_trans('fields.seo_title_placeholder') }}"
                        class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
             </div>
             <div>
                 <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('fields.seo_description') }}</label>
-                <textarea name="seo_description" rows="3" maxlength="320" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('seo_description', $profile->seo_description) }}</textarea>
+                <textarea name="seo_description" rows="3" maxlength="320"
+                          placeholder="{{ crm_trans('fields.seo_description_placeholder') }}"
+                          class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ old('seo_description', $profile->seo_description) }}</textarea>
             </div>
         </div>
 
@@ -280,6 +299,12 @@
             <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
                 <i data-lucide="save" class="w-4 h-4"></i> {{ crm_trans('profile.save_draft') }}
             </button>
+
+            {{-- SEO usage guidance shown only under the SEO tab --}}
+            <div x-show="section === 'seo'" x-cloak class="mt-4 flex gap-3 rounded-xl border border-primary-100 bg-primary-50/60 p-4">
+                <i data-lucide="search" class="w-5 h-5 text-primary-600 shrink-0 mt-0.5"></i>
+                <p class="text-[13px] leading-relaxed text-gray-600">{{ crm_trans('fields.seo_help') }}</p>
+            </div>
         </div>
     </form>
 
@@ -348,19 +373,67 @@
         </div>
 
         @forelse($profile->services as $service)
-            <div class="card p-4 mb-2 flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                    <p class="font-semibold text-gray-900 text-sm">{{ $service->title }}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">
-                        {{ $service->lesson_type }}
-                        @if($service->duration_minutes) · {{ $service->duration_minutes }} min @endif
-                        @if($service->price_text) · {{ $service->price_text }} @endif
-                    </p>
-                    @if($service->description)<p class="text-sm text-gray-600 mt-1">{{ $service->description }}</p>@endif
+            <div class="card p-4 mb-2" x-data="{ editing: false }">
+                {{-- Display view --}}
+                <div class="flex items-start justify-between gap-3" x-show="!editing">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm">{{ $service->title }}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            {{ $service->lesson_type }}
+                            @if($service->duration_minutes) · {{ $service->duration_minutes }} min @endif
+                            @if($service->price_text) · {{ $service->price_text }} @endif
+                        </p>
+                        @if($service->description)<p class="text-sm text-gray-600 mt-1">{{ $service->description }}</p>@endif
+                    </div>
+                    <div class="flex items-center shrink-0">
+                        <button type="button" @click="editing = true; $nextTick(() => lucide.createIcons())" class="p-2 text-gray-400 hover:text-primary-600" title="{{ crm_trans('profile.edit') }}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                        <form method="POST" action="{{ crm_route('services.destroy', $service) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </form>
+                    </div>
                 </div>
-                <form method="POST" action="{{ crm_route('services.destroy', $service) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+
+                {{-- Edit view --}}
+                <form method="POST" action="{{ crm_route('services.update', $service) }}" class="grid sm:grid-cols-2 gap-4" x-show="editing" x-cloak>
+                    @csrf @method('PUT')
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.service_title') }}</label>
+                        <input type="text" name="title" value="{{ $service->title }}" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.lesson_type') }}</label>
+                        <input type="text" name="lesson_type" value="{{ $service->lesson_type }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <div>
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.format') }}</label>
+                        <select name="format" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                            <option value="">—</option>
+                            <option value="online" @selected($service->format === 'online')>{{ crm_trans('fields.format_online') }}</option>
+                            <option value="in_person" @selected($service->format === 'in_person')>{{ crm_trans('fields.format_in_person') }}</option>
+                            <option value="hybrid" @selected($service->format === 'hybrid')>{{ crm_trans('fields.format_hybrid') }}</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.duration') }}</label>
+                            <input type="number" name="duration_minutes" value="{{ $service->duration_minutes }}" min="5" max="480" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.price_text') }}</label>
+                            <input type="text" name="price_text" value="{{ $service->price_text }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('services.description') }}</label>
+                        <textarea name="description" rows="2" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">{{ $service->description }}</textarea>
+                    </div>
+                    <div class="sm:col-span-2 flex items-center gap-2">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                            <i data-lucide="save" class="w-4 h-4"></i> {{ crm_trans('profile.save') }}
+                        </button>
+                        <button type="button" @click="editing = false" class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">{{ crm_trans('profile.cancel') }}</button>
+                    </div>
                 </form>
             </div>
         @empty
@@ -392,15 +465,37 @@
 
         <div class="grid sm:grid-cols-2 gap-4">
             @forelse($profile->videos as $video)
-                <div class="card overflow-hidden">
+                <div class="card overflow-hidden" x-data="{ editing: false }">
                     <img src="{{ $video->thumbnailUrl() }}" alt="{{ $video->title }}" class="w-full h-36 object-cover">
-                    <div class="p-3 flex items-center justify-between gap-2">
+                    {{-- Display view --}}
+                    <div class="p-3 flex items-center justify-between gap-2" x-show="!editing">
                         <p class="text-sm font-semibold text-gray-900 truncate">{{ $video->title }}</p>
-                        <form method="POST" action="{{ crm_route('videos.destroy', $video) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="p-1.5 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </form>
+                        <div class="flex items-center shrink-0">
+                            <button type="button" @click="editing = true; $nextTick(() => lucide.createIcons())" class="p-1.5 text-gray-400 hover:text-primary-600" title="{{ crm_trans('profile.edit') }}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <form method="POST" action="{{ crm_route('videos.destroy', $video) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-1.5 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </form>
+                        </div>
                     </div>
+                    {{-- Edit view --}}
+                    <form method="POST" action="{{ crm_route('videos.update', $video) }}" class="p-3 space-y-3" x-show="editing" x-cloak>
+                        @csrf @method('PUT')
+                        <div>
+                            <label class="block text-[13px] font-semibold text-gray-800 mb-1">{{ crm_trans('videos.video_title') }}</label>
+                            <input type="text" name="title" value="{{ $video->title }}" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[13px] font-semibold text-gray-800 mb-1">{{ crm_trans('videos.youtube_url') }}</label>
+                            <input type="url" name="url" value="{{ $video->url }}" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                                <i data-lucide="save" class="w-4 h-4"></i> {{ crm_trans('profile.save') }}
+                            </button>
+                            <button type="button" @click="editing = false" class="px-3 py-1.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">{{ crm_trans('profile.cancel') }}</button>
+                        </div>
+                    </form>
                 </div>
             @empty
                 <p class="text-sm text-gray-400">{{ crm_trans('videos.none') }}</p>
@@ -439,7 +534,7 @@
         @else
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 @foreach($gallery as $item)
-                    <div class="relative group card p-0 overflow-hidden">
+                    <div class="relative group card p-0 overflow-hidden" x-data="{ editing: false }">
                         @if($item->isImage())
                             <button type="button" @click="lb=true; lbSrc=@js($item->publicUrl()); lbTitle=@js($item->title ?: $item->original_name)" class="block w-full">
                                 <img src="{{ $item->publicUrl() }}" alt="{{ $item->title }}" class="w-full h-32 object-cover">
@@ -450,10 +545,27 @@
                                 <span class="text-xs mt-2 px-2 truncate max-w-full">{{ $item->title ?: $item->original_name }}</span>
                             </a>
                         @endif
-                        <form method="POST" action="{{ crm_route('media.destroy', $item) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')" class="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="p-1.5 bg-white/90 rounded-lg text-red-600 hover:text-red-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                        </form>
+                        <div class="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                            <button type="button" @click="editing = true; $nextTick(() => lucide.createIcons())" class="p-1.5 bg-white/90 rounded-lg text-gray-600 hover:text-primary-600" title="{{ crm_trans('profile.edit') }}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                            <form method="POST" action="{{ crm_route('media.destroy', $item) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-1.5 bg-white/90 rounded-lg text-red-600 hover:text-red-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </form>
+                        </div>
+                        {{-- Title edit overlay --}}
+                        <div x-show="editing" x-cloak class="absolute inset-0 bg-white/95 p-3 flex flex-col justify-center" @click.outside="editing = false">
+                            <form method="POST" action="{{ crm_route('media.update', $item) }}" class="space-y-2">
+                                @csrf @method('PUT')
+                                <label class="block text-[13px] font-semibold text-gray-800">{{ crm_trans('services.service_title') }}</label>
+                                <input type="text" name="title" value="{{ $item->title }}" class="w-full rounded-lg border-2 border-gray-200 bg-gray-50/50 px-3 py-2 text-sm text-gray-900 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                                        <i data-lucide="save" class="w-3.5 h-3.5"></i> {{ crm_trans('profile.save') }}
+                                    </button>
+                                    <button type="button" @click="editing = false" class="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">{{ crm_trans('profile.cancel') }}</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -515,14 +627,58 @@
             </div>
 
             @forelse($profile->paymentLinks as $link)
-                <div class="card p-4 mb-2 flex items-center justify-between gap-3">
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900">{{ $link->label }} @if($link->price_text)<span class="text-gray-500 font-normal">· {{ $link->price_text }}</span>@endif</p>
-                        <p class="text-xs text-gray-400 truncate">{{ $link->url }} · {{ crm_trans('payment_links.visibility_'.$link->visibility) }}</p>
+                <div class="card p-4 mb-2" x-data="{ editing: false }">
+                    {{-- Display view --}}
+                    <div class="flex items-center justify-between gap-3" x-show="!editing">
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-gray-900">{{ $link->label }} @if($link->price_text)<span class="text-gray-500 font-normal">· {{ $link->price_text }}</span>@endif</p>
+                            <p class="text-xs text-gray-400 truncate">{{ $link->url }} · {{ crm_trans('payment_links.visibility_'.$link->visibility) }}</p>
+                        </div>
+                        <div class="flex items-center shrink-0">
+                            <button type="button" @click="editing = true; $nextTick(() => lucide.createIcons())" class="p-2 text-gray-400 hover:text-primary-600" title="{{ crm_trans('profile.edit') }}"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <form method="POST" action="{{ crm_route('payment-links.destroy', $link) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </form>
+                        </div>
                     </div>
-                    <form method="POST" action="{{ crm_route('payment-links.destroy', $link) }}" onsubmit="return confirm('{{ crm_trans('profile.remove') }}?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="p-2 text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    {{-- Edit view --}}
+                    <form method="POST" action="{{ crm_route('payment-links.update', $link) }}" class="grid sm:grid-cols-2 gap-4" x-show="editing" x-cloak>
+                        @csrf @method('PUT')
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.label') }}</label>
+                            <input type="text" name="label" value="{{ $link->label }}" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.url') }}</label>
+                            <input type="url" name="url" value="{{ $link->url }}" required class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.price_text') }}</label>
+                            <input type="text" name="price_text" value="{{ $link->price_text }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.lesson_type') }}</label>
+                            <input type="text" name="lesson_type" value="{{ $link->lesson_type }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.visibility') }}</label>
+                            <select name="visibility" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                                <option value="public" @selected($link->visibility === 'public')>{{ crm_trans('payment_links.visibility_public') }}</option>
+                                <option value="approved_students" @selected($link->visibility === 'approved_students')>{{ crm_trans('payment_links.visibility_approved_students') }}</option>
+                                <option value="appointment_confirmation" @selected($link->visibility === 'appointment_confirmation')>{{ crm_trans('payment_links.visibility_appointment_confirmation') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[15px] font-semibold text-gray-800 mb-1.5">{{ crm_trans('payment_links.description') }}</label>
+                            <input type="text" name="description" value="{{ $link->description }}" class="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                        <div class="sm:col-span-2 flex items-center gap-2">
+                            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                                <i data-lucide="save" class="w-4 h-4"></i> {{ crm_trans('profile.save') }}
+                            </button>
+                            <button type="button" @click="editing = false" class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">{{ crm_trans('profile.cancel') }}</button>
+                        </div>
                     </form>
                 </div>
             @empty

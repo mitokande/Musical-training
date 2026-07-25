@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+use App\Listeners\RecordAuthAnalytics;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\Analytics\PostHogService;
 use App\Services\Teacher\TeacherCapabilityService;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
                 'stripe_version' => config('services.stripe.api_version'),
             ]);
         });
+
+        // Shared PostHog client. Held as a singleton so the underlying SDK is
+        // initialised at most once per process and the batched event queue is
+        // flushed a single time when the request ends.
+        $this->app->singleton(PostHogService::class);
     }
 
     /**
@@ -34,6 +45,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Funnel analytics: signup, login and verification go to PostHog from
+        // the server so ad-blockers cannot silently drop the top of the funnel.
+        Event::listen(Registered::class, [RecordAuthAnalytics::class, 'registered']);
+        Event::listen(Login::class, [RecordAuthAnalytics::class, 'login']);
+        Event::listen(Verified::class, [RecordAuthAnalytics::class, 'verified']);
+
         // Throttle Email Center sends below the SES account MaxSendRate.
         RateLimiter::for('email-center-send', function () {
             $perSecond = (int) rescue(

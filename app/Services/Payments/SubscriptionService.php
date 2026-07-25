@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Analytics\PostHogService;
 use App\Services\Payments\Contracts\PaymentGateway;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,29 @@ use Illuminate\Support\Facades\DB;
  */
 class SubscriptionService
 {
-    public function __construct(private PaymentManager $gateways) {}
+    public function __construct(
+        private PaymentManager $gateways,
+        private PostHogService $posthog,
+    ) {}
+
+    /**
+     * Report a subscription lifecycle change to PostHog.
+     *
+     * Captured server-side rather than in the browser: these are the revenue
+     * events, and most of them originate from a Stripe webhook where no browser
+     * is involved at all.
+     */
+    private function track(string $event, Subscription $subscription, array $properties = []): void
+    {
+        $this->posthog->capture($event, array_merge([
+            'plan_id' => $subscription->plan_id,
+            'billing_cycle' => $subscription->billing_cycle,
+            'amount' => (float) $subscription->amount,
+            'currency' => $subscription->currency,
+            'provider' => $subscription->payment_provider,
+            'subscription_id' => $subscription->id,
+        ], $properties), $subscription->user);
+    }
 
     /**
      * Price (excl. tax) for a plan on a given cycle.
@@ -120,8 +143,13 @@ class SubscriptionService
                     'plan_cycle' => $subscription->billing_cycle,
                     'plan_expires_at' => $end,
                 ])->save();
+
+                // Teacher/school CRM premium features gate on the profile tier.
+                $user->syncTeacherTierWithPlan();
             }
         });
+
+        $this->track('subscription_activated', $subscription);
     }
 
     /**
@@ -200,8 +228,18 @@ class SubscriptionService
                     'plan_cycle' => $subscription->billing_cycle,
                     'plan_expires_at' => $end,
                 ])->save();
+
+                // Teacher/school CRM premium features gate on the profile tier.
+                $user->syncTeacherTierWithPlan();
             }
         });
+
+        // Renewal amount comes from the provider's invoice, not the stored
+        // subscription price, so it overrides the default in track().
+        $this->track('subscription_renewed', $subscription, [
+            'amount' => $amount,
+            'currency' => $currency ?: $subscription->currency,
+        ]);
     }
 
     /**
@@ -240,6 +278,8 @@ class SubscriptionService
         if ($immediate) {
             $this->downgradeIfLapsed($subscription->user);
         }
+
+        $this->track('subscription_cancelled', $subscription, ['immediate' => $immediate]);
     }
 
     /** Period lapsed with no renewal — expire and drop entitlement. */
@@ -299,6 +339,9 @@ class SubscriptionService
             'plan_cycle' => null,
             'plan_expires_at' => null,
         ])->save();
+
+        // Drop the teacher/school profile back to the basic tier alongside the plan.
+        $user->syncTeacherTierWithPlan();
     }
 
     /**

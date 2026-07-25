@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Payments\StripeGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Stripe\Checkout\Session;
@@ -271,6 +272,41 @@ class StripePaymentTest extends TestCase
         $this->assertSame('active', $sub->status);
         $this->assertSame('sub_ret', $sub->external_id);
         $this->assertSame('premium', $user->plan);
+    }
+
+    public function test_checkout_uses_role_specific_stripe_price(): void
+    {
+        config([
+            'services.stripe.prices.teacher.monthly' => 'price_teacher_monthly',
+            'services.stripe.prices.teacher.yearly' => 'price_teacher_yearly',
+        ]);
+
+        $plan = Plan::create([
+            'name' => 'Teacher Premium', 'slug' => 'teacher-premium', 'role' => 'teacher',
+            'type' => 'premium', 'price_monthly' => 16.90, 'price_yearly' => 149.00,
+            'currency' => 'USD', 'is_active' => true,
+        ]);
+        $user = User::factory()->create(['role' => 'teacher', 'plan' => 'free', 'stripe_customer_id' => 'cus_teacher']);
+        $sub = $this->pendingStripeSubscription($user, $plan, 'monthly');
+        $invoice = $sub->invoices()->first();
+
+        $captured = null;
+        $sessions = Mockery::mock();
+        $sessions->shouldReceive('create')->once()->andReturnUsing(function ($args) use (&$captured) {
+            $captured = $args;
+
+            return Session::constructFrom(['id' => 'cs_role', 'url' => 'https://stripe.test/cs_role']);
+        });
+        $checkout = new \stdClass;
+        $checkout->sessions = $sessions;
+        $stripe = Mockery::mock(StripeClient::class);
+        $stripe->shouldReceive('getService')->with('checkout')->andReturn($checkout);
+        $this->app->instance(StripeClient::class, $stripe);
+
+        $url = app(StripeGateway::class)->checkout($sub, $invoice);
+
+        $this->assertSame('https://stripe.test/cs_role', $url);
+        $this->assertSame('price_teacher_monthly', $captured['line_items'][0]['price']);
     }
 
     protected function tearDown(): void

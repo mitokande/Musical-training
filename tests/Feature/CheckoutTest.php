@@ -174,4 +174,30 @@ class CheckoutTest extends TestCase
         $this->assertSame('refunded', $invoice->status);
         $this->assertSame('free', $user->plan);
     }
+
+    public function test_teacher_purchase_syncs_profile_tier_and_refund_reverts_it(): void
+    {
+        config(['payments.manual.auto_confirm' => true]);
+        Plan::create([
+            'name' => 'Teacher Premium', 'slug' => 'teacher-premium', 'role' => 'teacher',
+            'type' => 'premium', 'price_monthly' => 16.90, 'price_yearly' => 149.00,
+            'currency' => 'USD', 'is_active' => true,
+        ]);
+        $user = User::factory()->create(['role' => 'teacher', 'plan' => 'free']);
+
+        $this->actingAs($user)->post(route('checkout.store'), ['cycle' => 'monthly', 'terms' => '1']);
+
+        $user->refresh();
+        $this->assertSame('premium', $user->plan);
+        // Teacher CRM premium features gate on the profile tier — it must flip too.
+        $this->assertTrue($user->teacherProfile()->first()->isPremiumTier());
+
+        // Refund reverts the tier back to basic.
+        $admin = User::factory()->create(['role' => 'admin', 'plan' => 'free']);
+        $this->actingAs($admin)->post(route('admin.invoices.refund', Invoice::first()))->assertRedirect();
+
+        $user->refresh();
+        $this->assertSame('free', $user->plan);
+        $this->assertFalse($user->teacherProfile()->first()->isPremiumTier());
+    }
 }

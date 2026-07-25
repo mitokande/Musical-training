@@ -41,9 +41,14 @@ class StripeGateway implements PaymentGateway
         $user = $subscription->user;
         $customerId = $this->resolveCustomer($user);
 
-        $priceId = config("services.stripe.prices.{$subscription->billing_cycle}");
+        // Role-specific price (teacher/school/user tiers each bill their own
+        // amount); fall back to the legacy flat key for the individual-user tier.
+        $role = $subscription->plan->role ?? 'user';
+        $cycle = $subscription->billing_cycle;
+        $priceId = config("services.stripe.prices.{$role}.{$cycle}")
+            ?? config("services.stripe.prices.{$cycle}");
         if (! $priceId) {
-            throw new \RuntimeException("No Stripe price configured for billing cycle [{$subscription->billing_cycle}].");
+            throw new \RuntimeException("No Stripe price configured for [{$role}/{$cycle}].");
         }
 
         $session = $this->stripe->checkout->sessions->create([

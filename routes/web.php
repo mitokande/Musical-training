@@ -92,8 +92,14 @@ Route::get('/', function () {
 
     app()->setLocale('en');
 
-    return view('welcome');
-})->middleware('cache.headers:public;max_age=300;etag');
+    // The landing nav varies by auth (Login/Register vs Dashboard/Upgrade), so it
+    // must never be served from a shared/browser cache to the wrong user. Cache
+    // publicly for guests/crawlers only (keyed on the session cookie so a fresh
+    // login busts it); authenticated users always get a fresh, uncached page.
+    return response()->view('welcome')->withHeaders(auth()->check()
+        ? ['Cache-Control' => 'no-store, private']
+        : ['Cache-Control' => 'public, max-age=300', 'Vary' => 'Cookie']);
+});
 
 // Locale-prefixed landing pages (indexable per-language variants; `en` lives at `/`).
 // Each is listed in the sitemap and cross-linked via hreflang tags in welcome.blade.php.
@@ -101,9 +107,11 @@ Route::get('/{locale}', function (string $locale) {
     app()->setLocale($locale);
     session(['locale' => $locale]);
 
-    return view('welcome');
+    // See the `/` route: cache for guests only so the auth-aware nav stays correct.
+    return response()->view('welcome')->withHeaders(auth()->check()
+        ? ['Cache-Control' => 'no-store, private']
+        : ['Cache-Control' => 'public, max-age=300', 'Vary' => 'Cookie']);
 })->whereIn('locale', ['de', 'fr', 'es', 'pt', 'tr', 'it'])
-    ->middleware('cache.headers:public;max_age=300;etag')
     ->name('welcome.localized');
 
 Route::get('/pricing/teachers-and-schools', function () {
@@ -120,6 +128,7 @@ Route::get('/students', fn () => view('pages.students'))->name('page.students');
 Route::get('/teachers', fn () => view('pages.teachers-solution'))->name('page.teachers-solution');
 Route::get('/schools', fn () => view('pages.schools'))->name('page.schools');
 Route::get('/piano-learners', fn () => view('pages.piano-learners'))->name('page.piano-learners');
+Route::get('/community-feed', fn () => view('pages.community-feed'))->name('page.community-feed');
 Route::get('/request-demo', fn () => view('pages.request-demo'))->name('page.request-demo');
 
 // Resources

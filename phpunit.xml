@@ -35,6 +35,10 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="OPENAI_API_KEY" value=""/>
         <env name="PAYMENT_DRIVER" value="manual"/>
+        <!-- No key means the service no-ops, but force the noop consumer too so a
+             stray POSTHOG_KEY in a developer's .env can never send test traffic. -->
+        <env name="POSTHOG_KEY" value="" force="true"/>
+        <env name="POSTHOG_CONSUMER" value="noop" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

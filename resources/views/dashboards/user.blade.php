@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -66,6 +67,17 @@
             <span class="note" style="bottom:14px;right:80px;font-size:48px;color:rgba(196,181,253,0.40);transform:rotate(-12deg);" aria-hidden="true">♩</span>
             <span class="note" style="bottom:20px;right:230px;font-size:30px;color:rgba(253,186,116,0.50);transform:rotate(10deg);" aria-hidden="true">♫</span>
             <span class="note" style="top:-10px;left:-8px;font-size:100px;color:rgba(255,255,255,0.07);transform:rotate(-18deg);" aria-hidden="true">♬</span>
+
+            {{-- Upgrade to Premium — top-right of the welcome box, for free accounts only --}}
+            @unless(Auth::user()->isEffectivelyPremium())
+                <a href="{{ route('checkout.show') }}"
+                   class="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg hover:-translate-y-0.5 transition-all"
+                   style="background:linear-gradient(135deg,#fbbf24,#f59e0b);">
+                    <i data-lucide="crown" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">{{ __('app.dashboard.upgrade_premium') }}</span>
+                </a>
+            @endunless
+
             @php $isTeacherViewer = Auth::check() && Auth::user()->hasTeacherAccount(); @endphp
             @if($isTeacherViewer)
                 {{-- Teacher "Welcome back" box — same design as the student box, teacher-specific buttons. --}}

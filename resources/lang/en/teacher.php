@@ -127,6 +127,9 @@ return [
         'public_url' => 'Public profile URL',
         'add_more' => 'Add more',
         'remove' => 'Remove',
+        'edit' => 'Edit',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
     ],
 
     'fields' => [
@@ -176,6 +179,9 @@ return [
         'teaching_languages' => 'Teaching languages',
         'seo_title' => 'SEO title',
         'seo_description' => 'SEO meta description',
+        'seo_title_placeholder' => 'e.g. Piano Lessons in Istanbul · Conservatory-Trained Teacher',
+        'seo_description_placeholder' => 'e.g. Online and in-person piano lessons for all levels. 10 years of conservatory experience, personalised ear training and music theory. Book a free trial lesson.',
+        'seo_help' => 'This controls how your profile appears in Google and other search results. The SEO title is the clickable headline shown in search listings, and the description is the short summary beneath it. Write them for real people looking for a teacher: mention your instrument, your city, and what makes you different. Keep the title under about 60 characters and the description near 150. Use natural, honest language instead of a list of keywords. A clear, inviting title and description help the right students discover your profile and decide to click through to it.',
         'profile_photo' => 'Profile photo',
         'cover_image' => 'Cover image',
         'upload_cover' => 'Upload cover image',

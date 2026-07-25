@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -103,7 +104,7 @@
             <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ __('app.exercises.premium_feature') }}</h2>
             <p class="text-gray-600 mb-6">{{ __('app.exercises.premium_desc') }}</p>
             <div class="flex gap-3">
-                <a href="/plans" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
+                <a href="{{ auth()->check() ? route('checkout.show') : route('pricing.index') }}" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
                     <i data-lucide="crown" class="w-4 h-4"></i> {{ __('app.exercises.upgrade_to_premium') }}
                 </a>
                 <button @click="showPremiumModal = false"

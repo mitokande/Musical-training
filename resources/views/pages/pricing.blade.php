@@ -189,13 +189,18 @@
 
                     @auth
                     <a href="{{ route('checkout.show') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                        Go to Dashboard
+                        Get Premium Now
                     </a>
                     @else
                     <a href="{{ route('register') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                         Start Now — Get Premium
                     </a>
                     @endauth
+                    <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+                        <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> 14-day money-back guarantee</span>
+                        <span>·</span>
+                        <span>Cancel anytime</span>
+                    </p>
                 </div>
             </div>
         </div>

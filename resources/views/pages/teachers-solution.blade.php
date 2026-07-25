@@ -173,8 +173,8 @@
                 <span class="text-5xl font-extrabold text-gray-900">$16.90</span>
                 <span class="text-gray-400 text-base mb-2">/month</span>
             </div>
-            <p class="text-gray-400 text-sm mb-2">or <strong class="text-gray-700">$8.25/mo</strong> billed annually</p>
-            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 mb-6">Save over $100/year</span>
+            <p class="text-gray-400 text-sm mb-2">or <strong class="text-gray-700">$6.67/mo</strong> billed annually</p>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 mb-6">Save over $120/year</span>
 
             <ul class="space-y-3 mb-8 text-left">
                 @php $planFeats = [

@@ -29,6 +29,22 @@ class TeacherVideoController extends Controller
         return back()->with('status', 'video-saved');
     }
 
+    public function update(StoreTeacherVideoRequest $request, TeacherVideo $video): RedirectResponse
+    {
+        $this->authorize('update', $video->teacherProfile);
+
+        $validated = $request->validated();
+
+        $video->update([
+            'title' => $validated['title'],
+            'url' => $validated['url'],
+            'youtube_id' => TeacherVideo::extractYoutubeId($validated['url']),
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return back()->with('status', 'video-saved');
+    }
+
     public function destroy(Request $request, TeacherVideo $video): RedirectResponse
     {
         $this->authorize('update', $video->teacherProfile);

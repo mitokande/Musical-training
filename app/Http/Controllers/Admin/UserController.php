@@ -159,8 +159,8 @@ class UserController extends Controller
 
         foreach ($users as $user) {
             match ($validated['action']) {
-                'set_plan_free' => tap($user->update(['plan' => 'free']), fn () => $this->syncTeacherTierWithPlan($user)),
-                'set_plan_premium' => tap($user->update(['plan' => 'premium']), fn () => $this->syncTeacherTierWithPlan($user)),
+                'set_plan_free' => tap($user->update(['plan' => 'free']), fn () => $user->syncTeacherTierWithPlan()),
+                'set_plan_premium' => tap($user->update(['plan' => 'premium']), fn () => $user->syncTeacherTierWithPlan()),
                 'set_role_user' => $user->update(['role' => 'user']),
                 'set_role_teacher' => $user->update(['role' => 'teacher']),
                 'set_role_school' => $user->update(['role' => 'school']),
@@ -307,47 +307,10 @@ class UserController extends Controller
 
         $user->save();
 
-        $this->syncTeacherTierWithPlan($user);
+        $user->syncTeacherTierWithPlan();
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
-    }
-
-    /**
-     * Keep a teacher account's premium capabilities in sync with the plan set
-     * from the member-management screens. Teacher premium features are gated on
-     * TeacherProfile->tier (see TeacherCapabilityService), which is otherwise
-     * disconnected from User->plan — so a "premium" teacher would stay locked
-     * unless we mirror the plan onto the tier here. A profile is created on the
-     * fly for teachers who don't have one yet so the tier can be applied.
-     */
-    private function syncTeacherTierWithPlan(User $user): void
-    {
-        if (! $user->hasTeacherAccount()) {
-            return;
-        }
-
-        $desiredTier = $user->plan === 'premium'
-            ? TeacherProfile::TIER_PREMIUM
-            : TeacherProfile::TIER_BASIC;
-
-        $profile = $user->teacherProfile()->firstOrCreate([], [
-            'tier' => $desiredTier,
-            'status' => TeacherProfile::STATUS_DRAFT,
-        ]);
-
-        if ($profile->tier === $desiredTier) {
-            return;
-        }
-
-        $from = $profile->tier;
-        $profile->update(['tier' => $desiredTier]);
-
-        activity('teacher')
-            ->causedBy(auth()->user())
-            ->performedOn($profile)
-            ->withProperties(['from' => $from, 'to' => $desiredTier, 'via' => 'plan_sync'])
-            ->log('teacher_tier_changed');
     }
 
     /**

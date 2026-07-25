@@ -2,9 +2,16 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- App-like fullscreen hints (removes browser chrome where supported / when installed) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#111827">
 
     <title>Piano Studio - {{ config('app.name', 'Harmoniva') }}</title>
     <meta name="description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display. Free online piano studio by Harmoniva.">
@@ -70,6 +77,10 @@
         }
 
         /* Piano Styles */
+        /* Wrapper is layout-transparent by default (mobile keeps piano-dock as an
+           effective child of <main>); desktop turns it into the black stage. */
+        .piano-stage { display: contents; }
+
         .piano-wrapper {
             overflow-x: auto;
             padding-bottom: 10px;
@@ -94,6 +105,9 @@
             cursor: pointer;
             transition: all 0.08s ease;
             position: relative;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
         }
         
         .white-key {
@@ -166,6 +180,11 @@
             display: block;
             margin: 0 auto;
         }
+
+        /* The staff keeps a CONSTANT size and the area scrolls horizontally as
+           notes are added — override the site-wide shrink-to-fit that
+           responsive-notation.blade.php applies (inline maxWidth:100% on >=640px). */
+        #notation-container svg { max-width: none !important; }
 
         /* Playback animation */
         @keyframes pulse {
@@ -430,24 +449,286 @@
             color: #6b7280;
         }
 
-        /* Responsive: Hide sidebars on smaller screens */
-        @media (max-width: 1024px) {
-            .sidebar {
-                display: none;
-            }
-            .mobile-controls {
+        /* ============================================================
+           MOBILE STUDIO EXPERIENCE
+           ============================================================ */
+        [x-cloak] { display: none !important; }
+
+        .mobile-studio-bar { display: none; }
+
+        @media (min-width: 1025px) {
+            .mobile-controls { display: none; }
+
+            /* Desktop: full-bleed black "stage" behind the piano — the site's
+               dark colour fills the whole bottom band edge-to-edge, and the
+               framed piano sits centred on top (black shows OUTSIDE its frame). */
+            html { overflow-x: hidden; }          /* contain the full-bleed 100vw */
+            .piano-stage {
                 display: block;
+                width: 100vw;
+                margin-left: calc(50% - 50vw);
+                margin-top: 1rem;
+                padding: 30px 16px 116px;         /* black: 30px above, 116px below the piano frame */
+                background: #111827;
+            }
+            .piano-dock {
+                margin: 0 auto;                   /* centre the framed piano on the stage */
+                max-width: 1520px;
+                background: #fff;                 /* keep the piano's own white frame */
+            }
+            .piano-dock .piano-wrapper { padding-bottom: 0; }
+        }
+
+        /* --- Shared toolbar look (portrait + landscape phones) --- */
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .mobile-controls { display: none; }
+
+            .mobile-studio-bar {
+                display: block;
+                background: rgba(255, 255, 255, 0.97);
+                -webkit-backdrop-filter: blur(8px);
+                backdrop-filter: blur(8px);
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 8px rgb(0 0 0 / 0.06);
+            }
+            .msb-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                padding: 0.55rem 0.65rem;
+            }
+            .msb-left { position: relative; }
+            .msb-center {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .msb-count {
+                display: flex;
+                flex-direction: column;
+                line-height: 1.1;
+                padding-left: 0.35rem;
+                min-width: 40px;
+            }
+            .msb-count span { font-size: 1.05rem; font-weight: 700; color: #9333ea; }
+            .msb-count small { font-size: 0.58rem; color: #6b7280; }
+
+            /* Section tags flanking the controls — each fills the empty gap
+               on its side and centers its own text */
+            .msb-tag {
+                flex: 1;
+                min-width: 0;
+                text-align: center;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #6b7280;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding: 0 0.15rem;
+            }
+
+            .msb-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.4rem;
+                padding: 0.5rem 0.75rem;
+                border-radius: 9px;
+                font-size: 0.82rem;
+                font-weight: 600;
+                background: #f3f4f6;
+                color: #374151;
+                border: none;
+                cursor: pointer;
+                transition: transform 0.12s ease, background 0.15s ease;
+            }
+            .msb-btn:active { transform: scale(0.95); }
+            .msb-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+            .msb-btn-primary { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: #fff; }
+            .msb-metro-toggle.active { background: #ede9fe; color: #7c3aed; }
+            .msb-menu-btn { background: #f3f4f6; color: #374151; padding: 0.5rem; }
+
+            /* --- Metronome dropdown panel (anchored under the left button) --- */
+            .msb-panel {
+                position: absolute;
+                top: calc(100% + 8px);
+                left: 0;
+                width: min(280px, 82vw);
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+                padding: 0.85rem 0.9rem 1rem;
+                z-index: 70;
+            }
+            .msb-panel-header {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
+                color: #374151;
+                font-weight: 600;
+                font-size: 0.85rem;
+            }
+            .msb-panel-header i { color: #9333ea; }
+            .msb-bpm { margin-left: auto; font-size: 0.85rem; color: #7c3aed; font-weight: 700; }
+            .msb-metro-row { display: flex; align-items: center; gap: 0.75rem; }
+            .msb-metro-play {
+                width: 42px; height: 42px; flex-shrink: 0;
+                border-radius: 9px; border: none; cursor: pointer; color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            }
+            .msb-metro-play.running { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+            .msb-select {
+                width: 100%; margin-top: 0.75rem;
+                padding: 0.55rem 0.7rem; border: 1px solid #e5e7eb;
+                border-radius: 8px; font-size: 0.85rem; color: #374151; background: #fff;
+            }
+
+            /* --- Piano tuned for touch --- */
+            .piano-wrapper { -webkit-overflow-scrolling: touch; }
+            .key-label { display: none; }
+        }
+
+        /* ============================================================
+           MOBILE / TABLET — single-screen APP MODE.
+           The whole studio is ALWAYS presented in landscape: <main> is a
+           fixed "studio viewport" and its children are positioned as % of
+           it, so the layout is identical whichever way the phone is held.
+           In portrait we rotate <main> 90° (force-landscape).
+           ============================================================ */
+        @media (max-width: 1024px) {
+            /* Strip the site chrome — the studio owns the whole screen */
+            .piano-studio-page > header,
+            .piano-studio-page > footer,
+            main > .mb-4 { display: none !important; }
+
+            /* One stable screen — no page scroll, fit the visible viewport */
+            html, body { overflow: hidden; height: 100%; margin: 0; }
+            body { padding: 0; }
+
+            /* <main> = the landscape studio viewport (default: real landscape) */
+            main {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw;  width: 100dvw;
+                height: 100vh; height: 100dvh;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background: linear-gradient(160deg, #f5f3ff 0%, #eef2ff 100%);
+            }
+
+            /* Children are positioned as % of <main> (orientation-independent) */
+
+            /* --- Thin top control bar --- */
+            .mobile-studio-bar {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                z-index: 60;
+                margin: 0;
+                border-radius: 0;
+                border: none;
+                border-bottom: 1px solid #e5e7eb;
+                box-shadow: 0 2px 10px rgb(0 0 0 / 0.08);
+            }
+            .msb-row { padding: 0.35rem 0.7rem; }
+
+            /* --- Notation fills the middle (bar → piano) --- */
+            .studio-layout { display: block; margin: 0; }
+            .notation-card-header { display: none; }   /* label moved into the top bar */
+            .center-content .card {
+                position: absolute;
+                top: 50px; left: 8px; right: 8px;
+                bottom: calc(42% + 8px);
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            /* Staff centered vertically in the freed space */
+            #notation-container {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+            }
+            #notation-output { width: 100%; }
+
+            /* --- Piano: single solid panel docked to the bottom (42% of height) --- */
+            .piano-dock {
+                position: absolute;
+                left: 0; right: 0; bottom: 0;
+                height: 42%;
+                z-index: 55;
+                margin: 0;
+                padding: 6px 6px 0;               /* no bottom gap → scroll bar sits on the screen edge */
+                border-radius: 16px 16px 0 0;
+                border: none;
+                box-shadow: 0 -8px 30px rgb(0 0 0 / 0.22);
+                background: #fff;
+            }
+            .piano-dock .piano-wrapper {
+                height: 100%;
+                overflow-x: auto;    /* 4 octaves at 2-octave key size → swipe sideways */
+                overflow-y: hidden;
+                padding: 0;
+                touch-action: none;  /* swipe handled manually (reliable on touch) */
+                scrollbar-width: auto;
+                scrollbar-color: #9333ea rgba(147, 51, 234, 0.15);
+            }
+            /* Purple horizontal scroll bar, stuck to the bottom edge (thick) */
+            .piano-dock .piano-wrapper::-webkit-scrollbar { height: 64px; }
+            .piano-dock .piano-wrapper::-webkit-scrollbar-track {
+                background: rgba(147, 51, 234, 0.15);
+                border-radius: 4px;
+            }
+            .piano-dock .piano-wrapper::-webkit-scrollbar-thumb {
+                background: #9333ea;
+                border-radius: 4px;
+            }
+            /* Keyboard is twice as wide as the viewport (4 octaves at the same
+               per-key size as the previous 2-octave layout); the extra octaves
+               sit to the left/right and are reached by scrolling. Keys stop 10px
+               above the purple scroll bar (which sits on the very bottom edge). */
+            .piano-dock .piano-container { height: calc(100% - 10px); width: 200%; justify-content: stretch; }
+            .piano-dock .piano-keys-container { height: 100%; width: 100%; }
+
+            /* Keys keep the 2-octave size (each = 1/28 of the doubled width) */
+            .piano-dock .white-key { min-width: 0; height: 100%; border-radius: 0 0 6px 6px; }
+            .piano-dock .black-key { height: 62%; min-width: 0; }
+            /* Gesture handled manually so a light swipe scrolls; a tap plays */
+            .piano-dock .piano-key { touch-action: none; }
+        }
+
+        /* --- FORCE LANDSCAPE: rotate the studio when the phone is portrait --- */
+        @media (max-width: 1024px) and (orientation: portrait) {
+            main {
+                /* swap dimensions: main-width = viewport height (the long side) */
+                width: 100vh;  width: 100dvh;
+                height: 100vw; height: 100dvw;
+                transform-origin: top left;
+                transform: translateX(100vw) rotate(90deg);
+                transform: translateX(100dvw) rotate(90deg);
             }
         }
 
-        @media (min-width: 1025px) {
-            .mobile-controls {
-                display: none;
-            }
+        /* Keep the bar on one line; it renders along the wide (landscape) edge */
+        @media (max-width: 1024px) {
+            .msb-row { flex-wrap: nowrap; }
+            .msb-center { flex-wrap: nowrap; min-width: 0; }
         }
     </style>
 </head>
-<body class="font-sans bg-gray-50 min-h-screen">
+<body class="font-sans bg-gray-50 min-h-screen piano-studio-page">
     {{-- Navbar --}}
     @include('partials.navbar', ['active' => 'piano'])
 
@@ -463,25 +744,70 @@
             </div>
         </div>
 
-        <!-- Mobile Controls (shown on smaller screens) -->
-        <div class="mobile-controls card p-4 mb-4">
-            <div class="flex flex-wrap items-center gap-4">
-                <button id="playbackBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    <i data-lucide="play" class="w-4 h-4"></i>
-                    <span>Playback</span>
-                </button>
-                <button id="clearBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    Clear
-                </button>
-                <button id="metronomeBtnMobile" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
-                    <i data-lucide="timer" class="w-4 h-4"></i>
-                    Metronome
-                </button>
-                <div class="flex-1"></div>
-                <div class="text-sm text-gray-500">
-                    <span id="noteCountMobile">0</span> notes recorded
+        <!-- Mobile / Landscape Toolbar -->
+        <div class="mobile-studio-bar" x-data="{ metroOpen: false }">
+            <div class="msb-row">
+                <!-- Left: Metronome dropdown -->
+                <div class="msb-left">
+                    <button type="button" class="msb-btn msb-metro-toggle" :class="{ 'active': metroOpen }" @click.stop="metroOpen = !metroOpen" aria-label="Metronome">
+                        <i data-lucide="activity" class="w-4 h-4"></i>
+                        <span class="msb-label">Metronome</span>
+                    </button>
+
+                    <!-- Metronome dropdown panel -->
+                    <div class="msb-panel" x-show="metroOpen" x-transition x-cloak @click.outside="metroOpen = false">
+                        <div class="msb-panel-header">
+                            <i data-lucide="activity" class="w-4 h-4"></i>
+                            <span>Metronome</span>
+                            <div class="msb-bpm"><span id="bpmValueMobile">120</span> BPM</div>
+                        </div>
+                        <div class="msb-metro-row">
+                            <button id="metronomeBtnMobile" class="msb-metro-play" aria-label="Start / stop metronome">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                            </button>
+                            <input type="range" id="bpmSliderMobile" class="bpm-slider-lean" min="40" max="240" value="120">
+                        </div>
+                        <select id="tempoPresetMobile" class="msb-select">
+                            <option value="">Select tempo preset…</option>
+                            <option value="60">Largo (60)</option>
+                            <option value="76">Adagio (76)</option>
+                            <option value="92">Andante (92)</option>
+                            <option value="120">Moderato (120)</option>
+                            <option value="140">Allegro (140)</option>
+                            <option value="180">Presto (180)</option>
+                        </select>
+                    </div>
                 </div>
+
+                <!-- Left label centered in the gap before the controls -->
+                <span class="msb-tag msb-tag-left">Piano Studio</span>
+
+                <!-- Center: basic controls -->
+                <div class="msb-center">
+                    <button id="playbackBtnMobile" class="msb-btn msb-btn-primary" disabled>
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span class="msb-label">Play</span>
+                    </button>
+                    <button id="clearBtnMobile" class="msb-btn" aria-label="Clear notes">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                    <div class="msb-count">
+                        <span id="noteCountMobile">0</span>
+                        <small>notes</small>
+                    </div>
+                </div>
+
+                <!-- Right label centered in the gap after the controls -->
+                <span class="msb-tag msb-tag-right">Music Notation</span>
+
+                <!-- Right: Harmoniva standard menu -->
+                <button type="button" class="msb-btn msb-menu-btn" x-data @click="$dispatch('toggle-mobile-menu')" aria-label="Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                        <line x1="4" y1="6" x2="20" y2="6"/>
+                        <line x1="4" y1="12" x2="20" y2="12"/>
+                        <line x1="4" y1="18" x2="20" y2="18"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -570,12 +896,25 @@
             </div>
         </div> --}}
 
-                <!-- Music Notation Display -->
+                <!-- Music Notation Display (full-width; playback controls moved into its header) -->
                 <div class="card mb-4">
-                    <div class="p-4 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
+                    <div class="p-4 border-b border-gray-200 notation-card-header flex items-center gap-4">
+                        <div class="flex items-center gap-2 shrink-0">
                             <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
                             <h3 class="font-semibold text-gray-900">Music Notation</h3>
+                        </div>
+                        <div class="flex flex-1 items-center justify-center gap-3">
+                            <button id="playbackBtn" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                                <span>Playback</span>
+                            </button>
+                            <button id="clearBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Clear
+                            </button>
+                            <div class="text-sm text-gray-500 whitespace-nowrap">
+                                <span id="noteCount" class="font-bold text-purple-600 text-base">0</span> notes recorded
+                            </div>
                         </div>
                     </div>
                     <div id="notation-container">
@@ -583,43 +922,17 @@
                         <p id="notation-placeholder" class="text-center text-gray-400 py-12">Play some notes to see them appear here...</p>
                     </div>
                 </div>
-                <!-- Music Notation Display only stays in center -->
-                </div>
-
-            <!-- Right Sidebar - Playback -->
-            <aside class="sidebar sidebar-right">
-                <div class="playback-widget">
-                    <div class="playback-header">
-                        <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
-                        <h3 class="font-semibold text-gray-900">Playback</h3>
-                    </div>
-                    
-                    <!-- Playback Buttons -->
-                    <div class="playback-btn-group">
-                        <button id="playbackBtn" class="inline-flex items-center justify-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <i data-lucide="play" class="w-4 h-4"></i>
-                            <span>Playback</span>
-                        </button>
-                        <button id="clearBtn" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            Clear
-                        </button>
-                    </div>
-                    
-                    <!-- Note Count -->
-                    <div class="note-count-display">
-                        <div class="note-count-value" id="noteCount">0</div>
-                        <div class="note-count-label">notes recorded</div>
-                    </div>
-                </div>
-            </aside>
+                </div>{{-- /center-content --}}
+            {{-- Right sidebar removed — Playback/Clear/count now live in the notation header, freeing space for a wider notation box --}}
         </div>
 
-        <!-- Piano Keyboard - Full Width -->
-        <div class="card p-3 mt-4">
-            <div class="piano-wrapper">
-                <div class="piano-container" id="piano">
-                    <!-- Piano keys will be generated by JavaScript -->
+        <!-- Piano Keyboard — full-bleed black stage (desktop) wraps the framed piano -->
+        <div class="piano-stage">
+            <div class="card p-3 mt-4 piano-dock">
+                <div class="piano-wrapper">
+                    <div class="piano-container" id="piano">
+                        <!-- Piano keys will be generated by JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -635,9 +948,11 @@
     <script>
     window.HarmonivaAudio = (function () {
         let sampler = null;
-        let ready = false;
+        let synth = null;
+        let ready = false;      // Salamander samples finished loading
+        let starting = null;    // memoised start() promise
 
-        function init() {
+        function initSampler() {
             if (sampler) return;
             sampler = new Tone.Sampler({
                 urls: {
@@ -654,41 +969,82 @@
             }).toDestination();
         }
 
-        async function ensureReady() {
-            await Tone.start();
-            if (!sampler) init();
-            const deadline = Date.now() + 8000;
-            while (!ready && Date.now() < deadline) {
-                await new Promise(r => setTimeout(r, 80));
-            }
+        // Instant fallback voice — no samples to download, so it sounds the
+        // moment the AudioContext resumes.
+        function initSynth() {
+            if (synth) return;
+            synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            synth.set({
+                oscillator: { type: 'triangle' },
+                envelope: { attack: 0.005, decay: 0.15, sustain: 0.25, release: 1.1 }
+            });
+            synth.volume.value = -6;
+        }
+
+        // Resume audio + build instruments once. Returns a memoised promise so
+        // callers never re-await the whole thing.
+        function start() {
+            if (starting) return starting;
+            starting = (async () => {
+                await Tone.start();
+                initSynth();     // ready immediately
+                initSampler();   // loads in the background, then takes over
+            })();
+            return starting;
+        }
+
+        // Prefer the realistic sampler once loaded, else the instant synth.
+        function voice() { return (ready && sampler) ? sampler : synth; }
+
+        // Wait briefly for the piano samples so the first note is a real piano
+        // (not the synth), without a noticeable delay. Since samples are
+        // preloaded on page load, they're almost always ready already.
+        function waitForReady(ms) {
+            return new Promise((resolve) => {
+                if (ready) return resolve();
+                const deadline = Date.now() + ms;
+                (function poll() {
+                    if (ready || Date.now() > deadline) return resolve();
+                    setTimeout(poll, 25);
+                })();
+            });
         }
 
         return {
+            // Start downloading/decoding piano samples immediately on page load
+            // (no gesture needed) so they're ready by the time a key is pressed.
+            preload() { initSampler(); },
+            // Call on the first user gesture to resume audio before playing.
+            warmup() { return start(); },
             async playNote(note, duration) {
-                await ensureReady();
-                sampler.triggerAttackRelease(note, duration ?? 1);
+                await start();
+                if (!ready) await waitForReady(350);   // prefer real piano on the first notes
+                voice().triggerAttackRelease(note, duration ?? 1);
             },
             async playSimultaneous(notes, duration) {
-                await ensureReady();
-                const now = Tone.now();
-                notes.forEach(n => sampler.triggerAttackRelease(n, duration ?? 2, now));
+                await start();
+                const v = voice(), now = Tone.now();
+                notes.forEach(n => v.triggerAttackRelease(n, duration ?? 2, now));
             },
             async playSequential(notes, intervalMs, duration) {
-                await ensureReady();
-                const now = Tone.now();
+                await start();
+                const v = voice(), now = Tone.now();
                 notes.forEach((n, i) =>
-                    sampler.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
+                    v.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
             },
             async playArpeggio(notes, delayMs, duration) {
-                await ensureReady();
-                const now = Tone.now();
+                await start();
+                const v = voice(), now = Tone.now();
                 notes.forEach((n, i) =>
-                    sampler.triggerAttackRelease(n, duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
+                    v.triggerAttackRelease(n, duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
             },
             totalMs(notes, delayMs) {
                 return (notes.length - 1) * (delayMs ?? 400) + 2000;
             },
-            stop() { if (sampler) sampler.releaseAll(); }
+            stop() {
+                if (sampler) sampler.releaseAll();
+                if (synth) synth.releaseAll();
+            }
         };
     })();
     </script>
@@ -770,91 +1126,164 @@
             window.HarmonivaAudio.playNote(note + octave, duration);
         }
 
-        // Build piano keyboard
-        function buildPiano() {
-            const whiteKeys = NOTES.filter(n => n.type === 'white');
-            const blackKeys = NOTES.filter(n => n.type === 'black');
-            const totalWhiteKeys = whiteKeys.length; // 28 keys for 4 octaves
-            
-            // Create white keys container
-            const whiteKeysContainer = document.createElement('div');
-            whiteKeysContainer.className = 'piano-keys-container';
-            
-            whiteKeys.forEach((noteData, index) => {
-                const key = document.createElement('div');
-                key.className = 'piano-key white-key';
-                key.dataset.note = noteData.note;
-                key.dataset.octave = noteData.octave;
-                key.dataset.midi = noteData.midi;
-                key.id = `key-${noteData.midi}`;
-                
-                // Only show key label if it has a keyboard shortcut
-                if (noteData.key) {
-                    const label = document.createElement('span');
-                    label.className = 'key-label';
-                    label.textContent = noteData.key.toUpperCase();
-                    key.appendChild(label);
-                }
-                
-                key.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    triggerNote(noteData);
-                });
-                key.addEventListener('mouseup', () => releaseNote(noteData));
-                key.addEventListener('mouseleave', () => releaseNote(noteData));
-                
-                whiteKeysContainer.appendChild(key);
-            });
-            
-            // Add black keys - positions for 4 octaves
-            // Each octave has black keys after white key positions: 0(C#), 1(D#), 3(F#), 4(G#), 5(A#)
-            const blackKeyPositions = [
-                0, 1, 3, 4, 5,       // Octave 2
-                7, 8, 10, 11, 12,    // Octave 3
-                14, 15, 17, 18, 19,  // Octave 4
-                21, 22, 24, 25, 26   // Octave 5
-            ];
-            let blackKeyIndex = 0;
-            
-            // Calculate percentage-based positioning
-            const whiteKeyWidthPercent = 100 / totalWhiteKeys;
-            const blackKeyWidthPercent = whiteKeyWidthPercent * 0.6; // Black keys are 60% width of white keys
-            
-            blackKeys.forEach((noteData) => {
-                const key = document.createElement('div');
-                key.className = 'piano-key black-key';
-                key.dataset.note = noteData.note;
-                key.dataset.octave = noteData.octave;
-                key.dataset.midi = noteData.midi;
-                key.id = `key-${noteData.midi}`;
-                
-                // Position black key using percentages for full-width layout
-                const position = blackKeyPositions[blackKeyIndex];
-                const leftPercent = ((position + 1) * whiteKeyWidthPercent) - (blackKeyWidthPercent / 2);
-                key.style.left = `${leftPercent}%`;
-                key.style.width = `${blackKeyWidthPercent}%`;
-                
-                // Only show key label if it has a keyboard shortcut
-                if (noteData.key) {
-                    const label = document.createElement('span');
-                    label.className = 'key-label';
-                    label.textContent = noteData.key.toUpperCase();
-                    key.appendChild(label);
-                }
-                
-                key.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    triggerNote(noteData);
-                });
-                key.addEventListener('mouseup', () => releaseNote(noteData));
-                key.addEventListener('mouseleave', () => releaseNote(noteData));
-                
-                whiteKeysContainer.appendChild(key);
-                blackKeyIndex++;
-            });
-            
-            pianoContainer.appendChild(whiteKeysContainer);
+        // Full 4-octave keyboard on every viewport. On mobile the keys keep
+        // their (previous 2-octave) size and the keyboard is twice as wide as
+        // the screen — the extra octaves sit left/right and are reached by
+        // scrolling; the view starts centred on the middle two octaves.
+        function isCompactViewport() {
+            return window.matchMedia('(max-width: 1024px)').matches;
         }
+        function activeNotes() {
+            return NOTES;
+        }
+
+        // Track which layout is currently rendered so we only rebuild on change
+        let builtCompact = null;
+
+        // Bind pointer (mouse + touch + pen) events to a key
+        function attachKeyEvents(el, noteData) {
+            el.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                triggerNote(noteData);
+            });
+            el.addEventListener('pointerup', () => releaseNote(noteData));
+            el.addEventListener('pointerleave', () => releaseNote(noteData));
+            el.addEventListener('pointercancel', () => releaseNote(noteData));
+        }
+
+        // Build piano keyboard (octave-count agnostic — black keys positioned
+        // dynamically from the running white-key count)
+        function buildPiano() {
+            const notes = activeNotes();
+            builtCompact = isCompactViewport();
+
+            pianoContainer.innerHTML = '';
+
+            const totalWhiteKeys = notes.filter(n => n.type === 'white').length;
+            const whiteKeyWidthPercent = 100 / totalWhiteKeys;
+            const blackKeyWidthPercent = whiteKeyWidthPercent * 0.6; // 60% of a white key
+
+            const keysContainer = document.createElement('div');
+            keysContainer.className = 'piano-keys-container';
+
+            let whiteCount = 0; // white keys placed so far
+
+            notes.forEach((noteData) => {
+                const key = document.createElement('div');
+                key.dataset.note = noteData.note;
+                key.dataset.octave = noteData.octave;
+                key.dataset.midi = noteData.midi;
+                key.id = `key-${noteData.midi}`;
+
+                if (noteData.type === 'white') {
+                    key.className = 'piano-key white-key';
+                    if (noteData.key) {
+                        const label = document.createElement('span');
+                        label.className = 'key-label';
+                        label.textContent = noteData.key.toUpperCase();
+                        key.appendChild(label);
+                    }
+                    attachKeyEvents(key, noteData);
+                    keysContainer.appendChild(key);
+                    whiteCount++;
+                } else {
+                    key.className = 'piano-key black-key';
+                    // A black key sits on the boundary after the white keys placed so far
+                    const leftPercent = (whiteCount * whiteKeyWidthPercent) - (blackKeyWidthPercent / 2);
+                    key.style.left = `${leftPercent}%`;
+                    key.style.width = `${blackKeyWidthPercent}%`;
+                    if (noteData.key) {
+                        const label = document.createElement('span');
+                        label.className = 'key-label';
+                        label.textContent = noteData.key.toUpperCase();
+                        key.appendChild(label);
+                    }
+                    attachKeyEvents(key, noteData);
+                    keysContainer.appendChild(key);
+                }
+            });
+
+            pianoContainer.appendChild(keysContainer);
+
+            // On mobile the keyboard is wider than the screen — start centred on
+            // the middle two octaves (C3–B4), with the extra octaves to each side.
+            if (isCompactViewport()) {
+                requestAnimationFrame(centerPianoScroll);
+            }
+        }
+
+        // Centre the horizontal scroll of the (overflowing) mobile keyboard
+        function centerPianoScroll() {
+            const wrap = pianoContainer.parentElement; // .piano-wrapper
+            if (wrap && wrap.scrollWidth > wrap.clientWidth) {
+                wrap.scrollLeft = (wrap.scrollWidth - wrap.clientWidth) / 2;
+            }
+        }
+
+        // Cancel any highlighted keys (used when a tap turns into a scroll)
+        function releaseAllKeys() {
+            activeKeys.forEach((midi) => {
+                const el = document.getElementById(`key-${midi}`);
+                if (el) el.classList.remove('active');
+            });
+            activeKeys.clear();
+        }
+
+        // Drag-to-scroll the wide mobile keyboard: a light horizontal swipe
+        // scrolls to the extra octaves, while a tap still plays the key.
+        // Works whether the studio is real-landscape or CSS force-landscape
+        // (portrait), where the on-screen axis is rotated 90°.
+        function setupPianoDragScroll() {
+            const wrap = pianoContainer.parentElement; // .piano-wrapper
+            if (!wrap || wrap.dataset.dragBound) return;
+            wrap.dataset.dragBound = '1';
+
+            let down = false, startX = 0, startY = 0, startScroll = 0, moved = false, pid = null, startLen = 0;
+
+            // Displacement along the keyboard's horizontal axis (accounts for the
+            // 90° force-landscape rotation used on portrait phones).
+            function alongAxis(e) {
+                const rotated = isCompactViewport() &&
+                    window.matchMedia('(orientation: portrait)').matches;
+                return rotated ? (e.clientY - startY) : (e.clientX - startX);
+            }
+
+            wrap.addEventListener('pointerdown', (e) => {
+                if (wrap.scrollWidth <= wrap.clientWidth + 1) return; // nothing to scroll
+                down = true; moved = false; pid = e.pointerId;
+                startX = e.clientX; startY = e.clientY; startScroll = wrap.scrollLeft;
+                startLen = recordedNotes.length; // to undo the note the swipe started on
+            });
+            wrap.addEventListener('pointermove', (e) => {
+                if (!down || e.pointerId !== pid) return;
+                const ax = alongAxis(e);
+                if (!moved && Math.abs(ax) > 5) {
+                    moved = true;
+                    releaseAllKeys();
+                    // Undo the note that was triggered when the swipe began
+                    if (recordedNotes.length > startLen) {
+                        recordedNotes.length = startLen;
+                        updateNoteCount();
+                        renderNotation();
+                    }
+                }
+                if (moved) wrap.scrollLeft = startScroll - ax;
+            });
+            const end = () => { down = false; pid = null; };
+            wrap.addEventListener('pointerup', end);
+            wrap.addEventListener('pointercancel', end);
+            wrap.addEventListener('pointerleave', end);
+        }
+
+        // Rebuild only when crossing the compact/full breakpoint (e.g. rotate/resize)
+        let pianoResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(pianoResizeTimer);
+            pianoResizeTimer = setTimeout(() => {
+                if (isCompactViewport() !== builtCompact) buildPiano();
+                else if (isCompactViewport()) centerPianoScroll();
+            }, 200);
+        });
 
         // Trigger a note (play sound, visual feedback, record)
         function triggerNote(noteData) {
@@ -913,8 +1342,18 @@
             const numMeasures = Math.ceil(recordedNotes.length / notesPerMeasure);
             const totalWidth = Math.max(measureWidth * numMeasures, 600);
             
+            // On mobile the notation area is short — size the SVG to the
+            // available height and vertically center the staff inside it.
+            const notationContainerEl = document.getElementById('notation-container');
+            const compact = window.matchMedia('(max-width: 1024px)').matches;
+            const svgHeight = compact
+                ? Math.max(notationContainerEl.clientHeight || 140, 120)
+                : 200;
+            // Draw with generous top room; the viewBox pass below re-centers it.
+            const staveY = compact ? 55 : 20;
+
             const renderer = new VF.Renderer(notationOutput, VF.Renderer.Backends.SVG);
-            renderer.resize(totalWidth, 200);
+            renderer.resize(totalWidth, svgHeight);
             const context = renderer.getContext();
             context.setFont('Arial', 10);
             
@@ -949,7 +1388,7 @@
             // Render each measure
             let xPos = 10;
             measures.forEach((measureNotes, measureIndex) => {
-                const stave = new VF.Stave(xPos, 20, measureWidth);
+                const stave = new VF.Stave(xPos, staveY, measureWidth);
                 
                 if (measureIndex === 0) {
                     stave.addClef('treble');
@@ -989,7 +1428,23 @@
                 
                 xPos += measureWidth;
             });
-            
+
+            // On mobile, vertically center the actual rendered content inside
+            // the short notation area. If notes sit high or low, this pans the
+            // view (no scaling) so they always stay visible.
+            if (compact) {
+                const svgEl = notationOutput.querySelector('svg');
+                if (svgEl) {
+                    try {
+                        const bbox = svgEl.getBBox();
+                        const pad = 6;
+                        const contentH = bbox.height + pad * 2;
+                        const minY = bbox.y - pad - Math.max(0, (svgHeight - contentH) / 2);
+                        svgEl.setAttribute('viewBox', `0 ${minY} ${totalWidth} ${svgHeight}`);
+                    } catch (e) { /* getBBox unavailable — leave as drawn */ }
+                }
+            }
+
             // Auto-scroll to the right to show the latest notes
             const notationContainer = document.getElementById('notation-container');
             notationContainer.scrollLeft = notationContainer.scrollWidth;
@@ -1216,13 +1671,22 @@
             metronomeBpm = Math.max(40, Math.min(240, parseInt(bpm)));
             bpmValueEl.textContent = metronomeBpm;
             bpmSlider.value = metronomeBpm;
-            
+
+            // Mirror to mobile settings panel
+            const bpmValueMobile = document.getElementById('bpmValueMobile');
+            const bpmSliderMobile = document.getElementById('bpmSliderMobile');
+            const tempoPresetMobile = document.getElementById('tempoPresetMobile');
+            if (bpmValueMobile) bpmValueMobile.textContent = metronomeBpm;
+            if (bpmSliderMobile) bpmSliderMobile.value = metronomeBpm;
+
             // Update tempo preset selector to match
             const matchingOption = Array.from(tempoPreset.options).find(opt => opt.value === String(metronomeBpm));
             if (matchingOption) {
                 tempoPreset.value = metronomeBpm;
+                if (tempoPresetMobile) tempoPresetMobile.value = metronomeBpm;
             } else {
                 tempoPreset.value = '';
+                if (tempoPresetMobile) tempoPresetMobile.value = '';
             }
             
             // If metronome is running, restart with new tempo
@@ -1263,8 +1727,15 @@
             metronomeBtn.classList.remove('start');
             metronomeBtn.classList.add('stop');
             metronomeBtn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
+
+            // Mobile metronome button
+            const mBtnMobile = document.getElementById('metronomeBtnMobile');
+            if (mBtnMobile) {
+                mBtnMobile.classList.add('running');
+                mBtnMobile.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
+            }
             lucide.createIcons();
-            
+
             // Calculate interval in ms
             const intervalMs = (60 / metronomeBpm) * 1000;
             
@@ -1302,6 +1773,13 @@
             metronomeBtn.classList.remove('stop');
             metronomeBtn.classList.add('start');
             metronomeBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>';
+
+            // Mobile metronome button
+            const mBtnMobile = document.getElementById('metronomeBtnMobile');
+            if (mBtnMobile) {
+                mBtnMobile.classList.remove('running');
+                mBtnMobile.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>';
+            }
             lucide.createIcons();
         }
 
@@ -1339,13 +1817,99 @@
             metronomeBtnMobile.addEventListener('click', toggleMetronome);
         }
 
+        // Mobile BPM slider + tempo preset
+        const bpmSliderMobileEl = document.getElementById('bpmSliderMobile');
+        if (bpmSliderMobileEl) {
+            bpmSliderMobileEl.addEventListener('input', (e) => updateBpm(e.target.value));
+        }
+        const tempoPresetMobileEl = document.getElementById('tempoPresetMobile');
+        if (tempoPresetMobileEl) {
+            tempoPresetMobileEl.addEventListener('change', (e) => {
+                if (e.target.value) updateBpm(e.target.value);
+            });
+        }
+
+        // =============================================
+        // APP MODE — go fullscreen (removes the browser
+        // address bar) AND lock the screen to landscape so
+        // the device itself rotates: no browser chrome is
+        // left showing on the side of the studio.
+        // (Android/Chrome: full support. iOS Safari can't do
+        //  element-fullscreen / orientation lock, so the CSS
+        //  force-landscape + 100dvh keep it fitted; true
+        //  chrome-less needs "Add to Home Screen".)
+        // =============================================
+        async function enterStudioMode() {
+            const el = document.documentElement;
+            const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+            if (rfs) {
+                try { await rfs.call(el); } catch (e) { /* denied — ignore */ }
+            }
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (e) { /* unsupported / not allowed — ignore */ }
+        }
+
+        function fullscreenSupported() {
+            const el = document.documentElement;
+            return !!(el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen);
+        }
+        function isFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        // First-gesture handler: prime audio immediately and (re)try fullscreen.
+        // We keep it armed and retry on every tap until fullscreen actually
+        // succeeds — a single failed/denied request must not leave the address
+        // bar showing for the rest of the session.
+        let studioModeHandler = null;
+        function studioFirstGesture() {
+            HarmonivaAudio.warmup();               // memoised — safe to call repeatedly
+            if (fullscreenSupported()) {
+                enterStudioMode();                 // fullscreenchange disarms on success
+            } else {
+                disarmStudioMode();                // iOS: nothing to do; audio is primed
+            }
+        }
+        function armStudioModeOnce() {
+            if (!isCompactViewport() || studioModeHandler) return;
+            studioModeHandler = studioFirstGesture;
+            document.addEventListener('pointerdown', studioModeHandler, true);
+            document.addEventListener('touchstart', studioModeHandler, true);
+        }
+        function disarmStudioMode() {
+            if (!studioModeHandler) return;
+            document.removeEventListener('pointerdown', studioModeHandler, true);
+            document.removeEventListener('touchstart', studioModeHandler, true);
+            studioModeHandler = null;
+        }
+        function onFsChange() {
+            if (isFullscreen()) disarmStudioMode();   // success → stop retrying
+            else armStudioModeOnce();                 // exited → re-arm
+        }
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+
+        // If the browser restores this page from its back/forward cache
+        // (common on mobile), force a fresh load so updates are never stale.
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted) window.location.reload();
+        });
+
         // Initialize piano on page load
         document.addEventListener('DOMContentLoaded', () => {
             buildPiano();
+            setupPianoDragScroll();
+            armStudioModeOnce();
+            // Begin downloading the piano samples right away so the first key
+            // press already sounds like a real piano (not the fallback synth).
+            try { window.HarmonivaAudio.preload(); } catch (e) {}
         });
     </script>
 
-    @include('partials.guest-timer-popup', ['timerKey' => 'piano-studio'])
+    @include('partials.guest-timer-popup', ['timerKey' => 'piano-studio', 'initialSeconds' => 240, 'repeatSeconds' => 120])
     @include('partials.responsive-notation')
 </body>
 </html>

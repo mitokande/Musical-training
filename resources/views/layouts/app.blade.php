@@ -11,6 +11,7 @@
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
         @include('partials.google-analytics')
+        @include('partials.posthog')
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

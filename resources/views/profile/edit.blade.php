@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.google-analytics')
+    @include('partials.posthog')
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -152,6 +153,26 @@
                         </p>
                     @endif
                 </div>
+
+                {{-- Plan / Upgrade --}}
+                @if($user->role !== 'admin')
+                    @if($user->isEffectivelyPremium())
+                        <a href="{{ route('billing.index') }}" class="mb-5 flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 transition-all">
+                            <span class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <i data-lucide="credit-card" class="w-4 h-4 text-primary-600"></i> {{ app()->getLocale() === 'tr' ? 'Aboneliği yönet' : 'Manage subscription' }}
+                            </span>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                        </a>
+                    @else
+                        <a href="{{ route('checkout.show') }}" class="mb-5 block rounded-xl p-4 text-white shadow-md hover:opacity-95 transition-all" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <i data-lucide="crown" class="w-5 h-5"></i>
+                                <span class="font-bold text-sm">{{ __('app.dashboard.upgrade_premium') }}</span>
+                            </div>
+                            <p class="text-white/85 text-xs leading-snug">{{ __('app.dashboard.premium_description') }}</p>
+                        </a>
+                    @endif
+                @endif
 
                 {{-- Nav --}}
                 <nav class="space-y-1">

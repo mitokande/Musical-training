@@ -45,9 +45,11 @@ Route::put('/services/{service}', [TeacherServiceController::class, 'update'])->
 Route::delete('/services/{service}', [TeacherServiceController::class, 'destroy'])->name('services.destroy');
 
 Route::post('/videos', [TeacherVideoController::class, 'store'])->name('videos.store');
+Route::put('/videos/{video}', [TeacherVideoController::class, 'update'])->name('videos.update');
 Route::delete('/videos/{video}', [TeacherVideoController::class, 'destroy'])->name('videos.destroy');
 
 Route::post('/media', [TeacherMediaController::class, 'store'])->name('media.store');
+Route::put('/media/{media}', [TeacherMediaController::class, 'update'])->name('media.update');
 Route::get('/media/{media}/download', [TeacherMediaController::class, 'download'])->name('media.download');
 Route::post('/media/{media}/share', [TeacherMediaController::class, 'share'])->name('media.share');
 Route::delete('/media/{media}', [TeacherMediaController::class, 'destroy'])->name('media.destroy');

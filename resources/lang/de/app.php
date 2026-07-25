@@ -1012,7 +1012,7 @@ return [
         'plan_teachers_badge' => 'Lehrer & Schulen',
         'plan_teachers_price' => '$16.90',
         'plan_teachers_period' => '/Monat',
-        'plan_teachers_discount' => '$99/Jahr — über 50% Rabatt',
+        'plan_teachers_discount' => '$80/Jahr — über 60% Rabatt',
         'plan_teachers_tagline' => 'Klassenverwaltung & schulweite Werkzeuge.',
         'plan_teachers_feat_1_pre' => 'Alles aus Premium, plus',
         'plan_teachers_feat_1_strong' => 'Verwaltung mehrerer Schüler',

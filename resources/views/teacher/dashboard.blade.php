@@ -46,6 +46,31 @@
                     <p class="text-xs text-gray-500 mt-1">{{ crm_trans('dashboard.eligible_students') }}</p>
                 </div>
             </div>
+            @unless($user->isEffectivelyPremium())
+                {{-- Direct purchase path alongside the earn-it-free incentive --}}
+                <div class="mt-5 pt-5 border-t border-primary-100 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <p class="text-sm text-gray-500 flex-1">{{ __('app.dashboard.premium_description') }}</p>
+                    <a href="{{ route('checkout.show') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow hover:opacity-90 transition-all shrink-0" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                        <i data-lucide="crown" class="w-4 h-4"></i> {{ __('app.dashboard.upgrade_premium') }}
+                    </a>
+                </div>
+            @endunless
+        </div>
+    @elseif(! $profile->isPremiumTier() && $user->plan !== 'premium' && ! $user->isEffectivelyPremium())
+        {{-- Incentive disabled, but the account is still free: offer a direct upgrade. --}}
+        <div class="card p-6 mb-6 border-primary-100 bg-gradient-to-br from-primary-50/60 to-white">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                    <i data-lucide="crown" class="w-6 h-6 text-primary-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h2 class="font-bold text-gray-900">{{ __('app.dashboard.upgrade_premium') }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">{{ __('app.dashboard.premium_description') }}</p>
+                </div>
+                <a href="{{ route('checkout.show') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow hover:opacity-90 transition-all shrink-0" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                    <i data-lucide="crown" class="w-4 h-4"></i> {{ __('app.dashboard.upgrade_premium') }}
+                </a>
+            </div>
         </div>
     @endif
 

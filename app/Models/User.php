@@ -106,6 +106,47 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Mirror the account plan onto the teacher/school profile tier. Teacher &
+     * school CRM premium features (booking, payment links, content publishing…)
+     * gate on TeacherProfile->tier, which is otherwise disconnected from
+     * User->plan — so gaining or losing Premium (admin action, a Stripe purchase,
+     * a refund, or an expiry) must sync the tier here or a "premium" teacher stays
+     * locked. No-op for accounts without a teacher/school profile; a profile is
+     * created on the fly so the tier can be applied. Returns true if the tier
+     * actually changed.
+     */
+    public function syncTeacherTierWithPlan(): bool
+    {
+        if (! $this->hasTeacherAccount()) {
+            return false;
+        }
+
+        $desiredTier = $this->plan === 'premium'
+            ? TeacherProfile::TIER_PREMIUM
+            : TeacherProfile::TIER_BASIC;
+
+        $profile = $this->teacherProfile()->firstOrCreate([], [
+            'tier' => $desiredTier,
+            'status' => TeacherProfile::STATUS_DRAFT,
+        ]);
+
+        if ($profile->tier === $desiredTier) {
+            return false;
+        }
+
+        $from = $profile->tier;
+        $profile->update(['tier' => $desiredTier]);
+
+        activity('teacher')
+            ->causedBy(auth()->user())
+            ->performedOn($profile)
+            ->withProperties(['from' => $from, 'to' => $desiredTier, 'via' => 'plan_sync'])
+            ->log('teacher_tier_changed');
+
+        return true;
+    }
+
+    /**
      * Route name to land on after login. Teachers go straight to their CRM,
      * schools to the school panel; everyone else keeps the profile landing.
      */
