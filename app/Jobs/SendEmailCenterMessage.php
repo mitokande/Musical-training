@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\EmailCenterMailable;
 use App\Models\EmailEvent;
 use App\Models\EmailMessage;
+use App\Models\EmailTemplate;
 use App\Services\EmailCenter\SuppressionService;
 use App\Services\EmailCenter\TemplateRenderer;
 use Illuminate\Bus\Queueable;
@@ -46,8 +47,20 @@ class SendEmailCenterMessage implements ShouldQueue
         }
 
         $context = $message->metadata['context'] ?? [];
-        $rawHtml = $message->template?->html_body ?? ($message->metadata['html'] ?? '');
-        $rawSubject = $message->subject;
+
+        // Send in the recipient's own language when the template has a
+        // translation for it, otherwise fall back to the English base.
+        $locale = $this->recipientLocale($message);
+        $localized = $message->template?->localized($locale);
+
+        $rawHtml = $localized['html_body'] ?? ($message->metadata['html'] ?? '');
+
+        // Localise the subject only when it came straight from the template
+        // (automations). A campaign stores its own custom subject on the
+        // message, which must be preserved as written.
+        $rawSubject = ($localized && $message->subject === $message->template?->subject)
+            ? $localized['subject']
+            : $message->subject;
 
         $html = $renderer->render($rawHtml, $message, $context);
         $subject = $renderer->renderSubject($rawSubject, $message, $context);
@@ -85,6 +98,14 @@ class SendEmailCenterMessage implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /** The recipient's language, constrained to a supported/translated locale. */
+    protected function recipientLocale(EmailMessage $message): string
+    {
+        $locale = $message->user?->locale ?: config('app.fallback_locale', 'en');
+
+        return in_array($locale, EmailTemplate::LOCALES, true) ? $locale : 'en';
     }
 
     public function failed(\Throwable $e): void

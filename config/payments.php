@@ -17,6 +17,20 @@ return [
     // Active gateway key: manual (default) | paddle | iyzico | stripe (future).
     'driver' => env('PAYMENT_DRIVER', 'manual'),
 
+    // Master switch for the paid checkout. While the Stripe account is still
+    // unverified it cannot charge a real card, so /checkout must not be
+    // reachable: it redirects to the pricing page (which offers the free trial
+    // instead). Flip to true on go-live — nothing else has to change.
+    'checkout_enabled' => (bool) env('CHECKOUT_ENABLED', false),
+
+    // Free-trial offer: full Premium for a fixed number of days, no card taken.
+    // Opt-in — a user claims it once, ever. `enabled = false` hides every trial
+    // CTA and makes the endpoint refuse.
+    'trial' => [
+        'enabled' => (bool) env('TRIAL_ENABLED', true),
+        'days' => (int) env('TRIAL_DAYS', 15),
+    ],
+
     // Display + charge currency. Public pricing is USD.
     'currency' => env('PAYMENT_CURRENCY', 'USD'),
     'currency_symbol' => '$',

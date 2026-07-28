@@ -51,18 +51,28 @@
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Current plan</div>
+                    @php $onTrial = $user->onTrial(); @endphp
                     <div class="flex items-center gap-2">
                         <span class="text-2xl font-extrabold text-gray-900">
-                            {{ $user->isEffectivelyPremium() ? 'Premium' : 'Free' }}
+                            {{ $onTrial ? __('app.trial.plan_label') : ($user->isEffectivelyPremium() ? 'Premium' : 'Free') }}
                         </span>
-                        @if($user->isEffectivelyPremium())
+                        @if($onTrial)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
+                                {{ trans_choice('app.trial.days_left', $user->trialDaysLeft(), ['count' => $user->trialDaysLeft()]) }}
+                            </span>
+                        @elseif($user->isEffectivelyPremium())
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                                 <i data-lucide="crown" style="width:12px;height:12px;"></i> Active
                             </span>
                         @endif
                     </div>
 
-                    @if($subscription)
+                    @if($onTrial)
+                        {{-- A trial takes no payment, so there is no cycle, amount or renewal to show. --}}
+                        <p class="text-sm text-gray-500 mt-2">
+                            {{ __('app.trial.cta_no_card') }} · Ends on <strong>{{ $user->trial_ends_at->format('M j, Y') }}</strong>
+                        </p>
+                    @elseif($subscription)
                         <p class="text-sm text-gray-500 mt-2">
                             {{ ucfirst($subscription->billing_cycle) }} · {{ $subscription->currency }} {{ number_format((float)$subscription->amount, 2) }}
                             @if($subscription->ends_at)
@@ -80,7 +90,17 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    @if(!$user->isEffectivelyPremium())
+                    @if($onTrial)
+                        {{-- Nothing to cancel on a trial: no card was taken and it
+                             lapses on its own. Only offer early conversion. --}}
+                        @if(config('payments.checkout_enabled'))
+                            <a href="{{ route('checkout.show') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                                <i data-lucide="crown" style="width:15px;height:15px;"></i> {{ __('app.trial.cta_subscribe') }}
+                            </a>
+                        @else
+                            <span class="text-xs font-semibold text-gray-400">{{ __('app.trial.payments_soon') }}</span>
+                        @endif
+                    @elseif(! $user->isEffectivelyPremium())
                         <a href="{{ route('checkout.show') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                             <i data-lucide="crown" style="width:15px;height:15px;"></i> Upgrade to Premium
                         </a>

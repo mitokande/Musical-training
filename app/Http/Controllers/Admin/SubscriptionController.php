@@ -48,7 +48,7 @@ class SubscriptionController extends Controller
     {
         $validated = $request->validate([
             'plan_id' => 'required|exists:plans,id',
-            'status' => 'required|string|in:active,cancelled,expired,paused,trial',
+            'status' => 'required|string|in:active,cancelled,expired,past_due,trialing',
             'starts_at' => 'required|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'cancelled_at' => 'nullable|date',

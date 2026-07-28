@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Articles & Resources')
-@section('description', 'Explore Harmoniva\'s library of ear training articles, music theory guides, practice tips, and AI insights for musicians of all levels.')
+@section('title', __('pages.articles.meta_title'))
+@section('description', __('pages.articles.meta_description'))
 
 @section('content')
 
@@ -10,30 +10,29 @@
     <div class="max-w-3xl mx-auto text-center reveal">
         <div class="inline-flex items-center gap-2 bg-white/10 text-white text-sm font-medium px-4 py-2 rounded-full mb-6">
             <i data-lucide="book-open" class="w-4 h-4"></i>
-            Resources
+            {{ __('pages.articles.hero_badge') }}
         </div>
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">Learn. Practice. Improve.</h1>
-        <p class="text-purple-200 text-lg max-w-xl mx-auto">In-depth articles on ear training, music theory, effective practice habits, and the role of AI in modern music education.</p>
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ __('pages.articles.hero_title') }}</h1>
+        <p class="text-purple-200 text-lg max-w-xl mx-auto">{{ __('pages.articles.hero_subtitle') }}</p>
     </div>
 </section>
 
 {{-- Category Filter Tabs --}}
 <section class="bg-white border-b border-gray-100 sticky top-0 z-10 px-4 shadow-sm">
-    <div class="max-w-6xl mx-auto flex items-center gap-2 overflow-x-auto py-4 scrollbar-none" x-data="{ active: 'All' }">
+    <div class="max-w-6xl mx-auto flex items-center gap-2 overflow-x-auto py-4 scrollbar-none" x-data="{ active: '{{ __('pages.articles.cat_all') }}' }">
         @php
-        $cats = ['All', 'Ear Training', 'Music Theory', 'Practice Tips', 'AI & Technology'];
-        $catColors = [
-            'All' => 'purple',
-            'Ear Training' => 'purple',
-            'Music Theory' => 'blue',
-            'Practice Tips' => 'green',
-            'AI & Technology' => 'orange',
+        $cats = [
+            __('pages.articles.cat_all'),
+            __('pages.articles.cat_ear'),
+            __('pages.articles.cat_theory'),
+            __('pages.articles.cat_tips'),
+            __('pages.articles.cat_ai'),
         ];
         @endphp
         @foreach($cats as $cat)
         <button
-            @click="active = '{{ $cat }}'"
-            :class="active === '{{ $cat }}' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+            @click="active = @js($cat)"
+            :class="active === @js($cat) ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
             class="flex-shrink-0 px-5 py-2 rounded-full text-sm font-medium transition-colors"
         >{{ $cat }}</button>
         @endforeach
@@ -46,78 +45,15 @@
 
         @php
         $articles = [
-            [
-                'category' => 'Ear Training',
-                'cat_color' => 'purple',
-                'title' => 'How to Train Your Ear in 10 Minutes a Day',
-                'excerpt' => 'You don\'t need marathon practice sessions to build strong ears. Discover a focused daily routine that delivers real results even on your busiest days.',
-                'read_time' => '5 min read',
-                'icon' => 'headphones',
-            ],
-            [
-                'category' => 'Music Theory',
-                'cat_color' => 'blue',
-                'title' => 'Understanding Intervals: A Beginner\'s Guide',
-                'excerpt' => 'Intervals are the distances between notes — and they\'re the foundation of everything in music. This guide breaks them down in plain English with practical examples.',
-                'read_time' => '7 min read',
-                'icon' => 'music-2',
-            ],
-            [
-                'category' => 'Practice Tips',
-                'cat_color' => 'green',
-                'title' => '5 Common Ear Training Mistakes (and How to Fix Them)',
-                'excerpt' => 'Are you practicing the wrong way? Most musicians make the same handful of mistakes that slow their progress dramatically. Here\'s how to course-correct.',
-                'read_time' => '6 min read',
-                'icon' => 'alert-triangle',
-            ],
-            [
-                'category' => 'AI & Technology',
-                'cat_color' => 'orange',
-                'title' => 'How AI Is Changing the Way Musicians Learn',
-                'excerpt' => 'Adaptive learning algorithms can now identify your specific weaknesses and tailor exercises to address them. We explore what that means for music education.',
-                'read_time' => '8 min read',
-                'icon' => 'brain',
-            ],
-            [
-                'category' => 'Music Theory',
-                'cat_color' => 'blue',
-                'title' => 'Major vs. Minor: Why the Difference Matters',
-                'excerpt' => 'The gap between major and minor is just one semitone — yet it shapes the entire emotional character of a piece. Learn to hear and use this distinction confidently.',
-                'read_time' => '5 min read',
-                'icon' => 'sliders',
-            ],
-            [
-                'category' => 'Ear Training',
-                'cat_color' => 'purple',
-                'title' => 'Melodic Dictation: From Intimidating to Achievable',
-                'excerpt' => 'Writing down melodies you hear seems impossible at first. This step-by-step approach breaks the skill into manageable pieces that anyone can master with patience.',
-                'read_time' => '9 min read',
-                'icon' => 'pen-tool',
-            ],
-            [
-                'category' => 'Practice Tips',
-                'cat_color' => 'green',
-                'title' => 'Building a Consistent Practice Habit That Actually Sticks',
-                'excerpt' => 'Motivation fades — systems don\'t. Learn the behavioral science behind habit formation and how to design a practice routine you\'ll maintain for the long term.',
-                'read_time' => '6 min read',
-                'icon' => 'calendar-check',
-            ],
-            [
-                'category' => 'Ear Training',
-                'cat_color' => 'purple',
-                'title' => 'Chord Recognition: A Practical Approach for Guitarists and Pianists',
-                'excerpt' => 'Identifying chords by ear is one of the most practical skills a musician can have. This guide gives you a systematic method and memorable reference points for every chord type.',
-                'read_time' => '7 min read',
-                'icon' => 'layers',
-            ],
-            [
-                'category' => 'AI & Technology',
-                'cat_color' => 'orange',
-                'title' => 'Spaced Repetition in Music Education: The Science of Remembering',
-                'excerpt' => 'The same memory science used to learn languages can supercharge your ear training. Here\'s how spaced repetition works and why Harmoniva applies it under the hood.',
-                'read_time' => '6 min read',
-                'icon' => 'refresh-cw',
-            ],
+            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a1_title'), 'excerpt' => __('pages.articles.a1_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 5]), 'icon' => 'headphones'],
+            ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a2_title'), 'excerpt' => __('pages.articles.a2_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 7]), 'icon' => 'music-2'],
+            ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a3_title'), 'excerpt' => __('pages.articles.a3_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'alert-triangle'],
+            ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a4_title'), 'excerpt' => __('pages.articles.a4_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 8]), 'icon' => 'brain'],
+            ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a5_title'), 'excerpt' => __('pages.articles.a5_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 5]), 'icon' => 'sliders'],
+            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a6_title'), 'excerpt' => __('pages.articles.a6_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 9]), 'icon' => 'pen-tool'],
+            ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a7_title'), 'excerpt' => __('pages.articles.a7_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'calendar-check'],
+            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a8_title'), 'excerpt' => __('pages.articles.a8_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 7]), 'icon' => 'layers'],
+            ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a9_title'), 'excerpt' => __('pages.articles.a9_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'refresh-cw'],
         ];
 
         $catBgMap = [
@@ -151,7 +87,7 @@
                         {{ $article['excerpt'] }}
                     </p>
                     <a href="#" class="inline-flex items-center gap-1.5 text-purple-600 font-semibold text-sm hover:gap-2.5 transition-all">
-                        Read more <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        {{ __('pages.articles.read_more') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                 </div>
             </article>
@@ -167,21 +103,21 @@
         <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-6">
             <i data-lucide="mail" class="w-7 h-7 text-white"></i>
         </div>
-        <h2 class="text-3xl font-bold text-white mb-3">Get Weekly Ear Training Tips</h2>
-        <p class="text-purple-200 mb-8 text-lg">Practical exercises, theory breakdowns, and musician stories — delivered to your inbox every week.</p>
+        <h2 class="text-3xl font-bold text-white mb-3">{{ __('pages.articles.newsletter_title') }}</h2>
+        <p class="text-purple-200 mb-8 text-lg">{{ __('pages.articles.newsletter_subtitle') }}</p>
         <form action="#" method="POST" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             @csrf
             <input
                 type="email"
-                placeholder="Your email address"
+                placeholder="{{ __('pages.articles.newsletter_ph') }}"
                 class="flex-1 rounded-xl px-5 py-3.5 text-gray-800 focus:outline-none focus:ring-4 focus:ring-orange-400 shadow-lg"
                 required
             />
             <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors shadow-lg whitespace-nowrap">
-                Subscribe Free
+                {{ __('pages.articles.newsletter_button') }}
             </button>
         </form>
-        <p class="text-purple-300 text-sm mt-4">No spam, ever. Unsubscribe in one click.</p>
+        <p class="text-purple-300 text-sm mt-4">{{ __('pages.articles.newsletter_note') }}</p>
     </div>
 </section>
 

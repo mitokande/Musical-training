@@ -13,15 +13,36 @@ class EmailTemplate extends Model
 
     protected $fillable = [
         'name', 'slug', 'subject', 'preheader', 'html_body', 'text_body',
-        'category', 'variables', 'is_active',
+        'category', 'variables', 'is_active', 'translations',
     ];
 
     protected $casts = [
         'variables' => 'array',
+        'translations' => 'array',
         'is_active' => 'boolean',
     ];
 
     public const CATEGORIES = ['marketing', 'transactional'];
+
+    /** Locales the system templates are translated into (en is the base). */
+    public const LOCALES = ['en', 'es', 'de', 'fr', 'pt', 'tr', 'it'];
+
+    /**
+     * Subject / preheader / html_body for a recipient locale, falling back to
+     * the English base columns when there is no translation (or locale is en).
+     *
+     * @return array{subject: string, preheader: ?string, html_body: string}
+     */
+    public function localized(string $locale): array
+    {
+        $t = $this->translations[$locale] ?? null;
+
+        return [
+            'subject' => $t['subject'] ?? $this->subject,
+            'preheader' => $t['preheader'] ?? $this->preheader,
+            'html_body' => $t['html_body'] ?? $this->html_body,
+        ];
+    }
 
     protected static function booted(): void
     {

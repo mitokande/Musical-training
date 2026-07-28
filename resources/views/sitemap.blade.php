@@ -11,6 +11,18 @@
         <changefreq>weekly</changefreq>
     </url>
 @endforeach
+@foreach ($localizedUrls as $set)
+@foreach ($set as $url)
+    <url>
+        <loc>{{ $url }}</loc>
+@foreach ($set as $altLocale => $altUrl)
+        <xhtml:link rel="alternate" hreflang="{{ $altLocale }}" href="{{ $altUrl }}"/>
+@endforeach
+        <xhtml:link rel="alternate" hreflang="x-default" href="{{ $set['en'] }}"/>
+        <changefreq>weekly</changefreq>
+    </url>
+@endforeach
+@endforeach
 @foreach ($staticUrls as $url)
     <url>
         <loc>{{ $url }}</loc>

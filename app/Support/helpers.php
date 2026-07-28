@@ -53,3 +53,34 @@ if (! function_exists('crm_trans')) {
         return __('teacher.'.$key, $replace, $locale);
     }
 }
+
+if (! function_exists('locale_url')) {
+    /**
+     * Public-page URL for a locale. English (and any non-prefixed locale) lives
+     * at the un-prefixed path; every prefixed locale gets a /{locale} prefix
+     * (locale_url('/pricing') → '/es/pricing' when the active locale is es).
+     * Defaults to the active locale. A leading '#' or '?' fragment on the path
+     * is preserved. Used so navbar/footer/in-page links keep the visitor inside
+     * their language while browsing.
+     */
+    function locale_url(string $path = '/', ?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+        $path = '/'.ltrim($path, '/');
+
+        // Base path without any #fragment/?query, for the localized-page lookup.
+        $base = rtrim(strtok($path, '#?'), '/') ?: '/';
+
+        // A localized variant exists only for the landing root and for pages
+        // listed in config('locales.public_pages'). Anything else stays on its
+        // un-prefixed English URL so links never point at a missing route.
+        $isLocalized = $base === '/'
+            || array_key_exists($base, (array) config('locales.public_pages'));
+
+        if (! $isLocalized || ! in_array($locale, config('locales.prefixed'), true)) {
+            return url($path);
+        }
+
+        return url('/'.$locale.($path === '/' ? '' : $path));
+    }
+}

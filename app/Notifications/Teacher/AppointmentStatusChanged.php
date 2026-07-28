@@ -27,26 +27,27 @@ class AppointmentStatusChanged extends Notification implements ShouldQueue
             ->timezone($this->appointment->timezone ?? config('app.timezone'))
             ->format('F j, Y H:i');
 
-        $statusLines = [
-            TeacherAppointment::STATUS_CONFIRMED => 'Your lesson on '.$when.' is confirmed.',
-            TeacherAppointment::STATUS_REJECTED => 'The appointment request for '.$when.' was declined.',
-            TeacherAppointment::STATUS_CANCELLED_BY_TEACHER => 'The lesson on '.$when.' was cancelled by the teacher.',
-            TeacherAppointment::STATUS_CANCELLED_BY_STUDENT => 'The lesson on '.$when.' was cancelled by the student.',
-            TeacherAppointment::STATUS_RESCHEDULE_REQUESTED => 'A new time was requested for the lesson on '.$when.'.',
-            TeacherAppointment::STATUS_COMPLETED => 'The lesson on '.$when.' was marked as completed.',
-            TeacherAppointment::STATUS_NO_SHOW => 'The lesson on '.$when.' was marked as a no-show.',
+        $statusKeys = [
+            TeacherAppointment::STATUS_CONFIRMED => 'confirmed',
+            TeacherAppointment::STATUS_REJECTED => 'rejected',
+            TeacherAppointment::STATUS_CANCELLED_BY_TEACHER => 'cancelled_teacher',
+            TeacherAppointment::STATUS_CANCELLED_BY_STUDENT => 'cancelled_student',
+            TeacherAppointment::STATUS_RESCHEDULE_REQUESTED => 'reschedule',
+            TeacherAppointment::STATUS_COMPLETED => 'completed',
+            TeacherAppointment::STATUS_NO_SHOW => 'no_show',
         ];
+        $key = $statusKeys[$this->appointment->status] ?? 'default';
 
         $mail = (new MailMessage)
-            ->subject('Appointment update — '.$when)
-            ->line($statusLines[$this->appointment->status] ?? 'Your appointment status changed.');
+            ->subject(__('notifications.appointment.status_subject', ['when' => $when]))
+            ->line(__('notifications.appointment.status.'.$key, ['when' => $when]));
 
         if ($this->appointment->isConfirmed() && $this->appointment->meeting_url) {
-            $mail->line('Lesson link: '.$this->appointment->meeting_url);
+            $mail->line(__('notifications.appointment.lesson_link', ['url' => $this->appointment->meeting_url]));
         }
 
         return $mail->action(
-            'View appointment',
+            __('notifications.appointment.view'),
             $isStudent ? route('my-appointments.index') : route($notifiable->crmRouteName('calendar.index')),
         );
     }

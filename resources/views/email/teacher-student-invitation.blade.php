@@ -1,20 +1,20 @@
 <x-mail::message>
-# You're invited to Harmoniva 🎵
+# {{ __('notifications.invite.heading') }}
 
-**{{ $teacherName }}** invited you to join Harmoniva as their student.
+{!! __('notifications.invite.teacher_intro', ['name' => $teacherName]) !!}
 
-Harmoniva is a music education platform with ear training, music theory practice, and guided learning paths. Once connected, your teacher can assign you homework and follow your progress.
+{{ __('notifications.invite.teacher_body') }}
 
 <x-mail::button :url="$acceptUrl">
-Accept the invitation
+{{ __('notifications.invite.accept') }}
 </x-mail::button>
 
 @if ($invitation->expires_at)
-This invitation expires on {{ $invitation->expires_at->format('F j, Y') }}.
+{{ __('notifications.invite.expires', ['date' => $invitation->expires_at->format('F j, Y')]) }}
 @endif
 
-If you were not expecting this invitation, you can safely ignore this email.
+{{ __('notifications.invite.ignore') }}
 
-Thanks,<br>
+{{ __('notifications.invite.thanks') }}<br>
 {{ config('app.name') }}
 </x-mail::message>

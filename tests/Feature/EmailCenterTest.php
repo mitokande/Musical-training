@@ -339,6 +339,81 @@ class EmailCenterTest extends TestCase
         $this->assertEquals(1, EmailMessage::where('automation_id', $automation->id)->count());
     }
 
+    public function test_trial_ending_automation_targets_every_role_once_per_trial(): void
+    {
+        $template = $this->makeTemplate(['category' => 'transactional']);
+        $automation = EmailAutomation::create([
+            'key' => 'trial_ending',
+            'name' => 'Trial Ending',
+            'template_id' => $template->id,
+            'enabled' => true,
+            'config' => ['lead_days' => 3],
+        ]);
+
+        $onTrial = ['plan' => 'premium', 'trial_started_at' => now()->subDays(13), 'trial_ends_at' => now()->addDays(2)];
+
+        // The trial is offered to all three roles, so the notice must reach them all.
+        $student = $this->makeVerifiedUser($onTrial);
+        $teacher = $this->makeVerifiedUser($onTrial + ['role' => 'teacher']);
+        $school = $this->makeVerifiedUser($onTrial + ['role' => 'school']);
+
+        $earlyInTrial = $this->makeVerifiedUser(['plan' => 'premium', 'trial_started_at' => now()->subDay(), 'trial_ends_at' => now()->addDays(14)]);
+        $paying = $this->makeVerifiedUser(['plan' => 'premium']);
+
+        app(AutomationEngine::class)->run();
+
+        foreach ([$student, $teacher, $school] as $user) {
+            $this->assertEquals(1, EmailMessage::where('automation_id', $automation->id)->where('user_id', $user->id)->count());
+        }
+        $this->assertEquals(0, EmailMessage::where('user_id', $earlyInTrial->id)->count());
+        $this->assertEquals(0, EmailMessage::where('user_id', $paying->id)->count());
+
+        // Trial notices are service mail, not marketing.
+        $this->assertSame('transactional', EmailMessage::where('automation_id', $automation->id)->first()->email_type);
+
+        // One notice per granted trial.
+        app(AutomationEngine::class)->run();
+        $this->assertEquals(3, EmailMessage::where('automation_id', $automation->id)->count());
+    }
+
+    public function test_trial_ended_automation_skips_users_who_converted_to_paid(): void
+    {
+        $template = $this->makeTemplate(['category' => 'transactional']);
+        $automation = EmailAutomation::create([
+            'key' => 'trial_ended',
+            'name' => 'Trial Ended',
+            'template_id' => $template->id,
+            'enabled' => true,
+            'config' => ['window_days' => 3],
+        ]);
+
+        $lapsed = $this->makeVerifiedUser([
+            'plan' => 'free',
+            'trial_started_at' => now()->subDays(16),
+            'trial_ends_at' => now()->subDay(),
+        ]);
+
+        // Converted mid-trial: activate() clears trial_ends_at precisely so this
+        // person is never told their trial ended.
+        $converted = $this->makeVerifiedUser([
+            'plan' => 'premium',
+            'trial_started_at' => now()->subDays(16),
+            'trial_ends_at' => null,
+        ]);
+
+        $longGone = $this->makeVerifiedUser([
+            'plan' => 'free',
+            'trial_started_at' => now()->subDays(60),
+            'trial_ends_at' => now()->subDays(45),
+        ]);
+
+        app(AutomationEngine::class)->run();
+
+        $this->assertEquals(1, EmailMessage::where('user_id', $lapsed->id)->count());
+        $this->assertEquals(0, EmailMessage::where('user_id', $converted->id)->count());
+        $this->assertEquals(0, EmailMessage::where('user_id', $longGone->id)->count());
+    }
+
     // --- Admin pages ---
 
     public function test_admin_email_center_pages_load(): void

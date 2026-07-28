@@ -41,6 +41,20 @@ class SubscriptionService
         ], $properties), $subscription->user);
     }
 
+    /** Roles that can hold a Premium plan (admins never buy or trial one). */
+    private const BUYABLE_ROLES = ['user', 'teacher', 'school'];
+
+    /**
+     * The Premium plan matching this user's role — the one thing they can buy
+     * or trial. Unknown roles fall back to the student plan.
+     */
+    public function premiumPlanFor(User $user): ?Plan
+    {
+        $role = in_array($user->role, self::BUYABLE_ROLES, true) ? $user->role : 'user';
+
+        return Plan::active()->forRole($role)->where('type', 'premium')->first();
+    }
+
     /**
      * Price (excl. tax) for a plan on a given cycle.
      */
@@ -99,6 +113,65 @@ class SubscriptionService
     }
 
     /**
+     * Grant the one free trial: full Premium for config('payments.trial.days'),
+     * no card, no charge. Returns null when the user is not eligible so callers
+     * can surface a message instead of silently doing nothing.
+     *
+     * The entitlement is a real plan='premium' + a 'trialing' subscription
+     * rather than a separate "trial" flag, so every premium gate in the app
+     * already honours it and the hourly subscriptions:expire sweep already
+     * takes it away again.
+     */
+    public function startTrial(User $user, Plan $plan): ?Subscription
+    {
+        if (! $user->canStartTrial()) {
+            return null;
+        }
+
+        $end = now()->addDays((int) config('payments.trial.days', 15));
+
+        $subscription = DB::transaction(function () use ($user, $plan, $end) {
+            $subscription = Subscription::create([
+                'user_id' => $user->id,
+                'plan_id' => $plan->id,
+                'status' => 'trialing',
+                // Nothing is billed, but the column is NOT NULL; monthly is the
+                // cycle the renewal prompt will offer by default.
+                'billing_cycle' => 'monthly',
+                'auto_renew' => false,
+                'starts_at' => now(),
+                'ends_at' => $end,
+                'trial_ends_at' => $end,
+                'amount' => 0,
+                'currency' => $plan->currency ?: config('payments.currency', 'USD'),
+                'payment_provider' => 'trial',
+            ]);
+
+            // Deliberately no Invoice row: nothing was charged, and an empty $0
+            // line would show up in the user's billing history.
+
+            $user->forceFill([
+                'plan' => 'premium',
+                // Null cycle is what distinguishes a trial from a paid
+                // monthly/yearly subscription on the billing screen.
+                'plan_cycle' => null,
+                'plan_expires_at' => $end,
+                'trial_started_at' => now(),
+                'trial_ends_at' => $end,
+            ])->save();
+
+            // Teacher/school CRM premium features gate on the profile tier.
+            $user->syncTeacherTierWithPlan();
+
+            return $subscription;
+        });
+
+        $this->track('trial_started', $subscription, ['trial_days' => (int) config('payments.trial.days', 15)]);
+
+        return $subscription;
+    }
+
+    /**
      * Mark a subscription active, pay its invoice, and grant Premium. Called by a
      * gateway once payment is confirmed (webhook, manual admin confirm, or the
      * auto-confirm test path).
@@ -136,12 +209,25 @@ class SubscriptionService
                 'provider_reference' => $paymentRef,
             ]));
 
+            // Converting off a trial: close the trial row so the billing screen
+            // shows one current subscription and the hourly expiry sweep has
+            // nothing stale left to act on.
+            Subscription::where('user_id', $subscription->user_id)
+                ->where('id', '!=', $subscription->id)
+                ->where('status', 'trialing')
+                ->update(['status' => 'expired']);
+
             $user = $subscription->user;
             if ($user->role !== 'admin') {
                 $user->forceFill([
                     'plan' => 'premium',
                     'plan_cycle' => $subscription->billing_cycle,
                     'plan_expires_at' => $end,
+                    // The trial is over because they bought, not because it
+                    // lapsed. Clearing the end date stops the countdown UI and
+                    // the "your trial is ending" mail from chasing a paying
+                    // customer; trial_started_at stays as the once-ever record.
+                    'trial_ends_at' => null,
                 ])->save();
 
                 // Teacher/school CRM premium features gate on the profile tier.

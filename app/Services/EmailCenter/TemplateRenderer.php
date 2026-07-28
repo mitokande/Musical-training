@@ -3,6 +3,7 @@
 namespace App\Services\EmailCenter;
 
 use App\Models\EmailMessage;
+use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -25,7 +26,7 @@ class TemplateRenderer
         $html = $this->injectOpenPixel($html, $message);
 
         if ($message->isMarketing() && ! str_contains($html, $variables['unsubscribe_url'])) {
-            $html = $this->appendUnsubscribeFooter($html, $variables['unsubscribe_url']);
+            $html = $this->appendUnsubscribeFooter($html, $variables['unsubscribe_url'], $variables['preferences_url']);
         }
 
         return $html;
@@ -41,13 +42,19 @@ class TemplateRenderer
      */
     public function preview(string $html, array $context = []): string
     {
+        $appUrl = rtrim((string) config('app.url'), '/');
+
         $sample = array_merge([
             'user_name' => 'Alex Morgan',
             'user_first_name' => 'Alex',
             'user_email' => 'alex@example.com',
             'app_name' => config('app.name'),
-            'app_url' => config('app.url'),
+            'app_url' => $appUrl,
+            'dashboard_url' => $appUrl.'/dashboard',
+            'guide_url' => $appUrl.'/ear-training-guide',
+            'premium_url' => $appUrl.'/pricing',
             'unsubscribe_url' => '#unsubscribe',
+            'preferences_url' => '#preferences',
             'current_year' => date('Y'),
         ], $context);
 
@@ -57,16 +64,53 @@ class TemplateRenderer
     public function variables(EmailMessage $message, array $context = []): array
     {
         $user = $message->user;
+        $appUrl = rtrim((string) config('app.url'), '/');
+
+        // Audience-aware destinations so one variable ({{premium_url}} etc.)
+        // resolves to the right page for students, teachers and schools.
+        $links = $this->audienceLinks($user, $appUrl);
 
         return array_merge([
             'user_name' => trim(($user->name ?? '').' '.($user->surname ?? '')) ?: 'there',
             'user_first_name' => $user->name ?? 'there',
             'user_email' => $message->recipient_email,
             'app_name' => config('app.name'),
-            'app_url' => config('app.url'),
+            'app_url' => $appUrl,
+            'dashboard_url' => $links['dashboard'],
+            'guide_url' => $links['guide'],
+            'premium_url' => $links['premium'],
             'unsubscribe_url' => URL::signedRoute('email.unsubscribe', ['token' => $message->tracking_token]),
+            'preferences_url' => URL::signedRoute('email.preferences', ['token' => $message->tracking_token]),
             'current_year' => date('Y'),
         ], $context);
+    }
+
+    /**
+     * dashboard / premium / guide URLs per email audience.
+     *
+     * @return array{dashboard: string, premium: string, guide: string}
+     */
+    protected function audienceLinks(?User $user, string $appUrl): array
+    {
+        $audience = $user?->emailAudience() ?? 'student';
+
+        return match ($audience) {
+            'school' => [
+                'dashboard' => route('school.dashboard'),
+                'premium' => $appUrl.'/pricing/teachers-and-schools',
+                'guide' => $appUrl.'/schools',
+            ],
+            'teacher' => [
+                'dashboard' => route('teacher.dashboard'),
+                'premium' => $appUrl.'/pricing/teachers-and-schools',
+                'guide' => $appUrl.'/teachers',
+            ],
+            default => [
+                'dashboard' => $appUrl.'/dashboard',
+                'premium' => $appUrl.'/pricing',
+                'guide' => $appUrl.'/ear-training-guide',
+            ],
+        };
     }
 
     protected function substitute(string $text, array $variables): string
@@ -86,8 +130,10 @@ class TemplateRenderer
         return preg_replace_callback('/href="(https?:\/\/[^"]+)"/i', function ($m) use ($message) {
             $target = html_entity_decode($m[1]);
 
-            // never wrap unsubscribe links — they must work even if signing/DB fails
-            if (str_contains($target, '/email/unsubscribe/')) {
+            // Never wrap signed unsubscribe/preferences links: appending UTM or
+            // the click-redirect would invalidate the URL signature, and they
+            // must work even if signing/DB fails.
+            if (str_contains($target, '/email/unsubscribe/') || str_contains($target, '/email/preferences/')) {
                 return $m[0];
             }
 
@@ -132,9 +178,14 @@ class TemplateRenderer
         return $html.$pixel;
     }
 
-    protected function appendUnsubscribeFooter(string $html, string $unsubscribeUrl): string
+    protected function appendUnsubscribeFooter(string $html, string $unsubscribeUrl, string $preferencesUrl = ''): string
     {
+        $prefsLink = $preferencesUrl
+            ? '<a href="'.e($preferencesUrl).'" style="color:#7c3aed;">Manage email preferences</a> · '
+            : '';
+
         $footer = '<div style="text-align:center;padding:16px;font-size:12px;color:#9ca3af;font-family:sans-serif;">'
+            .$prefsLink
             .'<a href="'.e($unsubscribeUrl).'" style="color:#9ca3af;">Unsubscribe</a> from marketing emails.'
             .'</div>';
 

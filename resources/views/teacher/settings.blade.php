@@ -150,6 +150,18 @@
             </form>
         </div>
 
+        {{-- Email Preferences --}}
+        <div class="card p-6">
+            <h2 class="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                <i data-lucide="mail" class="w-4 h-4 text-primary-500"></i> {{ __('app.profile.email_preferences') }}
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">{{ __('app.profile.email_preferences_desc') }}</p>
+            <a href="{{ route('email-preferences.edit') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> {{ __('app.profile.email_preferences_button') }}
+            </a>
+        </div>
+
         {{-- Password --}}
         @if($user->hasPassword())
             <div class="card p-6">

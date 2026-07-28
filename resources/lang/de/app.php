@@ -1430,4 +1430,24 @@ return [
         'sign_up' => 'Kostenlos registrieren',
         'login' => 'Bereits ein Konto? Einloggen',
     ],
+
+    // Free trial — one Premium trial per account, no card taken.
+    // :days always comes from config/payments.php trial.days.
+    'trial' => [
+        'badge' => 'Kostenlose Testphase',
+        'plan_label' => 'Premium-Testphase',
+        'cta_start' => 'Starte deine :days-tägige kostenlose Testphase',
+        'cta_no_card' => 'Keine Kreditkarte erforderlich',
+        'cta_subscribe' => 'Premium abonnieren',
+        'days_left' => '{1} Noch 1 Tag|[2,*] Noch :count Tage',
+        'banner_active' => 'Du bist in der Premium-Testphase — alles ist freigeschaltet.',
+        'ended_title' => 'Deine kostenlose Testphase ist beendet',
+        'ended_desc' => 'Du bist zurück im Free-Tarif. Abonniere, um unbegrenztes Üben und alle Premium-Funktionen zu behalten.',
+        'started_flash' => 'Deine :days-tägige Premium-Testphase läuft — ganz ohne Karte. Viel Spaß!',
+        'already_used' => 'Du hast deine kostenlose Testphase bereits genutzt.',
+        'not_available' => 'Die kostenlose Testphase ist für dein Konto nicht verfügbar.',
+        'checkout_closed' => 'Kartenzahlungen starten in Kürze. Teste Premium bis dahin :days Tage kostenlos — ohne Karte.',
+        'payments_soon' => 'Kartenzahlung startet bald',
+    ],
+
 ];

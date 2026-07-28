@@ -1430,4 +1430,24 @@ return [
         'sign_up' => 'Cadastrar-se grátis',
         'login' => 'Já tem uma conta? Entrar',
     ],
+
+    // Free trial — one Premium trial per account, no card taken.
+    // :days always comes from config/payments.php trial.days.
+    'trial' => [
+        'badge' => 'Teste grátis',
+        'plan_label' => 'Teste Premium',
+        'cta_start' => 'Comece seu teste grátis de :days dias',
+        'cta_no_card' => 'Sem cartão de crédito',
+        'cta_subscribe' => 'Assinar o Premium',
+        'days_left' => '{1} Falta 1 dia|[2,*] Faltam :count dias',
+        'banner_active' => 'Você está no teste Premium — tudo liberado.',
+        'ended_title' => 'Seu teste grátis terminou',
+        'ended_desc' => 'Você voltou para o plano Gratuito. Assine para manter a prática ilimitada e todos os recursos Premium.',
+        'started_flash' => 'Seu teste Premium de :days dias está ativo — sem cartão. Aproveite!',
+        'already_used' => 'Você já usou seu teste grátis.',
+        'not_available' => 'O teste grátis não está disponível para sua conta.',
+        'checkout_closed' => 'Os pagamentos com cartão abrem em breve. Enquanto isso, teste o Premium grátis por :days dias, sem cartão.',
+        'payments_soon' => 'Pagamentos com cartão em breve',
+    ],
+
 ];

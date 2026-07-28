@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Partners & Integrations — Harmoniva')
-@section('description', 'Partner with Harmoniva to build the future of music education together. Programs for music schools, content creators, educators, and technology partners.')
+@section('title', __('pages.partners.meta_title'))
+@section('description', __('pages.partners.meta_description'))
 
 @section('content')
 
@@ -13,16 +13,16 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-6">
             <i data-lucide="handshake" class="w-4 h-4"></i>
-            Partnership Programs
+            {{ __('pages.partners.hero_badge') }}
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-            Partner with<br>
-            <span class="font-serif italic font-normal bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">Harmoniva</span>
+            {{ __('pages.partners.hero_title_a') }}<br>
+            <span class="font-serif italic font-normal bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">{{ __('pages.partners.hero_title_b') }}</span>
         </h1>
 
         <p class="text-gray-600 text-xl leading-relaxed max-w-2xl mx-auto">
-            Let's build the future of music education together. Whether you're a music school, a content creator, or a technology company — there's a partnership model designed for you.
+            {{ __('pages.partners.hero_subtitle') }}
         </p>
     </div>
 </section>
@@ -31,119 +31,38 @@
 <section class="py-20 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">Partnership Programs</h2>
-            <p class="text-gray-500 mt-3 text-lg">Find the program that fits your organization.</p>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900">{{ __('pages.partners.programs_title') }}</h2>
+            <p class="text-gray-500 mt-3 text-lg">{{ __('pages.partners.programs_subtitle') }}</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            {{-- Music Schools --}}
+            @php $types = [
+                ['icon' => 'school', 'bg' => 'bg-purple-100', 'fg' => 'text-purple-600', 'btn' => 'bg-purple-600 hover:bg-purple-700', 'title' => __('pages.partners.t_schools_title'), 'desc' => __('pages.partners.t_schools_desc'), 'points' => [__('pages.partners.t_schools_1'), __('pages.partners.t_schools_2'), __('pages.partners.t_schools_3'), __('pages.partners.t_schools_4'), __('pages.partners.t_schools_5')]],
+                ['icon' => 'video', 'bg' => 'bg-orange-100', 'fg' => 'text-orange-600', 'btn' => 'bg-orange-500 hover:bg-orange-600', 'title' => __('pages.partners.t_creators_title'), 'desc' => __('pages.partners.t_creators_desc'), 'points' => [__('pages.partners.t_creators_1'), __('pages.partners.t_creators_2'), __('pages.partners.t_creators_3'), __('pages.partners.t_creators_4'), __('pages.partners.t_creators_5')]],
+                ['icon' => 'cpu', 'bg' => 'bg-blue-100', 'fg' => 'text-blue-600', 'btn' => 'bg-blue-600 hover:bg-blue-700', 'title' => __('pages.partners.t_tech_title'), 'desc' => __('pages.partners.t_tech_desc'), 'points' => [__('pages.partners.t_tech_1'), __('pages.partners.t_tech_2'), __('pages.partners.t_tech_3'), __('pages.partners.t_tech_4'), __('pages.partners.t_tech_5')]],
+            ]; @endphp
+            @foreach ($types as $type)
             <div class="bg-[#FAF7F2] rounded-2xl p-8 border border-gray-100 flex flex-col">
-                <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="school" class="w-7 h-7 text-purple-600"></i>
+                <div class="w-14 h-14 {{ $type['bg'] }} rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="{{ $type['icon'] }}" class="w-7 h-7 {{ $type['fg'] }}"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Music Schools &amp; Institutions</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">{{ $type['title'] }}</h3>
                 <p class="text-gray-600 leading-relaxed mb-6 text-sm flex-grow">
-                    Bring Harmoniva into your curriculum. Our institutional plan gives your students and faculty access to the full platform, with teacher dashboards, progress tracking, and custom learning paths built around your syllabus.
+                    {{ $type['desc'] }}
                 </p>
                 <ul class="space-y-2.5 mb-8">
+                    @foreach ($type['points'] as $point)
                     <li class="flex items-start gap-2.5 text-sm text-gray-700">
                         <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Bulk seat licensing with volume discounts
+                        {{ $point }}
                     </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Co-branded student portal
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Teacher progress dashboards
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Custom learning path creation
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Priority onboarding and support
-                    </li>
+                    @endforeach
                 </ul>
-                <a href="#partner-form" class="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-200 w-full">
-                    Apply <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <a href="#partner-form" class="inline-flex items-center justify-center gap-2 {{ $type['btn'] }} text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-200 w-full">
+                    {{ __('pages.partners.apply') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
-
-            {{-- Content Creators --}}
-            <div class="bg-[#FAF7F2] rounded-2xl p-8 border border-gray-100 flex flex-col">
-                <div class="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="video" class="w-7 h-7 text-orange-600"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Content Creators &amp; Educators</h3>
-                <p class="text-gray-600 leading-relaxed mb-6 text-sm flex-grow">
-                    If you teach music online — through YouTube, a course platform, or a membership site — Harmoniva gives your students a dedicated practice tool to complement your content. Earn revenue while delivering real value.
-                </p>
-                <ul class="space-y-2.5 mb-8">
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Affiliate and referral commission program
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Custom discount codes for your audience
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Co-marketing opportunities
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Complimentary premium account
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Featured in our educator directory
-                    </li>
-                </ul>
-                <a href="#partner-form" class="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-200 w-full">
-                    Apply <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
-            </div>
-
-            {{-- Technology Partners --}}
-            <div class="bg-[#FAF7F2] rounded-2xl p-8 border border-gray-100 flex flex-col">
-                <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                    <i data-lucide="cpu" class="w-7 h-7 text-blue-600"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-3">Technology Partners</h3>
-                <p class="text-gray-600 leading-relaxed mb-6 text-sm flex-grow">
-                    Building something for musicians? Let's connect our platforms. Whether it's a DAW plugin, notation software, or a music learning platform, we're open to API integrations and strategic technology partnerships.
-                </p>
-                <ul class="space-y-2.5 mb-8">
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        API access and integration support
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Joint go-to-market opportunities
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Revenue sharing on referred business
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Dedicated integration engineering support
-                    </li>
-                    <li class="flex items-start gap-2.5 text-sm text-gray-700">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5"></i>
-                        Early access to new platform features
-                    </li>
-                </ul>
-                <a href="#partner-form" class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors duration-200 w-full">
-                    Apply <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -152,50 +71,28 @@
 <section class="py-20 bg-gray-900 text-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl sm:text-4xl font-extrabold mb-3">Why Partner with Harmoniva?</h2>
-            <p class="text-gray-400 text-lg">We invest in our partners' success as much as our own.</p>
+            <h2 class="text-3xl sm:text-4xl font-extrabold mb-3">{{ __('pages.partners.why_title') }}</h2>
+            <p class="text-gray-400 text-lg">{{ __('pages.partners.why_subtitle') }}</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @php $why = [
+                ['icon' => 'megaphone', 'bg' => 'bg-purple-600/30', 'fg' => 'text-purple-400', 'title' => __('pages.partners.why_comarketing_title'), 'desc' => __('pages.partners.why_comarketing_desc')],
+                ['icon' => 'dollar-sign', 'bg' => 'bg-orange-500/30', 'fg' => 'text-orange-400', 'title' => __('pages.partners.why_revenue_title'), 'desc' => __('pages.partners.why_revenue_desc')],
+                ['icon' => 'life-buoy', 'bg' => 'bg-green-500/30', 'fg' => 'text-green-400', 'title' => __('pages.partners.why_support_title'), 'desc' => __('pages.partners.why_support_desc')],
+                ['icon' => 'zap', 'bg' => 'bg-blue-500/30', 'fg' => 'text-blue-400', 'title' => __('pages.partners.why_early_title'), 'desc' => __('pages.partners.why_early_desc')],
+            ]; @endphp
+            @foreach ($why as $item)
             <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-colors duration-300">
-                <div class="w-12 h-12 bg-purple-600/30 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="megaphone" class="w-6 h-6 text-purple-400"></i>
+                <div class="w-12 h-12 {{ $item['bg'] }} rounded-xl flex items-center justify-center mb-4">
+                    <i data-lucide="{{ $item['icon'] }}" class="w-6 h-6 {{ $item['fg'] }}"></i>
                 </div>
-                <h3 class="font-bold text-white text-lg mb-2">Co-Marketing</h3>
+                <h3 class="font-bold text-white text-lg mb-2">{{ $item['title'] }}</h3>
                 <p class="text-gray-400 text-sm leading-relaxed">
-                    We feature partners in our newsletter, blog, social channels, and in-app discovery. Your audience grows alongside ours.
+                    {{ $item['desc'] }}
                 </p>
             </div>
-
-            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-colors duration-300">
-                <div class="w-12 h-12 bg-orange-500/30 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="dollar-sign" class="w-6 h-6 text-orange-400"></i>
-                </div>
-                <h3 class="font-bold text-white text-lg mb-2">Revenue Share</h3>
-                <p class="text-gray-400 text-sm leading-relaxed">
-                    Meaningful commission structures that reward partners who bring real value. We don't do token percentages.
-                </p>
-            </div>
-
-            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-colors duration-300">
-                <div class="w-12 h-12 bg-green-500/30 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="life-buoy" class="w-6 h-6 text-green-400"></i>
-                </div>
-                <h3 class="font-bold text-white text-lg mb-2">Dedicated Support</h3>
-                <p class="text-gray-400 text-sm leading-relaxed">
-                    Every partner gets a dedicated account manager and priority support access. You're never left waiting in a ticket queue.
-                </p>
-            </div>
-
-            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-colors duration-300">
-                <div class="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center mb-4">
-                    <i data-lucide="zap" class="w-6 h-6 text-blue-400"></i>
-                </div>
-                <h3 class="font-bold text-white text-lg mb-2">Early Feature Access</h3>
-                <p class="text-gray-400 text-sm leading-relaxed">
-                    Partners get early access to new exercises, AI features, and platform updates — giving you a head start on incorporating them into your workflow.
-                </p>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -206,63 +103,63 @@
         <div class="text-center mb-10">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold mb-4">
                 <i data-lucide="send" class="w-4 h-4"></i>
-                Get in Touch
+                {{ __('pages.partners.form_badge') }}
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Apply to Partner</h2>
-            <p class="text-gray-500 text-lg">Tell us about your organization and the kind of partnership you have in mind. We'll respond within 2 business days.</p>
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">{{ __('pages.partners.form_title') }}</h2>
+            <p class="text-gray-500 text-lg">{{ __('pages.partners.form_subtitle') }}</p>
         </div>
 
         <form action="#" method="POST" class="bg-[#FAF7F2] rounded-2xl p-8 border border-gray-100 space-y-5">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('pages.partners.label_name') }}</label>
                     <input type="text" id="name" name="name" required
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
-                        placeholder="Jane Smith">
+                        placeholder="{{ __('pages.partners.ph_name') }}">
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('pages.partners.label_email') }}</label>
                     <input type="email" id="email" name="email" required
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
-                        placeholder="jane@organization.com">
+                        placeholder="{{ __('pages.partners.ph_email') }}">
                 </div>
             </div>
 
             <div>
-                <label for="organization" class="block text-sm font-semibold text-gray-700 mb-1.5">Organization Name</label>
+                <label for="organization" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('pages.partners.label_org') }}</label>
                 <input type="text" id="organization" name="organization" required
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
-                    placeholder="Your school, company, or channel name">
+                    placeholder="{{ __('pages.partners.ph_org') }}">
             </div>
 
             <div>
-                <label for="partnership_type" class="block text-sm font-semibold text-gray-700 mb-1.5">Partnership Type</label>
+                <label for="partnership_type" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('pages.partners.label_type') }}</label>
                 <select id="partnership_type" name="partnership_type" required
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow">
-                    <option value="" disabled selected>Select a program</option>
-                    <option value="school">Music School or Institution</option>
-                    <option value="creator">Content Creator or Educator</option>
-                    <option value="technology">Technology Partner</option>
-                    <option value="other">Other</option>
+                    <option value="" disabled selected>{{ __('pages.partners.type_select') }}</option>
+                    <option value="school">{{ __('pages.partners.type_school') }}</option>
+                    <option value="creator">{{ __('pages.partners.type_creator') }}</option>
+                    <option value="technology">{{ __('pages.partners.type_technology') }}</option>
+                    <option value="other">{{ __('pages.partners.type_other') }}</option>
                 </select>
             </div>
 
             <div>
-                <label for="message" class="block text-sm font-semibold text-gray-700 mb-1.5">Tell us about your organization</label>
+                <label for="message" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('pages.partners.label_message') }}</label>
                 <textarea id="message" name="message" rows="5" required
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow resize-none"
-                    placeholder="Describe your organization, your audience size, and what kind of partnership you have in mind..."></textarea>
+                    placeholder="{{ __('pages.partners.ph_message') }}"></textarea>
             </div>
 
             <button type="submit"
                 class="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold px-6 py-3.5 rounded-xl transition-colors duration-200 text-lg">
                 <i data-lucide="send" class="w-5 h-5"></i>
-                Submit Partnership Inquiry
+                {{ __('pages.partners.submit') }}
             </button>
 
             <p class="text-center text-sm text-gray-500">
-                Or reach us directly at <a href="mailto:partners@harmoniva.app" class="text-purple-600 font-medium hover:text-purple-700 transition-colors">partners@harmoniva.app</a>
+                {!! __('pages.partners.form_direct', ['email' => '<a href="mailto:partners@harmoniva.app" class="text-purple-600 font-medium hover:text-purple-700 transition-colors">partners@harmoniva.app</a>']) !!}
             </p>
         </form>
     </div>

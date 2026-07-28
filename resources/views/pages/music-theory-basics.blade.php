@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Music Theory Basics')
-@section('description', 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly for musicians of all levels.')
+@section('title', __('pages.music_theory.meta_title'))
+@section('description', __('pages.music_theory.meta_description'))
 
 @section('structured-data')
     @php
@@ -10,21 +10,21 @@
         $theoryJsonLd = json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'Article',
-            'headline' => 'Music Theory Basics',
-            'description' => 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly.',
-            'about' => 'Music theory',
+            'headline' => __('pages.music_theory.jsonld_headline'),
+            'description' => __('pages.music_theory.jsonld_description'),
+            'about' => __('pages.music_theory.jsonld_about'),
             'inLanguage' => str_replace('_', '-', app()->getLocale()),
             'image' => asset('images/og-image.png'),
             'author' => ['@id' => url('/').'#organization'],
             'publisher' => ['@id' => url('/').'#organization'],
-            'mainEntityOfPage' => route('page.music-theory-basics'),
+            'mainEntityOfPage' => url()->current(),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $theoryBreadcrumbJsonLd = json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Music Theory Basics', 'item' => route('page.music-theory-basics')],
+                ['@type' => 'ListItem', 'position' => 1, 'name' => __('pages.music_theory.jsonld_home'), 'item' => url('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => __('pages.music_theory.jsonld_headline'), 'item' => url()->current()],
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     @endphp
@@ -39,28 +39,28 @@
     <div class="max-w-3xl mx-auto text-center reveal">
         <div class="inline-flex items-center gap-2 bg-white/10 text-white text-sm font-medium px-4 py-2 rounded-full mb-6">
             <i data-lucide="book" class="w-4 h-4"></i>
-            Music Theory
+            {{ __('pages.music_theory.hero_badge') }}
         </div>
-        <h1 class="text-4xl md:text-5xl font-bold mb-5">Music Theory Made Simple</h1>
-        <p class="text-purple-200 text-xl max-w-2xl mx-auto leading-relaxed">The essential concepts every musician should know — explained clearly, without unnecessary jargon, with direct connections to ear training practice.</p>
+        <h1 class="text-4xl md:text-5xl font-bold mb-5">{{ __('pages.music_theory.hero_title') }}</h1>
+        <p class="text-purple-200 text-xl max-w-2xl mx-auto leading-relaxed">{{ __('pages.music_theory.hero_subtitle') }}</p>
     </div>
 </section>
 
 {{-- Topic Cards --}}
 <section class="bg-[#FAF7F2] py-20 px-4">
     <div class="max-w-6xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-900 text-center mb-3 reveal">Core Topics</h2>
-        <p class="text-gray-500 text-center mb-12 reveal">Click any topic to explore it in depth.</p>
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-3 reveal">{{ __('pages.music_theory.topics_title') }}</h2>
+        <p class="text-gray-500 text-center mb-12 reveal">{{ __('pages.music_theory.topics_subtitle') }}</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
             @php
             $topics = [
-                ['icon' => 'music', 'color' => 'purple', 'title' => 'Notes & Pitch', 'desc' => 'The musical alphabet, octaves, accidentals, and how pitch is organized across instruments. The foundation everything else is built upon.'],
-                ['icon' => 'arrow-up-down', 'color' => 'blue', 'title' => 'Intervals', 'desc' => 'The distances between notes — from the tight half-step to the wide octave. Master intervals and you can understand any chord, scale, or melody.'],
-                ['icon' => 'sliders', 'color' => 'green', 'title' => 'Scales & Modes', 'desc' => 'Major, minor, pentatonic, and modal scales. Learn how scales define the character and emotional color of music across every genre and tradition.'],
-                ['icon' => 'layers', 'color' => 'orange', 'title' => 'Chords & Harmony', 'desc' => 'How notes stack together to create major, minor, diminished, augmented, and seventh chords — and how chord progressions create musical narrative.'],
-                ['icon' => 'activity', 'color' => 'red', 'title' => 'Rhythm & Time', 'desc' => 'Time signatures, note values, rests, and syncopation. Rhythm is the pulse of music — understanding it makes everything feel more natural to play.'],
-                ['icon' => 'key', 'color' => 'yellow', 'title' => 'Key Signatures', 'desc' => 'Sharps and flats in key signatures, the circle of fifths, and how keys relate to scales and tonality. Essential for reading and writing music.'],
+                ['icon' => 'music', 'color' => 'purple', 'title' => __('pages.music_theory.topic_notes_title'), 'desc' => __('pages.music_theory.topic_notes_desc')],
+                ['icon' => 'arrow-up-down', 'color' => 'blue', 'title' => __('pages.music_theory.topic_intervals_title'), 'desc' => __('pages.music_theory.topic_intervals_desc')],
+                ['icon' => 'sliders', 'color' => 'green', 'title' => __('pages.music_theory.topic_scales_title'), 'desc' => __('pages.music_theory.topic_scales_desc')],
+                ['icon' => 'layers', 'color' => 'orange', 'title' => __('pages.music_theory.topic_chords_title'), 'desc' => __('pages.music_theory.topic_chords_desc')],
+                ['icon' => 'activity', 'color' => 'red', 'title' => __('pages.music_theory.topic_rhythm_title'), 'desc' => __('pages.music_theory.topic_rhythm_desc')],
+                ['icon' => 'key', 'color' => 'yellow', 'title' => __('pages.music_theory.topic_keys_title'), 'desc' => __('pages.music_theory.topic_keys_desc')],
             ];
             $colorMap = [
                 'purple' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600', 'badge' => 'bg-purple-600'],
@@ -80,7 +80,7 @@
                 <h3 class="text-xl font-bold text-gray-900 mb-3">{{ $topic['title'] }}</h3>
                 <p class="text-gray-500 text-sm leading-relaxed mb-5">{{ $topic['desc'] }}</p>
                 <a href="#" class="inline-flex items-center gap-1.5 text-sm font-semibold {{ $colorMap[$topic['color']]['text'] }} hover:gap-2.5 transition-all">
-                    Explore <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    {{ __('pages.music_theory.explore') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
             @endforeach
@@ -96,42 +96,42 @@
             <div class="reveal">
                 <div class="inline-flex items-center gap-2 bg-purple-100 text-purple-700 text-sm font-semibold px-4 py-2 rounded-full mb-6">
                     <i data-lucide="star" class="w-4 h-4"></i>
-                    Featured Topic
+                    {{ __('pages.music_theory.featured_badge') }}
                 </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-5">Intervals — The Building Blocks of Music</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">An interval is the distance between two notes, measured in semitones (half steps). Understanding intervals is arguably the single most important music theory concept you can learn, because every other element of music — chords, scales, melodies, progressions — is built from intervals.</p>
-                <p class="text-gray-600 leading-relaxed mb-4">There are twelve distinct intervals within a single octave. Each has a distinctive sound: the perfect fifth has an open, powerful quality; the major third feels bright and stable; the minor second creates tension and dissonance. Learning to recognize these sounds both in theory and by ear transforms your relationship with music.</p>
-                <p class="text-gray-600 leading-relaxed">The two most important interval qualities to understand are major/minor (which differ by one semitone) and perfect/augmented/diminished (applied to fourths, fifths, and octaves). Once you can hear and name any interval confidently, chord and scale recognition become dramatically easier.</p>
+                <h2 class="text-3xl font-bold text-gray-900 mb-5">{{ __('pages.music_theory.featured_title') }}</h2>
+                <p class="text-gray-600 leading-relaxed mb-4">{{ __('pages.music_theory.featured_p1') }}</p>
+                <p class="text-gray-600 leading-relaxed mb-4">{{ __('pages.music_theory.featured_p2') }}</p>
+                <p class="text-gray-600 leading-relaxed">{{ __('pages.music_theory.featured_p3') }}</p>
             </div>
             <div class="reveal">
                 <div class="bg-[#FAF7F2] rounded-2xl p-6 border border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <i data-lucide="table" class="w-5 h-5 text-purple-600"></i>
-                        All 12 Intervals at a Glance
+                        {{ __('pages.music_theory.table_title') }}
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-gray-200">
-                                    <th class="text-left py-2 pr-4 text-gray-500 font-semibold">Semitones</th>
-                                    <th class="text-left py-2 pr-4 text-gray-500 font-semibold">Name</th>
-                                    <th class="text-left py-2 text-gray-500 font-semibold">Abbreviation</th>
+                                    <th class="text-left py-2 pr-4 text-gray-500 font-semibold">{{ __('pages.music_theory.table_col_semitones') }}</th>
+                                    <th class="text-left py-2 pr-4 text-gray-500 font-semibold">{{ __('pages.music_theory.table_col_name') }}</th>
+                                    <th class="text-left py-2 text-gray-500 font-semibold">{{ __('pages.music_theory.table_col_abbr') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach([
-                                    [1,  'Minor 2nd',      'm2'],
-                                    [2,  'Major 2nd',      'M2'],
-                                    [3,  'Minor 3rd',      'm3'],
-                                    [4,  'Major 3rd',      'M3'],
-                                    [5,  'Perfect 4th',    'P4'],
-                                    [6,  'Tritone',        'TT'],
-                                    [7,  'Perfect 5th',    'P5'],
-                                    [8,  'Minor 6th',      'm6'],
-                                    [9,  'Major 6th',      'M6'],
-                                    [10, 'Minor 7th',      'm7'],
-                                    [11, 'Major 7th',      'M7'],
-                                    [12, 'Perfect Octave', '8ve'],
+                                    [1,  __('pages.music_theory.int_m2'),     'm2'],
+                                    [2,  __('pages.music_theory.int_M2'),     'M2'],
+                                    [3,  __('pages.music_theory.int_m3'),     'm3'],
+                                    [4,  __('pages.music_theory.int_M3'),     'M3'],
+                                    [5,  __('pages.music_theory.int_P4'),     'P4'],
+                                    [6,  __('pages.music_theory.int_TT'),     'TT'],
+                                    [7,  __('pages.music_theory.int_P5'),     'P5'],
+                                    [8,  __('pages.music_theory.int_m6'),     'm6'],
+                                    [9,  __('pages.music_theory.int_M6'),     'M6'],
+                                    [10, __('pages.music_theory.int_m7'),     'm7'],
+                                    [11, __('pages.music_theory.int_M7'),     'M7'],
+                                    [12, __('pages.music_theory.int_octave'), '8ve'],
                                 ] as $row)
                                 <tr>
                                     <td class="py-2 pr-4">
@@ -153,7 +153,7 @@
 {{-- Quick Reference: Note Names --}}
 <section class="bg-[#FAF7F2] py-16 px-4">
     <div class="max-w-5xl mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center reveal">Quick Reference: The Musical Alphabet</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center reveal">{{ __('pages.music_theory.quickref_title') }}</h2>
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8 reveal">
             @foreach(['C', 'D', 'E', 'F', 'G', 'A', 'B'] as $note)
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
@@ -164,7 +164,7 @@
             </div>
             @endforeach
         </div>
-        <p class="text-gray-500 text-sm text-center reveal">Notes repeat in octaves. The same note name at a higher pitch is one octave up — exactly 12 semitones (half steps) higher in frequency.</p>
+        <p class="text-gray-500 text-sm text-center reveal">{{ __('pages.music_theory.quickref_note') }}</p>
     </div>
 </section>
 
@@ -172,14 +172,14 @@
 <section class="bg-white py-20 px-4">
     <div class="max-w-4xl mx-auto">
         <div class="text-center mb-12 reveal">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">How Theory and Ear Training Work Together</h2>
-            <p class="text-gray-500 text-lg max-w-2xl mx-auto">Music theory gives you the language. Ear training lets you hear what that language sounds like. Together, they're unstoppable.</p>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ __('pages.music_theory.connection_title') }}</h2>
+            <p class="text-gray-500 text-lg max-w-2xl mx-auto">{{ __('pages.music_theory.connection_subtitle') }}</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 reveal">
             @foreach([
-                ['book', 'purple', 'Learn the Concept', 'Understand what a major third is — its interval size, its position in a scale, its role in a major chord.'],
-                ['headphones', 'orange', 'Train Your Ear', 'Practice identifying major thirds in isolation and in context until recognition is automatic.'],
-                ['music', 'green', 'Apply in Music', 'Hear major thirds everywhere — in melodies, chords, arpeggios — and understand exactly what you\'re hearing.'],
+                ['book', 'purple', __('pages.music_theory.step_learn_title'), __('pages.music_theory.step_learn_desc')],
+                ['headphones', 'orange', __('pages.music_theory.step_train_title'), __('pages.music_theory.step_train_desc')],
+                ['music', 'green', __('pages.music_theory.step_apply_title'), __('pages.music_theory.step_apply_desc')],
             ] as $step)
             <div class="text-center">
                 <div class="w-14 h-14 rounded-2xl bg-{{ $step[1] }}-100 flex items-center justify-center mx-auto mb-4">
@@ -196,16 +196,16 @@
 {{-- CTA --}}
 <section class="bg-gradient-to-br from-purple-600 to-purple-800 py-20 px-4">
     <div class="max-w-2xl mx-auto text-center reveal">
-        <h2 class="text-3xl font-bold text-white mb-4">Turn Theory into Hearing</h2>
-        <p class="text-purple-200 text-lg mb-8">Harmoniva's exercises are the perfect companion to theory study — practice hearing every concept you've just learned.</p>
+        <h2 class="text-3xl font-bold text-white mb-4">{{ __('pages.music_theory.cta_title') }}</h2>
+        <p class="text-purple-200 text-lg mb-8">{{ __('pages.music_theory.cta_subtitle') }}</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/register" class="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-xl transition-colors shadow-lg text-lg">
+            <a href="{{ route('register') }}" class="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-xl transition-colors shadow-lg text-lg">
                 <i data-lucide="play-circle" class="w-5 h-5"></i>
-                Start Practicing Free
+                {{ __('pages.music_theory.cta_practice') }}
             </a>
-            <a href="/ear-training-guide" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-colors">
+            <a href="{{ locale_url('/ear-training-guide') }}" class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-colors">
                 <i data-lucide="book-open" class="w-5 h-5"></i>
-                Read the Full Ear Training Guide
+                {{ __('pages.music_theory.cta_guide') }}
             </a>
         </div>
     </div>

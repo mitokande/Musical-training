@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Notifications\Auth\VerifyEmailLocalized;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, LogsActivity, Notifiable;
@@ -28,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'plan',
         'plan_expires_at',
         'plan_cycle',
+        'trial_started_at',
+        'trial_ends_at',
         'stripe_customer_id',
         'locale',
         'google_id',
@@ -55,6 +59,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'suspended_at' => 'datetime',
             'is_restricted' => 'boolean',
             'plan_expires_at' => 'datetime',
+            'trial_started_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 
@@ -164,6 +170,41 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'school';
     }
 
+    /**
+     * Which email audience this account belongs to — drives lifecycle template
+     * variants and role-aware links (dashboard, pricing, guide). Teaching is
+     * orthogonal to role, so a role=user account holding a teacher profile is a
+     * 'teacher' audience. Schools win over teacher.
+     */
+    public function emailAudience(): string
+    {
+        if ($this->isSchool() || ($this->teacherProfile?->isSchoolEntity() ?? false)) {
+            return 'school';
+        }
+
+        if ($this->hasTeacherAccount()) {
+            return 'teacher';
+        }
+
+        return 'student';
+    }
+
+    /**
+     * Preferred language for notifications/mailables addressed to this model.
+     * Laravel renders queued notifications in this locale automatically, so a
+     * user is emailed in the language they registered/browse in.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    /** Send the localized email-verification notification. */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailLocalized);
+    }
+
     // --- CRM namespace (shared teacher/school panel) ---
 
     /**
@@ -269,6 +310,50 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isEffectivelyPremium() ? 'premium' : $this->plan;
     }
 
+    // --- Free trial ---
+    //
+    // A trial is granted as a real plan='premium' entitlement backed by a
+    // 'trialing' subscription, so every premium gate in the app — including the
+    // handful that read $user->plan directly instead of isEffectivelyPremium()
+    // — is satisfied without a special case. These helpers only describe *how*
+    // the premium was obtained, for copy and CTAs.
+
+    /** Currently inside a claimed trial period. */
+    public function onTrial(): bool
+    {
+        return $this->isPremium() && (bool) $this->trial_ends_at?->isFuture();
+    }
+
+    /** Whole days left in the trial, rounded up; 0 once it has lapsed. */
+    public function trialDaysLeft(): int
+    {
+        if (! $this->onTrial()) {
+            return 0;
+        }
+
+        return max(1, (int) ceil(now()->diffInDays($this->trial_ends_at, false)));
+    }
+
+    /** Claimed a trial at some point, whether or not it is still running. */
+    public function hasUsedTrial(): bool
+    {
+        return ! is_null($this->trial_started_at);
+    }
+
+    /**
+     * Eligible to claim the one free trial: offer is on, never claimed before,
+     * not already premium by any route, and not an admin (admins bypass plans
+     * entirely, so a trial would be meaningless and would corrupt their row).
+     */
+    public function canStartTrial(): bool
+    {
+        return config('payments.trial.enabled', false)
+            && (int) config('payments.trial.days', 0) > 0
+            && ! $this->hasUsedTrial()
+            && ! $this->isAdmin()
+            && ! $this->isEffectivelyPremium();
+    }
+
     public function canAccess(string $feature): bool
     {
         if ($this->isAdmin()) {
@@ -338,6 +423,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserProfile::class);
     }
 
+    public function emailPreference(): HasOne
+    {
+        return $this->hasOne(EmailPreference::class);
+    }
+
     public function questionnaireResponses(): HasMany
     {
         return $this->hasMany(QuestionnaireResponse::class);
@@ -388,6 +478,23 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->subscriptions()
             ->where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->latest('starts_at')
+            ->first();
+    }
+
+    /**
+     * The subscription currently granting access — the paid one, or the running
+     * free trial. Billing screens need this so a trial does not look like "no
+     * subscription at all"; entitlement checks should keep using
+     * activeSubscription(), which means *paid* by design.
+     */
+    public function currentSubscription(): ?Subscription
+    {
+        return $this->activeSubscription() ?? $this->subscriptions()
+            ->where('status', 'trialing')
             ->where(function ($q) {
                 $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
             })

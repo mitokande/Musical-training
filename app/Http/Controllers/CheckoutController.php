@@ -11,19 +11,6 @@ class CheckoutController extends Controller
 {
     public function __construct(private SubscriptionService $subscriptions) {}
 
-    /** Roles that can buy a Premium plan (admins never check out). */
-    private const BUYABLE_ROLES = ['user', 'teacher', 'school'];
-
-    /**
-     * Resolve the Premium plan that matches the signed-in user's role.
-     */
-    private function planForUser($user): ?Plan
-    {
-        $role = in_array($user->role, self::BUYABLE_ROLES, true) ? $user->role : 'user';
-
-        return Plan::active()->forRole($role)->where('type', 'premium')->first();
-    }
-
     /**
      * Checkout / order-summary page: plan details, cycle toggle, price breakdown,
      * refund guarantee, terms acceptance.
@@ -32,13 +19,15 @@ class CheckoutController extends Controller
     {
         $user = $request->user();
 
-        // Already Premium (paid or via teacher/school incentive) → nothing to buy.
-        if ($user->isEffectivelyPremium()) {
+        // Already Premium (paid or via teacher/school incentive) → nothing to
+        // buy. Trial users are premium too, but converting early is exactly
+        // what we want them to do, so they are let through.
+        if ($user->isEffectivelyPremium() && ! $user->onTrial()) {
             return redirect()->route('billing.index')
                 ->with('info', __('You already have Premium access.'));
         }
 
-        $plan = $this->planForUser($user);
+        $plan = $this->subscriptions->premiumPlanFor($user);
         if (! $plan) {
             return redirect()->route('pricing.index')
                 ->with('error', __('This plan is not available right now.'));
@@ -54,6 +43,14 @@ class CheckoutController extends Controller
      */
     public function store(Request $request)
     {
+        // The gateway cannot charge a real card yet, so the checkout page hides
+        // the payment form and offers the free trial instead. A direct POST
+        // must not slip past that.
+        if (! config('payments.checkout_enabled')) {
+            return redirect()->route('checkout.show')
+                ->with('info', __('app.trial.payments_soon'));
+        }
+
         $request->validate([
             'cycle' => 'required|in:monthly,yearly',
             'terms' => 'accepted',
@@ -61,12 +58,12 @@ class CheckoutController extends Controller
 
         $user = $request->user();
 
-        if ($user->isEffectivelyPremium()) {
+        if ($user->isEffectivelyPremium() && ! $user->onTrial()) {
             return redirect()->route('billing.index')
                 ->with('info', __('You already have Premium access.'));
         }
 
-        $plan = $this->planForUser($user);
+        $plan = $this->subscriptions->premiumPlanFor($user);
         if (! $plan) {
             return redirect()->route('pricing.index')
                 ->with('error', __('This plan is not available right now.'));
@@ -113,6 +110,10 @@ class CheckoutController extends Controller
         return [
             'plan' => $plan,
             'cycle' => $cycle,
+            // Off while the payment provider cannot charge a real card: the page
+            // then presents the free trial in place of the payment form.
+            'checkoutEnabled' => (bool) config('payments.checkout_enabled'),
+            'trialDays' => (int) config('payments.trial.days', 15),
             'currencySymbol' => config('payments.currency_symbol', '$'),
             'currency' => $plan->currency ?: config('payments.currency', 'USD'),
             'taxRate' => (float) config('payments.tax_rate', 0),

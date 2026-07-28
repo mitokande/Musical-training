@@ -112,7 +112,12 @@ class PageController extends Controller
     {
         $practices = Practice::all();
 
-        return view('ai_exercise', compact('practices'));
+        // Free users may view the page but not generate a session. Mirrors the
+        // 'plan:ai_exercises' gate on the POST route (admins always pass).
+        $user = auth()->user();
+        $canUseAi = $user->isAdmin() || $user->canAccess('ai_exercises');
+
+        return view('ai_exercise', compact('practices', 'canUseAi'));
     }
 
     public function startAiSession(Request $request)

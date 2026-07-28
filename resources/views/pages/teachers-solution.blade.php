@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Harmoniva for Teachers')
-@section('description', 'Manage your students, assign exercises, and track progress with AI-powered ear training. The most effective tool for music teachers.')
+@section('title', __('pages.teachers.meta_title'))
+@section('description', __('pages.teachers.meta_description'))
 
 @section('content')
 
@@ -14,39 +14,39 @@
         <div class="text-center max-w-3xl mx-auto">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-700 text-sm font-semibold mb-6 hero-badge">
                 <i data-lucide="users" class="w-4 h-4"></i>
-                For Teachers
+                {{ __('pages.teachers.hero_badge') }}
             </div>
 
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-                Manage students, assign exercises,<br>
-                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">track every breakthrough</span>
+                {{ __('pages.teachers.hero_title_a') }}<br>
+                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ __('pages.teachers.hero_title_b') }}</span>
             </h1>
 
             <p class="text-gray-500 text-lg max-w-2xl mx-auto mb-10">
-                Harmoniva gives music teachers a complete toolkit to deliver ear training at scale. Assign targeted exercises, monitor individual progress, and give AI-powered feedback — all without extra prep time.
+                {{ __('pages.teachers.hero_subtitle') }}
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
                 @auth
                 <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                     <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Go to Dashboard
+                    {{ __('pages.teachers.hero_cta_dashboard') }}
                 </a>
                 @else
                 <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                     <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Start Free
+                    {{ __('pages.teachers.hero_cta_register') }}
                 </a>
                 @endauth
-                <a href="/pricing/teachers-and-schools" class="inline-flex items-center gap-2 px-6 py-4 text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
-                    View Teachers Plan <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
+                    {{ __('pages.teachers.view_plan') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
 
             <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Free trial — no card needed</span>
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Setup in under 5 minutes</span>
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Cancel anytime</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.teachers.hero_check_1') }}</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.teachers.hero_check_2') }}</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.teachers.hero_check_3') }}</span>
             </div>
         </div>
     </div>
@@ -56,21 +56,21 @@
 <section class="py-20 bg-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">Built for Educators</span>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">{{ __('pages.teachers.features_eyebrow') }}</span>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-                Everything a music teacher needs<br>
-                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">in one place</span>
+                {{ __('pages.teachers.features_title_a') }}<br>
+                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ __('pages.teachers.features_title_b') }}</span>
             </h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @php $features = [
-                ['icon' => 'send', 'color' => 'bg-orange-100 text-orange-600', 'title' => 'Assign exercises directly to students', 'desc' => 'Push specific exercises or complete learning paths to individual students or entire class groups from your teacher dashboard. Set due dates, difficulty levels, and required completion counts.'],
-                ['icon' => 'bar-chart-3', 'color' => 'bg-blue-100 text-blue-600', 'title' => 'Track every student\'s progress', 'desc' => 'View detailed accuracy reports, session history, and skill-by-skill breakdowns for each student. See at a glance who\'s thriving and who needs extra attention.'],
-                ['icon' => 'users', 'color' => 'bg-purple-100 text-purple-600', 'title' => 'Organize classes and student groups', 'desc' => 'Create class groups organized by level, instrument, or semester. Assign exercises to an entire group at once and compare progress across your roster.'],
-                ['icon' => 'sparkles', 'color' => 'bg-cyan-100 text-cyan-600', 'title' => 'AI-powered learning paths', 'desc' => 'Let Harmoniva\'s AI generate personalized learning plans for each student based on their assessment results — freeing up your planning time for what only a teacher can do.'],
-                ['icon' => 'file-text', 'color' => 'bg-green-100 text-green-600', 'title' => 'Export progress reports', 'desc' => 'Download professional PDF progress reports to share with students, parents, or department heads. Perfect for semester reviews, parent-teacher meetings, and audition portfolios.'],
-                ['icon' => 'sliders-horizontal', 'color' => 'bg-amber-100 text-amber-600', 'title' => 'Custom exercise configuration', 'desc' => 'Fine-tune every exercise parameter — allowed intervals, note ranges, BPM, voicings, distractor counts — to target exactly what your curriculum requires at each stage.'],
+                ['icon' => 'send', 'color' => 'bg-orange-100 text-orange-600', 'title' => __('pages.teachers.feat_assign_title'), 'desc' => __('pages.teachers.feat_assign_desc')],
+                ['icon' => 'bar-chart-3', 'color' => 'bg-blue-100 text-blue-600', 'title' => __('pages.teachers.feat_track_title'), 'desc' => __('pages.teachers.feat_track_desc')],
+                ['icon' => 'users', 'color' => 'bg-purple-100 text-purple-600', 'title' => __('pages.teachers.feat_classes_title'), 'desc' => __('pages.teachers.feat_classes_desc')],
+                ['icon' => 'sparkles', 'color' => 'bg-cyan-100 text-cyan-600', 'title' => __('pages.teachers.feat_ai_title'), 'desc' => __('pages.teachers.feat_ai_desc')],
+                ['icon' => 'file-text', 'color' => 'bg-green-100 text-green-600', 'title' => __('pages.teachers.feat_export_title'), 'desc' => __('pages.teachers.feat_export_desc')],
+                ['icon' => 'sliders-horizontal', 'color' => 'bg-amber-100 text-amber-600', 'title' => __('pages.teachers.feat_config_title'), 'desc' => __('pages.teachers.feat_config_desc')],
             ]; @endphp
             @foreach ($features as $fi => $feat)
             <div class="flex items-start gap-5 p-6 bg-gray-50 rounded-2xl border border-gray-100 reveal" style="transition-delay:{{ $fi * 0.07 }}s">
@@ -91,10 +91,10 @@
 <section class="py-20" style="background:#FAF7F2;">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">The Difference</span>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">{{ __('pages.teachers.comp_eyebrow') }}</span>
             <h2 class="text-3xl font-extrabold text-gray-900 mb-3">
-                Teaching ear training,<br>
-                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">then and now</span>
+                {{ __('pages.teachers.comp_title_a') }}<br>
+                <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ __('pages.teachers.comp_title_b') }}</span>
             </h2>
         </div>
 
@@ -105,16 +105,16 @@
                     <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
                         <i data-lucide="x-circle" class="w-5 h-5 text-gray-400"></i>
                     </div>
-                    <h3 class="font-extrabold text-gray-400">Without Harmoniva</h3>
+                    <h3 class="font-extrabold text-gray-400">{{ __('pages.teachers.without_title') }}</h3>
                 </div>
                 <ul class="space-y-4">
                     @php $withoutItems = [
-                        'Manually creating and photocopying interval worksheets',
-                        'No visibility into what students practice at home',
-                        'One-size-fits-all exercises that bore advanced students and frustrate beginners',
-                        'Spending 30+ minutes per student grading ear training assignments',
-                        'Students forgetting to practice between lessons',
-                        'No data to show parents or administrators about student progress',
+                        __('pages.teachers.without_1'),
+                        __('pages.teachers.without_2'),
+                        __('pages.teachers.without_3'),
+                        __('pages.teachers.without_4'),
+                        __('pages.teachers.without_5'),
+                        __('pages.teachers.without_6'),
                     ]; @endphp
                     @foreach ($withoutItems as $item)
                     <li class="flex items-start gap-3 text-sm text-gray-400">
@@ -132,16 +132,16 @@
                     <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                         <i data-lucide="check-circle" class="w-5 h-5 text-white"></i>
                     </div>
-                    <h3 class="font-extrabold text-white">With Harmoniva</h3>
+                    <h3 class="font-extrabold text-white">{{ __('pages.teachers.with_title') }}</h3>
                 </div>
                 <ul class="space-y-4 relative">
                     @php $withItems = [
-                        'Assign targeted exercises to each student in two clicks',
-                        'Real-time progress dashboard — see who practiced and how accurately',
-                        'AI adapts difficulty automatically for each student\'s level',
-                        'Automatic grading and progress tracking, zero extra work',
-                        'Streak reminders keep students practicing daily between lessons',
-                        'Professional PDF reports ready to export for any stakeholder',
+                        __('pages.teachers.with_1'),
+                        __('pages.teachers.with_2'),
+                        __('pages.teachers.with_3'),
+                        __('pages.teachers.with_4'),
+                        __('pages.teachers.with_5'),
+                        __('pages.teachers.with_6'),
                     ]; @endphp
                     @foreach ($withItems as $item)
                     <li class="flex items-start gap-3 text-sm text-white/90">
@@ -159,38 +159,38 @@
 <section class="py-20 bg-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div class="text-center mb-10 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">Educators Plan</span>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-accent-600 mb-3 block">{{ __('pages.teachers.plan_eyebrow') }}</span>
             <h2 class="text-3xl font-extrabold text-gray-900 mb-3">
-                One plan for all your students
+                {{ __('pages.teachers.plan_title') }}
             </h2>
-            <p class="text-gray-500">Unlimited students, one flat monthly fee. No per-seat pricing.</p>
+            <p class="text-gray-500">{{ __('pages.teachers.plan_subtitle') }}</p>
         </div>
 
         <div class="bg-white rounded-3xl border border-orange-200 shadow-xl p-8 max-w-sm mx-auto reveal" style="transition-delay:0.1s">
-            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white mb-6" style="background:linear-gradient(135deg,#ea580c,#f97316);">Teachers &amp; Schools</span>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white mb-6" style="background:linear-gradient(135deg,#ea580c,#f97316);">{{ __('pages.teachers.plan_badge') }}</span>
 
             <div class="flex items-end justify-center gap-1 mb-1">
                 <span class="text-5xl font-extrabold text-gray-900">$16.90</span>
-                <span class="text-gray-400 text-base mb-2">/month</span>
+                <span class="text-gray-400 text-base mb-2">{{ __('pages.teachers.plan_per_month') }}</span>
             </div>
-            <p class="text-gray-400 text-sm mb-2">or <strong class="text-gray-700">$6.67/mo</strong> billed annually</p>
-            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 mb-6">Save over $120/year</span>
+            <p class="text-gray-400 text-sm mb-2">{!! __('pages.teachers.plan_annual', ['price' => '<strong class="text-gray-700">$6.67</strong>']) !!}</p>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 mb-6">{{ __('pages.teachers.plan_save') }}</span>
 
             <ul class="space-y-3 mb-8 text-left">
                 @php $planFeats = [
-                    'Unlimited students',
-                    'Student roster &amp; class management',
-                    'Exercise assignment &amp; tracking',
-                    'Class-wide &amp; per-student analytics',
-                    'AI Learning Path generator',
-                    'AI Music Assistant for all students',
-                    'PDF progress report export',
-                    'Priority customer support',
+                    __('pages.teachers.planfeat_1'),
+                    __('pages.teachers.planfeat_2'),
+                    __('pages.teachers.planfeat_3'),
+                    __('pages.teachers.planfeat_4'),
+                    __('pages.teachers.planfeat_5'),
+                    __('pages.teachers.planfeat_6'),
+                    __('pages.teachers.planfeat_7'),
+                    __('pages.teachers.planfeat_8'),
                 ]; @endphp
                 @foreach ($planFeats as $pf)
                 <li class="flex items-center gap-3 text-sm text-gray-700">
                     <i data-lucide="check" class="w-4 h-4 text-green-500 shrink-0"></i>
-                    {!! $pf !!}
+                    {{ $pf }}
                 </li>
                 @endforeach
             </ul>
@@ -198,15 +198,15 @@
             <div class="space-y-3">
                 @auth
                 <a href="{{ url('/dashboard') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#ea580c,#f97316);">
-                    Go to Dashboard
+                    {{ __('pages.teachers.plan_cta_dashboard') }}
                 </a>
                 @else
                 <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#ea580c,#f97316);">
-                    Start Free Trial
+                    {{ __('pages.teachers.plan_cta_register') }}
                 </a>
                 @endauth
-                <a href="/pricing/teachers-and-schools" class="block w-full py-3.5 text-center text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-                    View Full Plan Details →
+                <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="block w-full py-3.5 text-center text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                    {{ __('pages.teachers.plan_view_details') }} →
                 </a>
             </div>
         </div>
@@ -221,26 +221,26 @@
             <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
         </div>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-5">
-            Ready to transform<br>
-            <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">your music classroom?</span>
+            {{ __('pages.teachers.cta_title_a') }}<br>
+            <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#ea580c,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ __('pages.teachers.cta_title_b') }}</span>
         </h2>
         <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto">
-            Join hundreds of music teachers using Harmoniva to deliver better ear training in less time.
+            {{ __('pages.teachers.cta_subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             @auth
             <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Go to Dashboard
+                {{ __('pages.teachers.hero_cta_dashboard') }}
             </a>
             @else
             <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Start Free
+                {{ __('pages.teachers.hero_cta_register') }}
             </a>
             @endauth
-            <a href="/pricing/teachers-and-schools" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                View Teachers Plan <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                {{ __('pages.teachers.view_plan') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
         </div>
     </div>

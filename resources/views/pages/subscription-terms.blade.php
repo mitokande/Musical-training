@@ -131,9 +131,9 @@
         {{-- Free Trial --}}
         <div class="mb-4">
             <h2 class="text-2xl font-bold text-gray-900 mb-4">Free Trial</h2>
-            <p class="mb-4">When available, free trials give you access to Premium features for a specified period (typically 7 or 14 days) without a charge. At the end of the trial period, your account will automatically be charged for the selected plan unless you cancel before the trial ends.</p>
-            <p class="mb-4">Free trials are available to new subscribers only. Each person and payment method is eligible for one free trial. We reserve the right to verify eligibility and revoke trial access if we determine that trial terms are being abused.</p>
-            <p class="mb-4">To avoid being charged, cancel your subscription before the trial period ends. You can cancel at any time from your account settings without losing access for the remainder of the trial period.</p>
+            <p class="mb-4">Every account can start a free {{ (int) config('payments.trial.days', 15) }}-day trial of Premium. <strong>No credit card or payment details are required to begin the trial, and no payment method is stored.</strong></p>
+            <p class="mb-4"><strong>You will not be charged when the trial ends.</strong> Because we never collect payment details up front, there is nothing to bill and nothing to cancel. At the end of the trial period your account simply returns to the free plan, your Premium features are disabled, and your practice data is retained. You may then subscribe at any time if you wish to continue with Premium.</p>
+            <p class="mb-4">The free trial is available once per account. We reserve the right to verify eligibility and to revoke trial access if we determine that the trial terms are being abused.</p>
             <div class="bg-[#FAF7F2] rounded-xl p-5 border border-gray-100 mt-6">
                 <p class="text-sm text-gray-600"><strong>Questions about your subscription?</strong> Contact us at <a href="mailto:support@harmoniva.app" class="text-purple-600 font-medium hover:text-purple-700 transition-colors">support@harmoniva.app</a> — we're happy to help.</p>
             </div>

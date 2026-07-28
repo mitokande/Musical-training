@@ -823,6 +823,19 @@
                     @endif
                 </div>
 
+                {{-- E-posta Tercihleri --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="mail" class="w-5 h-5 text-primary-600"></i>
+                        {{ __('app.profile.email_preferences') }}
+                    </h2>
+                    <p class="text-sm text-gray-500 mb-4">{{ __('app.profile.email_preferences_desc') }}</p>
+                    <a href="{{ route('email-preferences.edit') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                        {{ __('app.profile.email_preferences_button') }}
+                    </a>
+                </div>
+
                 {{-- Profil Fotoğrafı --}}
                 <div x-data="{ editingAvatar: false }" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center justify-between mb-4">

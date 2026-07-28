@@ -25,13 +25,15 @@ class AppointmentRequested extends Notification implements ShouldQueue
         $student = $this->appointment->student;
         $studentName = trim($student->name.' '.$student->surname);
 
+        $when = $this->appointment->starts_at
+            ->timezone($this->appointment->timezone ?? config('app.timezone'))
+            ->format('F j, Y H:i');
+
         return (new MailMessage)
-            ->subject('New appointment request from '.$studentName)
-            ->line($studentName.' requested a lesson on '.$this->appointment->starts_at
-                ->timezone($this->appointment->timezone ?? config('app.timezone'))
-                ->format('F j, Y H:i').'.')
-            ->line($this->appointment->topic ? 'Topic: '.$this->appointment->topic : '')
-            ->action('Review the request', route($notifiable->crmRouteName('calendar.index')));
+            ->subject(__('notifications.appointment.request_subject', ['name' => $studentName]))
+            ->line(__('notifications.appointment.request_line', ['name' => $studentName, 'when' => $when]))
+            ->line($this->appointment->topic ? __('notifications.appointment.topic', ['topic' => $this->appointment->topic]) : '')
+            ->action(__('notifications.appointment.review'), route($notifiable->crmRouteName('calendar.index')));
     }
 
     public function toArray(object $notifiable): array

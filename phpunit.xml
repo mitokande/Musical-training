@@ -35,6 +35,9 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="OPENAI_API_KEY" value=""/>
         <env name="PAYMENT_DRIVER" value="manual"/>
+        <!-- The checkout kill switch is a production concern; tests always
+             exercise the full paid path unless they opt out explicitly. -->
+        <env name="CHECKOUT_ENABLED" value="true" force="true"/>
         <!-- No key means the service no-ops, but force the noop consumer too so a
              stray POSTHOG_KEY in a developer's .env can never send test traffic. -->
         <env name="POSTHOG_KEY" value="" force="true"/>

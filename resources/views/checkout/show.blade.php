@@ -41,6 +41,16 @@
         'Detailed progress charts & all modules unlocked',
         'Games leaderboard access',
     ];
+
+    // While the payment provider cannot charge a real card, this page offers the
+    // free trial in place of the payment form. It is the only place in the app
+    // that advertises the trial.
+    $trialUser = auth()->user();
+    $trialState = match (true) {
+        $trialUser->onTrial() => 'active',
+        $trialUser->canStartTrial() => 'eligible',
+        default => 'unavailable',
+    };
 @endphp
 
 <div x-data="{
@@ -57,8 +67,19 @@
         <a href="{{ route('pricing.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
             <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to pricing
         </a>
-        <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Complete your upgrade</h1>
-        <p class="mt-2 text-gray-500">You're upgrading the <strong>{{ $roleLabel }}</strong> account to Harmoniva Premium.</p>
+        @if($checkoutEnabled)
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Complete your upgrade</h1>
+            <p class="mt-2 text-gray-500">You're upgrading the <strong>{{ $roleLabel }}</strong> account to Harmoniva Premium.</p>
+        @elseif($trialState === 'eligible')
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Try Premium free for {{ $trialDays }} days</h1>
+            <p class="mt-2 text-gray-500">We have a special welcome gift for you — unlock every Premium feature on your <strong>{{ $roleLabel }}</strong> account, no credit card needed.</p>
+        @elseif($trialState === 'active')
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Your Premium trial is active</h1>
+            <p class="mt-2 text-gray-500">Everything below is already unlocked on your <strong>{{ $roleLabel }}</strong> account.</p>
+        @else
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Premium is almost open</h1>
+            <p class="mt-2 text-gray-500">Card payments are opening shortly. We'll let you know the moment you can subscribe.</p>
+        @endif
     </div>
 
     <div class="grid lg:grid-cols-5 gap-6">
@@ -112,14 +133,83 @@
 
             {{-- Trust row --}}
             <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500 px-2">
-                <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> Secure checkout</span>
-                <span class="inline-flex items-center gap-1.5"><i data-lucide="rotate-ccw" style="width:15px;height:15px;color:#7c3aed;"></i> {{ $refundDays }}-day money-back guarantee</span>
-                <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> Cancel anytime</span>
+                @if($checkoutEnabled)
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> Secure checkout</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="rotate-ccw" style="width:15px;height:15px;color:#7c3aed;"></i> {{ $refundDays }}-day money-back guarantee</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> Cancel anytime</span>
+                @else
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="credit-card" style="width:15px;height:15px;color:#7c3aed;"></i> No credit card required</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> Nothing charged when it ends</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> Nothing to cancel</span>
+                @endif
             </div>
         </div>
 
         {{-- Payment / confirm box --}}
         <div class="lg:col-span-2">
+            @if(! $checkoutEnabled)
+            {{-- Payments are closed: the free trial stands in for the order form. --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-6 sm:p-7 lg:sticky lg:top-24">
+                @if($trialState === 'eligible')
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white mb-4" style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
+                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i> Free trial
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $trialDays }} days of Premium, free</h3>
+                    <p class="text-sm text-gray-500 mb-5">Full access to everything listed here. We don't ask for a card, and nothing is charged when the {{ $trialDays }} days are up — your account simply returns to the free plan.</p>
+
+                    <div class="space-y-3 text-sm mb-6">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Premium ({{ $roleLabel }}) · {{ $trialDays }} days</span>
+                            <span>{{ $sym }}0.00</span>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3 flex justify-between items-baseline">
+                            <span class="font-bold text-gray-900">Total due today</span>
+                            <span class="font-extrabold text-lg text-gray-900">{{ $sym }}0.00</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('trial.store') }}">
+                        @csrf
+                        <button type="submit"
+                                class="w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg"
+                                style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
+                            <span class="inline-flex items-center justify-center gap-2">
+                                <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
+                                Start my {{ $trialDays }}-day free trial
+                            </span>
+                        </button>
+                    </form>
+
+                    <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
+                        No credit card required. Card payments open shortly —<br>you can subscribe then if you want to keep Premium.
+                    </p>
+
+                @elseif($trialState === 'active')
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white mb-4" style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
+                        <i data-lucide="crown" style="width:14px;height:14px;"></i> {{ trans_choice('app.trial.days_left', auth()->user()->trialDaysLeft(), ['count' => auth()->user()->trialDaysLeft()]) }}
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">You already have Premium</h3>
+                    <p class="text-sm text-gray-500 mb-5">
+                        Your free trial runs until <strong>{{ auth()->user()->trial_ends_at->format('M j, Y') }}</strong>. Nothing will be charged — we never took a card.
+                    </p>
+                    <a href="{{ route('billing.index') }}" class="block w-full py-3.5 text-center text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
+                        View my plan
+                    </a>
+                    <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
+                        Card payments open shortly. You'll be able to subscribe<br>before your trial runs out.
+                    </p>
+
+                @else
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Card payments open soon</h3>
+                    <p class="text-sm text-gray-500 mb-5">
+                        We're finishing setup with our payment provider. Premium isn't purchasable just yet — please check back shortly.
+                    </p>
+                    <a href="{{ route('dashboard') }}" class="block w-full py-3.5 text-center text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
+                        Back to dashboard
+                    </a>
+                @endif
+            </div>
+            @else
             <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-6 sm:p-7 lg:sticky lg:top-24">
                 <h3 class="text-lg font-bold text-gray-900 mb-5">Order summary</h3>
 
@@ -181,6 +271,7 @@
                     </div>
                 </form>
             </div>
+            @endif
         </div>
     </div>
 </section>

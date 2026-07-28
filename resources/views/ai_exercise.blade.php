@@ -271,17 +271,52 @@
 
                     <!-- Submit Button -->
                     <button type="submit" id="submitBtn" class="w-full btn-primary text-white font-semibold py-3.5 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed">
-                        <i data-lucide="sparkles" class="w-5 h-5 btn-icon"></i>
+                        <i data-lucide="{{ $canUseAi ? 'sparkles' : 'lock' }}" class="w-5 h-5 btn-icon"></i>
                         <svg class="animate-spin w-5 h-5 btn-spinner hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span class="btn-text">Start AI Practice Session</span>
+                        <span class="btn-text">{{ $canUseAi ? 'Start AI Practice Session' : 'Unlock AI Exercises with Premium' }}</span>
                     </button>
+                    @unless($canUseAi)
+                        <p class="mt-3 text-center text-xs text-gray-500">
+                            AI Assisted Exercises are a <span class="font-semibold text-purple-600">Premium</span> feature. Set up your session — you'll be invited to upgrade when you start.
+                        </p>
+                    @endunless
                 </form>
             </div>
         </div>
     </main>
+
+    @unless($canUseAi)
+    {{-- Premium gate banner: free users can configure a session but starting it
+         opens this upgrade prompt instead of generating (POST route is also
+         hard-gated by 'plan:ai_exercises'). --}}
+    <div id="premiumModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" data-premium-close></div>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-6 pt-7 pb-6 text-center">
+                <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-200 mb-4">
+                    <i data-lucide="crown" class="w-7 h-7 text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Premium feature</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    AI Assisted Exercises tailor a practice session to your goals with AI. This is part of
+                    <span class="font-semibold text-purple-600">Harmoniva Premium</span> — upgrade to unlock it along with unlimited exercises, the AI Coach and every module.
+                </p>
+                <div class="mt-6 flex flex-col gap-2.5">
+                    <a href="{{ route('checkout.show') }}" class="w-full btn-primary text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all">
+                        <i data-lucide="sparkles" class="w-4.5 h-4.5"></i>
+                        <span>Unlock Premium</span>
+                    </a>
+                    <button type="button" data-premium-close class="w-full py-2.5 px-6 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all">
+                        Maybe later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endunless
 
     @include('partials.footer')
 
@@ -329,12 +364,28 @@
             // Form submission loading state
             const sessionForm = document.getElementById('sessionForm');
             const submitBtn = document.getElementById('submitBtn');
-            
-            sessionForm.addEventListener('submit', function() {
+            const canUseAi = @json($canUseAi);
+
+            sessionForm.addEventListener('submit', function(e) {
+                // Free users: intercept and show the upgrade banner instead of generating.
+                if (!canUseAi) {
+                    e.preventDefault();
+                    const modal = document.getElementById('premiumModal');
+                    if (modal) modal.classList.remove('hidden');
+                    return;
+                }
+
                 submitBtn.disabled = true;
                 submitBtn.querySelector('.btn-icon').classList.add('hidden');
                 submitBtn.querySelector('.btn-spinner').classList.remove('hidden');
                 submitBtn.querySelector('.btn-text').textContent = 'Generating Your Session...';
+            });
+
+            // Premium banner dismissal (backdrop + "Maybe later").
+            document.querySelectorAll('[data-premium-close]').forEach(el => {
+                el.addEventListener('click', function() {
+                    document.getElementById('premiumModal').classList.add('hidden');
+                });
             });
         });
     </script>

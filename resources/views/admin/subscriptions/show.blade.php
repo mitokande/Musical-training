@@ -16,7 +16,7 @@
                 'past_due' => 'bg-orange-100 text-orange-700',
                 'cancelled' => 'bg-red-100 text-red-700',
                 'expired' => 'bg-gray-100 text-gray-600',
-                'trial' => 'bg-blue-100 text-blue-700',
+                'trialing' => 'bg-blue-100 text-blue-700',
             ];
         @endphp
         <span class="px-3 py-1 text-sm font-medium rounded-full {{ $statusColors[$subscription->status] ?? 'bg-gray-100 text-gray-600' }}">

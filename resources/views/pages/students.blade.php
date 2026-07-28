@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Harmoniva for Students')
-@section('description', 'Build a world-class musical ear with AI-powered ear training. Intervals, chords, scales, rhythm, melodic dictation — all in one place. Start free.')
+@section('title', __('pages.students.meta_title'))
+@section('description', __('pages.students.meta_description'))
 
 @section('content')
 
@@ -14,39 +14,39 @@
         <div class="text-center max-w-3xl mx-auto">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-semibold mb-6 hero-badge">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                For Students
+                {{ __('pages.students.hero_badge') }}
             </div>
 
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-                Build the musical ear<br>
-                <span class="font-serif italic font-normal gradient-text">every great musician has</span>
+                {{ __('pages.students.hero_title_a') }}<br>
+                <span class="font-serif italic font-normal gradient-text">{{ __('pages.students.hero_title_b') }}</span>
             </h1>
 
             <p class="text-gray-500 text-lg max-w-2xl mx-auto mb-10">
-                Harmoniva trains your ear with AI-powered exercises across intervals, chords, scales, rhythm, and melodic dictation. Practice 10 minutes a day and transform how you hear music.
+                {{ __('pages.students.hero_subtitle') }}
             </p>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
                 @auth
                 <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                     <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Continue Training
+                    {{ __('pages.students.hero_cta_dashboard') }}
                 </a>
                 @else
                 <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                     <i data-lucide="rocket" class="w-5 h-5"></i>
-                    Start Free Today
+                    {{ __('pages.students.hero_cta_register') }}
                 </a>
                 @endauth
-                <a href="/pricing" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
-                    See pricing <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <a href="{{ locale_url('/pricing') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
+                    {{ __('pages.students.see_pricing') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
 
             <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Free to start</span>
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>No music theory prerequisite</span>
-                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Works on any device</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.students.hero_check_1') }}</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.students.hero_check_2') }}</span>
+                <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.students.hero_check_3') }}</span>
             </div>
         </div>
     </div>
@@ -57,10 +57,10 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
             @php $stats = [
-                ['value' => '10,000+', 'label' => 'musicians training'],
-                ['value' => '10+', 'label' => 'exercise types'],
-                ['value' => '95%', 'label' => 'feel more confident after 30 days'],
-                ['value' => '10 min', 'label' => 'average daily session'],
+                ['value' => __('pages.students.stat_1_value'), 'label' => __('pages.students.stat_1_label')],
+                ['value' => __('pages.students.stat_2_value'), 'label' => __('pages.students.stat_2_label')],
+                ['value' => __('pages.students.stat_3_value'), 'label' => __('pages.students.stat_3_label')],
+                ['value' => __('pages.students.stat_4_value'), 'label' => __('pages.students.stat_4_label')],
             ]; @endphp
             @foreach ($stats as $s)
             <div>
@@ -76,25 +76,25 @@
 <section class="py-20 bg-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">Everything You Need</span>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('pages.students.features_eyebrow') }}</span>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-                One platform, every skill<br>
-                <span class="font-serif italic font-normal gradient-text">a musician needs</span>
+                {{ __('pages.students.features_title_a') }}<br>
+                <span class="font-serif italic font-normal gradient-text">{{ __('pages.students.features_title_b') }}</span>
             </h2>
-            <p class="text-gray-500 max-w-xl mx-auto">From absolute beginner to conservatory-level training — Harmoniva meets you where you are and takes you further.</p>
+            <p class="text-gray-500 max-w-xl mx-auto">{{ __('pages.students.features_subtitle') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @php $features = [
-                ['icon' => 'route', 'color' => 'bg-purple-100 text-purple-600', 'title' => 'Personalized Learning Path', 'desc' => 'AI analyzes your performance and builds a custom curriculum targeting your weaknesses — so you always practice what matters most.'],
-                ['icon' => 'music-2', 'color' => 'bg-blue-100 text-blue-600', 'title' => 'Interval Recognition', 'desc' => 'Train melodic and harmonic intervals from minor 2nds to octaves. Identify them by ear instantly, every time.'],
-                ['icon' => 'piano', 'color' => 'bg-pink-100 text-pink-600', 'title' => 'Chord Identification', 'desc' => 'Recognize major, minor, augmented, diminished, and seventh chords in any voicing, root position or inversion.'],
-                ['icon' => 'layers', 'color' => 'bg-green-100 text-green-600', 'title' => 'Scale Recognition', 'desc' => 'Identify major, minor, dorian, mixolydian, and more scales — the foundation of understanding any musical style.'],
-                ['icon' => 'activity', 'color' => 'bg-orange-100 text-orange-600', 'title' => 'Rhythm Training', 'desc' => 'Develop an internal pulse with rhythm reading exercises across 2/4, 3/4, 4/4, 6/8 time signatures and complex patterns.'],
-                ['icon' => 'mic', 'color' => 'bg-cyan-100 text-cyan-600', 'title' => 'Melodic Dictation', 'desc' => 'Transcribe melodies by ear — the gold standard of ear training that bridges listening to playing and writing music.'],
-                ['icon' => 'sparkles', 'color' => 'bg-violet-100 text-violet-600', 'title' => 'AI Feedback', 'desc' => 'Get instant AI explanations for every wrong answer. Understand why you made a mistake and how to avoid it next time.'],
-                ['icon' => 'trending-up', 'color' => 'bg-amber-100 text-amber-600', 'title' => 'Progress Tracking', 'desc' => 'Detailed streak tracking, accuracy charts, and skill-by-skill breakdowns show you exactly how you\'re improving over time.'],
-                ['icon' => 'gamepad-2', 'color' => 'bg-red-100 text-red-600', 'title' => 'Music Games', 'desc' => 'Make practice fun with gamified challenges that test your ear in creative ways. Perfect for daily warm-ups.'],
+                ['icon' => 'route', 'color' => 'bg-purple-100 text-purple-600', 'title' => __('pages.students.feat_lp_title'), 'desc' => __('pages.students.feat_lp_desc')],
+                ['icon' => 'music-2', 'color' => 'bg-blue-100 text-blue-600', 'title' => __('pages.students.feat_interval_title'), 'desc' => __('pages.students.feat_interval_desc')],
+                ['icon' => 'piano', 'color' => 'bg-pink-100 text-pink-600', 'title' => __('pages.students.feat_chord_title'), 'desc' => __('pages.students.feat_chord_desc')],
+                ['icon' => 'layers', 'color' => 'bg-green-100 text-green-600', 'title' => __('pages.students.feat_scale_title'), 'desc' => __('pages.students.feat_scale_desc')],
+                ['icon' => 'activity', 'color' => 'bg-orange-100 text-orange-600', 'title' => __('pages.students.feat_rhythm_title'), 'desc' => __('pages.students.feat_rhythm_desc')],
+                ['icon' => 'mic', 'color' => 'bg-cyan-100 text-cyan-600', 'title' => __('pages.students.feat_dictation_title'), 'desc' => __('pages.students.feat_dictation_desc')],
+                ['icon' => 'sparkles', 'color' => 'bg-violet-100 text-violet-600', 'title' => __('pages.students.feat_ai_title'), 'desc' => __('pages.students.feat_ai_desc')],
+                ['icon' => 'trending-up', 'color' => 'bg-amber-100 text-amber-600', 'title' => __('pages.students.feat_progress_title'), 'desc' => __('pages.students.feat_progress_desc')],
+                ['icon' => 'gamepad-2', 'color' => 'bg-red-100 text-red-600', 'title' => __('pages.students.feat_games_title'), 'desc' => __('pages.students.feat_games_desc')],
             ]; @endphp
             @foreach ($features as $fi => $feat)
             <div class="bg-gray-50 rounded-2xl border border-gray-100 p-6 reveal" style="transition-delay:{{ $fi * 0.06 }}s">
@@ -113,17 +113,17 @@
 <section class="py-20" style="background:#FAF7F2;">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">Get Started in Minutes</span>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('pages.students.how_eyebrow') }}</span>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-                How it works
+                {{ __('pages.students.how_title') }}
             </h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             @php $steps = [
-                ['num' => '01', 'icon' => 'user-plus', 'title' => 'Sign up free', 'desc' => 'Create your account in 30 seconds — just an email and password. No credit card, no obligations. You get full access to 3 exercises per type daily, forever.'],
-                ['num' => '02', 'icon' => 'sliders-horizontal', 'title' => 'Pick your skill level', 'desc' => 'Tell us where you are. Complete beginner? Advanced student preparing for auditions? Harmoniva adapts the difficulty to match your current level.'],
-                ['num' => '03', 'icon' => 'calendar-check', 'title' => 'Practice daily', 'desc' => 'Spend 10-15 minutes a day with your personalized exercises. Build streaks, track your accuracy, and watch your ear transform over weeks and months.'],
+                ['num' => '01', 'icon' => 'user-plus', 'title' => __('pages.students.step_1_title'), 'desc' => __('pages.students.step_1_desc')],
+                ['num' => '02', 'icon' => 'sliders-horizontal', 'title' => __('pages.students.step_2_title'), 'desc' => __('pages.students.step_2_desc')],
+                ['num' => '03', 'icon' => 'calendar-check', 'title' => __('pages.students.step_3_title'), 'desc' => __('pages.students.step_3_desc')],
             ]; @endphp
             @foreach ($steps as $si => $step)
             <div class="text-center reveal" style="transition-delay:{{ $si * 0.1 }}s">
@@ -145,30 +145,30 @@
 <section class="py-20 bg-white">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-14 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">Student Stories</span>
-            <h2 class="text-3xl font-extrabold text-gray-900">What students are saying</h2>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('pages.students.testimonials_eyebrow') }}</span>
+            <h2 class="text-3xl font-extrabold text-gray-900">{{ __('pages.students.testimonials_title') }}</h2>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @php $testimonials = [
                 [
-                    'quote' => "I failed my ear training exam twice before finding Harmoniva. Three months of daily practice and I passed with the highest grade in my class. The AI feedback finally helped me understand *why* I kept mixing up minor and major thirds.",
+                    'quote' => __('pages.students.testimonial_1_quote'),
                     'name' => 'Mia Chen',
-                    'role' => 'Music conservatory student, Boston',
+                    'role' => __('pages.students.testimonial_1_role'),
                     'initials' => 'MC',
                     'color' => 'from-purple-500 to-violet-600',
                 ],
                 [
-                    'quote' => "As a self-taught guitarist, I never learned to hear music properly. After 6 weeks with Harmoniva, I can identify chord progressions in songs just by listening. It feels like a superpower I didn't know I could develop.",
+                    'quote' => __('pages.students.testimonial_2_quote'),
                     'name' => 'Jordan Williams',
-                    'role' => 'Self-taught guitarist, Nashville',
+                    'role' => __('pages.students.testimonial_2_role'),
                     'initials' => 'JW',
                     'color' => 'from-orange-500 to-amber-500',
                 ],
                 [
-                    'quote' => "The melodic dictation exercises are incredible. I'm preparing for a music school audition and I've gone from transcribing nothing to writing full 8-bar melodies accurately. Harmoniva is genuinely the best ear training tool I've used.",
+                    'quote' => __('pages.students.testimonial_3_quote'),
                     'name' => 'Sofia Andersson',
-                    'role' => 'Classical piano student, Stockholm',
+                    'role' => __('pages.students.testimonial_3_role'),
                     'initials' => 'SA',
                     'color' => 'from-cyan-500 to-blue-500',
                 ],
@@ -206,26 +206,26 @@
             <i data-lucide="ear" class="w-8 h-8 text-white"></i>
         </div>
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-5">
-            Join 10,000+ musicians<br>
-            <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#c084fc,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">training their ear with Harmoniva</span>
+            {{ __('pages.students.cta_title_a') }}<br>
+            <span class="font-serif italic font-normal" style="background:linear-gradient(135deg,#c084fc,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">{{ __('pages.students.cta_title_b') }}</span>
         </h2>
         <p class="text-gray-400 text-lg mb-10 max-w-xl mx-auto">
-            Start free today. No credit card needed. Build the ear you've always wanted — 10 minutes at a time.
+            {{ __('pages.students.cta_subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             @auth
             <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Continue Training
+                {{ __('pages.students.hero_cta_dashboard') }}
             </a>
             @else
             <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Start Free Today
+                {{ __('pages.students.hero_cta_register') }}
             </a>
             @endauth
-            <a href="/pricing" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-400 hover:text-white transition-colors">
-                See pricing <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <a href="{{ locale_url('/pricing') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-400 hover:text-white transition-colors">
+                {{ __('pages.students.see_pricing') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
         </div>
     </div>

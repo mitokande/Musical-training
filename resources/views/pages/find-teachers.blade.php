@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Find Teachers & Music Schools')
-@section('description', 'Browse every verified music teacher and music school on Harmoniva. View their profiles, read student reviews, book a lesson, and start learning with expert guidance.')
+@section('title', __('pages.find_teachers.meta_title'))
+@section('description', __('pages.find_teachers.meta_description'))
 
 @section('content')
 
@@ -11,14 +11,14 @@
     <div class="max-w-3xl mx-auto text-center reveal relative">
         <div class="hero-badge inline-flex items-center gap-2 bg-white/10 text-white text-sm font-medium px-4 py-2 rounded-full mb-6">
             <i data-lucide="users" class="w-4 h-4"></i>
-            Teachers &amp; Schools
+            {{ __('pages.find_teachers.hero_badge') }}
         </div>
-        <h1 class="text-4xl md:text-5xl font-bold mb-5">Find Your Teacher or Music School</h1>
-        <p class="text-purple-200 text-xl max-w-2xl mx-auto leading-relaxed">Self-guided practice is powerful — expert guidance makes it unstoppable. Every teacher and school below has a verified Harmoniva profile: browse their background, read real student reviews, message them directly, and book a lesson when you're ready.</p>
+        <h1 class="text-4xl md:text-5xl font-bold mb-5">{{ __('pages.find_teachers.hero_title') }}</h1>
+        <p class="text-purple-200 text-xl max-w-2xl mx-auto leading-relaxed">{{ __('pages.find_teachers.hero_subtitle') }}</p>
         <div class="flex flex-wrap justify-center gap-4 mt-8 text-sm text-purple-200">
-            <span class="flex items-center gap-1.5"><i data-lucide="badge-check" class="w-4 h-4"></i> Verified profiles</span>
-            <span class="flex items-center gap-1.5"><i data-lucide="star" class="w-4 h-4"></i> Real student reviews</span>
-            <span class="flex items-center gap-1.5"><i data-lucide="calendar-check" class="w-4 h-4"></i> Online lesson booking</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="badge-check" class="w-4 h-4"></i> {{ __('pages.find_teachers.hero_check_1') }}</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="star" class="w-4 h-4"></i> {{ __('pages.find_teachers.hero_check_2') }}</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="calendar-check" class="w-4 h-4"></i> {{ __('pages.find_teachers.hero_check_3') }}</span>
         </div>
     </div>
 </section>
@@ -29,9 +29,9 @@
         <div class="grid sm:grid-cols-3 gap-6">
             @php
             $steps = [
-                ['icon'=>'search','title'=>'1. Browse & compare','desc'=>'Explore profiles below — instruments, experience, teaching style, student reviews, photos and videos.'],
-                ['icon'=>'message-circle','title'=>'2. Connect or book','desc'=>'Send a connection request or book an available lesson slot straight from the teacher\'s profile.'],
-                ['icon'=>'graduation-cap','title'=>'3. Learn together','desc'=>'Your teacher assigns tailored exercises inside Harmoniva and tracks your progress as you practice.'],
+                ['icon'=>'search','title'=>__('pages.find_teachers.step_1_title'),'desc'=>__('pages.find_teachers.step_1_desc')],
+                ['icon'=>'message-circle','title'=>__('pages.find_teachers.step_2_title'),'desc'=>__('pages.find_teachers.step_2_desc')],
+                ['icon'=>'graduation-cap','title'=>__('pages.find_teachers.step_3_title'),'desc'=>__('pages.find_teachers.step_3_desc')],
             ];
             @endphp
             @foreach($steps as $s)
@@ -59,16 +59,16 @@
         <section id="teachers" class="reveal scroll-mt-24">
             <div class="flex items-end justify-between mb-6 flex-wrap gap-3">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-purple-600 mb-2 block">Private tutors</span>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Music Teachers</h2>
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-purple-600 mb-2 block">{{ __('pages.find_teachers.teachers_eyebrow') }}</span>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">{{ __('pages.find_teachers.teachers_title') }}</h2>
                 </div>
-                <span class="text-sm text-gray-400 font-medium">{{ $teachers->count() }} {{ Str::plural('teacher', $teachers->count()) }}</span>
+                <span class="text-sm text-gray-400 font-medium">{{ trans_choice('pages.find_teachers.teachers_count', $teachers->count(), ['count' => $teachers->count()]) }}</span>
             </div>
 
             @if($teachers->isEmpty())
                 <div class="light-card rounded-2xl p-10 text-center text-gray-500">
                     <i data-lucide="users" class="w-8 h-8 mx-auto mb-3 text-gray-300"></i>
-                    No teachers have published a profile yet — check back soon.
+                    {{ __('pages.find_teachers.teachers_empty') }}
                 </div>
             @else
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -81,7 +81,7 @@
                             @endif
                             @if($p->accepts_students)
                                 <span class="absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100/95 text-green-700 text-[11px] font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Accepting students
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> {{ __('pages.find_teachers.accepting_students') }}
                                 </span>
                             @endif
                         </div>
@@ -122,9 +122,9 @@
                                         <span class="text-gray-400 text-xs">({{ $stats->reviews_count }})</span>
                                     </span>
                                 @else
-                                    <span class="text-xs text-gray-300">New profile</span>
+                                    <span class="text-xs text-gray-300">{{ __('pages.find_teachers.new_profile') }}</span>
                                 @endif
-                                <span class="inline-flex items-center gap-1 text-sm font-semibold text-purple-600">View profile <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i></span>
+                                <span class="inline-flex items-center gap-1 text-sm font-semibold text-purple-600">{{ __('pages.find_teachers.view_profile') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i></span>
                             </div>
                         </div>
                     </a>
@@ -137,18 +137,18 @@
         <section id="schools" class="reveal scroll-mt-24">
             <div class="flex items-end justify-between mb-6 flex-wrap gap-3">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-orange-600 mb-2 block">Institutions</span>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Music Schools</h2>
+                    <span class="text-xs font-bold uppercase tracking-[0.2em] text-orange-600 mb-2 block">{{ __('pages.find_teachers.schools_eyebrow') }}</span>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">{{ __('pages.find_teachers.schools_title') }}</h2>
                 </div>
-                <span class="text-sm text-gray-400 font-medium">{{ $schools->count() }} {{ Str::plural('school', $schools->count()) }}</span>
+                <span class="text-sm text-gray-400 font-medium">{{ trans_choice('pages.find_teachers.schools_count', $schools->count(), ['count' => $schools->count()]) }}</span>
             </div>
 
-            <p class="text-gray-600 leading-relaxed mb-6 max-w-3xl">Music schools on Harmoniva work just like teachers, at a larger scale: a school manages its own roster of teachers, enrolls students, assigns curriculum-based exercises to whole classes, and follows every student's progress from one panel. Join a school to get structured group instruction backed by Harmoniva's practice engine.</p>
+            <p class="text-gray-600 leading-relaxed mb-6 max-w-3xl">{{ __('pages.find_teachers.schools_desc') }}</p>
 
             @if($schools->isEmpty())
                 <div class="light-card rounded-2xl p-10 text-center text-gray-500">
                     <i data-lucide="building-2" class="w-8 h-8 mx-auto mb-3 text-gray-300"></i>
-                    No schools have published a profile yet — check back soon.
+                    {{ __('pages.find_teachers.schools_empty') }}
                 </div>
             @else
                 <div class="grid sm:grid-cols-2 gap-5">
@@ -175,7 +175,7 @@
                                     <span class="flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 text-amber-400 fill-amber-400"></i><span class="font-bold text-gray-700">{{ number_format($stats->rating_avg, 1) }}</span> ({{ $stats->reviews_count }})</span>
                                 @endif
                             </div>
-                            <span class="inline-flex items-center gap-1 text-sm font-semibold text-purple-600 mt-3">View school <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i></span>
+                            <span class="inline-flex items-center gap-1 text-sm font-semibold text-purple-600 mt-3">{{ __('pages.find_teachers.view_school') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i></span>
                         </div>
                     </a>
                     @endforeach
@@ -185,11 +185,11 @@
 
         {{-- ============ FAQ ============ --}}
         <section class="reveal">
-            @include('pages.partials.guide-faq', ['faqs' => [
-                ['q'=>'Are these profiles verified?','a'=>'Yes — every teacher and school profile is reviewed by the Harmoniva team before it becomes publicly visible, so you only see genuine, approved educators here.'],
-                ['q'=>'How do I connect with a teacher or school?','a'=>'Open their profile and send a connection request, or book an available lesson slot directly if they have online booking enabled. Once connected, they can assign you exercises and message you inside Harmoniva.'],
-                ['q'=>'What\'s the difference between a teacher and a school?','a'=>'A teacher is an individual tutor; a school is an institution with multiple teachers on its roster. Both can enroll you as a student, assign exercises, and track your progress — a school simply does it across classes and teachers.'],
-                ['q'=>'Does connecting with a teacher cost anything?','a'=>'Connecting on Harmoniva is free. Lesson pricing is set by each teacher or school — you\'ll find their rates and services listed on their profile.'],
+            @include('pages.partials.guide-faq', ['label' => __('pages.find_teachers.faq_label'), 'faqs' => [
+                ['q'=>__('pages.find_teachers.faq_q1'),'a'=>__('pages.find_teachers.faq_a1')],
+                ['q'=>__('pages.find_teachers.faq_q2'),'a'=>__('pages.find_teachers.faq_a2')],
+                ['q'=>__('pages.find_teachers.faq_q3'),'a'=>__('pages.find_teachers.faq_a3')],
+                ['q'=>__('pages.find_teachers.faq_q4'),'a'=>__('pages.find_teachers.faq_a4')],
             ]])
         </section>
 
@@ -199,12 +199,12 @@
 {{-- ============ BOTTOM CTA ============ --}}
 <section class="bg-white py-20 px-4">
     <div class="max-w-2xl mx-auto text-center reveal">
-        <span class="text-xs font-bold uppercase tracking-[0.2em] text-purple-600 mb-3 block">Are you an educator?</span>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">Teach with Harmoniva</h2>
-        <p class="text-gray-500 text-lg mb-8">Create a free teacher profile or bring your whole music school — assign exercises, track student progress, and grow your studio.</p>
+        <span class="text-xs font-bold uppercase tracking-[0.2em] text-purple-600 mb-3 block">{{ __('pages.find_teachers.cta_eyebrow') }}</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">{{ __('pages.find_teachers.cta_title') }}</h2>
+        <p class="text-gray-500 text-lg mb-8">{{ __('pages.find_teachers.cta_subtitle') }}</p>
         <div class="flex flex-wrap justify-center gap-3">
-            <a href="{{ route('page.teachers-solution') }}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-semibold shadow-lg shadow-purple-500/25 hover:-translate-y-0.5 transition-all" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">For Teachers <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
-            <a href="{{ route('page.schools') }}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all">For Schools <i data-lucide="building-2" class="w-4 h-4"></i></a>
+            <a href="{{ locale_url('/teachers') }}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-semibold shadow-lg shadow-purple-500/25 hover:-translate-y-0.5 transition-all" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">{{ __('pages.find_teachers.cta_teachers') }} <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+            <a href="{{ locale_url('/schools') }}" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-all">{{ __('pages.find_teachers.cta_schools') }} <i data-lucide="building-2" class="w-4 h-4"></i></a>
         </div>
     </div>
 </section>

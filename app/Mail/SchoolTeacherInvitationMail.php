@@ -26,7 +26,7 @@ class SchoolTeacherInvitationMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->schoolName().' invited you to teach on Harmoniva',
+            subject: __('notifications.invite.school_subject', ['name' => $this->schoolName()]),
         );
     }
 

@@ -73,14 +73,14 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             <div class="col-span-1">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-300 mb-4">{{ __('app.footer.product') }}</h4>
                 <ul class="space-y-2.5 text-sm">
-                    <li><a href="/"               class="ft-link">{{ __('app.footer.features') }}</a></li>
-                    <li><a href="/learn"           class="ft-link">{{ __('app.footer.learning_path') }}</a></li>
-                    <li><a href="/exercise-setup"  class="ft-link">{{ __('app.footer.exercise_setup') }}</a></li>
-                    <li><a href="/ai-exercises"    class="ft-link">{{ __('app.footer.ai_exercises') }}</a></li>
-                    <li><a href="/piano-studio"    class="ft-link">{{ __('app.footer.piano_studio') }}</a></li>
-                    <li><a href="/games"           class="ft-link">{{ __('app.footer.music_games') }}</a></li>
-                    <li><a href="/progress"        class="ft-link">{{ __('app.footer.progress_tracking') }}</a></li>
-                    <li><a href="/pricing"         class="ft-link">{{ __('app.footer.pricing') }}</a></li>
+                    <li><a href="{{ locale_url('/') }}"               class="ft-link">{{ __('app.footer.features') }}</a></li>
+                    <li><a href="{{ locale_url('/learn') }}"           class="ft-link">{{ __('app.footer.learning_path') }}</a></li>
+                    <li><a href="{{ locale_url('/exercise-setup') }}"  class="ft-link">{{ __('app.footer.exercise_setup') }}</a></li>
+                    <li><a href="{{ locale_url('/ai-exercises') }}"    class="ft-link">{{ __('app.footer.ai_exercises') }}</a></li>
+                    <li><a href="{{ locale_url('/piano-studio') }}"    class="ft-link">{{ __('app.footer.piano_studio') }}</a></li>
+                    <li><a href="{{ locale_url('/games') }}"           class="ft-link">{{ __('app.footer.music_games') }}</a></li>
+                    <li><a href="{{ locale_url('/progress') }}"        class="ft-link">{{ __('app.footer.progress_tracking') }}</a></li>
+                    <li><a href="{{ locale_url('/pricing') }}"         class="ft-link">{{ __('app.footer.pricing') }}</a></li>
                 </ul>
             </div>
 
@@ -88,11 +88,11 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             <div class="col-span-1">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-300 mb-4">{{ __('app.footer.solutions') }}</h4>
                 <ul class="space-y-2.5 text-sm">
-                    <li><a href="/students"      class="ft-link">{{ __('app.footer.for_students') }}</a></li>
-                    <li><a href="/teachers"      class="ft-link">{{ __('app.footer.for_teachers') }}</a></li>
-                    <li><a href="/schools"       class="ft-link">{{ __('app.footer.for_music_schools') }}</a></li>
-                    <li><a href="/piano-learners" class="ft-link">{{ __('app.footer.for_piano_learners') }}</a></li>
-                    <li><a href="/request-demo"  class="ft-link">{{ __('app.footer.request_demo') }}</a></li>
+                    <li><a href="{{ locale_url('/students') }}"      class="ft-link">{{ __('app.footer.for_students') }}</a></li>
+                    <li><a href="{{ locale_url('/teachers') }}"      class="ft-link">{{ __('app.footer.for_teachers') }}</a></li>
+                    <li><a href="{{ locale_url('/schools') }}"       class="ft-link">{{ __('app.footer.for_music_schools') }}</a></li>
+                    <li><a href="{{ locale_url('/piano-learners') }}" class="ft-link">{{ __('app.footer.for_piano_learners') }}</a></li>
+                    <li><a href="{{ locale_url('/request-demo') }}"  class="ft-link">{{ __('app.footer.request_demo') }}</a></li>
                 </ul>
             </div>
 
@@ -100,14 +100,14 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             <div class="col-span-1">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-300 mb-4">{{ __('app.footer.resources') }}</h4>
                 <ul class="space-y-2.5 text-sm">
-                    <li><a href="/help"               class="ft-link">{{ __('app.footer.help_center') }}</a></li>
-                    <li><a href="/how-it-works"       class="ft-link">{{ __('app.footer.how_it_works_guide') }}</a></li>
-                    <li><a href="/find-teachers"      class="ft-link">{{ __('app.footer.find_teachers') }}</a></li>
-                    <li><a href="/faq"                class="ft-link">{{ __('app.footer.faq') }}</a></li>
-                    <li><a href="/blog"               class="ft-link">{{ __('app.footer.articles') }}</a></li>
-                    <li><a href="/ear-training-guide" class="ft-link">{{ __('app.footer.ear_training_guide') }}</a></li>
-                    <li><a href="/music-theory-basics" class="ft-link">{{ __('app.footer.music_theory_basics') }}</a></li>
-                    <li><a href="/contact"            class="ft-link">{{ __('app.footer.contact_support') }}</a></li>
+                    <li><a href="{{ locale_url('/help') }}"               class="ft-link">{{ __('app.footer.help_center') }}</a></li>
+                    <li><a href="{{ locale_url('/how-it-works') }}"       class="ft-link">{{ __('app.footer.how_it_works_guide') }}</a></li>
+                    <li><a href="{{ locale_url('/find-teachers') }}"      class="ft-link">{{ __('app.footer.find_teachers') }}</a></li>
+                    <li><a href="{{ locale_url('/faq') }}"                class="ft-link">{{ __('app.footer.faq') }}</a></li>
+                    <li><a href="{{ locale_url('/blog') }}"               class="ft-link">{{ __('app.footer.articles') }}</a></li>
+                    <li><a href="{{ locale_url('/ear-training-guide') }}" class="ft-link">{{ __('app.footer.ear_training_guide') }}</a></li>
+                    <li><a href="{{ locale_url('/music-theory-basics') }}" class="ft-link">{{ __('app.footer.music_theory_basics') }}</a></li>
+                    <li><a href="{{ locale_url('/contact') }}"            class="ft-link">{{ __('app.footer.contact_support') }}</a></li>
                 </ul>
             </div>
 
@@ -115,10 +115,10 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             <div class="col-span-1">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-gray-300 mb-4">{{ __('app.footer.company') }}</h4>
                 <ul class="space-y-2.5 text-sm">
-                    <li><a href="/about"    class="ft-link">{{ __('app.footer.about_harmoniva') }}</a></li>
-                    <li><a href="/contact"  class="ft-link">{{ __('app.footer.contact') }}</a></li>
-                    <li><a href="/press"    class="ft-link">{{ __('app.footer.press') }}</a></li>
-                    <li><a href="/partners" class="ft-link">{{ __('app.footer.partners') }}</a></li>
+                    <li><a href="{{ locale_url('/about') }}"    class="ft-link">{{ __('app.footer.about_harmoniva') }}</a></li>
+                    <li><a href="{{ locale_url('/contact') }}"  class="ft-link">{{ __('app.footer.contact') }}</a></li>
+                    <li><a href="{{ locale_url('/press') }}"    class="ft-link">{{ __('app.footer.press') }}</a></li>
+                    <li><a href="{{ locale_url('/partners') }}" class="ft-link">{{ __('app.footer.partners') }}</a></li>
                 </ul>
             </div>
 
@@ -239,9 +239,9 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
             <div class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-3">
                 <p class="text-xs text-gray-600">&copy; 2026 Harmoniva. {{ __('app.footer.copyright') }}</p>
                 <div class="flex items-center gap-5 text-xs text-gray-500">
-                    <a href="/privacy-policy"   class="hover:text-white transition-colors">{{ __('app.footer.privacy_policy') }}</a>
-                    <a href="/terms-of-service" class="hover:text-white transition-colors">{{ __('app.footer.terms_of_service') }}</a>
-                    <a href="/cookie-policy"    class="hover:text-white transition-colors">{{ __('app.footer.cookie_policy') }}</a>
+                    <a href="{{ locale_url('/privacy-policy') }}"   class="hover:text-white transition-colors">{{ __('app.footer.privacy_policy') }}</a>
+                    <a href="{{ locale_url('/terms-of-service') }}" class="hover:text-white transition-colors">{{ __('app.footer.terms_of_service') }}</a>
+                    <a href="{{ locale_url('/cookie-policy') }}"    class="hover:text-white transition-colors">{{ __('app.footer.cookie_policy') }}</a>
                 </div>
             </div>
         </div>

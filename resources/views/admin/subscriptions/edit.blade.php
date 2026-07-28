@@ -30,7 +30,8 @@
                     <option value="active" {{ old('status', $subscription->status) === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="cancelled" {{ old('status', $subscription->status) === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     <option value="expired" {{ old('status', $subscription->status) === 'expired' ? 'selected' : '' }}>Expired</option>
-                    <option value="trial" {{ old('status', $subscription->status) === 'trial' ? 'selected' : '' }}>Trial</option>
+                    <option value="past_due" {{ old('status', $subscription->status) === 'past_due' ? 'selected' : '' }}>Past due</option>
+                    <option value="trialing" {{ old('status', $subscription->status) === 'trialing' ? 'selected' : '' }}>Trialing</option>
                 </select>
                 @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>

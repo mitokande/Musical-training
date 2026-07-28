@@ -11,6 +11,7 @@ use App\Models\Follow;
 use App\Models\GameScore;
 use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Services\Payments\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -144,7 +145,7 @@ class UserController extends Controller
     public function bulkAction(Request $request)
     {
         $validated = $request->validate([
-            'action' => 'required|in:set_plan_free,set_plan_premium,set_role_user,set_role_teacher,set_role_school,delete',
+            'action' => 'required|in:set_plan_free,set_plan_premium,set_role_user,set_role_teacher,set_role_school,start_trial,reset_trial,delete',
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'integer|exists:users,id',
         ]);
@@ -164,17 +165,39 @@ class UserController extends Controller
                 'set_role_user' => $user->update(['role' => 'user']),
                 'set_role_teacher' => $user->update(['role' => 'teacher']),
                 'set_role_school' => $user->update(['role' => 'school']),
+                // Grants the free trial; silently skips anyone not eligible
+                // (already premium, or has had one and not been reset).
+                'start_trial' => $this->grantTrial($user),
+                // Support gesture: lets the user claim the trial once more.
+                'reset_trial' => $user->forceFill(['trial_started_at' => null])->save(),
                 'delete' => $user->delete(),
             };
         }
 
         $skipped = count($validated['user_ids']) - $count;
         $message = "Bulk action applied to {$count} member(s).";
+        if ($validated['action'] === 'start_trial') {
+            $message .= ' Members who were already Premium, or who have used their trial, were left unchanged.';
+        }
         if ($skipped > 0) {
             $message .= " {$skipped} skipped (admins and your own account are protected).";
         }
 
         return redirect()->route('admin.users.index')->with('success', $message);
+    }
+
+    /**
+     * Grant the free Premium trial from the admin panel, going through the same
+     * service the public endpoint uses so eligibility, the subscription row and
+     * the teacher tier sync all behave identically.
+     */
+    private function grantTrial(User $user): void
+    {
+        $subscriptions = app(SubscriptionService::class);
+
+        if ($plan = $subscriptions->premiumPlanFor($user)) {
+            $subscriptions->startTrial($user, $plan);
+        }
     }
 
     /**

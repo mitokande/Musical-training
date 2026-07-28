@@ -4,6 +4,7 @@ namespace App\Services\EmailCenter;
 
 use App\Models\EmailAutomation;
 use App\Models\EmailMessage;
+use App\Models\EmailTemplate;
 use App\Models\ExerciseSession;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,8 +24,26 @@ class AutomationEngine
         'learning_path_reminder',
         'weekly_progress',
         're_engagement',
+        'premium_intro',
         'premium_upsell',
+        'trial_ending',
+        'trial_ended',
     ];
+
+    /**
+     * Automations that must reach teacher and school accounts too. These have
+     * audience-specific template variants (welcome-teacher, premium-intro-school,
+     * …) resolved per recipient. Everything else is student-practice copy and
+     * stays limited to role=user. The free trial is offered to all three roles.
+     */
+    private const ALL_ROLE_KEYS = ['welcome', 'premium_intro', 'trial_ending', 'trial_ended'];
+
+    /**
+     * Automations that are service mail, not marketing. "Your trial ends in 3
+     * days" is a notice about the user's own account, so it must not be dropped
+     * by the marketing frequency cap or an unsubscribe from promotional email.
+     */
+    private const TRANSACTIONAL_KEYS = ['trial_ending', 'trial_ended'];
 
     protected int $batchLimit = 200;
 
@@ -44,8 +63,8 @@ class AutomationEngine
             foreach ($this->dueUsers($automation)->limit($this->batchLimit)->get() as $user) {
                 $message = $this->dispatcher->dispatch(
                     recipient: $user,
-                    emailType: 'automation',
-                    template: $automation->template,
+                    emailType: in_array($automation->key, self::TRANSACTIONAL_KEYS, true) ? 'transactional' : 'automation',
+                    template: $this->templateFor($automation, $user),
                     automation: $automation,
                     context: $this->context($automation, $user),
                 );
@@ -66,13 +85,42 @@ class AutomationEngine
         return $results;
     }
 
+    /**
+     * The template to send this recipient — an audience-specific variant
+     * (e.g. welcome-teacher, premium-intro-school) when an active one exists,
+     * otherwise the automation's base (student) template.
+     */
+    protected function templateFor(EmailAutomation $automation, User $user): ?EmailTemplate
+    {
+        $base = $automation->template;
+        $audience = $user->emailAudience();
+
+        if ($base && $audience !== 'student') {
+            $variant = EmailTemplate::where('slug', $base->slug.'-'.$audience)
+                ->where('is_active', true)
+                ->first();
+
+            if ($variant) {
+                return $variant;
+            }
+        }
+
+        return $base;
+    }
+
     protected function dueUsers(EmailAutomation $automation): Builder
     {
         $query = User::query()
+            ->with('teacherProfile') // audience resolution (template variant + links)
             ->whereNotNull('email_verified_at')
             ->whereNull('suspended_at')
-            ->where('is_restricted', false)
-            ->where('role', 'user');
+            ->where('is_restricted', false);
+
+        if (! in_array($automation->key, self::ALL_ROLE_KEYS, true)) {
+            $query->where('role', 'user');
+        } else {
+            $query->whereIn('role', ['user', 'teacher', 'school']);
+        }
 
         switch ($automation->key) {
             case 'welcome':
@@ -113,11 +161,45 @@ class AutomationEngine
                 $this->notReceivedWithin($query, $automation, (int) $automation->configValue('cooldown_days', 60));
                 break;
 
+            case 'premium_intro':
+                // Introduce Premium to every free user a few days after signup.
+                // Sent once per account; a 30-day floor keeps a first enable from
+                // blasting the whole back catalogue of old free users.
+                $days = (int) $automation->configValue('min_account_days', 3);
+                $query->where('plan', 'free')
+                    ->where('created_at', '<=', now()->subDays($days))
+                    ->where('created_at', '>=', now()->subDays(30));
+                $this->neverReceived($query, $automation);
+                break;
+
             case 'premium_upsell':
                 $query->where('plan', 'free')
                     ->where('created_at', '<=', now()->subDays((int) $automation->configValue('min_account_days', 14)))
                     ->whereHas('exerciseSessions', fn ($q) => $q, '>=', (int) $automation->configValue('min_sessions', 10));
                 $this->notReceivedWithin($query, $automation, (int) $automation->configValue('cooldown_days', 30));
+                break;
+
+            case 'trial_ending':
+                // Still on the trial, inside the final stretch. Sent once per
+                // trial: neverReceived() is too broad (a second trial granted by
+                // an admin should notify again), so we key off trial_started_at.
+                $lead = (int) $automation->configValue('lead_days', 3);
+                $query->where('plan', 'premium')
+                    ->whereNotNull('trial_ends_at')
+                    ->where('trial_ends_at', '>', now())
+                    ->where('trial_ends_at', '<=', now()->addDays($lead));
+                $this->notReceivedSince($query, $automation, 'trial_started_at');
+                break;
+
+            case 'trial_ended':
+                // Trial lapsed and the account really did fall back to free —
+                // someone who converted to paid must never get this.
+                $window = (int) $automation->configValue('window_days', 3);
+                $query->where('plan', 'free')
+                    ->whereNotNull('trial_ends_at')
+                    ->where('trial_ends_at', '<=', now())
+                    ->where('trial_ends_at', '>=', now()->subDays($window));
+                $this->notReceivedSince($query, $automation, 'trial_started_at');
                 break;
 
             default:
@@ -142,10 +224,33 @@ class AutomationEngine
     }
 
     /**
+     * Not sent since the moment recorded in $column on the user's own row.
+     * Used by the trial automations so each granted trial gets exactly one
+     * notice — including a second trial handed out later by an admin.
+     */
+    protected function notReceivedSince(Builder $query, EmailAutomation $automation, string $column): void
+    {
+        $query->whereNotExists(function ($sub) use ($automation, $column) {
+            $sub->selectRaw('1')
+                ->from('email_messages')
+                ->whereColumn('email_messages.user_id', 'users.id')
+                ->where('email_messages.automation_id', $automation->id)
+                ->whereColumn('email_messages.created_at', '>=', 'users.'.$column);
+        });
+    }
+
+    /**
      * Template variables specific to each automation.
      */
     protected function context(EmailAutomation $automation, User $user): array
     {
+        if (in_array($automation->key, self::TRANSACTIONAL_KEYS, true)) {
+            return [
+                'trial_days_left' => (string) $user->trialDaysLeft(),
+                'trial_ends_on' => $user->trial_ends_at?->format('M j, Y') ?? '',
+            ];
+        }
+
         if ($automation->key !== 'weekly_progress') {
             return [];
         }

@@ -1,7 +1,7 @@
 @extends('layouts.standalone')
 
-@section('title', 'Pricing — Choose Your Plan')
-@section('description', 'Simple, transparent pricing for musicians, students, teachers, and music schools. Start free — no credit card required.')
+@section('title', __('pages.pricing.meta_title'))
+@section('description', __('pages.pricing.meta_description'))
 
 @section('content')
 
@@ -15,6 +15,8 @@
     $saveAmount      = round($annualIfMonthly - $yearlyTotal);              // ~43
     $savePercent     = (int) round((1 - $yearlyTotal / $annualIfMonthly) * 100); // 52
     $monthsFree      = (int) round(12 - $yearlyTotal / $monthlyPrice);      // ~6
+    $teacherPrice    = 16.90;                                // Teachers plan, monthly
+    $schoolPrice     = 29.90;                                // Schools plan, monthly
 @endphp
 
 {{-- Alpine scope for the Monthly/Yearly toggle. Defined here (not via body-attrs)
@@ -29,16 +31,16 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 text-primary-700 text-sm font-semibold mb-6 hero-badge">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
-            Simple, Transparent Pricing
+            {{ __('pages.pricing.hero_badge') }}
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-5">
-            Start free, upgrade<br>
-            <span class="font-serif italic font-normal gradient-text">when you're ready</span>
+            {{ __('pages.pricing.hero_title_a') }}<br>
+            <span class="font-serif italic font-normal gradient-text">{{ __('pages.pricing.hero_title_b') }}</span>
         </h1>
 
         <p class="text-gray-500 text-lg max-w-xl mx-auto mb-10">
-            No credit card required to get started. Train your ear with 5 free practice sessions every day — forever free. Upgrade for unlimited access, AI features, and more.
+            {{ __('pages.pricing.hero_subtitle') }}
         </p>
 
         {{-- Billing Toggle --}}
@@ -46,22 +48,22 @@
             <button @click="billingYearly = false"
                     :class="!billingYearly ? 'bg-gray-900 text-white shadow' : 'text-gray-500 hover:text-gray-700'"
                     class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                Monthly
+                {{ __('pages.pricing.billing_monthly') }}
             </button>
             <button @click="billingYearly = true"
                     :class="billingYearly ? 'text-white shadow' : 'text-gray-500 hover:text-gray-700'"
                     class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all relative"
                     :style="billingYearly ? 'background: linear-gradient(135deg,#9333ea,#7c3aed)' : ''">
-                Yearly
+                {{ __('pages.pricing.billing_yearly') }}
                 <span class="ml-2 text-xs font-bold px-2 py-0.5 rounded-full"
                       :class="billingYearly ? 'bg-white/20 text-white' : 'bg-primary-100 text-primary-700'">
-                    Save {{ $savePercent }}%
+                    {{ __('pages.pricing.billing_save', ['percent' => $savePercent]) }}
                 </span>
             </button>
         </div>
         <p class="text-sm text-gray-400 -mt-2 mb-6" x-show="billingYearly" x-cloak style="margin-top:-0.75rem;">
             <i data-lucide="gift" class="w-4 h-4 inline text-accent-500 -mt-0.5"></i>
-            Yearly is our best value — get <strong class="text-gray-600">~{{ $monthsFree }} months free</strong> vs. paying monthly.
+            {!! __('pages.pricing.hero_yearly_hint', ['months' => '<strong class="text-gray-600">'.__('pages.pricing.hero_yearly_hint_months', ['count' => $monthsFree]).'</strong>']) !!}
         </p>
     </div>
 </section>
@@ -74,26 +76,26 @@
             {{-- Free Card --}}
             <div class="bg-white rounded-3xl border border-gray-200 shadow-sm p-8 reveal flex flex-col">
                 <div class="mb-6">
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-500 mb-4">Free</span>
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-500 mb-4">{{ __('pages.pricing.free_badge') }}</span>
                     <div class="flex items-end gap-1 mb-1">
                         <span class="text-5xl font-extrabold text-gray-900">$0</span>
-                        <span class="text-gray-400 text-base mb-2">/ forever</span>
+                        <span class="text-gray-400 text-base mb-2">{{ __('pages.pricing.free_per_forever') }}</span>
                     </div>
-                    <p class="text-gray-400 text-sm">No credit card required</p>
+                    <p class="text-gray-400 text-sm">{{ __('pages.pricing.free_no_card') }}</p>
                 </div>
 
                 <ul class="space-y-4 mb-8">
                     @php $freeFeatures = [
-                        ['icon' => 'music-2', 'text' => '5 Learning Path sessions per day (5 questions each)'],
-                        ['icon' => 'settings-2', 'text' => '5 Exercise Studio sessions per day (5 questions each)'],
-                        ['icon' => 'gamepad-2', 'text' => '2 plays per game per day (6 total)'],
-                        ['icon' => 'piano', 'text' => 'Unlimited Piano Studio'],
-                        ['icon' => 'message-circle', 'text' => 'Ask AI — 1 question per day'],
-                        ['icon' => 'layers', 'text' => 'All 10+ exercise types'],
-                        ['icon' => 'save', 'text' => 'Up to 3 saved templates'],
-                        ['icon' => 'bar-chart-2', 'text' => 'Basic progress tracking'],
-                        ['icon' => 'x', 'text' => 'AI Exercises & AI Coach (Premium only)', 'disabled' => true],
-                        ['icon' => 'x', 'text' => 'Unlimited exercises (Premium only)', 'disabled' => true],
+                        ['icon' => 'music-2', 'text' => __('pages.pricing.free_feat_lp')],
+                        ['icon' => 'settings-2', 'text' => __('pages.pricing.free_feat_studio')],
+                        ['icon' => 'gamepad-2', 'text' => __('pages.pricing.free_feat_games')],
+                        ['icon' => 'piano', 'text' => __('pages.pricing.free_feat_piano')],
+                        ['icon' => 'message-circle', 'text' => __('pages.pricing.free_feat_ask_ai')],
+                        ['icon' => 'layers', 'text' => __('pages.pricing.free_feat_types')],
+                        ['icon' => 'save', 'text' => __('pages.pricing.free_feat_templates')],
+                        ['icon' => 'bar-chart-2', 'text' => __('pages.pricing.free_feat_progress')],
+                        ['icon' => 'x', 'text' => __('pages.pricing.free_feat_ai_locked'), 'disabled' => true],
+                        ['icon' => 'x', 'text' => __('pages.pricing.free_feat_unlimited_locked'), 'disabled' => true],
                     ]; @endphp
                     @foreach ($freeFeatures as $f)
                     <li class="flex items-start gap-3 text-sm {{ ($f['disabled'] ?? false) ? 'opacity-40' : '' }}">
@@ -107,11 +109,11 @@
 
                 @auth
                 <a href="{{ url('/dashboard') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors shadow-lg hover:-translate-y-0.5">
-                    Go to Dashboard
+                    {{ __('pages.pricing.free_cta_dashboard') }}
                 </a>
                 @else
                 <a href="{{ route('register') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors shadow-lg hover:-translate-y-0.5">
-                    Start Free — No Card Needed
+                    {{ __('pages.pricing.free_cta_register') }}
                 </a>
                 @endauth
             </div>
@@ -123,9 +125,9 @@
                 <div style="background:#7c3aed; padding:28px 32px 30px;">
                     <div class="flex items-center justify-between" style="margin-bottom:20px;">
                         <span class="inline-flex items-center font-bold uppercase text-white" style="gap:6px; padding:5px 12px; border-radius:9999px; font-size:11px; letter-spacing:0.05em; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.32);">
-                            <i data-lucide="crown" style="width:14px; height:14px;"></i> Premium
+                            <i data-lucide="crown" style="width:14px; height:14px;"></i> {{ __('pages.pricing.premium_badge') }}
                         </span>
-                        <span class="inline-block font-bold" style="padding:5px 12px; border-radius:9999px; font-size:11px; color:#fff2e2; background:rgba(249,115,22,0.38); border:1px solid rgba(251,146,60,0.6);">Most Popular</span>
+                        <span class="inline-block font-bold" style="padding:5px 12px; border-radius:9999px; font-size:11px; color:#fff2e2; background:rgba(249,115,22,0.38); border:1px solid rgba(251,146,60,0.6);">{{ __('pages.pricing.premium_most_popular') }}</span>
                     </div>
 
                     {{-- Monthly / Yearly switch — full-width segmented control, changes the price below --}}
@@ -133,13 +135,13 @@
                         <button type="button" @click="billingYearly = false"
                                 style="flex:1; display:flex; align-items:center; justify-content:center; padding:11px 12px; border-radius:9px; font-size:13.5px; font-weight:700; letter-spacing:0.01em; border:0; cursor:pointer; transition:all .2s;"
                                 :style="!billingYearly ? 'background:#ffffff; color:#6d28d9; box-shadow:0 1px 2px rgba(0,0,0,0.2),0 3px 10px rgba(0,0,0,0.14);' : 'background:transparent; color:rgba(255,255,255,0.85);'">
-                            Monthly
+                            {{ __('pages.pricing.billing_monthly') }}
                         </button>
                         <button type="button" @click="billingYearly = true"
                                 style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 12px; border-radius:9px; font-size:13.5px; font-weight:700; letter-spacing:0.01em; border:0; cursor:pointer; transition:all .2s;"
                                 :style="billingYearly ? 'background:#ffffff; color:#6d28d9; box-shadow:0 1px 2px rgba(0,0,0,0.2),0 3px 10px rgba(0,0,0,0.14);' : 'background:transparent; color:rgba(255,255,255,0.85);'">
-                            Yearly
-                            <span style="display:inline-flex; align-items:center; font-size:10px; font-weight:800; letter-spacing:0.04em; padding:3px 8px; border-radius:9999px; background:#f97316; color:#fff; line-height:1;">SAVE {{ $savePercent }}%</span>
+                            {{ __('pages.pricing.billing_yearly') }}
+                            <span style="display:inline-flex; align-items:center; font-size:10px; font-weight:800; letter-spacing:0.04em; padding:3px 8px; border-radius:9999px; background:#f97316; color:#fff; line-height:1;">{{ __('pages.pricing.billing_save_caps', ['percent' => $savePercent]) }}</span>
                         </button>
                     </div>
 
@@ -147,19 +149,19 @@
                     <div x-show="!billingYearly">
                         <div class="flex items-end" style="gap:6px;">
                             <span class="font-extrabold text-white" style="font-size:56px; line-height:1; letter-spacing:-0.02em;">${{ number_format($monthlyPrice, 2) }}</span>
-                            <span class="font-medium" style="color:rgba(255,255,255,0.82); font-size:16px; margin-bottom:6px;">/month</span>
+                            <span class="font-medium" style="color:rgba(255,255,255,0.82); font-size:16px; margin-bottom:6px;">{{ __('pages.pricing.premium_per_month') }}</span>
                         </div>
-                        <p style="color:rgba(255,255,255,0.82); font-size:13px; margin-top:8px;">Billed monthly · cancel anytime</p>
+                        <p style="color:rgba(255,255,255,0.82); font-size:13px; margin-top:8px;">{{ __('pages.pricing.premium_billed_monthly') }}</p>
                     </div>
                     {{-- Yearly price (visible when toggle is on Yearly) --}}
                     <div x-show="billingYearly" x-cloak>
                         <div class="flex items-end" style="gap:6px;">
                             <span class="font-extrabold text-white" style="font-size:56px; line-height:1; letter-spacing:-0.02em;">${{ number_format($yearlyMonthly, 2) }}</span>
-                            <span class="font-medium" style="color:rgba(255,255,255,0.82); font-size:16px; margin-bottom:6px;">/month</span>
+                            <span class="font-medium" style="color:rgba(255,255,255,0.82); font-size:16px; margin-bottom:6px;">{{ __('pages.pricing.premium_per_month') }}</span>
                         </div>
                         <p style="color:rgba(255,255,255,0.92); font-size:13px; margin-top:8px;">
-                            ${{ $yearlyTotal }} billed annually ·
-                            <span class="font-bold" style="color:#ffd9a8;">Save {{ $savePercent }}% (${{ $saveAmount }})</span>
+                            {{ __('pages.pricing.premium_billed_annually', ['total' => '$'.$yearlyTotal]) }}
+                            <span class="font-bold" style="color:#ffd9a8;">{{ __('pages.pricing.premium_billed_annually_save', ['percent' => $savePercent, 'amount' => '$'.$saveAmount]) }}</span>
                         </p>
                     </div>
                 </div>
@@ -168,14 +170,14 @@
                 <div class="relative px-8 pt-6 pb-8 flex flex-col flex-1">
                     <ul class="space-y-4 mb-8">
                         @php $premiumFeatures = [
-                            ['icon' => 'infinity', 'text' => 'Unlimited exercises — every type'],
-                            ['icon' => 'infinity', 'text' => 'Unlimited music games'],
-                            ['icon' => 'sparkles', 'text' => 'AI mode — personalized feedback'],
-                            ['icon' => 'brain', 'text' => 'AI Learning Path generator'],
-                            ['icon' => 'message-circle', 'text' => 'AI Music Assistant chat'],
-                            ['icon' => 'save', 'text' => 'Unlimited saved templates'],
-                            ['icon' => 'trending-up', 'text' => 'Advanced progress analytics'],
-                            ['icon' => 'layers', 'text' => 'All 10+ exercise types'],
+                            ['icon' => 'infinity', 'text' => __('pages.pricing.premium_feat_unlimited')],
+                            ['icon' => 'infinity', 'text' => __('pages.pricing.premium_feat_games')],
+                            ['icon' => 'sparkles', 'text' => __('pages.pricing.premium_feat_ai_mode')],
+                            ['icon' => 'brain', 'text' => __('pages.pricing.premium_feat_ai_lp')],
+                            ['icon' => 'message-circle', 'text' => __('pages.pricing.premium_feat_ai_chat')],
+                            ['icon' => 'save', 'text' => __('pages.pricing.premium_feat_templates')],
+                            ['icon' => 'trending-up', 'text' => __('pages.pricing.premium_feat_analytics')],
+                            ['icon' => 'layers', 'text' => __('pages.pricing.premium_feat_types')],
                         ]; @endphp
                         @foreach ($premiumFeatures as $f)
                         <li class="flex items-start gap-3 text-sm">
@@ -189,17 +191,17 @@
 
                     @auth
                     <a href="{{ route('checkout.show') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                        Get Premium Now
+                        {{ __('pages.pricing.premium_cta_checkout') }}
                     </a>
                     @else
                     <a href="{{ route('register') }}" class="mt-auto block w-full py-3.5 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                        Start Now — Get Premium
+                        {{ __('pages.pricing.premium_cta_register') }}
                     </a>
                     @endauth
                     <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
-                        <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> 14-day money-back guarantee</span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> {{ __('pages.pricing.premium_guarantee') }}</span>
                         <span>·</span>
-                        <span>Cancel anytime</span>
+                        <span>{{ __('pages.pricing.premium_cancel_anytime') }}</span>
                     </p>
                 </div>
             </div>
@@ -207,12 +209,12 @@
 
         {{-- Links below cards --}}
         <div class="flex flex-wrap items-center justify-center gap-4 mt-8 text-sm reveal" style="transition-delay:0.2s">
-            <a href="/pricing/teachers-and-schools" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
+            <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                Teachers &amp; Schools →
+                {{ __('pages.pricing.link_teachers_schools') }} →
             </a>
             <a href="#compare" class="inline-flex items-center gap-2 px-5 py-2.5 text-gray-500 hover:text-gray-800 transition-colors">
-                Compare all plans <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                {{ __('pages.pricing.link_compare') }} <i data-lucide="arrow-down" class="w-4 h-4"></i>
             </a>
         </div>
     </div>
@@ -228,30 +230,33 @@
                 <div class="flex-1 text-center md:text-left">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 text-green-300 text-xs font-bold mb-4">
                         <i data-lucide="gift" class="w-3.5 h-3.5"></i>
-                        For Teachers &amp; Music Schools
+                        {{ __('pages.pricing.teaser_badge') }}
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">
-                        Bring Premium students, <span class="font-serif italic font-normal" style="color:#4ade80;">use Harmoniva free</span>
+                        {{ __('pages.pricing.teaser_title_a') }} <span class="font-serif italic font-normal" style="color:#4ade80;">{{ __('pages.pricing.teaser_title_b') }}</span>
                     </h2>
                     <p class="text-gray-300 text-sm max-w-xl leading-relaxed">
-                        Teachers with <strong class="text-white">10+ Premium students</strong> and schools with <strong class="text-white">20+ Premium students</strong> unlock the entire platform — every feature, completely free. The more your students grow, the less you pay.
+                        {!! __('pages.pricing.teaser_desc', [
+                            'teachers' => '<strong class="text-white">'.__('pages.pricing.teaser_desc_teachers').'</strong>',
+                            'schools' => '<strong class="text-white">'.__('pages.pricing.teaser_desc_schools').'</strong>',
+                        ]) !!}
                     </p>
                 </div>
                 <div class="shrink-0 flex flex-col sm:flex-row md:flex-col gap-3">
                     <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/5 border border-white/10">
                         <span class="text-3xl font-extrabold" style="color:#4ade80;">10+</span>
-                        <span class="text-xs text-gray-300 leading-tight">Premium students<br>= free for teachers</span>
+                        <span class="text-xs text-gray-300 leading-tight">{!! __('pages.pricing.teaser_stat_teachers') !!}</span>
                     </div>
                     <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/5 border border-white/10">
                         <span class="text-3xl font-extrabold" style="color:#4ade80;">20+</span>
-                        <span class="text-xs text-gray-300 leading-tight">Premium students<br>= free for schools</span>
+                        <span class="text-xs text-gray-300 leading-tight">{!! __('pages.pricing.teaser_stat_schools') !!}</span>
                     </div>
                 </div>
             </div>
             <div class="relative mt-8 text-center md:text-left">
                 <a href="{{ route('pricing.teachers') }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-gray-900 bg-white rounded-xl hover:bg-gray-100 transition-all shadow-lg">
                     <i data-lucide="graduation-cap" class="w-4 h-4"></i>
-                    See Teacher &amp; School plans
+                    {{ __('pages.pricing.teaser_cta') }}
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </a>
             </div>
@@ -263,15 +268,15 @@
 <section class="py-16 bg-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 reveal">
-            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Why Harmoniva?</h2>
-            <p class="text-gray-400 text-sm">Everything you need, nothing you don't.</p>
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-2">{{ __('pages.pricing.trust_title') }}</h2>
+            <p class="text-gray-400 text-sm">{{ __('pages.pricing.trust_subtitle') }}</p>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 reveal">
             @php $trusts = [
-                ['icon' => 'credit-card', 'title' => 'No credit card', 'desc' => 'Start free with no payment info required.'],
-                ['icon' => 'x-circle', 'title' => 'Cancel anytime', 'desc' => 'No lock-in, no cancellation fees.'],
-                ['icon' => 'shield-check', 'title' => 'Secure & private', 'desc' => 'Your data is encrypted and never sold.'],
-                ['icon' => 'headphones', 'title' => 'Fast support', 'desc' => 'Real humans, quick responses.'],
+                ['icon' => 'credit-card', 'title' => __('pages.pricing.trust_nocard_title'), 'desc' => __('pages.pricing.trust_nocard_desc')],
+                ['icon' => 'x-circle', 'title' => __('pages.pricing.trust_cancel_title'), 'desc' => __('pages.pricing.trust_cancel_desc')],
+                ['icon' => 'shield-check', 'title' => __('pages.pricing.trust_secure_title'), 'desc' => __('pages.pricing.trust_secure_desc')],
+                ['icon' => 'headphones', 'title' => __('pages.pricing.trust_support_title'), 'desc' => __('pages.pricing.trust_support_desc')],
             ]; @endphp
             @foreach ($trusts as $t)
             <div class="text-center p-5 bg-gray-50 rounded-2xl border border-gray-100">
@@ -290,48 +295,49 @@
 <section id="compare" class="py-20" style="background:#FAF7F2;">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 reveal">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">Full Breakdown</span>
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Compare all plans</h2>
-            <p class="text-gray-400 text-sm">See exactly what's included in each tier.</p>
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary-600 mb-3 block">{{ __('pages.pricing.compare_eyebrow') }}</span>
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">{{ __('pages.pricing.compare_title') }}</h2>
+            <p class="text-gray-400 text-sm">{{ __('pages.pricing.compare_subtitle') }}</p>
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden reveal">
             <div class="overflow-x-auto"><div class="min-w-[560px]">
             <div class="grid grid-cols-4 gap-0 border-b border-gray-100 bg-gray-50">
-                <div class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Feature</div>
+                <div class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('pages.pricing.compare_col_feature') }}</div>
                 <div class="px-3 py-4 text-center">
-                    <div class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Free</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">{{ __('pages.pricing.compare_col_free') }}</div>
                     <div class="text-lg font-extrabold text-gray-900">$0</div>
                 </div>
                 <div class="px-3 py-4 text-center" style="background:rgba(147,51,234,0.04);">
-                    <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">Premium</div>
-                    <div class="text-lg font-extrabold text-gray-900" x-show="!billingYearly">${{ number_format($monthlyPrice, 2) }}<span class="text-xs text-gray-400 font-normal">/mo</span></div>
-                    <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>${{ number_format($yearlyMonthly, 2) }}<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">{{ __('pages.pricing.compare_col_premium') }}</div>
+                    <div class="text-lg font-extrabold text-gray-900" x-show="!billingYearly">${{ number_format($monthlyPrice, 2) }}<span class="text-xs text-gray-400 font-normal">{{ __('pages.pricing.compare_per_mo') }}</span></div>
+                    <div class="text-lg font-extrabold text-gray-900" x-show="billingYearly" x-cloak>${{ number_format($yearlyMonthly, 2) }}<span class="text-xs text-gray-400 font-normal">{{ __('pages.pricing.compare_per_mo') }}</span></div>
                 </div>
                 <div class="px-3 py-4 text-center" style="background:rgba(234,88,12,0.04);">
-                    <div class="text-xs font-bold uppercase tracking-wider text-accent-600 mb-1">Teachers</div>
-                    <div class="text-lg font-extrabold text-gray-900">$16.90<span class="text-xs text-gray-400 font-normal">/mo</span></div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-accent-600 mb-1">{{ __('pages.pricing.compare_col_teachers') }}</div>
+                    <div class="text-lg font-extrabold text-gray-900">${{ number_format($teacherPrice, 2) }}<span class="text-xs text-gray-400 font-normal">{{ __('pages.pricing.compare_per_mo') }}</span></div>
                 </div>
             </div>
 
             @php
+            $unlimited = __('pages.pricing.val_unlimited');
             $rows = [
-                ['Learning Path sessions', '5 / day (5 questions)', 'Unlimited', 'Unlimited'],
-                ['Exercise Studio sessions', '5 / day (5 questions)', 'Unlimited', 'Unlimited'],
-                ['Music games', '2 / game / day', 'Unlimited', 'Unlimited'],
-                ['Piano Studio', 'Unlimited', 'Unlimited', 'Unlimited'],
-                ['Exercise types (10+)', true, true, true],
-                ['Ask AI (Music Assistant)', '1 question / day', '10 / day', '10 / day'],
-                ['AI Exercises', false, true, true],
-                ['AI Coach', false, true, true],
-                ['Saved templates', '3 max', 'Unlimited', 'Unlimited'],
-                ['Progress analytics', 'Basic', 'Advanced', 'Advanced'],
-                ['Student management', false, false, true],
-                ['Assign to students/classes', false, false, true],
-                ['Class-wide analytics', false, false, true],
-                ['Multiple teacher accounts', false, false, true],
-                ['Custom branding', false, false, true],
-                ['Priority support', false, false, true],
+                [__('pages.pricing.row_lp'), __('pages.pricing.row_lp_free'), $unlimited, $unlimited],
+                [__('pages.pricing.row_studio'), __('pages.pricing.row_studio_free'), $unlimited, $unlimited],
+                [__('pages.pricing.row_games'), __('pages.pricing.row_games_free'), $unlimited, $unlimited],
+                [__('pages.pricing.row_piano'), $unlimited, $unlimited, $unlimited],
+                [__('pages.pricing.row_types'), true, true, true],
+                [__('pages.pricing.row_ask_ai'), __('pages.pricing.row_ask_ai_free'), __('pages.pricing.row_ask_ai_paid'), __('pages.pricing.row_ask_ai_paid')],
+                [__('pages.pricing.row_ai_exercises'), false, true, true],
+                [__('pages.pricing.row_ai_coach'), false, true, true],
+                [__('pages.pricing.row_templates'), __('pages.pricing.row_templates_free'), $unlimited, $unlimited],
+                [__('pages.pricing.row_analytics'), __('pages.pricing.row_analytics_free'), __('pages.pricing.row_analytics_paid'), __('pages.pricing.row_analytics_paid')],
+                [__('pages.pricing.row_student_mgmt'), false, false, true],
+                [__('pages.pricing.row_assign'), false, false, true],
+                [__('pages.pricing.row_class_analytics'), false, false, true],
+                [__('pages.pricing.row_multi_teacher'), false, false, true],
+                [__('pages.pricing.row_branding'), false, false, true],
+                [__('pages.pricing.row_priority'), false, false, true],
             ];
             @endphp
 
@@ -356,16 +362,16 @@
 
         <div class="flex flex-wrap items-center justify-center gap-4 mt-8 text-sm reveal">
             @auth
-            <a href="{{ route('checkout.show') }}" class="inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                Go to Dashboard
+            <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+                {{ __('pages.pricing.compare_cta_dashboard') }}
             </a>
             @else
             <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-                Get Started Free
+                {{ __('pages.pricing.compare_cta_register') }}
             </a>
             @endauth
-            <a href="/pricing/teachers-and-schools" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
-                Teachers &amp; Schools →
+            <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-semibold hover:border-accent-400 hover:text-accent-600 transition-all shadow-sm">
+                {{ __('pages.pricing.link_teachers_schools') }} →
             </a>
         </div>
     </div>
@@ -375,22 +381,30 @@
 <section class="py-20 bg-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12 reveal">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Frequently asked questions</h2>
-            <p class="text-gray-400">Got questions? We've got answers.</p>
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">{{ __('pages.pricing.faq_title') }}</h2>
+            <p class="text-gray-400">{{ __('pages.pricing.faq_subtitle') }}</p>
         </div>
 
         @php
         $faqs = [
-            ['q' => 'Is Harmoniva really free to start?',
-             'a' => 'Yes, completely. Create your account with just an email — no credit card required. You get 5 practice sessions per day in the Learning Path and the Exercise Studio, unlimited Piano Studio, and daily game plays — forever. Upgrade to Premium when you want unlimited access and AI features.'],
-            ['q' => 'What\'s the difference between Monthly and Yearly billing?',
-             'a' => 'Monthly billing is $'.number_format($monthlyPrice, 2).'/month and can be cancelled at any time. Yearly billing locks in a lower rate of $'.number_format($yearlyMonthly, 2).'/month (billed as $'.$yearlyTotal.'/year), saving you about '.$savePercent.'%. Both plans include identical features.'],
-            ['q' => 'Can I cancel my Premium subscription at any time?',
-             'a' => 'Absolutely. You can cancel from your account settings at any moment. You\'ll keep Premium access until the end of your current billing period, and you won\'t be charged again.'],
-            ['q' => 'What AI features are included in Premium?',
-             'a' => 'Premium includes our AI Learning Path generator (creates a personalized curriculum based on your skill gaps), the AI Music Assistant (an always-available chat for music theory help), and AI-powered exercise feedback that explains your mistakes.'],
-            ['q' => 'Do you offer a plan for teachers and music schools?',
-             'a' => 'Yes! Teacher plans start at $16.90/month and School plans at $29.90/month, both with bigger savings on yearly billing — and they include student roster management, exercise assignment, class-wide analytics, and more. Even better: teachers with 10+ Premium students, and schools with 20+ Premium students, use Harmoniva completely free. Visit the Teachers & Schools pricing page for full details.'],
+            ['q' => __('pages.pricing.faq_q1'),
+             'a' => __('pages.pricing.faq_a1')],
+            ['q' => __('pages.pricing.faq_q2'),
+             'a' => __('pages.pricing.faq_a2', [
+                'monthly' => '$'.number_format($monthlyPrice, 2),
+                'yearly_monthly' => '$'.number_format($yearlyMonthly, 2),
+                'yearly_total' => '$'.$yearlyTotal,
+                'percent' => $savePercent,
+             ])],
+            ['q' => __('pages.pricing.faq_q3'),
+             'a' => __('pages.pricing.faq_a3')],
+            ['q' => __('pages.pricing.faq_q4'),
+             'a' => __('pages.pricing.faq_a4')],
+            ['q' => __('pages.pricing.faq_q5'),
+             'a' => __('pages.pricing.faq_a5', [
+                'teacher_price' => '$'.number_format($teacherPrice, 2),
+                'school_price' => '$'.number_format($schoolPrice, 2),
+             ])],
         ];
         @endphp
 
@@ -421,32 +435,32 @@
             <i data-lucide="music-2" class="w-8 h-8 text-white"></i>
         </div>
         <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-5">
-            Your musical ear is waiting.<br>
-            <span class="font-serif italic font-normal gradient-text">Start training today.</span>
+            {{ __('pages.pricing.final_title_a') }}<br>
+            <span class="font-serif italic font-normal gradient-text">{{ __('pages.pricing.final_title_b') }}</span>
         </h2>
         <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto">
-            Join thousands of musicians who train smarter with Harmoniva. Free to start, powerful when you're ready to level up.
+            {{ __('pages.pricing.final_subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             @auth
-            <a href="{{ route('checkout.show') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
+            <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Go to Dashboard
+                {{ __('pages.pricing.final_cta_dashboard') }}
             </a>
             @else
             <a href="{{ route('register') }}" class="inline-flex items-center gap-2 px-8 py-4 text-base font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-xl hover:-translate-y-0.5" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                 <i data-lucide="rocket" class="w-5 h-5"></i>
-                Start Free — No Card Needed
+                {{ __('pages.pricing.final_cta_register') }}
             </a>
             @endauth
-            <a href="/pricing/teachers-and-schools" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
-                Teachers &amp; Schools <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-6 py-4 text-base font-medium text-gray-500 hover:text-gray-800 transition-colors">
+                {{ __('pages.pricing.link_teachers_schools') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 mt-8">
-            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>No credit card required</span>
-            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>Cancel anytime</span>
-            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>10,000+ musicians training</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.pricing.final_badge_nocard') }}</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.pricing.final_badge_cancel') }}</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 text-green-500"></i>{{ __('pages.pricing.final_badge_musicians') }}</span>
         </div>
     </div>
 </section>

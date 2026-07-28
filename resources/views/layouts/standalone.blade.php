@@ -8,14 +8,38 @@
     @hasSection('robots')
     <meta name="robots" content="@yield('robots')">
     @endif
-    <link rel="canonical" href="@yield('canonical', request()->url())">
+    @php
+        // Per-locale canonical + hreflang alternates for the public template
+        // pages. Only pages listed in config('locales.public_pages') advertise
+        // alternates, so we never claim a localized URL that isn't translated.
+        $seoPrefixed = config('locales.prefixed');
+        $seoPublicPages = array_keys((array) config('locales.public_pages'));
+        $seoSegments = request()->segments();
+        $seoBasePath = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
+            ? '/'.implode('/', array_slice($seoSegments, 1))
+            : '/'.implode('/', $seoSegments);
+        $seoBasePath = rtrim($seoBasePath, '/') ?: '/';
+        $seoIsLocalized = in_array($seoBasePath, $seoPublicPages, true);
+        $seoCurrentLocale = app()->getLocale();
+        $seoCanonical = locale_url($seoBasePath, $seoIsLocalized ? $seoCurrentLocale : 'en');
+        $seoOgLocales = config('locales.og');
+    @endphp
+    <link rel="canonical" href="@yield('canonical', $seoCanonical)">
+    @if ($seoIsLocalized)
+    <link rel="alternate" hreflang="en" href="{{ locale_url($seoBasePath, 'en') }}">
+    @foreach ($seoPrefixed as $seoAltLocale)
+    <link rel="alternate" hreflang="{{ $seoAltLocale }}" href="{{ locale_url($seoBasePath, $seoAltLocale) }}">
+    @endforeach
+    <link rel="alternate" hreflang="x-default" href="{{ locale_url($seoBasePath, 'en') }}">
+    @endif
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="Harmoniva">
+    <meta property="og:locale" content="{{ $seoOgLocales[$seoCurrentLocale] ?? 'en_US' }}">
     <meta property="og:title" content="@yield('title', 'AI-Powered Ear Training')">
     <meta property="og:description" content="@yield('description', 'AI-powered ear training for musicians, students, teachers, and music schools.')">
-    <meta property="og:url" content="@yield('canonical', request()->url())">
+    <meta property="og:url" content="@yield('canonical', $seoCanonical)">
     <meta property="og:image" content="@yield('og_image', asset('images/og-image.png'))">
     @hasSection('og_image')
     @else
@@ -79,11 +103,11 @@
     <nav class="fixed top-0 left-0 right-0 z-50 border-b border-black/10 backdrop-blur-xl bg-white/80">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <a href="/" class="flex items-center group shrink-0">
+                <a href="{{ locale_url('/') }}" class="flex items-center group shrink-0">
                     <img src="{{ asset('images/logo-full.png') }}" alt="Harmoniva" width="1374" height="340" class="h-[43px] sm:h-[47px] w-auto">
                 </a>
                 <div class="flex items-center gap-3">
-                    <a href="/" class="hidden sm:inline-flex px-4 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                    <a href="{{ locale_url('/') }}" class="hidden sm:inline-flex px-4 py-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
                         ← {{ __('app.welcome.back_to_home') }}
                     </a>
                     @auth
@@ -156,12 +180,12 @@
             <nav style="padding:1rem 1.25rem;flex:1;display:flex;flex-direction:column;gap:0.25rem;">
                 @php
                     $saLinks = [
-                        ['href'=>'/',              'label'=> __('app.welcome.back_to_home'),        'svg'=>'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'],
-                        ['href'=>'/how-it-works',  'label'=> __('app.footer.how_it_works_guide'),   'svg'=>'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'],
-                        ['href'=>'/find-teachers', 'label'=> __('app.footer.find_teachers'),        'svg'=>'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>'],
-                        ['href'=>'/pricing',       'label'=> __('app.welcome.nav_pricing'),         'svg'=>'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>'],
-                        ['href'=>'/faq',           'label'=> __('app.footer.faq'),                  'svg'=>'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
-                        ['href'=>'/help',          'label'=> __('app.footer.help_center'),          'svg'=>'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
+                        ['href'=>locale_url('/'),              'label'=> __('app.welcome.back_to_home'),        'svg'=>'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'],
+                        ['href'=>locale_url('/how-it-works'),  'label'=> __('app.footer.how_it_works_guide'),   'svg'=>'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'],
+                        ['href'=>locale_url('/find-teachers'), 'label'=> __('app.footer.find_teachers'),        'svg'=>'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>'],
+                        ['href'=>locale_url('/pricing'),       'label'=> __('app.welcome.nav_pricing'),         'svg'=>'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>'],
+                        ['href'=>locale_url('/faq'),           'label'=> __('app.footer.faq'),                  'svg'=>'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
+                        ['href'=>locale_url('/help'),          'label'=> __('app.footer.help_center'),          'svg'=>'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
                     ];
                 @endphp
                 @foreach($saLinks as $lnk)

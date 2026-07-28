@@ -6,6 +6,7 @@ use App\Jobs\SendEmailCenterMessage;
 use App\Models\EmailAutomation;
 use App\Models\EmailCampaign;
 use App\Models\EmailMessage;
+use App\Models\EmailPreference;
 use App\Models\EmailSuppression;
 use App\Models\EmailTemplate;
 use App\Models\User;
@@ -45,6 +46,14 @@ class EmailDispatchService
             }
             if (! $user && $this->suppressions->isSuppressed($email)) {
                 return null;
+            }
+            // Per-user topic/frequency preferences. Only a known user can have
+            // preferences; addressed-only marketing (rare) is unaffected.
+            if ($user) {
+                $category = EmailPreference::categoryFor($automation, $emailType);
+                if (! EmailPreference::for($user)->allows($category)) {
+                    return null;
+                }
             }
         } elseif ($this->isHardSuppressed($email)) {
             // even transactional mail must not go to hard-bounced addresses

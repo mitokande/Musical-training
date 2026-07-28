@@ -62,7 +62,25 @@ class SitemapController extends Controller
     public function index(): Response
     {
         $landingUrls = array_map(fn (string $path) => url($path), self::LANDING_PATHS);
-        $staticUrls = array_map(fn (string $path) => url($path), self::STATIC_PATHS);
+
+        // Public template pages with per-locale variants. Each is emitted as its
+        // own <url> per locale with the full hreflang alternate set (see the
+        // sitemap view). Their English paths are dropped from STATIC_PATHS below
+        // so they are never listed twice.
+        $localizedPaths = array_keys((array) config('locales.public_pages'));
+        $localizedUrls = array_map(function (string $path) {
+            $set = ['en' => locale_url($path, 'en')];
+            foreach (config('locales.prefixed') as $locale) {
+                $set[$locale] = locale_url($path, $locale);
+            }
+
+            return $set;
+        }, $localizedPaths);
+
+        $staticUrls = array_map(
+            fn (string $path) => url($path),
+            array_values(array_diff(self::STATIC_PATHS, $localizedPaths))
+        );
 
         // Only published articles — drafts/pending must never appear here.
         $articles = Article::published()
@@ -101,6 +119,7 @@ class SitemapController extends Controller
 
         $xml = view('sitemap', [
             'landingUrls' => $landingUrls,
+            'localizedUrls' => $localizedUrls,
             'staticUrls' => array_merge($staticUrls, $practiceUrls, $lessonUrls),
             'articles' => $articles,
             'gameUrls' => $gameUrls,

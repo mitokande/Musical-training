@@ -86,7 +86,9 @@ class TeacherStudentService
             'expires_at' => now()->addDays(self::EMAIL_INVITATION_TTL_DAYS),
         ]);
 
-        Mail::to($email)->queue(new TeacherStudentInvitationMail($invitation));
+        // The invitee is not a registered user yet, so their language is
+        // unknown — invitations always go out in English.
+        Mail::to($email)->locale('en')->queue(new TeacherStudentInvitationMail($invitation));
 
         return $invitation;
     }

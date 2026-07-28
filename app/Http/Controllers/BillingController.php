@@ -15,7 +15,9 @@ class BillingController extends Controller
     {
         $user = $request->user();
 
-        $subscription = $user->activeSubscription();
+        // Includes a running free trial, so the page can describe it instead of
+        // reporting "no subscription" while the user is clearly on Premium.
+        $subscription = $user->currentSubscription();
         $invoices = $user->invoices()->latest()->limit(50)->get();
 
         return view('billing.index', [

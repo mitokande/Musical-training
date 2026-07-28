@@ -118,6 +118,8 @@
                 <option value="set_role_user">Set role: Student</option>
                 <option value="set_role_teacher">Set role: Teacher</option>
                 <option value="set_role_school">Set role: School</option>
+                <option value="start_trial">Start free trial</option>
+                <option value="reset_trial">Reset trial eligibility</option>
                 <option value="delete">Delete selected</option>
             </select>
             <button type="submit" class="btn-primary px-4 py-2 text-white text-sm font-semibold rounded-lg transition-all hover:shadow-lg">Apply</button>
@@ -202,7 +204,12 @@
                             @endswitch
                         </td>
                         <td class="px-6 py-4">
-                            @if($user->plan === 'premium')
+                            @if($user->onTrial())
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium"
+                                      title="Free trial ends {{ $user->trial_ends_at->format('M j, Y') }}">
+                                    <i data-lucide="sparkles" class="w-3 h-3"></i> Trial · {{ $user->trialDaysLeft() }}d
+                                </span>
+                            @elseif($user->plan === 'premium')
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">
                                     <i data-lucide="crown" class="w-3 h-3"></i> Premium
                                 </span>

@@ -1430,4 +1430,24 @@ return [
         'sign_up' => "S'inscrire gratuitement",
         'login' => 'Vous avez déjà un compte ? Se connecter',
     ],
+
+    // Free trial — one Premium trial per account, no card taken.
+    // :days always comes from config/payments.php trial.days.
+    'trial' => [
+        'badge' => 'Essai gratuit',
+        'plan_label' => 'Essai Premium',
+        'cta_start' => 'Démarrez votre essai gratuit de :days jours',
+        'cta_no_card' => 'Aucune carte bancaire requise',
+        'cta_subscribe' => 'S\'abonner à Premium',
+        'days_left' => '{1} 1 jour restant|[2,*] :count jours restants',
+        'banner_active' => 'Vous êtes en essai Premium — tout est débloqué.',
+        'ended_title' => 'Votre essai gratuit est terminé',
+        'ended_desc' => 'Vous êtes revenu au forfait Gratuit. Abonnez-vous pour conserver la pratique illimitée et toutes les fonctionnalités Premium.',
+        'started_flash' => 'Votre essai Premium de :days jours est actif — sans carte. Bonne pratique !',
+        'already_used' => 'Vous avez déjà utilisé votre essai gratuit.',
+        'not_available' => 'L\'essai gratuit n\'est pas disponible pour votre compte.',
+        'checkout_closed' => 'Le paiement par carte ouvre très bientôt. En attendant, essayez Premium gratuitement pendant :days jours, sans carte.',
+        'payments_soon' => 'Paiement par carte bientôt disponible',
+    ],
+
 ];

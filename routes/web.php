@@ -49,6 +49,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\MidiViewerController;
+use App\Http\Controllers\EmailPreferenceController;
 use App\Http\Controllers\EmailTrackingController;
 use App\Http\Controllers\ExerciseSetupController;
 use App\Http\Controllers\GameController as MusicGameController;
@@ -75,8 +76,10 @@ use App\Http\Controllers\Teacher\TeacherMessageController;
 use App\Http\Controllers\TeacherBookingController;
 use App\Http\Controllers\TeacherInvitationAcceptController;
 use App\Http\Controllers\TeacherReviewController;
+use App\Http\Controllers\TrialController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
+use App\Http\Middleware\ForceLocaleFromUrl;
 use Illuminate\Support\Facades\Route;
 
 // `/` is the English / x-default landing page. Non-English visitors (locale
@@ -155,6 +158,40 @@ Route::get('/subscription-terms', fn () => view('pages.subscription-terms'))->na
 Route::get('/refund-policy', fn () => view('pages.refund-policy'))->name('page.refund-policy');
 Route::get('/childrens-privacy', fn () => redirect('/privacy-policy#childrens-privacy'))->name('page.childrens-privacy');
 
+// Locale-prefixed variants of the public template pages (/es/pricing, …).
+// Indexable per-language URLs cross-linked via hreflang in layouts/standalone.
+// Driven by config('locales.public_pages') so routes, sitemap, and hreflang
+// never drift apart. English keeps its own un-prefixed routes above.
+Route::prefix('{locale}')
+    ->whereIn('locale', config('locales.prefixed'))
+    ->middleware(ForceLocaleFromUrl::class)
+    ->group(function () {
+        // Public pages whose view needs controller-provided data: the localized
+        // route must run the same controller action, not just render the view.
+        // They still live in config('locales.public_pages') for hreflang/sitemap.
+        $controllerPages = [
+            '/find-teachers' => [TeacherPublicProfileController::class, 'index'],
+            '/learn' => [PageController::class, 'learnView'],
+        ];
+
+        foreach ((array) config('locales.public_pages') as $path => $view) {
+            if (isset($controllerPages[$path])) {
+                Route::get($path, $controllerPages[$path]);
+
+                continue;
+            }
+
+            Route::get($path, function () use ($view) {
+                // Turkish has a dedicated hand-written how-it-works page.
+                if ($view === 'pages.how-it-works' && app()->getLocale() === 'tr') {
+                    return view('pages.how-it-works-tr');
+                }
+
+                return view($view);
+            });
+        }
+    });
+
 // ── End public static pages ───────────────────────────────────────────────
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -166,6 +203,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/checkout/success/{subscription}', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/pending/{subscription}', [CheckoutController::class, 'pending'])->name('checkout.pending');
 
+    // Free Premium trial — no card, claimable once per account.
+    Route::post('/trial/start', [TrialController::class, 'store'])->middleware('throttle:5,1')->name('trial.store');
+
     Route::get('/account/billing', [BillingController::class, 'index'])->name('billing.index');
     Route::post('/account/billing/{subscription}/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
 });
@@ -174,8 +214,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/learn', [PageController::class, 'learnView'])->name('learn');
 Route::get('/progress', [PageController::class, 'progressView'])->middleware(['auth', 'verified'])->name('progress');
 
-// AI Exercises are premium-only (plans.*.premium.ai_exercises).
-Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified', 'plan:ai_exercises'])->name('ai.exercises');
+// AI Exercises are premium-only (plans.*.premium.ai_exercises). Free users may
+// VIEW the setup page (so they can see what Premium unlocks); the page gates the
+// start action behind an upgrade banner, and the POST below is the hard backend
+// gate so it can never be generated without the feature.
+Route::get('/ai-exercises', [PageController::class, 'aiExercisesView'])->middleware(['auth', 'verified'])->name('ai.exercises');
 Route::post('/ai-exercises/generate', [AIController::class, 'generatePractices'])->middleware(['auth', 'verified', 'plan:ai_exercises', 'throttle:10,1'])->name('ai.generate-practices');
 
 Route::get('/piano-studio', [PageController::class, 'pianoStudioView'])->name('piano.studio');
@@ -232,6 +275,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('dev/midi')->name('dev.
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Email preferences from the account Settings panel.
+    Route::get('/account/email-preferences', [EmailPreferenceController::class, 'edit'])->name('email-preferences.edit');
+    Route::put('/account/email-preferences', [EmailPreferenceController::class, 'update'])->name('email-preferences.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
     Route::post('/profile/suspend', [ProfileController::class, 'toggleSuspend'])->name('profile.suspend');
     Route::get('/profile/music', [ProfileController::class, 'editExtendedProfile'])->name('profile.extended');
@@ -571,5 +618,11 @@ Route::get('/email/unsubscribe/{token}', [EmailTrackingController::class, 'unsub
     ->middleware('signed')->name('email.unsubscribe');
 Route::post('/email/unsubscribe/{token}', [EmailTrackingController::class, 'unsubscribePost'])
     ->middleware('signed');
+
+// Email preferences centre — signed link from the email footer (works logged out).
+Route::get('/email/preferences/{token}', [EmailPreferenceController::class, 'showByToken'])
+    ->middleware('signed')->name('email.preferences');
+Route::post('/email/preferences/{token}', [EmailPreferenceController::class, 'updateByToken'])
+    ->middleware('signed')->name('email.preferences.update');
 
 require __DIR__.'/auth.php';
