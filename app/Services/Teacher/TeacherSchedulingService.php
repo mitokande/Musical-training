@@ -10,18 +10,29 @@ use App\Models\TeacherBookingSetting;
 use App\Models\User;
 use App\Notifications\Teacher\AppointmentRequested;
 use App\Notifications\Teacher\AppointmentStatusChanged;
+use App\Services\Meetings\HostPoolExhausted;
+use App\Services\Meetings\MeetingManager;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 /**
  * Availability computation and the appointment state machine. Every status
  * transition goes through transition() so the activity log and notifications
- * stay consistent. Meeting links are plain manual URLs in Phase 1; the
- * meeting_provider column and feature flags (google_calendar_sync_enabled,
- * google_meet_enabled — both off) reserve the seam for Phase 2 providers.
+ * stay consistent.
+ *
+ * Video meetings are delegated to a MeetingProvider (see MeetingManager): a
+ * teacher-supplied URL uses the manual provider, otherwise the lesson is hosted
+ * on a pooled Harmoniva Zoom licence. Provider calls live in the public methods
+ * rather than in transition(), so the audited state machine stays pure and each
+ * transition states its own meeting side effect explicitly. Every provider call
+ * is best-effort: a Zoom outage or an exhausted host pool degrades the lesson to
+ * a manual link, it never blocks the teacher's action.
  */
 class TeacherSchedulingService
 {
+    public function __construct(private MeetingManager $meetings) {}
+
     /** Allowed status transitions: from => [to, ...] */
     private const TRANSITIONS = [
         TeacherAppointment::STATUS_PENDING => [
@@ -224,6 +235,11 @@ class TeacherSchedulingService
         if ($meetingUrl !== null && $meetingUrl !== '') {
             $appointment->meeting_provider = 'manual';
             $appointment->meeting_url = $meetingUrl;
+        } else {
+            // No teacher-supplied link: provision one. Falls back to manual
+            // (teacher adds a link later) if Zoom is off, unreachable, or the
+            // host pool is full — confirming must never fail for that reason.
+            $this->provisionMeeting($appointment);
         }
 
         $this->transition($appointment, $actor, TeacherAppointment::STATUS_CONFIRMED, 'confirmed');
@@ -231,6 +247,8 @@ class TeacherSchedulingService
 
     public function reject(TeacherAppointment $appointment, User $actor, ?string $reason = null): void
     {
+        $this->releaseMeeting($appointment);
+
         $this->transition($appointment, $actor, TeacherAppointment::STATUS_REJECTED, 'rejected', $reason);
     }
 
@@ -239,6 +257,8 @@ class TeacherSchedulingService
         $status = $actor->id === $appointment->teacher_id
             ? TeacherAppointment::STATUS_CANCELLED_BY_TEACHER
             : TeacherAppointment::STATUS_CANCELLED_BY_STUDENT;
+
+        $this->releaseMeeting($appointment);
 
         $this->transition($appointment, $actor, $status, 'cancelled', $reason);
     }
@@ -265,6 +285,11 @@ class TeacherSchedulingService
         $appointment->requested_starts_at = null;
         $appointment->requested_ends_at = null;
         $appointment->status = TeacherAppointment::STATUS_CONFIRMED;
+
+        // The meeting must follow the lesson — an un-moved meeting would leave
+        // both parties joining at the old time.
+        $this->moveMeeting($appointment);
+
         $appointment->save();
 
         $this->log($appointment, $teacher, 'rescheduled', $from, TeacherAppointment::STATUS_CONFIRMED);
@@ -273,12 +298,93 @@ class TeacherSchedulingService
 
     public function complete(TeacherAppointment $appointment, User $actor): void
     {
+        $this->releaseMeeting($appointment);
+
         $this->transition($appointment, $actor, TeacherAppointment::STATUS_COMPLETED, 'completed');
     }
 
     public function markNoShow(TeacherAppointment $appointment, User $actor): void
     {
+        $this->releaseMeeting($appointment);
+
         $this->transition($appointment, $actor, TeacherAppointment::STATUS_NO_SHOW, 'no_show');
+    }
+
+    // ── Meeting side effects ─────────────────────────────────────────────────
+    //
+    // All three helpers mutate the appointment in memory only; the caller saves
+    // it. They swallow provider failures on purpose — the appointment's state is
+    // the source of truth and must never be held hostage by a third party.
+
+    /**
+     * Give the lesson a working meeting. Approving a reschedule request lands
+     * here with a meeting that already exists at the *old* time, so move that
+     * one rather than creating a second and orphaning the first.
+     */
+    private function provisionMeeting(TeacherAppointment $appointment): void
+    {
+        if ($appointment->zoomMeeting?->isActive()) {
+            $this->moveMeeting($appointment);
+
+            return;
+        }
+
+        $this->attemptMeeting(
+            $appointment,
+            fn () => $this->meetings->for($appointment)->create($appointment),
+        );
+    }
+
+    /** Follow a lesson to its new time, re-allocating the host if needed. */
+    private function moveMeeting(TeacherAppointment $appointment): void
+    {
+        $this->attemptMeeting(
+            $appointment,
+            fn () => $this->meetings->existing($appointment)->update($appointment),
+        );
+    }
+
+    /** Tear down the meeting and free the host licence. */
+    private function releaseMeeting(TeacherAppointment $appointment): void
+    {
+        $this->attemptMeeting(
+            $appointment,
+            fn () => $this->meetings->existing($appointment)->cancel($appointment),
+            degradeToManual: false,
+        );
+    }
+
+    /**
+     * @param  bool  $degradeToManual  Whether a failure should drop the lesson
+     *                                 back to the manual provider. True when we
+     *                                 were trying to have a working meeting;
+     *                                 false when tearing one down, where the
+     *                                 stored provider is just history.
+     */
+    private function attemptMeeting(TeacherAppointment $appointment, callable $action, bool $degradeToManual = true): void
+    {
+        try {
+            $action();
+        } catch (HostPoolExhausted) {
+            // Expected under load: every licence is busy. Leave the lesson on
+            // the manual provider so the teacher can paste their own link.
+            if ($degradeToManual) {
+                $appointment->meeting_provider = 'manual';
+            }
+
+            Log::info('Zoom host pool exhausted; lesson left on the manual provider.', [
+                'appointment_id' => $appointment->id,
+            ]);
+        } catch (\Throwable $e) {
+            if ($degradeToManual) {
+                $appointment->meeting_provider = 'manual';
+            }
+
+            Log::error('Meeting provider call failed.', [
+                'appointment_id' => $appointment->id,
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function transition(TeacherAppointment $appointment, User $actor, string $to, string $action, ?string $notes = null): void

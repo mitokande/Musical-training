@@ -4,13 +4,13 @@
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5">
             <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
         </div>
-        <h2 class="text-white text-xl font-bold mb-2">Daily limit reached</h2>
+        <h2 class="text-white text-xl font-bold mb-2">{{ __('app.games.daily_limit_title') }}</h2>
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
             You've used all {{ $dailyLimit }} free plays today. Upgrade to Premium for unlimited games.
         </p>
         <a href="{{ route('checkout.show') }}"
            class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
-            Upgrade to Premium
+            {{ __('app.games.upgrade_premium') }}
         </a>
     </div>
 @else
@@ -29,7 +29,7 @@
                     <i data-lucide="layers" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
-                    <div class="text-white font-bold text-sm">Chord Clash</div>
+                    <div class="text-white font-bold text-sm">{{ __('app.games.chord_clash.title') }}</div>
                     <div class="text-white/40 text-xs"
                          x-text="gameState === 'idle' ? 'Ready to play' : (gameState === 'playing' || gameState === 'levelup' ? 'Level ' + currentLevel + ' · ' + levelName : 'Game Over')"></div>
                 </div>
@@ -43,11 +43,11 @@
                     </template>
                 </div>
                 <div class="text-center" x-show="gameState !== 'idle'">
-                    <div class="text-white/40 text-xs">Score</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.note_rush.score') }}</div>
                     <div class="text-white font-black text-lg sm:text-xl tabular-nums" x-text="score"></div>
                 </div>
                 <div class="text-center" x-show="gameState !== 'idle'">
-                    <div class="text-white/40 text-xs">Streak</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.streak') }}</div>
                     <div class="font-black text-lg sm:text-xl tabular-nums"
                          :class="streak > 0 ? 'text-rose-400' : 'text-white/30'"
                          x-text="streak"></div>
@@ -61,9 +61,9 @@
         {{-- ── IDLE ── --}}
         <div x-show="gameState === 'idle'" class="flex flex-col items-center justify-center gap-5 py-6">
             <div class="text-center">
-                <div class="text-white/8 text-4xl font-black mb-3 select-none">Maj  Min  Dim  Aug</div>
+                <div class="text-white/8 text-4xl font-black mb-3 select-none">{{ __('app.games.chord_clash.decorative_qualities') }}</div>
                 <p class="text-white/50 text-sm text-center max-w-sm">
-                    Listen to one chord and identify its quality.<br>
+                    {{ __('app.games.cc_intro') }}<br>
                     5 levels — from basic triads to complex seventh chords.
                 </p>
             </div>
@@ -74,15 +74,15 @@
                     20 correct answers to advance<br>3 wrong = lose a life
                 </div>
                 <div class="bg-white/4 rounded-xl p-3 border border-white/8">
-                    <div class="text-white/60 font-semibold mb-1">Level 5</div>
-                    All chord types mixed<br>Survive as long as you can
+                    <div class="text-white/60 font-semibold mb-1">{{ __('app.games.cc_level_5') }}</div>
+                    {{ __('app.games.cc_all_types') }}<br>{{ __('app.games.cc_survive') }}
                 </div>
             </div>
 
             @if($personalBest > 0)
             <div class="flex items-center gap-1.5 text-white/30 text-sm">
                 <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-                Personal best: <span class="text-white font-bold ml-1">{{ number_format($personalBest) }}</span>
+                {{ __('app.games.personal_best') }} <span class="text-white font-bold ml-1">{{ number_format($personalBest) }}</span>
             </div>
             @endif
 
@@ -90,7 +90,7 @@
                     class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-rose-400 to-pink-600 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-transform">
                 <span class="flex items-center gap-2">
                     <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                    Start Game
+                    {{ __('app.games.start_game') }}
                 </span>
             </button>
         </div>
@@ -118,7 +118,7 @@
 
             {{-- Question prompt --}}
             <div class="text-center">
-                <p class="text-white/50 text-xs uppercase tracking-wider mb-1">What kind of chord did you hear?</p>
+                <p class="text-white/50 text-xs uppercase tracking-wider mb-1">{{ __('app.games.what_chord_quality') }}</p>
             </div>
 
             {{-- Play button --}}
@@ -168,13 +168,13 @@
                 <div class="text-white text-2xl font-black" x-text="'+500 Bonus!'"></div>
             </div>
             <div class="bg-white/5 rounded-2xl border border-white/10 px-6 py-4 w-full max-w-xs">
-                <div class="text-white/40 text-xs mb-2">Next up:</div>
+                <div class="text-white/40 text-xs mb-2">{{ __('app.games.cc_next_up') }}</div>
                 <div class="text-white font-bold text-base" x-text="'Level ' + currentLevel + ' · ' + levelName"></div>
                 <div class="text-white/40 text-xs mt-1" x-text="nextLevelDesc"></div>
             </div>
             <button @click="continueToNextLevel()"
                     class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-transform">
-                Continue
+                {{ __('app.games.cc_continue') }}
             </button>
         </div>
 
@@ -182,29 +182,29 @@
         <div x-show="gameState === 'gameover'" class="flex flex-col items-center justify-center gap-5 py-4">
             <div class="text-5xl">🎹</div>
             <div class="text-center">
-                <div class="text-white/40 text-sm mb-1">Final Score</div>
+                <div class="text-white/40 text-sm mb-1">{{ __('app.games.final_score') }}</div>
                 <div class="text-5xl font-black text-white tabular-nums" x-text="score.toLocaleString()"></div>
             </div>
             <div class="grid grid-cols-3 gap-3 w-full max-w-sm text-center text-sm">
                 <div class="bg-white/5 rounded-xl border border-white/10 p-3">
                     <div class="text-white font-bold text-lg" x-text="totalCorrect"></div>
-                    <div class="text-white/40 text-xs">Correct</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.correct_label') }}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl border border-white/10 p-3">
                     <div class="text-white font-bold text-lg" x-text="totalWrong"></div>
-                    <div class="text-white/40 text-xs">Wrong</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.melody_memory.wrong_label') }}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl border border-white/10 p-3">
                     <div class="text-white font-bold text-lg" x-text="maxStreak"></div>
-                    <div class="text-white/40 text-xs">Best Streak</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.best_streak') }}</div>
                 </div>
             </div>
             <div class="bg-white/5 rounded-xl border border-white/10 p-4 w-full max-w-sm">
-                <div class="text-white/40 text-xs mb-2 uppercase tracking-wider">Highest Level Reached</div>
+                <div class="text-white/40 text-xs mb-2 uppercase tracking-wider">{{ __('app.games.cc_highest_level') }}</div>
                 <div class="text-white font-bold" x-text="'Level ' + highestLevel + ' · ' + getLevelName(highestLevel)"></div>
             </div>
             <div x-show="weakAreas.length > 0" class="bg-white/5 rounded-xl border border-white/10 p-4 w-full max-w-sm">
-                <div class="text-white/40 text-xs mb-2 uppercase tracking-wider">Focus on next time</div>
+                <div class="text-white/40 text-xs mb-2 uppercase tracking-wider">{{ __('app.games.cc_focus_next') }}</div>
                 <template x-for="area in weakAreas" :key="area">
                     <div class="text-white/70 text-sm" x-text="'• ' + getChordLabel(area)"></div>
                 </template>
@@ -214,7 +214,7 @@
             </div>
             <button @click="resetGame()"
                     class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-rose-400 to-pink-600 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-transform mt-1">
-                Play Again
+                {{ __('app.games.play_again') }}
             </button>
         </div>
 

@@ -4,13 +4,13 @@
         <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-5">
             <i data-lucide="lock" class="w-8 h-8 text-amber-400"></i>
         </div>
-        <h2 class="text-white text-xl font-bold mb-2">Daily limit reached</h2>
+        <h2 class="text-white text-xl font-bold mb-2">{{ __('app.games.daily_limit_title') }}</h2>
         <p class="text-white/40 text-sm max-w-xs mx-auto mb-6">
             You've used all {{ $dailyLimit }} free plays today. Upgrade to Premium for unlimited games.
         </p>
         <a href="{{ route('checkout.show') }}"
            class="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm">
-            Upgrade to Premium
+            {{ __('app.games.upgrade_premium') }}
         </a>
     </div>
 @else
@@ -29,7 +29,7 @@
                     <i data-lucide="timer" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
-                    <div class="text-white font-bold text-sm">Interval Blitz</div>
+                    <div class="text-white font-bold text-sm">{{ __('app.games.interval_blitz.title') }}</div>
                     <div class="text-white/40 text-xs"
                          x-text="gameState === 'idle' ? 'Ready' : (gameState === 'playing' ? 'Level ' + level : 'Game Over')"></div>
                 </div>
@@ -42,11 +42,11 @@
                     </template>
                 </div>
                 <div class="text-center">
-                    <div class="text-white/40 text-xs">Score</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.note_rush.score') }}</div>
                     <div class="text-white font-black text-xl tabular-nums" x-text="score"></div>
                 </div>
                 <div class="text-center">
-                    <div class="text-white/40 text-xs">Streak</div>
+                    <div class="text-white/40 text-xs">{{ __('app.games.streak') }}</div>
                     <div class="font-black text-xl tabular-nums"
                          :class="streak > 0 ? 'text-sky-400' : 'text-white/30'"
                          x-text="streak"></div>
@@ -67,29 +67,29 @@
         {{-- Idle --}}
         <div x-show="gameState === 'idle'" class="flex flex-col items-center justify-center h-48 gap-5">
             <div class="text-white/10 text-5xl font-black">P4 m3</div>
-            <p class="text-white/40 text-sm text-center">Identify intervals before the timer runs out.<br>3 lives. 5-streak earns a bonus life!</p>
+            <p class="text-white/40 text-sm text-center">{{ __('app.games.ib_intro') }}<br>3 lives. 5-streak earns a bonus life!</p>
             <div class="flex flex-wrap gap-2 justify-center">
                 <button @click="difficulty='easy'"
                         :class="difficulty==='easy' ? 'border-sky-400 text-sky-300 bg-sky-400/10' : 'border-white/10 text-white/40'"
-                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">Easy (4 intervals)</button>
+                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">{{ __('app.games.ib_diff_easy') }}</button>
                 <button @click="difficulty='medium'"
                         :class="difficulty==='medium' ? 'border-sky-400 text-sky-300 bg-sky-400/10' : 'border-white/10 text-white/40'"
-                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">Medium (8)</button>
+                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">{{ __('app.games.diff_medium') }}</button>
                 <button @click="difficulty='hard'"
                         :class="difficulty==='hard' ? 'border-sky-400 text-sky-300 bg-sky-400/10' : 'border-white/10 text-white/40'"
-                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">Hard (all 12)</button>
+                        class="px-4 py-2 rounded-xl border text-sm font-medium transition-all">{{ __('app.games.ib_diff_hard') }}</button>
             </div>
             @if($personalBest > 0)
             <div class="flex items-center gap-1.5 text-white/30 text-sm">
                 <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-                Personal best: <span class="text-white font-bold ml-1">{{ number_format($personalBest) }}</span>
+                {{ __('app.games.personal_best') }} <span class="text-white font-bold ml-1">{{ number_format($personalBest) }}</span>
             </div>
             @endif
             <button @click="startGame()"
                     class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-transform">
                 <span class="flex items-center gap-2">
                     <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-                    Start Game
+                    {{ __('app.games.start_game') }}
                 </span>
             </button>
         </div>
@@ -101,7 +101,7 @@
                     <div class="font-black text-3xl tabular-nums"
                          :class="timeLeft <= 3 ? 'text-red-400' : 'text-white/60'"
                          x-text="timeLeft"></div>
-                    <div class="text-white/30 text-xs">sec</div>
+                    <div class="text-white/30 text-xs">{{ __('app.games.sec') }}</div>
                 </div>
                 <button @click="playInterval()"
                         class="w-20 h-20 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
@@ -110,7 +110,7 @@
                 <div class="w-12"></div>
             </div>
 
-            <p class="text-white/40 text-xs">What interval is this?</p>
+            <p class="text-white/40 text-xs">{{ __('app.games.what_interval') }}</p>
 
             <div class="grid grid-cols-2 gap-2.5 w-full max-w-xs">
                 <template x-for="(opt, i) in options" :key="i">
@@ -132,20 +132,20 @@
         <div x-show="gameState === 'gameover'" class="flex flex-col items-center justify-center gap-5 py-4">
             <div class="text-5xl">🎵</div>
             <div class="text-center">
-                <div class="text-white/40 text-sm mb-1">Final Score</div>
+                <div class="text-white/40 text-sm mb-1">{{ __('app.games.final_score') }}</div>
                 <div class="text-5xl font-black text-white tabular-nums" x-text="score"></div>
             </div>
             <div class="flex items-center gap-5 text-sm text-white/50">
                 <span x-text="correctCount + ' correct'"></span>
-                <span>Best streak: <span x-text="maxStreak"></span></span>
-                <span>Level <span x-text="level"></span></span>
+                <span>{{ __('app.games.ib_best_streak') }} <span x-text="maxStreak"></span></span>
+                <span>{{ __('app.games.status_level') }} <span x-text="level"></span></span>
             </div>
             <div x-show="isNewBest" class="px-4 py-2 rounded-full bg-yellow-400/20 border border-yellow-400/30 text-yellow-300 text-sm font-bold">
-                New Personal Best!
+                {{ __('app.games.new_personal_best') }}
             </div>
             <button @click="resetGame()"
                     class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-600 text-white font-bold text-sm hover:scale-105 active:scale-95 transition-transform mt-2">
-                Play Again
+                {{ __('app.games.play_again') }}
             </button>
         </div>
 

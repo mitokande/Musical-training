@@ -653,6 +653,7 @@ return [
         'privacy_policy' => 'プライバシーポリシー',
         'terms_of_service' => '利用規約',
         'cookie_policy' => 'クッキーポリシー',
+        'refund_policy' => "返金ポリシー",
     ],
 
     'language' => [

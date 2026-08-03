@@ -16,19 +16,19 @@ trait HandlesPracticeData
     protected function serializePractices($practices): array
     {
         return collect($practices)
-            ->map(fn($p) => $this->serializeOnePractice($p))
+            ->map(fn ($p) => $this->serializeOnePractice($p))
             ->values()
             ->toArray();
     }
 
     protected function serializeOnePractice($practice): array
     {
-        if (!($practice instanceof Model)) {
+        if (! ($practice instanceof Model)) {
             return is_array($practice) ? $practice : (array) $practice;
         }
 
         $attrs = $practice->getAttributes();
-        $lpId  = $practice->id;
+        $lpId = $practice->id;
 
         foreach ($attrs as $key => $value) {
             if (is_string($value) && strlen($value) > 0 && $value[0] === '[') {
@@ -40,7 +40,7 @@ trait HandlesPracticeData
         }
 
         // Preserve note2_octave even when set as a plain property (unsaved generated models)
-        if (!isset($attrs['note2_octave']) && isset($practice->note2_octave)) {
+        if (! isset($attrs['note2_octave']) && isset($practice->note2_octave)) {
             $attrs['note2_octave'] = $practice->note2_octave;
         }
 
@@ -51,9 +51,11 @@ trait HandlesPracticeData
 
     protected function buildModelFromData(string $class, ?array $data): ?object
     {
-        if ($data === null) return null;
+        if ($data === null) {
+            return null;
+        }
 
-        $model = new $class();
+        $model = new $class;
         foreach ($data as $key => $value) {
             if ($key === '_lp_id') {
                 $model->id = $value;
@@ -61,6 +63,7 @@ trait HandlesPracticeData
                 $model->{$key} = $value;
             }
         }
+
         return $model;
     }
 

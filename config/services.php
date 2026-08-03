@@ -76,4 +76,22 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    // Zoom live lessons. Two separate Marketplace apps are required:
+    //   • Server-to-Server OAuth — creates/updates/deletes meetings on the
+    //     pooled host accounts and issues host ZAK tokens.
+    //     Scopes: meeting:write:admin, meeting:read:admin, user:read:admin,
+    //     user:write:admin.
+    //   • Meeting SDK — signs the browser JWT the embedded Lesson Room joins
+    //     with. Its key/secret cannot be used for REST calls, and the S2S
+    //     credentials cannot sign SDK JWTs, so both pairs are needed.
+    // Behaviour flags live in config/zoom.php. Secrets stay in .env only; the
+    // client secret must never be rendered into a page.
+    'zoom' => [
+        'account_id' => env('ZOOM_ACCOUNT_ID'),
+        'client_id' => env('ZOOM_CLIENT_ID'),
+        'client_secret' => env('ZOOM_CLIENT_SECRET'),
+        'sdk_key' => env('ZOOM_SDK_KEY'),
+        'sdk_secret' => env('ZOOM_SDK_SECRET'),
+    ],
+
 ];

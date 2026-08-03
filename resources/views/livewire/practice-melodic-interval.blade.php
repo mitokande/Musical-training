@@ -11,8 +11,8 @@
 
                     <div class="flex items-center gap-4 text-center">
                         <div>
-                            <h1 class="text-xl font-bold text-white">Melodic Interval Practice</h1>
-                            <p class="text-white/80 text-sm">Identify the interval between two notes</p>
+                            <h1 class="text-xl font-bold text-white">{{ __('app.practice_ui.melodic_interval.title') }}</h1>
+                            <p class="text-white/80 text-sm">{{ __('app.practice_ui.melodic_interval.subtitle') }}</p>
                         </div>
                     </div>
 
@@ -29,7 +29,7 @@
             <!-- Content -->
             <div class="p-4 sm:p-8">
                 <!-- Exercise title -->
-                <p class="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Melodic Interval</p>
+                <p class="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{{ __('app.practice_ui.melodic_interval.label') }}</p>
 
                 <!-- VexFlow Note Display -->
                 <div id="noteDisplayContainer" class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-8" style="min-height:130px;">
@@ -51,7 +51,7 @@
                             data-note="{{ strtoupper($currentPractice->note1) . $currentPractice->octave . ',' . strtoupper($currentPractice->note2) . ($currentPractice->note2_octave ?? $currentPractice->octave) }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
-                            Play Interval
+                            {{ __('app.practice_ui.common.play_interval') }}
                         </button>
                         @if ($currentPracticeIndex < (count($practices) - 1))
                             <button
@@ -62,7 +62,7 @@
                                 style="border-width: 2px;"
                             >
                                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                                Next
+                                {{ __('app.practice_ui.common.next') }}
                             </button>
                         @else
                             <a
@@ -73,11 +73,11 @@
                                 style="border-width: 2px;"
                             >
                                 <i data-lucide="check" class="w-5 h-5"></i>
-                                Finish
+                                {{ __('app.practice_ui.common.finish') }}
                             </a>
                         @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Listen to the interval</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.common.listen_interval') }}</p>
                     </div>
                 </div>
 
@@ -117,11 +117,12 @@
                 +<span id="xpEarned">0</span> XP
             </span>
             <span>•</span>
-            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
+            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> {{ __('app.practice_ui.common.correct') }}</span>
         </div>
 
 
-        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+        @include('livewire.partials.practice-i18n')
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             // ── VexFlow helpers ──────────────────────────────────────────────────────
             function vfStemDir(noteKey, clef) {
@@ -211,15 +212,15 @@
                         await Tone.start();
                         const notes = this.dataset.note.split(',');
                         playButton.disabled = true;
-                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                        playStatus.textContent = 'Playing interval...';
+                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
+                        playStatus.textContent = pt('playing_interval');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         window.HarmonivaAudio.playSequential(notes, 700, 1);
                         setTimeout(() => {
                             if (window._practiceGen !== myGen) return;
                             playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                            playStatus.textContent = 'Click to play again';
+                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
+                            playStatus.textContent = pt('click_replay');
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                         }, 2000);
                     };
@@ -267,14 +268,14 @@
                                     this.classList.add('correct');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-green-700');
-                                    feedbackMessage.textContent = '✓ Correct! Well done!';
+                                    feedbackMessage.textContent = pt('correct_well_done');
                                     feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
                                     this.classList.add('incorrect');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-red-700');
-                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target}.`;
+                                    feedbackMessage.textContent = pt('incorrect_answer_is', {answer: target});
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
 
@@ -303,7 +304,7 @@
                             } catch (error) {
                                 console.error('Error checking answer:', error);
                                 this.innerHTML = originalContent;
-                                feedbackMessage.textContent = 'Error checking answer. Please try again.';
+                                feedbackMessage.textContent = pt('error_checking');
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                 answerButtons.forEach(b => b.disabled = false);

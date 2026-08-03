@@ -9,13 +9,14 @@ use Tests\TestCase;
 class RhythmDistractorTest extends TestCase
 {
     private RhythmDistractorService $svc;
+
     private RhythmGroupingService $groupingSvc;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->groupingSvc = new RhythmGroupingService;
-        $this->svc         = new RhythmDistractorService($this->groupingSvc);
+        $this->svc = new RhythmDistractorService($this->groupingSvc);
     }
 
     // ── generate() ──────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ class RhythmDistractorTest extends TestCase
     /** 4/4: three distractors are returned */
     public function test_generates_three_distractors_4_4(): void
     {
-        $correct     = ['quarter', 'quarter', 'quarter', 'quarter'];
+        $correct = ['quarter', 'quarter', 'quarter', 'quarter'];
         $distractors = $this->svc->generate($correct, '4/4', 'medium');
 
         $this->assertCount(3, $distractors);
@@ -32,7 +33,7 @@ class RhythmDistractorTest extends TestCase
     /** 6/8: three distractors are returned */
     public function test_generates_three_distractors_6_8(): void
     {
-        $correct     = ['eighth', 'eighth', 'eighth', 'eighth', 'eighth', 'eighth'];
+        $correct = ['eighth', 'eighth', 'eighth', 'eighth', 'eighth', 'eighth'];
         $distractors = $this->svc->generate($correct, '6/8', 'medium');
 
         $this->assertCount(3, $distractors);
@@ -41,7 +42,7 @@ class RhythmDistractorTest extends TestCase
     /** No distractor equals the correct answer */
     public function test_no_distractor_equals_correct(): void
     {
-        $correct     = ['quarter', 'eighth', 'eighth', 'half'];
+        $correct = ['quarter', 'eighth', 'eighth', 'half'];
         $distractors = $this->svc->generate($correct, '4/4', 'medium');
 
         foreach ($distractors as $d) {
@@ -52,7 +53,7 @@ class RhythmDistractorTest extends TestCase
     /** All distractors are distinct */
     public function test_distractors_are_distinct(): void
     {
-        $correct     = ['dotted-quarter', 'eighth', 'dotted-quarter', 'eighth'];
+        $correct = ['dotted-quarter', 'eighth', 'dotted-quarter', 'eighth'];
         $distractors = $this->svc->generate($correct, '4/4', 'medium');
 
         $unique = array_unique(array_map(fn ($d) => implode(',', $d), $distractors));
@@ -62,8 +63,8 @@ class RhythmDistractorTest extends TestCase
     /** Every distractor fills exactly the same measure duration */
     public function test_distractors_have_same_total_duration_4_4(): void
     {
-        $correct     = ['eighth', 'eighth', 'quarter', 'half'];
-        $totalT      = $this->measureTwelfths($correct);
+        $correct = ['eighth', 'eighth', 'quarter', 'half'];
+        $totalT = $this->measureTwelfths($correct);
         $distractors = $this->svc->generate($correct, '4/4', 'medium');
 
         foreach ($distractors as $d) {
@@ -74,8 +75,8 @@ class RhythmDistractorTest extends TestCase
     /** 6/8 distractors also preserve the total measure duration */
     public function test_distractors_have_same_total_duration_6_8(): void
     {
-        $correct     = ['quarter', 'eighth', 'dotted-quarter'];
-        $totalT      = $this->measureTwelfths($correct);
+        $correct = ['quarter', 'eighth', 'dotted-quarter'];
+        $totalT = $this->measureTwelfths($correct);
         $distractors = $this->svc->generate($correct, '6/8', 'medium');
 
         foreach ($distractors as $d) {
@@ -86,7 +87,7 @@ class RhythmDistractorTest extends TestCase
     /** Dotted rhythms produce distractors (not empty) */
     public function test_dotted_rhythms_produce_distractors(): void
     {
-        $correct     = ['dotted-quarter', 'eighth', 'dotted-quarter', 'eighth'];
+        $correct = ['dotted-quarter', 'eighth', 'dotted-quarter', 'eighth'];
         $distractors = $this->svc->generate($correct, '4/4', 'medium');
 
         $this->assertNotEmpty($distractors);
@@ -95,7 +96,7 @@ class RhythmDistractorTest extends TestCase
     /** Easy difficulty still produces at least 1 distractor */
     public function test_easy_difficulty_produces_distractors(): void
     {
-        $correct     = ['quarter', 'quarter', 'half'];
+        $correct = ['quarter', 'quarter', 'half'];
         $distractors = $this->svc->generate($correct, '4/4', 'easy');
 
         $this->assertNotEmpty($distractors);
@@ -105,7 +106,7 @@ class RhythmDistractorTest extends TestCase
     public function test_generates_three_distractors_4_2(): void
     {
         // 4/2 = 8 quarter-note groups; each pair of quarters = one group
-        $correct     = ['quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter'];
+        $correct = ['quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter'];
         $distractors = $this->svc->generate($correct, '4/2', 'medium');
 
         $this->assertNotEmpty($distractors);
@@ -119,7 +120,7 @@ class RhythmDistractorTest extends TestCase
     /** 2/2: distractors preserve total duration */
     public function test_generates_distractors_2_2(): void
     {
-        $correct     = ['eighth', 'eighth', 'quarter', 'eighth', 'eighth', 'quarter'];
+        $correct = ['eighth', 'eighth', 'quarter', 'eighth', 'eighth', 'quarter'];
         $distractors = $this->svc->generate($correct, '2/2', 'medium');
 
         $this->assertNotEmpty($distractors);
@@ -132,7 +133,7 @@ class RhythmDistractorTest extends TestCase
     /** Hard difficulty produces exactly 3 distractors */
     public function test_hard_difficulty_produces_three_distractors(): void
     {
-        $correct     = ['eighth', 'eighth', 'eighth', 'eighth', 'quarter', 'quarter'];
+        $correct = ['eighth', 'eighth', 'eighth', 'eighth', 'quarter', 'quarter'];
         $distractors = $this->svc->generate($correct, '4/4', 'hard');
 
         $this->assertCount(3, $distractors);

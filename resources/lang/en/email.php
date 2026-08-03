@@ -101,7 +101,7 @@ return [
         'title' => 'Your trial is nearly up',
         'p1' => "Your free <strong>{{app_name}} Premium</strong> trial ends on <strong>{{trial_ends_on}}</strong> — that's {{trial_days_left}} days from now.",
         'p2' => 'Nothing will be charged: we never took your card details. When the trial ends your account simply returns to the free plan, and all of your practice history stays exactly where it is.',
-        'p3' => "Want to keep unlimited exercises, AI-assisted practice and everything else Premium unlocks? You can subscribe any time.",
+        'p3' => 'Want to keep unlimited exercises, AI-assisted practice and everything else Premium unlocks? You can subscribe any time.',
         'btn' => '💳 Manage My Plan', 'btn_sub' => 'Keep unlimited practice without missing a beat.',
     ],
 

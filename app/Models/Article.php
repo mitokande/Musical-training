@@ -53,6 +53,7 @@ class Article extends Model
     {
         $slug = Str::slug($title);
         $count = static::where('slug', 'LIKE', "{$slug}%")->count();
+
         return $count ? "{$slug}-{$count}" : $slug;
     }
 }

@@ -20,8 +20,9 @@
                 <img src="{{ asset('images/logo-full.png') }}" alt="Harmoniva" width="1374" height="340" class="h-[43px] sm:h-[52px] w-auto">
             </a>
 
-            {{-- Desktop Navigation --}}
-            <nav class="hidden md:flex items-center gap-1 ml-10">
+            {{-- Desktop Navigation (revealed at lg so the full item set never
+                 overflows a tablet-width bar; below lg the drawer holds everything) --}}
+            <nav class="hidden lg:flex items-center gap-1 ml-6">
                 @php
                     // Students (plain "user" role) get a streamlined top bar:
                     // Dashboard · Exercise Setup · Music Games · AI Exercises · Piano · Notifications
@@ -160,8 +161,8 @@
 
             {{-- Right Side: User Menu --}}
             <div class="flex items-center gap-2">
-                {{-- Search: compact expandable input --}}
-                <div x-data="{ focused: false }" class="hidden md:flex items-center ml-2">
+                {{-- Search: compact expandable input (xl+ only — keeps the lg nav bar from overflowing) --}}
+                <div x-data="{ focused: false }" class="hidden xl:flex items-center ml-2">
                     <form action="/search" method="GET">
                         <div class="relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -272,7 +273,7 @@
                 </div>
                 @else
                 {{-- Guest: Login / Register links --}}
-                <div class="hidden md:flex items-center gap-2">
+                <div class="hidden lg:flex items-center gap-2">
                     <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                         {{ __('app.welcome.nav_login') }}
                     </a>
@@ -286,7 +287,7 @@
 
                 {{-- Mobile Menu Button (inline SVG — no Lucide dependency) --}}
                 <button x-data @click="$dispatch('toggle-mobile-menu')"
-                        class="md:hidden flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                        class="lg:hidden flex items-center justify-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                         style="width:40px; height:40px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
                         <line x1="4" y1="6"  x2="20" y2="6"/>

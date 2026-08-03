@@ -288,7 +288,7 @@ class RhythmGroupingTest extends TestCase
     {
         // [e+e] + [e+s+s] + [q] + [s+s+e]  — 4 groups each = 12 twelfths
         $pattern = ['eighth', 'eighth', 'eighth', 'sixteenth', 'sixteenth', 'quarter', 'sixteenth', 'sixteenth', 'eighth'];
-        $groups  = $this->service->group($pattern, '2/2');
+        $groups = $this->service->group($pattern, '2/2');
 
         $this->assertCount(4, $groups);
         $this->assertSame(['eighth', 'eighth'], $groups[0]);
@@ -302,7 +302,7 @@ class RhythmGroupingTest extends TestCase
     {
         // [de+s] + [q] + [e+e] + [q]
         $pattern = ['dotted-eighth', 'sixteenth', 'quarter', 'eighth', 'eighth', 'quarter'];
-        $groups  = $this->service->group($pattern, '2/2');
+        $groups = $this->service->group($pattern, '2/2');
 
         $this->assertCount(4, $groups);
         $this->assertSame(['dotted-eighth', 'sixteenth'], $groups[0]);
@@ -315,7 +315,7 @@ class RhythmGroupingTest extends TestCase
     public function test_3_2_groups_as_six_quarter_groups(): void
     {
         $pattern = ['quarter', 'quarter', 'quarter', 'quarter', 'quarter', 'quarter'];
-        $groups  = $this->service->group($pattern, '3/2');
+        $groups = $this->service->group($pattern, '3/2');
 
         $this->assertCount(6, $groups);
         foreach ($groups as $g) {
@@ -342,7 +342,7 @@ class RhythmGroupingTest extends TestCase
     public function test_4_2_groups_as_eight_quarter_groups(): void
     {
         $pattern = array_fill(0, 8, 'quarter');
-        $groups  = $this->service->group($pattern, '4/2');
+        $groups = $this->service->group($pattern, '4/2');
 
         $this->assertCount(8, $groups);
         foreach ($groups as $g) {
@@ -355,7 +355,7 @@ class RhythmGroupingTest extends TestCase
     {
         // 4/2 = 96 twelfths; 16 × eighth(6) = 96; yields 8 groups of [e+e]
         $pattern = array_fill(0, 16, 'eighth');
-        $groups  = $this->service->group($pattern, '4/2');
+        $groups = $this->service->group($pattern, '4/2');
 
         $this->assertCount(8, $groups);
         foreach ($groups as $g) {
@@ -431,9 +431,9 @@ class RhythmGroupingTest extends TestCase
     /** measureTwelfths for x/2 still based on half-note metric beat */
     public function test_measure_twelfths_for_x_2(): void
     {
-        $this->assertSame(48,  $this->service->measureTwelfths(2, 2)); // 2/2 = 4 quarter notes = 48
-        $this->assertSame(72,  $this->service->measureTwelfths(3, 2)); // 3/2 = 6 quarter notes = 72
-        $this->assertSame(96,  $this->service->measureTwelfths(4, 2)); // 4/2 = 8 quarter notes = 96
+        $this->assertSame(48, $this->service->measureTwelfths(2, 2)); // 2/2 = 4 quarter notes = 48
+        $this->assertSame(72, $this->service->measureTwelfths(3, 2)); // 3/2 = 6 quarter notes = 72
+        $this->assertSame(96, $this->service->measureTwelfths(4, 2)); // 4/2 = 8 quarter notes = 96
     }
 
     // ─── display invariants ────────────────────────────────────────────────────
@@ -466,8 +466,8 @@ class RhythmGroupingTest extends TestCase
         // Both the correct answer and alternatives must validate against the same time signature.
         $timeSig = '4/4';
         $correct = ['quarter', 'eighth', 'eighth', 'half'];
-        $alt1    = ['quarter', 'quarter', 'half'];
-        $alt2    = ['whole'];
+        $alt1 = ['quarter', 'quarter', 'half'];
+        $alt2 = ['whole'];
 
         $this->assertTrue($this->service->validate($correct, $timeSig));
         $this->assertTrue($this->service->validate($alt1, $timeSig));

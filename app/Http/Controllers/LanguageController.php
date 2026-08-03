@@ -23,6 +23,9 @@ class LanguageController extends Controller
         }
 
         session(['locale' => $locale]);
+        // Mark this as a deliberate choice (not an IP guess) so SetLocale treats
+        // the session locale as explicit and the `/` landing honours it.
+        session(['locale_selected' => true]);
         app()->setLocale($locale);
 
         // Redirect to the localized equivalent of the page they were on, so the

@@ -19,9 +19,9 @@ class SingleNoteOctaveMappingTest extends TestCase
     private function makeExercise(array $notes, array $octaves): LearningPathExercise
     {
         return new LearningPathExercise(['config_json' => [
-            'practice_type'    => 'single-note-practice',
-            'allowed_notes'    => $notes,
-            'octave_range'     => $octaves,
+            'practice_type' => 'single-note-practice',
+            'allowed_notes' => $notes,
+            'octave_range' => $octaves,
             'distractor_count' => 2,
         ]]);
     }
@@ -64,7 +64,7 @@ class SingleNoteOctaveMappingTest extends TestCase
         $questions = $this->generator->generate($this->makeExercise(['F'], ['5']), 1);
         $first = $questions->first();
 
-        $vfKey = strtolower($first->target) . '/' . $first->octave;
+        $vfKey = strtolower($first->target).'/'.$first->octave;
 
         $this->assertSame('f/5', $vfKey,
             "F5 question must produce VexFlow key 'f/5', not 'f/4'");
@@ -78,7 +78,7 @@ class SingleNoteOctaveMappingTest extends TestCase
         $questions = $this->generator->generate($this->makeExercise(['C'], ['3']), 1);
         $first = $questions->first();
 
-        $vfKey = strtolower($first->target) . '/' . $first->octave;
+        $vfKey = strtolower($first->target).'/'.$first->octave;
 
         $this->assertSame('c/3', $vfKey,
             "C3 question must produce VexFlow key 'c/3', not 'c/4'");
@@ -89,7 +89,7 @@ class SingleNoteOctaveMappingTest extends TestCase
         $questions = $this->generator->generate($this->makeExercise(['A#'], ['3']), 1);
         $first = $questions->first();
 
-        $vfKey = strtolower($first->target) . '/' . $first->octave;
+        $vfKey = strtolower($first->target).'/'.$first->octave;
 
         $this->assertSame('a#/3', $vfKey,
             "A#3 (Bb3) question must produce VexFlow key 'a#/3', not 'a#/4'");

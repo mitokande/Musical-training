@@ -58,6 +58,10 @@
     </script>
 
     <style>
+        /* Kill phantom horizontal scroll on tablet/mobile so the full-width
+           navbar + footer bands always paint flush to the right edge. Wide
+           notation staves keep their own inner scroll container. */
+        html, body { overflow-x: hidden; max-width: 100%; }
         .hero-gradient {
             background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 60%, #7c3aed 100%);
         }

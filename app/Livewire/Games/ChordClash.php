@@ -9,8 +9,11 @@ use Livewire\Component;
 class ChordClash extends Component
 {
     public int $personalBest = 0;
+
     public int $dailyPlaysUsed = 0;
+
     public int $dailyLimit = 5;
+
     public bool $canPlay = true;
 
     public function mount(): void
@@ -39,12 +42,12 @@ class ChordClash extends Component
         $user = Auth::user();
 
         GameScore::create([
-            'user_id'       => $user->id,
-            'game_slug'     => 'chord-clash',
-            'score'         => $score,
-            'max_streak'    => $maxStreak,
+            'user_id' => $user->id,
+            'game_slug' => 'chord-clash',
+            'score' => $score,
+            'max_streak' => $maxStreak,
             'level_reached' => $levelReached,
-            'metadata'      => $metadata ?: null,
+            'metadata' => $metadata ?: null,
         ]);
 
         $best = GameScore::personalBest($user->id, 'chord-clash');

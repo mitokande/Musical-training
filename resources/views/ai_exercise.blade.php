@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>AI Assisted Exercises - {{ config('app.name', 'Harmoniva') }}</title>
+    <title>{{ __('pages.ai_exercises.meta_title') }} - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -137,14 +137,14 @@
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center gap-3 mb-3">
                     <h1 class="text-3xl sm:text-4xl font-bold text-purple-600">
-                        AI Assisted Exercises
+                        {{ __('pages.ai_exercises.hero_title') }}
                     </h1>
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-200 flex-shrink-0">
                         <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
                     </div>
                 </div>
                 <p class="text-gray-600 max-w-md mx-auto">
-                    Create a personalized practice session tailored to your specific needs and goals.
+                    {{ __('pages.ai_exercises.hero_subtitle') }}
                 </p>
             </div>
 
@@ -160,7 +160,7 @@
                 <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
                     <div class="flex items-center gap-2 mb-2">
                         <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
-                        <span class="text-sm font-semibold">Please fix the following errors:</span>
+                        <span class="text-sm font-semibold">{{ __('pages.ai_exercises.errors_title') }}</span>
                     </div>
                     <ul class="list-disc list-inside text-sm space-y-1 ml-7">
                         @foreach($errors->all() as $error)
@@ -180,12 +180,13 @@
                         <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
                             <i data-lucide="settings" class="w-3.5 h-3.5 text-purple-600"></i>
                         </div>
-                        <h2 class="font-semibold text-gray-900">Exercise Types</h2>
+                        <h2 class="font-semibold text-gray-900">{{ __('pages.ai_exercises.section_title') }}</h2>
                     </div>
-                    <p class="text-sm text-gray-500 mb-6">Tell us what you want to practice</p>
+                    <p class="text-sm text-gray-500 mb-6">{{ __('pages.ai_exercises.section_subtitle') }}</p>
 
                     <!-- Exercise Types -->
                     <div class="mb-6">
+                        @php $aiExNames = trans('pages.ai_exercises.ex_names'); @endphp
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             @foreach($practices as $practice)
                                 @if($practice->slug === 'interval-direction-practice')
@@ -198,6 +199,10 @@
                                     } else {
                                         $displayName = preg_replace('/\s+Practice$/i', '', $practice->name);
                                     }
+                                    // Localized override (English falls back to the DB-derived name above).
+                                    if (is_array($aiExNames) && isset($aiExNames[$practice->slug])) {
+                                        $displayName = $aiExNames[$practice->slug];
+                                    }
                                 @endphp
                                 <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox data-slug="{{ $practice->slug }}">
                                     <input type="checkbox"
@@ -207,7 +212,7 @@
                                     <span class="checkbox-label text-sm text-gray-700">
                                         {{ $displayName }}
                                         @if($isNew)
-                                            <span class="text-purple-600 font-medium">(New!)</span>
+                                            <span class="text-purple-600 font-medium">{{ __('pages.ai_exercises.new_badge') }}</span>
                                         @endif
                                     </span>
                                 </label>
@@ -221,14 +226,14 @@
                                                name="rhythm_modes[]"
                                                value="recognition"
                                                class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
-                                        <span class="checkbox-label text-sm text-gray-700">Rhythm Recognition</span>
+                                        <span class="checkbox-label text-sm text-gray-700">{{ __('pages.ai_exercises.rhythm_recognition_label') }}</span>
                                     </label>
                                     <label class="checkbox-card flex items-center gap-3 p-3 border border-gray-200 rounded-lg" data-checkbox data-slug="rhythm-reading">
                                         <input type="checkbox"
                                                name="rhythm_modes[]"
                                                value="reading"
                                                class="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-offset-0">
-                                        <span class="checkbox-label text-sm text-gray-700">Rhythm Reading</span>
+                                        <span class="checkbox-label text-sm text-gray-700">{{ __('pages.ai_exercises.rhythm_reading_label') }}</span>
                                     </label>
                                 @endif
                             @endforeach
@@ -239,30 +244,30 @@
                     <div class="mb-6 flex flex-col lg:flex-row gap-6 lg:gap-4">
                         <!-- Number of Questions -->
                         <div class="lg:order-last lg:flex-[0.5]">
-                            <label class="block text-sm font-semibold text-gray-900 mb-2">Number of Questions</label>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">{{ __('pages.ai_exercises.num_questions_label') }}</label>
                             <select name="num_questions" class="select-input w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="5" selected>5 Questions (Quick)</option>
-                                <option value="10" >10 Questions (Standard)</option>
-                                <option value="15">15 Questions (Extended)</option>
-                                <option value="20">20 Questions (Comprehensive)</option>
+                                <option value="5" selected>{{ __('pages.ai_exercises.q5') }}</option>
+                                <option value="10">{{ __('pages.ai_exercises.q10') }}</option>
+                                <option value="15">{{ __('pages.ai_exercises.q15') }}</option>
+                                <option value="20">{{ __('pages.ai_exercises.q20') }}</option>
                             </select>
                         </div>
 
                         <!-- Difficulty Mode -->
                         <div class="lg:flex-1">
-                            <label class="block text-sm font-semibold text-gray-900 mb-3">Difficulty Mode</label>
+                            <label class="block text-sm font-semibold text-gray-900 mb-3">{{ __('pages.ai_exercises.difficulty_label') }}</label>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="easy">
-                                    Easy
+                                    {{ __('pages.ai_exercises.diff_easy') }}
                                 </button>
                                 <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="medium">
-                                    Medium
+                                    {{ __('pages.ai_exercises.diff_medium') }}
                                 </button>
                                 <button type="button" class="difficulty-btn px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="hard">
-                                    Hard
+                                    {{ __('pages.ai_exercises.diff_hard') }}
                                 </button>
                                 <button type="button" class="difficulty-btn selected px-2 sm:px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700" data-difficulty="adaptive">
-                                    Adaptive
+                                    {{ __('pages.ai_exercises.diff_adaptive') }}
                                 </button>
                             </div>
                             <input type="hidden" name="difficulty" id="difficultyInput" value="adaptive">
@@ -276,11 +281,11 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span class="btn-text">{{ $canUseAi ? 'Start AI Practice Session' : 'Unlock AI Exercises with Premium' }}</span>
+                        <span class="btn-text">{{ $canUseAi ? __('pages.ai_exercises.submit_start') : __('pages.ai_exercises.submit_locked') }}</span>
                     </button>
                     @unless($canUseAi)
                         <p class="mt-3 text-center text-xs text-gray-500">
-                            AI Assisted Exercises are a <span class="font-semibold text-purple-600">Premium</span> feature. Set up your session — you'll be invited to upgrade when you start.
+                            {!! __('pages.ai_exercises.premium_note', ['premium' => '<span class="font-semibold text-purple-600">'.__('pages.ai_exercises.premium_word').'</span>']) !!}
                         </p>
                     @endunless
                 </form>
@@ -299,18 +304,17 @@
                 <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center shadow-lg shadow-purple-200 mb-4">
                     <i data-lucide="crown" class="w-7 h-7 text-white"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Premium feature</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ __('pages.ai_exercises.modal_title') }}</h3>
                 <p class="text-sm text-gray-600 leading-relaxed">
-                    AI Assisted Exercises tailor a practice session to your goals with AI. This is part of
-                    <span class="font-semibold text-purple-600">Harmoniva Premium</span> — upgrade to unlock it along with unlimited exercises, the AI Coach and every module.
+                    {!! __('pages.ai_exercises.modal_desc', ['premium' => '<span class="font-semibold text-purple-600">'.__('pages.ai_exercises.modal_premium_brand').'</span>']) !!}
                 </p>
                 <div class="mt-6 flex flex-col gap-2.5">
                     <a href="{{ route('checkout.show') }}" class="w-full btn-primary text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200 hover:shadow-xl transition-all">
                         <i data-lucide="sparkles" class="w-4.5 h-4.5"></i>
-                        <span>Unlock Premium</span>
+                        <span>{{ __('pages.ai_exercises.modal_unlock') }}</span>
                     </a>
                     <button type="button" data-premium-close class="w-full py-2.5 px-6 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all">
-                        Maybe later
+                        {{ __('pages.ai_exercises.modal_later') }}
                     </button>
                 </div>
             </div>
@@ -378,7 +382,7 @@
                 submitBtn.disabled = true;
                 submitBtn.querySelector('.btn-icon').classList.add('hidden');
                 submitBtn.querySelector('.btn-spinner').classList.remove('hidden');
-                submitBtn.querySelector('.btn-text').textContent = 'Generating Your Session...';
+                submitBtn.querySelector('.btn-text').textContent = @json(__('pages.ai_exercises.generating'));
             });
 
             // Premium banner dismissal (backdrop + "Maybe later").

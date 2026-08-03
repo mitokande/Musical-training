@@ -13,20 +13,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#111827">
 
-    <title>Piano Studio - {{ config('app.name', 'Harmoniva') }}</title>
-    <meta name="description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display. Free online piano studio by Harmoniva.">
-    <link rel="canonical" href="{{ route('piano.studio') }}">
+    <title>{{ __('pages.piano_studio.meta_title') }} - {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="{{ __('pages.piano_studio.meta_description') }}">
+    @include('partials.public-seo-alt')
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:title" content="Piano Studio — Harmoniva">
-    <meta property="og:description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display.">
-    <meta property="og:url" content="{{ route('piano.studio') }}">
+    <meta property="og:locale" content="{{ config('locales.og')[app()->getLocale()] ?? 'en_US' }}">
+    <meta property="og:title" content="{{ __('pages.piano_studio.og_title') }}">
+    <meta property="og:description" content="{{ __('pages.piano_studio.og_description') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Piano Studio — Harmoniva">
-    <meta name="twitter:description" content="Play a full virtual piano in your browser — realistic sound, recording, MIDI keyboard support, and note display.">
+    <meta name="twitter:title" content="{{ __('pages.piano_studio.tw_title') }}">
+    <meta name="twitter:description" content="{{ __('pages.piano_studio.tw_description') }}">
     <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <!-- Fonts -->
@@ -740,7 +741,7 @@
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-orange-500 flex items-center justify-center">
                     <i data-lucide="music-2" class="w-6 h-6 text-white"></i>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Piano Studio</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ __('pages.piano_studio.h1') }}</h1>
             </div>
         </div>
 
@@ -749,26 +750,26 @@
             <div class="msb-row">
                 <!-- Left: Metronome dropdown -->
                 <div class="msb-left">
-                    <button type="button" class="msb-btn msb-metro-toggle" :class="{ 'active': metroOpen }" @click.stop="metroOpen = !metroOpen" aria-label="Metronome">
+                    <button type="button" class="msb-btn msb-metro-toggle" :class="{ 'active': metroOpen }" @click.stop="metroOpen = !metroOpen" aria-label="{{ __('pages.piano_studio.metronome') }}">
                         <i data-lucide="activity" class="w-4 h-4"></i>
-                        <span class="msb-label">Metronome</span>
+                        <span class="msb-label">{{ __('pages.piano_studio.metronome') }}</span>
                     </button>
 
                     <!-- Metronome dropdown panel -->
                     <div class="msb-panel" x-show="metroOpen" x-transition x-cloak @click.outside="metroOpen = false">
                         <div class="msb-panel-header">
                             <i data-lucide="activity" class="w-4 h-4"></i>
-                            <span>Metronome</span>
+                            <span>{{ __('pages.piano_studio.metronome') }}</span>
                             <div class="msb-bpm"><span id="bpmValueMobile">120</span> BPM</div>
                         </div>
                         <div class="msb-metro-row">
-                            <button id="metronomeBtnMobile" class="msb-metro-play" aria-label="Start / stop metronome">
+                            <button id="metronomeBtnMobile" class="msb-metro-play" aria-label="{{ __('pages.piano_studio.metro_start_stop') }}">
                                 <i data-lucide="play" class="w-4 h-4"></i>
                             </button>
                             <input type="range" id="bpmSliderMobile" class="bpm-slider-lean" min="40" max="240" value="120">
                         </div>
                         <select id="tempoPresetMobile" class="msb-select">
-                            <option value="">Select tempo preset…</option>
+                            <option value="">{{ __('pages.piano_studio.select_tempo') }}</option>
                             <option value="60">Largo (60)</option>
                             <option value="76">Adagio (76)</option>
                             <option value="92">Andante (92)</option>
@@ -780,28 +781,28 @@
                 </div>
 
                 <!-- Left label centered in the gap before the controls -->
-                <span class="msb-tag msb-tag-left">Piano Studio</span>
+                <span class="msb-tag msb-tag-left">{{ __('pages.piano_studio.h1') }}</span>
 
                 <!-- Center: basic controls -->
                 <div class="msb-center">
                     <button id="playbackBtnMobile" class="msb-btn msb-btn-primary" disabled>
                         <i data-lucide="play" class="w-4 h-4"></i>
-                        <span class="msb-label">Play</span>
+                        <span class="msb-label">{{ __('pages.piano_studio.play') }}</span>
                     </button>
-                    <button id="clearBtnMobile" class="msb-btn" aria-label="Clear notes">
+                    <button id="clearBtnMobile" class="msb-btn" aria-label="{{ __('pages.piano_studio.clear_notes') }}">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                     <div class="msb-count">
                         <span id="noteCountMobile">0</span>
-                        <small>notes</small>
+                        <small>{{ __('pages.piano_studio.notes') }}</small>
                     </div>
                 </div>
 
                 <!-- Right label centered in the gap after the controls -->
-                <span class="msb-tag msb-tag-right">Music Notation</span>
+                <span class="msb-tag msb-tag-right">{{ __('pages.piano_studio.music_notation') }}</span>
 
                 <!-- Right: Harmoniva standard menu -->
-                <button type="button" class="msb-btn msb-menu-btn" x-data @click="$dispatch('toggle-mobile-menu')" aria-label="Menu">
+                <button type="button" class="msb-btn msb-menu-btn" x-data @click="$dispatch('toggle-mobile-menu')" aria-label="{{ __('pages.piano_studio.menu') }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
                         <line x1="4" y1="6" x2="20" y2="6"/>
                         <line x1="4" y1="12" x2="20" y2="12"/>
@@ -819,7 +820,7 @@
                     <div class="metronome-header">
                         <div class="metronome-title">
                             <i data-lucide="activity" class="w-4 h-4 text-purple-600"></i>
-                            <h3 class="font-semibold text-gray-900 text-sm">Metronome</h3>
+                            <h3 class="font-semibold text-gray-900 text-sm">{{ __('pages.piano_studio.metronome') }}</h3>
                         </div>
                         <div class="bpm-display-inline">
                             <span class="bpm-value-inline" id="bpmValue">120</span>
@@ -852,7 +853,7 @@
                     <!-- Tempo Presets -->
                     <div class="tempo-preset-lean">
                         <select id="tempoPreset">
-                            <option value="">Select Preset...</option>
+                            <option value="">{{ __('pages.piano_studio.select_preset') }}</option>
                             <option value="60">Largo (60)</option>
                             <option value="76">Adagio (76)</option>
                             <option value="92">Andante (92)</option>
@@ -901,25 +902,25 @@
                     <div class="p-4 border-b border-gray-200 notation-card-header flex items-center gap-4">
                         <div class="flex items-center gap-2 shrink-0">
                             <i data-lucide="music-2" class="w-5 h-5 text-purple-600"></i>
-                            <h3 class="font-semibold text-gray-900">Music Notation</h3>
+                            <h3 class="font-semibold text-gray-900">{{ __('pages.piano_studio.music_notation') }}</h3>
                         </div>
                         <div class="flex flex-1 items-center justify-center gap-3">
                             <button id="playbackBtn" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                                 <i data-lucide="play" class="w-4 h-4"></i>
-                                <span>Playback</span>
+                                <span>{{ __('pages.piano_studio.playback') }}</span>
                             </button>
                             <button id="clearBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                Clear
+                                {{ __('pages.piano_studio.clear') }}
                             </button>
                             <div class="text-sm text-gray-500 whitespace-nowrap">
-                                <span id="noteCount" class="font-bold text-purple-600 text-base">0</span> notes recorded
+                                <span id="noteCount" class="font-bold text-purple-600 text-base">0</span> {{ __('pages.piano_studio.notes_recorded') }}
                             </div>
                         </div>
                     </div>
                     <div id="notation-container">
                         <div id="notation-output"></div>
-                        <p id="notation-placeholder" class="text-center text-gray-400 py-12">Play some notes to see them appear here...</p>
+                        <p id="notation-placeholder" class="text-center text-gray-400 py-12">{{ __('pages.piano_studio.placeholder') }}</p>
                     </div>
                 </div>
                 </div>{{-- /center-content --}}

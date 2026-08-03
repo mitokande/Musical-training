@@ -30,9 +30,9 @@ class FollowButton extends Component
 
         $this->followColor = match (true) {
             $isTeacher && $isPremium => 'bg-purple-600 hover:bg-purple-700',
-            $isTeacher               => 'bg-purple-400 hover:bg-purple-500',
-            $isPremium               => 'bg-pink-500 hover:bg-pink-600',
-            default                  => 'bg-pink-300 hover:bg-pink-400',
+            $isTeacher => 'bg-purple-400 hover:bg-purple-500',
+            $isPremium => 'bg-pink-500 hover:bg-pink-600',
+            default => 'bg-pink-300 hover:bg-pink-400',
         };
     }
 

@@ -7,20 +7,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Structured Learning Path — Free Ear Training Course | {{ config('app.name', 'Harmoniva') }}</title>
-    <meta name="description" content="Follow Harmoniva's structured ear-training Learning Path — a free, step-by-step course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.">
-    <link rel="canonical" href="{{ route('learn') }}">
+    <title>{{ __('pages.learn.meta_title') }} | {{ config('app.name', 'Harmoniva') }}</title>
+    <meta name="description" content="{{ __('pages.learn.meta_description') }}">
+    @include('partials.public-seo-alt')
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:title" content="Structured Learning Path — Harmoniva">
-    <meta property="og:description" content="A free, step-by-step ear-training course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.">
-    <meta property="og:url" content="{{ route('learn') }}">
+    <meta property="og:locale" content="{{ config('locales.og')[app()->getLocale()] ?? 'en_US' }}">
+    <meta property="og:title" content="{{ __('pages.learn.og_title') }}">
+    <meta property="og:description" content="{{ __('pages.learn.og_description') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Structured Learning Path — Harmoniva">
-    <meta name="twitter:description" content="A free, step-by-step ear-training course from beginner to advanced.">
+    <meta name="twitter:title" content="{{ __('pages.learn.tw_title') }}">
+    <meta name="twitter:description" content="{{ __('pages.learn.tw_description') }}">
     <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
 
     <!-- Fonts -->
@@ -133,14 +134,14 @@
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
-                        Your Learning Path
+                        {{ __('pages.learn.hero_title') }}
                     </h1>
-                    <p class="text-white/80">Master essential ear training skills step by step</p>
+                    <p class="text-white/80">{{ __('pages.learn.hero_subtitle') }}</p>
                 </div>
-                
+
                 <div class="mt-6 md:mt-0 text-right">
                     <div class="text-4xl font-bold text-white mb-1">4%</div>
-                    <p class="text-white/80 text-sm mb-3">Overall Progress</p>
+                    <p class="text-white/80 text-sm mb-3">{{ __('pages.learn.overall_progress') }}</p>
                     <div class="w-48 bg-white/30 rounded-full h-2">
                         <div class="progress-bar-yellow h-2 rounded-full" style="width: 4%"></div>
                     </div>
@@ -153,53 +154,53 @@
         <div class="flex flex-wrap gap-2 mb-3" id="main-filter-tabs">
             <button class="filter-tab main-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" data-filter="all">
                 <i data-lucide="music" class="w-4 h-4"></i>
-                All Modules
+                {{ __('pages.learn.tab_all') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="intervals">
                 <i data-lucide="git-branch" class="w-4 h-4"></i>
-                Intervals
+                {{ __('pages.learn.tab_intervals') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="scale-practice">
                 <i data-lucide="trending-up" class="w-4 h-4"></i>
-                Scales &amp; Modes
+                {{ __('pages.learn.tab_scales') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="chord-practice">
                 <i data-lucide="star" class="w-4 h-4"></i>
-                Chords
+                {{ __('pages.learn.tab_chords') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="rhythm-practice">
                 <i data-lucide="clock" class="w-4 h-4"></i>
-                Rhythm
+                {{ __('pages.learn.tab_rhythm') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="melodic-dictation">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
-                Melodic Dictation
+                {{ __('pages.learn.tab_dictation') }}
             </button>
             <button class="filter-tab main-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200" data-filter="single-note-practice">
                 <i data-lucide="music-2" class="w-4 h-4"></i>
-                Single Note
+                {{ __('pages.learn.tab_single') }}
             </button>
         </div>
 
         {{-- Interval sub-tabs (hidden by default) --}}
         <div id="interval-subtabs" class="hidden flex flex-wrap gap-2 mb-5 pl-3 border-l-2 border-purple-300">
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-purple-50 text-purple-700 border border-purple-200" data-sub-filter="intervals-all">
-                All Intervals
+                {{ __('pages.learn.sub_all') }}
             </button>
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="melodic-interval-practice">
-                Melodic Intervals
+                {{ __('pages.learn.sub_melodic') }}
             </button>
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-direction-practice">
-                Intervals Direction
+                {{ __('pages.learn.sub_direction') }}
             </button>
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="harmonic-interval-practice">
-                Harmonic Intervals
+                {{ __('pages.learn.sub_harmonic') }}
             </button>
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-construction-practice">
-                Intervals Construction
+                {{ __('pages.learn.sub_construction') }}
             </button>
             <button class="sub-tab flex items-center px-4 py-1.5 rounded-full text-sm font-medium text-gray-600 bg-white border border-gray-200" data-sub-filter="interval-comparison-practice">
-                Interval Comparison
+                {{ __('pages.learn.sub_comparison') }}
             </button>
         </div>
 
@@ -235,7 +236,7 @@
                 'rhythm-practice'                => ['icon' => '#dc2626', 'band' => 'linear-gradient(90deg,#dc2626,#ec4899)', 'bar' => 'linear-gradient(90deg,#dc2626,#ec4899)', 'pct' => '#dc2626'],
                 'melodic-dictation'              => ['icon' => '#ea580c', 'band' => 'linear-gradient(90deg,#ea580c,#f97316)', 'bar' => 'linear-gradient(90deg,#ea580c,#f97316)', 'pct' => '#ea580c'],
             ];
-            $levelLabels = ['beginner' => 'Beginner', 'intermediate' => 'Intermediate', 'advanced' => 'Advanced'];
+            $levelLabels = ['beginner' => __('pages.learn.level_beginner'), 'intermediate' => __('pages.learn.level_intermediate'), 'advanced' => __('pages.learn.level_advanced')];
             $levelColors = ['beginner' => 'bg-green-100 text-green-700', 'intermediate' => 'bg-yellow-100 text-yellow-700', 'advanced' => 'bg-red-100 text-red-700'];
             @endphp
 
@@ -255,7 +256,7 @@
                             <div class="absolute top-4 right-4">
                                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
                                     <i data-lucide="check-circle" class="w-3 h-3"></i>
-                                    Done
+                                    {{ __('pages.learn.done') }}
                                 </span>
                             </div>
                         @endif
@@ -264,7 +265,7 @@
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ $col['icon'] }}">
                                 <i data-lucide="music" class="w-5 h-5 text-white"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Lesson {{ $ex->sort_order }}</span>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">{{ __('pages.learn.lesson', ['n' => $ex->sort_order]) }}</span>
                         </div>
 
                         <h3 class="font-bold text-gray-900 mb-1 text-sm leading-snug">{{ $ex->getLocalizedTitle() }}</h3>
@@ -276,7 +277,7 @@
                             </span>
                             <span class="flex items-center gap-1 text-gray-500">
                                 <i data-lucide="clock" class="w-3 h-3"></i>
-                                ~{{ $ex->estimated_duration_minutes }} min
+                                {{ __('pages.learn.minutes', ['n' => $ex->estimated_duration_minutes]) }}
                             </span>
                             @if($progPct > 0)
                                 <span class="ml-auto font-semibold" style="color: {{ $col['pct'] }}">{{ $progPct }}%</span>
@@ -290,7 +291,7 @@
                         <a href="{{ route('learning-path.show', $ex->slug) }}"
                            class="w-full btn-primary text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm">
                             <i data-lucide="play" class="w-3.5 h-3.5"></i>
-                            {{ $isCompleted ? 'Practice Again' : 'Start Lesson' }}
+                            {{ $isCompleted ? __('pages.learn.practice_again') : __('pages.learn.start_lesson') }}
                         </a>
                     </div>
                 </div>

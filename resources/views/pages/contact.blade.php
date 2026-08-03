@@ -185,7 +185,7 @@
                         {{ __('pages.contact.address_title') }}
                     </h3>
                     <address class="not-italic text-sm text-gray-700 leading-relaxed">
-                        <strong class="text-gray-900">Harmoniva — H&amp;P LLC</strong><br>
+                        <strong class="text-gray-900">Harmoniva — Softchain Solutions</strong><br>
                         8 The Green STE B<br>
                         Dover, DE 19901<br>
                         {{ __('pages.contact.address_country') }}

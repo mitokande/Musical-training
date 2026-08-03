@@ -16,9 +16,9 @@
                     <!-- Title -->
                     <div class="flex-1 text-center px-2">
                         <h1 class="text-base sm:text-lg font-bold text-white leading-tight">
-                            Interval Construction
+                            {{ __('app.practice_ui.construction.title') }}
                         </h1>
-                        <p class="text-white/70 text-xs sm:text-sm mt-0.5">Interval Construction</p>
+                        <p class="text-white/70 text-xs sm:text-sm mt-0.5">{{ __('app.practice_ui.construction.title') }}</p>
                     </div>
 
                     <!-- Right: counter + score stacked -->
@@ -67,10 +67,17 @@
 
                 <!-- Question prompt -->
                 <div class="text-center py-1">
-                    <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Your task</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">{{ __('app.practice_ui.construction.your_task') }}</p>
                     <p class="text-sm sm:text-base font-semibold text-gray-700">
-                        Build a <span class="text-purple-700 font-bold">{{ $currentPractice->interval }}</span>
-                        {{ ($currentPractice->direction ?? 'ascending') === 'descending' ? 'below' : 'above' }} <span class="text-purple-700 font-bold">{{ \App\Services\MusicTheoryService::toDisplaySymbol($currentPractice->note1) }}</span>
+                        {{-- Built from one key so each language controls word order:
+                             EN "Build a M3 above C4" vs TR "C4 notasının üstüne bir M3 kurun". --}}
+                        {!! __('app.practice_ui.construction.build_prompt', [
+                            'interval' => '<span class="text-purple-700 font-bold">'.e($currentPractice->interval).'</span>',
+                            'dir' => __(($currentPractice->direction ?? 'ascending') === 'descending'
+                                ? 'app.practice_ui.construction.below'
+                                : 'app.practice_ui.construction.above'),
+                            'note' => '<span class="text-purple-700 font-bold">'.e(\App\Services\MusicTheoryService::toDisplaySymbol($currentPractice->note1)).'</span>',
+                        ]) !!}
                     </p>
                 </div>
 
@@ -85,7 +92,7 @@
                             data-note2="{{ $currentPractice->note2 . $constructNote2Oct }}"
                         >
                             <i data-lucide="play" class="w-4 h-4"></i>
-                            Play Starting Note
+                            {{ __('app.practice_ui.construction.play_start') }}
                         </button>
                         @if ($currentPracticeIndex < (count($practices) - 1))
                             <button
@@ -94,7 +101,7 @@
                                 class="hidden font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm sm:text-base bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                             >
                                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                Next
+                                {{ __('app.practice_ui.common.next') }}
                             </button>
                         @else
                             <a
@@ -103,11 +110,11 @@
                                 class="hidden font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm sm:text-base bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                             >
                                 <i data-lucide="check" class="w-4 h-4"></i>
-                                Finish
+                                {{ __('app.practice_ui.common.finish') }}
                             </a>
                         @endif
                     </div>
-                    <p id="playStatus" class="text-xs text-gray-400">Listen to the starting note, then select the correct note</p>
+                    <p id="playStatus" class="text-xs text-gray-400">{{ __('app.practice_ui.construction.listen_start') }}</p>
                 </div>
 
                 <!-- Answer Options -->
@@ -167,7 +174,8 @@
 
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+        @include('livewire.partials.practice-i18n')
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             // ── VexFlow helpers ──────────────────────────────────────────────────────
             function vfStemDirC(noteKey, clef) {
@@ -288,15 +296,15 @@
                         await Tone.start();
                         const note1 = this.dataset.note1;
                         playButton.disabled = true;
-                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> Playing...';
-                        playStatus.textContent = 'Playing starting note...';
+                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> ' + pt('playing');
+                        playStatus.textContent = pt('playing_start_note');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         window.HarmonivaAudio.playNote(note1, 2);
                         setTimeout(() => {
                             if (window._practiceGen !== myGen) return;
                             playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> Play Again';
-                            playStatus.textContent = 'Now select the note to complete the interval';
+                            playButton.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> ' + pt('play_again');
+                            playStatus.textContent = pt('select_note_complete');
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                         }, 2500);
                     };
@@ -338,7 +346,7 @@
 
                                 if (data.is_correct) {
                                     this.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
-                                    feedbackMessage.textContent = '✓ Correct! Well done!';
+                                    feedbackMessage.textContent = pt('correct_well_done');
                                     feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
@@ -346,7 +354,7 @@
                                     const targetDisplay = window.HarmonivaNotation
                                         ? window.HarmonivaNotation.toDisplaySymbol(target)
                                         : target.replace('##', 'x');
-                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${targetDisplay}.`;
+                                    feedbackMessage.textContent = pt('incorrect_answer_is', {answer: targetDisplay});
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                     answerButtons.forEach(b => {
@@ -372,7 +380,7 @@
                             } catch (error) {
                                 console.error('Error checking answer:', error);
                                 this.innerHTML = originalContent;
-                                feedbackMessage.textContent = 'Error checking answer. Please try again.';
+                                feedbackMessage.textContent = pt('error_checking');
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                 answerButtons.forEach(b => b.disabled = false);

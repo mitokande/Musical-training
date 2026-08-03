@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>{{ config('app.name') }} — Email Preferences</title>
+    <title>{{ __('app.unsubscribe.meta_title', ['app' => config('app.name')]) }}</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9fafb; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
         .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.06); padding: 40px; max-width: 440px; width: 90%; text-align: center; }
@@ -23,14 +23,14 @@
     <div class="card">
         <h1>{{ config('app.name') }}</h1>
         @if ($alreadyUnsubscribed)
-            <p class="success">You have been unsubscribed.</p>
-            <p>The address <span class="email">{{ $message->recipient_email }}</span> will no longer receive marketing emails from {{ config('app.name') }}. Account and support emails are not affected.</p>
-            <p><a href="{{ config('app.url') }}">Back to {{ config('app.name') }}</a></p>
+            <p class="success">{{ __('app.unsubscribe.done_status') }}</p>
+            <p>{!! __('app.unsubscribe.done_desc', ['email' => e($message->recipient_email), 'app' => e(config('app.name'))]) !!}</p>
+            <p><a href="{{ config('app.url') }}">{{ __('app.unsubscribe.done_back', ['app' => config('app.name')]) }}</a></p>
         @else
-            <p>Unsubscribe <span class="email">{{ $message->recipient_email }}</span> from {{ config('app.name') }} marketing emails?</p>
-            <p>You will still receive account-related emails such as password resets and support replies.</p>
+            <p>{!! __('app.unsubscribe.confirm_desc', ['email' => e($message->recipient_email), 'app' => e(config('app.name'))]) !!}</p>
+            <p>{{ __('app.unsubscribe.confirm_note') }}</p>
             <form method="POST" action="{{ url()->signedRoute('email.unsubscribe', ['token' => $message->tracking_token]) }}">
-                <button type="submit">Unsubscribe</button>
+                <button type="submit">{{ __('app.unsubscribe.confirm_button') }}</button>
             </form>
         @endif
     </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdStudioController;
 use App\Http\Controllers\Admin\AiCoachAdminController;
 use App\Http\Controllers\Admin\AiUsageController;
 use App\Http\Controllers\Admin\AppointmentController;
@@ -41,6 +42,7 @@ use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\Admin\TeacherProfileModerationController;
 use App\Http\Controllers\Admin\TeacherReviewModerationController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ZoomHostController;
 use App\Http\Controllers\AiChatController;
 use App\Http\Controllers\AiCoachController;
 use App\Http\Controllers\AIController;
@@ -55,6 +57,7 @@ use App\Http\Controllers\ExerciseSetupController;
 use App\Http\Controllers\GameController as MusicGameController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LearningPathController;
+use App\Http\Controllers\LessonRoomController;
 use App\Http\Controllers\MyAppointmentsController;
 use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\MyTeachersController;
@@ -82,14 +85,22 @@ use App\Http\Controllers\Webhooks\StripeWebhookController;
 use App\Http\Middleware\ForceLocaleFromUrl;
 use Illuminate\Support\Facades\Route;
 
-// `/` is the English / x-default landing page. Non-English visitors (locale
-// resolved by SetLocale from user/session/IP) are redirected to their locale
-// URL so every landing URL always serves exactly one language — required for
-// the canonical + hreflang setup in welcome.blade.php to be truthful.
+// `/` is the English / x-default landing page. Visitors with an EXPLICIT
+// non-English language signal (a saved account preference, a manually chosen
+// language, or their browser's Accept-Language) are redirected to their locale
+// URL so every landing URL serves exactly one language — required for the
+// canonical + hreflang setup in welcome.blade.php to be truthful.
+//
+// The redirect must fire only on that explicit signal, never on an IP-geolocation
+// guess: search-engine and AI crawlers (Googlebot, Bingbot, GPTBot, ClaudeBot,
+// PerplexityBot, …) send no Accept-Language, so an IP-based redirect would make
+// `/` a permanent "page with redirect" — de-indexing the homepage and breaking
+// the hreflang x-default it anchors. SetLocale flags the distinction.
 Route::get('/', function () {
     $locale = app()->getLocale();
 
-    if (in_array($locale, ['de', 'fr', 'es', 'pt', 'tr', 'it'])) {
+    if (request()->attributes->get('locale_explicit')
+        && in_array($locale, ['de', 'fr', 'es', 'pt', 'tr', 'it'], true)) {
         return redirect('/'.$locale, 302);
     }
 
@@ -136,8 +147,7 @@ Route::get('/request-demo', fn () => view('pages.request-demo'))->name('page.req
 
 // Resources
 Route::get('/help', fn () => view('pages.help'))->name('page.help');
-// Localized guide: Turkish visitors (locale via SetLocale) get the TR version, everyone else the EN one.
-Route::get('/how-it-works', fn () => view(app()->getLocale() === 'tr' ? 'pages.how-it-works-tr' : 'pages.how-it-works'))->name('page.how-it-works');
+Route::get('/how-it-works', fn () => view('pages.how-it-works'))->name('page.how-it-works');
 Route::get('/faq', fn () => view('pages.faq'))->name('page.faq');
 Route::get('/blog', fn () => view('pages.articles'))->name('page.articles');
 Route::get('/article/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
@@ -181,14 +191,7 @@ Route::prefix('{locale}')
                 continue;
             }
 
-            Route::get($path, function () use ($view) {
-                // Turkish has a dedicated hand-written how-it-works page.
-                if ($view === 'pages.how-it-works' && app()->getLocale() === 'tr') {
-                    return view('pages.how-it-works-tr');
-                }
-
-                return view($view);
-            });
+            Route::get($path, fn () => view($view));
         }
     });
 
@@ -339,6 +342,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/my-appointments/{appointment}/cancel', [MyAppointmentsController::class, 'cancel'])->name('my-appointments.cancel');
     Route::post('/my-appointments/{appointment}/reschedule', [MyAppointmentsController::class, 'requestReschedule'])->name('my-appointments.reschedule');
 
+    // Embedded Zoom Lesson Room. Deliberately not in routes/crm.php (which is
+    // mounted twice, under /teacher and /school) — students reach it too, and
+    // the controller decides which side of the lesson the viewer is on.
+    Route::get('/lessons/{appointment}/room', [LessonRoomController::class, 'show'])->name('lessons.room');
+    Route::post('/lessons/{appointment}/signature', [LessonRoomController::class, 'signature'])
+        ->middleware('throttle:20,1')->name('lessons.room.signature');
+
     Route::get('/teachers/{slug}/slots', [TeacherBookingController::class, 'slots'])->name('teachers.slots');
     Route::post('/teachers/{slug}/book', [TeacherBookingController::class, 'book'])
         ->middleware('throttle:10,1')->name('teachers.book');
@@ -472,6 +482,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('ai-coach-admin/settings', [AiCoachAdminController::class, 'settings'])->name('ai-coach-admin.settings');
     Route::put('ai-coach-admin/settings', [AiCoachAdminController::class, 'updateSettings'])->name('ai-coach-admin.settings.update');
 
+    // Ad Studio — author, build and render HyperFrames ad creatives.
+    // The generated projects live outside the public root, so the MP4 and the
+    // snapshot strip are served through these routes rather than a public URL.
+    Route::prefix('ad-studio')->name('ad-studio.')->group(function () {
+        Route::get('/', [AdStudioController::class, 'index'])->name('index');
+        Route::post('/', [AdStudioController::class, 'store'])->name('store');
+        Route::get('{adCreative}/edit', [AdStudioController::class, 'edit'])->name('edit');
+        Route::delete('{adCreative}', [AdStudioController::class, 'destroy'])->name('destroy');
+        Route::get('{adCreative}/download', [AdStudioController::class, 'download'])->name('download');
+        Route::get('{adCreative}/watch', [AdStudioController::class, 'watch'])->name('watch');
+        Route::get('{adCreative}/snapshots/{file}', [AdStudioController::class, 'snapshot'])->name('snapshot');
+    });
+
     // AI Usage Dashboard
     Route::prefix('ai-usage')->name('ai-usage.')->group(function () {
         Route::get('/', [AiUsageController::class, 'index'])->name('index');
@@ -541,6 +564,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Legacy /admin/articles module was merged into the Content Library (admin.content.*)
     Route::redirect('articles', '/admin/content');
+
+    // --- Zoom live lessons: the licence pool lessons are hosted on ---
+    Route::get('zoom', [ZoomHostController::class, 'index'])->name('zoom.index');
+    Route::post('zoom/sync', [ZoomHostController::class, 'sync'])->name('zoom.sync');
+    Route::post('zoom/{host}/toggle', [ZoomHostController::class, 'toggle'])->name('zoom.toggle');
 
     // --- Email Center ---
     Route::get('email-center', [EmailCenterController::class, 'dashboard'])->name('email-center.dashboard');

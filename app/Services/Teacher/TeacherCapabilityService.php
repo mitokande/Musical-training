@@ -42,6 +42,7 @@ class TeacherCapabilityService
         'viewStudentAnalytics',
         'manageAvailability',
         'acceptAppointments',
+        'hostLiveLessons',
         'publishContent',
         'useExternalPaymentLinks',
         'useAIHomeworkBuilder',
@@ -128,6 +129,11 @@ class TeacherCapabilityService
     public function canAcceptAppointments(User $user): bool
     {
         return $this->can($user, 'acceptAppointments');
+    }
+
+    public function canHostLiveLessons(User $user): bool
+    {
+        return $this->can($user, 'hostLiveLessons');
     }
 
     public function canPublishContent(User $user): bool

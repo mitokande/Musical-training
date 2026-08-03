@@ -19,7 +19,7 @@ class UserLearningPathProgress extends Model
     ];
 
     protected $casts = [
-        'completed'    => 'boolean',
+        'completed' => 'boolean',
         'completed_at' => 'datetime',
     ];
 

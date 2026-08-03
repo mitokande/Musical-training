@@ -20,6 +20,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@zoom/meetingsdk": "^6.2.0",
         "posthog-js": "^1.407.2"
     }
 }

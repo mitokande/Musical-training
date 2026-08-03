@@ -25,9 +25,18 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $this->resolveLocale($request);
+        [$locale, $explicit] = $this->resolveLocale($request);
 
         app()->setLocale($locale);
+
+        // Record whether this locale came from an explicit human signal (a saved
+        // account preference, a manually chosen language, or the browser's
+        // Accept-Language) as opposed to an IP-geolocation guess. The `/` route
+        // reads this to decide whether to redirect to a locale-prefixed landing:
+        // it must NOT redirect on an IP guess, because search-engine and AI
+        // crawlers send no Accept-Language and would otherwise turn `/` into a
+        // permanent "page with redirect", keeping the homepage out of the index.
+        $request->attributes->set('locale_explicit', $explicit);
 
         // Store resolved locale in session for subsequent requests (guests)
         if (! Auth::check() && ! session()->has('locale')) {
@@ -37,38 +46,47 @@ class SetLocale
         return $next($request);
     }
 
-    protected function resolveLocale(Request $request): string
+    /**
+     * @return array{0: string, 1: bool} [locale, wasExplicit]
+     */
+    protected function resolveLocale(Request $request): array
     {
-        // 1. Authenticated user's saved locale
+        // 1. Authenticated user's saved locale — an explicit preference.
         if (Auth::check() && Auth::user()->locale) {
             $locale = Auth::user()->locale;
             if (in_array($locale, $this->supported)) {
-                return $locale;
+                return [$locale, true];
             }
         }
+
+        // A guest who manually switched language (via LanguageController) carries
+        // this flag, so their session locale counts as an explicit choice — an
+        // IP-seeded session locale does not.
+        $chosen = (bool) session('locale_selected');
 
         // 2. Session locale (previously detected or user-selected for guests)
         if (session()->has('locale')) {
             $locale = session('locale');
             if (in_array($locale, $this->supported)) {
-                return $locale;
+                return [$locale, $chosen];
             }
         }
 
-        // 3. Browser Accept-Language header
+        // 3. Browser Accept-Language header — an explicit signal from the client.
         $browserLocale = $this->detectFromBrowser($request);
         if ($browserLocale) {
-            return $browserLocale;
+            return [$browserLocale, true];
         }
 
-        // 4. IP geolocation (cached per session to avoid repeated API calls)
+        // 4. IP geolocation (cached per session to avoid repeated API calls) —
+        //    a guess, never treated as explicit.
         $ipLocale = $this->detectFromIp($request);
         if ($ipLocale) {
-            return $ipLocale;
+            return [$ipLocale, false];
         }
 
         // 5. Default: English
-        return 'en';
+        return ['en', false];
     }
 
     protected function detectFromBrowser(Request $request): ?string
@@ -100,6 +118,7 @@ class SetLocale
                 if (! session()->has('detected_country')) {
                     session(['detected_country' => $this->getDefaultCountryForLocale($lang)]);
                 }
+
                 return $lang;
             }
 
@@ -109,6 +128,7 @@ class SetLocale
                 if (! session()->has('detected_country')) {
                     session(['detected_country' => $this->getDefaultCountryForLocale($prefix)]);
                 }
+
                 return $prefix;
             }
         }
@@ -129,6 +149,7 @@ class SetLocale
         // Use session cache to avoid API calls on every request
         if (session()->has('ip_locale')) {
             $cached = session('ip_locale');
+
             return in_array($cached, $this->supported) ? $cached : null;
         }
 
@@ -137,6 +158,7 @@ class SetLocale
         // Skip private/local IPs
         if (! $ip || $this->isPrivateIp($ip)) {
             session(['ip_locale' => 'en']);
+
             return null;
         }
 
@@ -147,6 +169,7 @@ class SetLocale
                 $countryCode = strtoupper($response->json('countryCode', ''));
                 $locale = $this->countryToLocale[$countryCode] ?? 'en';
                 session(['ip_locale' => $locale, 'detected_country' => $countryCode]);
+
                 return in_array($locale, $this->supported) ? $locale : null;
             }
         } catch (\Throwable) {
@@ -154,6 +177,7 @@ class SetLocale
         }
 
         session(['ip_locale' => 'en']);
+
         return null;
     }
 

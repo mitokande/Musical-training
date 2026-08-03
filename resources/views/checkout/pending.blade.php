@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Order received — {{ config('app.name', 'Harmoniva') }}</title>
+    <title>{{ __('app.checkout.pending_meta_title', ['app' => config('app.name', 'Harmoniva')]) }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,15 +21,14 @@
         <div class="mx-auto mb-6 w-16 h-16 rounded-full flex items-center justify-center bg-amber-100">
             <i data-lucide="clock" style="width:32px;height:32px;color:#d97706;"></i>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">Order received</h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">{{ __('app.checkout.pending_title') }}</h1>
         <p class="text-gray-500 mb-8">
-            Your order for <strong>{{ $subscription->plan->name ?? 'Premium' }}</strong> has been recorded and is awaiting payment confirmation.
-            Premium will be activated as soon as your payment is confirmed.
+            {!! __('app.checkout.pending_desc', ['plan' => e($subscription->plan->name ?? 'Premium')]) !!}
         </p>
         <a href="{{ route('billing.index') }}"
            class="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg"
            style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
-            View billing status
+            {{ __('app.checkout.pending_cta') }}
         </a>
     </div>
 </div>

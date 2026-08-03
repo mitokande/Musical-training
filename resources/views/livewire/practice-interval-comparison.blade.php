@@ -11,8 +11,8 @@
 
                     <div class="flex items-center gap-4 text-center">
                         <div>
-                            <h1 class="text-xl font-bold text-white">Interval Comparison Practice</h1>
-                            <p class="text-white/80 text-sm">Which interval is larger?</p>
+                            <h1 class="text-xl font-bold text-white">{{ __('app.practice_ui.comparison.title') }}</h1>
+                            <p class="text-white/80 text-sm">{{ __('app.practice_ui.comparison.subtitle') }}</p>
                         </div>
                     </div>
 
@@ -61,7 +61,7 @@
                             data-interval-b="{{ ucfirst($intervalBNote0) . $octave . ',' . ucfirst($intervalBNote1) . $octave }}"
                         >
                             <i data-lucide="play" class="w-5 h-5"></i>
-                            Play Both Intervals
+                            {{ __('app.practice_ui.comparison.play_both') }}
                         </button>
                         @if ($currentPracticeIndex < (count($practices) - 1))
                             <button
@@ -72,7 +72,7 @@
                                 style="border-width: 2px;"
                             >
                                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                                Next
+                                {{ __('app.practice_ui.common.next') }}
                             </button>
                         @else
                             <a
@@ -83,11 +83,11 @@
                                 style="border-width: 2px;"
                             >
                                 <i data-lucide="check" class="w-5 h-5"></i>
-                                Finish
+                                {{ __('app.practice_ui.common.finish') }}
                             </a>
                         @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Listen to both intervals to start</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.comparison.listen_start') }}</p>
                     </div>
                 </div>
 
@@ -97,11 +97,11 @@
                      data-practice-id="{{ $currentPractice->id }}">
                     <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="a">
                         <!-- <span class="text-2xl mb-2 block">A</span> -->
-                        <span class="text-md text-gray-500">Interval A is larger</span>
+                        <span class="text-md text-gray-500">{{ __('app.practice_ui.comparison.a_larger') }}</span>
                     </button>
                     <button class="answer-btn card p-4 sm:p-6 text-center font-semibold text-gray-700 hover:shadow-md transition-all" data-answer="b">
                         <!-- <span class="text-2xl mb-2 block">B</span> -->
-                        <span class="text-md text-gray-500">Interval B is larger</span>
+                        <span class="text-md text-gray-500">{{ __('app.practice_ui.comparison.b_larger') }}</span>
                     </button>
                 </div>
 
@@ -118,11 +118,12 @@
                 +<span id="xpEarned">0</span> XP
             </span>
             <span>•</span>
-            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
+            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> {{ __('app.practice_ui.common.correct') }}</span>
         </div>
 
         
-        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+        @include('livewire.partials.practice-i18n')
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             function vfStemDirCmp(noteKey, clef) {
                 const m = noteKey.match(/^([a-g])(#{1,2}|b{1,2}|x)?\/(\d+)$/i);
@@ -206,8 +207,8 @@
                         const intervalA = this.dataset.intervalA.split(',');
                         const intervalB = this.dataset.intervalB.split(',');
                         playButton.disabled = true;
-                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                        playStatus.textContent = 'Playing Interval A...';
+                        playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
+                        playStatus.textContent = pt('playing_a');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         // Must await sampler ready before starting timers; otherwise both
                         // playSequential calls race through ensureReady() and land on the same Tone.now().
@@ -217,14 +218,14 @@
                         // After ~2s play interval B
                         setTimeout(() => {
                             if (window._practiceGen !== myGen) return;
-                            playStatus.textContent = 'Playing Interval B...';
+                            playStatus.textContent = pt('playing_b');
                             window.HarmonivaAudio.playSequential(intervalB, 700, 1);
                         }, 2000);
                         setTimeout(() => {
                             if (window._practiceGen !== myGen) return;
                             playButton.disabled = false;
-                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                            playStatus.textContent = 'Click to play again';
+                            playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
+                            playStatus.textContent = pt('click_replay');
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                         }, 4200);
                     };
@@ -242,7 +243,7 @@
                             
                             // Show loading state on clicked button
                             const originalContent = this.innerHTML;
-                            this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Checking...';
+                            this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('checking');
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                             
                             try {
@@ -280,7 +281,7 @@
                                     this.classList.add('correct');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-green-700');
-                                    feedbackMessage.textContent = '✓ Correct! Well done!';
+                                    feedbackMessage.textContent = pt('correct_well_done');
                                     feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                                     feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 } else {
@@ -288,7 +289,7 @@
                                     this.classList.add('incorrect');
                                     this.classList.remove('text-gray-700');
                                     this.classList.add('text-red-700');
-                                    feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target.toUpperCase()}.`;
+                                    feedbackMessage.textContent = pt('incorrect_answer_is', {answer: target.toUpperCase()});
                                     feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                     feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                     
@@ -321,7 +322,7 @@
                             } catch (error) {
                                 console.error('Error checking answer:', error);
                                 this.innerHTML = originalContent;
-                                feedbackMessage.textContent = 'Error checking answer. Please try again.';
+                                feedbackMessage.textContent = pt('error_checking');
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                 

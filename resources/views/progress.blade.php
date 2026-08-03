@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>My Progress - {{ config('app.name', 'Harmoniva') }}</title>
+    <title>{{ __('app.progress.title') }} - {{ config('app.name', 'Harmoniva') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -117,12 +117,12 @@
                 <div>
                     <div class="flex items-center gap-2 mb-3">
                         <i data-lucide="bar-chart-2" class="w-6 h-6 text-white"></i>
-                        <span class="px-3 py-1 bg-white/20 text-white text-xs font-semibold rounded-full">Statistics</span>
+                        <span class="px-3 py-1 bg-white/20 text-white text-xs font-semibold rounded-full">{{ __('app.progress.statistics') }}</span>
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
-                        My Progress
+                        {{ __('app.progress.title') }}
                     </h1>
-                    <p class="text-white/80">Track your ear training journey and see how far you've come</p>
+                    <p class="text-white/80">{{ __('app.progress.hero_subtitle') }}</p>
                 </div>
                 
                 <!-- Overall Accuracy Ring -->
@@ -133,12 +133,12 @@
                             <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                                 <div class="text-center">
                                     <div class="text-3xl font-bold text-white">{{ $overallAccuracy }}%</div>
-                                    <div class="text-xs text-white/80">Accuracy</div>
+                                    <div class="text-xs text-white/80">{{ __('app.progress.accuracy') }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="text-white/80 text-sm mt-2">Overall Performance</p>
+                    <p class="text-white/80 text-sm mt-2">{{ __('app.progress.overall_performance') }}</p>
                 </div>
             </div>
         </div>
@@ -148,51 +148,51 @@
             <!-- Total Sessions -->
             <div class="stat-card card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Practice Sessions</span>
+                    <span class="text-sm text-gray-500">{{ __('app.progress.practice_sessions_label') }}</span>
                     <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                         <i data-lucide="play-circle" class="w-4 h-4 text-purple-600"></i>
                     </div>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">{{ $totalSessions }}</div>
-                <p class="text-sm text-gray-500">sessions completed</p>
+                <p class="text-sm text-gray-500">{{ __('app.progress.sessions_completed') }}</p>
             </div>
 
             <!-- Total Questions -->
             <div class="stat-card card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Questions Answered</span>
+                    <span class="text-sm text-gray-500">{{ __('app.progress.questions_answered') }}</span>
                     <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                         <i data-lucide="help-circle" class="w-4 h-4 text-blue-600"></i>
                     </div>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">{{ $totalQuestions }}</div>
                 <div class="flex items-center gap-2 text-sm">
-                    <span class="text-green-600">{{ $totalCorrect }} correct</span>
+                    <span class="text-green-600">{{ $totalCorrect }} {{ __('app.progress.correct_lc') }}</span>
                     <span class="text-gray-300">|</span>
-                    <span class="text-red-500">{{ $totalIncorrect }} wrong</span>
+                    <span class="text-red-500">{{ $totalIncorrect }} {{ __('app.progress.wrong_lc') }}</span>
                 </div>
             </div>
 
             <!-- Total Time -->
             <div class="stat-card card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Time Practiced</span>
+                    <span class="text-sm text-gray-500">{{ __('app.progress.time_practiced') }}</span>
                     <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                         <i data-lucide="clock" class="w-4 h-4 text-orange-600"></i>
                     </div>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">{{ $formattedTime }}</div>
-                <p class="text-sm text-gray-500">total practice time</p>
+                <p class="text-sm text-gray-500">{{ __('app.progress.total_practice_time') }}</p>
             </div>
 
             <!-- Streak -->
             <div class="stat-card card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Current Streak</span>
+                    <span class="text-sm text-gray-500">{{ __('app.progress.current_streak') }}</span>
                     <span class="text-2xl">🔥</span>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">{{ $streak }}</div>
-                <p class="text-sm text-gray-500">{{ $streak == 1 ? 'day' : 'days' }} in a row</p>
+                <p class="text-sm text-gray-500">{{ trans_choice('app.progress.streak_days', $streak) }}</p>
             </div>
         </div>
 
@@ -205,7 +205,7 @@
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-2">
                             <i data-lucide="layers" class="w-5 h-5 text-purple-600"></i>
-                            <h3 class="font-semibold text-gray-900">Practice Type Breakdown</h3>
+                            <h3 class="font-semibold text-gray-900">{{ __('app.progress.type_breakdown') }}</h3>
                         </div>
                     </div>
                     
@@ -227,27 +227,27 @@
                                         </div>
                                         <div>
                                             <h4 class="font-semibold text-gray-900">{{ $practice['name'] }}</h4>
-                                            <p class="text-sm text-gray-500">{{ $practice['sessions'] }} sessions</p>
+                                            <p class="text-sm text-gray-500">{{ $practice['sessions'] }} {{ __('app.progress.sessions_word') }}</p>
                                         </div>
                                     </div>
                                     <div class="text-right">
                                         <div class="text-2xl font-bold {{ $color['text'] }}">{{ $practice['accuracy'] }}%</div>
-                                        <p class="text-xs text-gray-500">accuracy</p>
+                                        <p class="text-xs text-gray-500">{{ __('app.progress.accuracy_lc') }}</p>
                                     </div>
                                 </div>
                                 
                                 <div class="grid grid-cols-3 gap-4 mb-3">
                                     <div class="text-center p-2 bg-white rounded-lg">
                                         <div class="text-lg font-semibold text-gray-900">{{ $practice['total_questions'] }}</div>
-                                        <p class="text-xs text-gray-500">Questions</p>
+                                        <p class="text-xs text-gray-500">{{ __('app.progress.questions_word') }}</p>
                                     </div>
                                     <div class="text-center p-2 bg-white rounded-lg">
                                         <div class="text-lg font-semibold text-green-600">{{ $practice['correct_answers'] }}</div>
-                                        <p class="text-xs text-gray-500">Correct</p>
+                                        <p class="text-xs text-gray-500">{{ __('app.progress.correct_word') }}</p>
                                     </div>
                                     <div class="text-center p-2 bg-white rounded-lg">
                                         <div class="text-lg font-semibold text-gray-900">{{ $practice['avg_time'] }}s</div>
-                                        <p class="text-xs text-gray-500">Avg Time</p>
+                                        <p class="text-xs text-gray-500">{{ __('app.progress.avg_time') }}</p>
                                     </div>
                                 </div>
                                 
@@ -260,11 +260,11 @@
                                 <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                                     <i data-lucide="music" class="w-8 h-8 text-gray-400"></i>
                                 </div>
-                                <h4 class="font-semibold text-gray-900 mb-2">No practice data yet</h4>
-                                <p class="text-gray-500 text-sm mb-4">Start practicing to see your progress here!</p>
-                                <a href="/learn" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium">
+                                <h4 class="font-semibold text-gray-900 mb-2">{{ __('app.progress.no_data_title') }}</h4>
+                                <p class="text-gray-500 text-sm mb-4">{{ __('app.progress.no_data_desc') }}</p>
+                                <a href="{{ locale_url('/learn') }}" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium">
                                     <i data-lucide="play" class="w-4 h-4"></i>
-                                    Start Learning
+                                    {{ __('app.progress.start_learning') }}
                                 </a>
                             </div>
                         @endforelse
@@ -276,9 +276,9 @@
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i>
-                            <h3 class="font-semibold text-gray-900">Weekly Performance</h3>
+                            <h3 class="font-semibold text-gray-900">{{ __('app.progress.weekly_performance') }}</h3>
                         </div>
-                        <span class="text-sm text-gray-500">Last 7 days</span>
+                        <span class="text-sm text-gray-500">{{ __('app.progress.last_7_days') }}</span>
                     </div>
                     <div class="relative h-48">
                         <canvas id="weeklyChart"></canvas>
@@ -302,36 +302,36 @@
                 <div class="card p-6">
                     <div class="flex items-center gap-2 mb-4">
                         <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-500"></i>
-                        <h3 class="font-semibold text-gray-900">Performance Insights</h3>
+                        <h3 class="font-semibold text-gray-900">{{ __('app.progress.insights') }}</h3>
                     </div>
-                    
+
                     @if($bestArea && $bestArea['sessions'] > 0)
                         <!-- Best Area -->
                         <div class="p-4 bg-green-50 border border-green-100 rounded-xl mb-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <i data-lucide="trophy" class="w-4 h-4 text-green-600"></i>
-                                <span class="text-sm font-medium text-green-800">Strongest Area</span>
+                                <span class="text-sm font-medium text-green-800">{{ __('app.progress.strongest_area') }}</span>
                             </div>
                             <p class="text-green-900 font-semibold">{{ $bestArea['name'] }}</p>
-                            <p class="text-sm text-green-700">{{ $bestArea['accuracy'] }}% accuracy</p>
+                            <p class="text-sm text-green-700">{{ __('app.progress.pct_accuracy', ['n' => $bestArea['accuracy']]) }}</p>
                         </div>
                     @endif
-                    
+
                     @if($weakestArea && $weakestArea['sessions'] > 0 && (!$bestArea || $weakestArea['name'] !== $bestArea['name']))
                         <!-- Needs Improvement -->
                         <div class="p-4 bg-orange-50 border border-orange-100 rounded-xl mb-4">
                             <div class="flex items-center gap-2 mb-2">
                                 <i data-lucide="target" class="w-4 h-4 text-orange-600"></i>
-                                <span class="text-sm font-medium text-orange-800">Focus Area</span>
+                                <span class="text-sm font-medium text-orange-800">{{ __('app.progress.focus_area') }}</span>
                             </div>
                             <p class="text-orange-900 font-semibold">{{ $weakestArea['name'] }}</p>
-                            <p class="text-sm text-orange-700">{{ $weakestArea['accuracy'] }}% accuracy - keep practicing!</p>
+                            <p class="text-sm text-orange-700">{{ __('app.progress.focus_accuracy', ['n' => $weakestArea['accuracy']]) }}</p>
                         </div>
                     @endif
-                    
+
                     @if(!$bestArea || $bestArea['sessions'] == 0)
                         <div class="text-center py-4">
-                            <p class="text-gray-500 text-sm">Complete some practice sessions to see insights!</p>
+                            <p class="text-gray-500 text-sm">{{ __('app.progress.insights_empty') }}</p>
                         </div>
                     @endif
                     
@@ -339,39 +339,39 @@
                     <div class="grid grid-cols-2 gap-3 mt-4">
                         <div class="text-center p-3 bg-gray-50 rounded-lg">
                             <div class="text-xl font-bold text-purple-600">{{ $totalCorrect }}</div>
-                            <p class="text-xs text-gray-500">Correct Answers</p>
+                            <p class="text-xs text-gray-500">{{ __('app.progress.correct_answers') }}</p>
                         </div>
                         <div class="text-center p-3 bg-gray-50 rounded-lg">
                             <div class="text-xl font-bold text-red-500">{{ $totalIncorrect }}</div>
-                            <p class="text-xs text-gray-500">Incorrect</p>
+                            <p class="text-xs text-gray-500">{{ __('app.progress.incorrect') }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Quick Actions -->
                 <div class="card p-5">
-                    <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                    
+                    <h3 class="font-semibold text-gray-900 mb-4">{{ __('app.progress.quick_actions') }}</h3>
+
                     <div class="space-y-2">
-                        <a href="/learn" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="{{ locale_url('/learn') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                                 <i data-lucide="play-circle" class="w-4 h-4 text-green-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Continue Learning</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.progress.continue_learning') }}</span>
                         </a>
-                        
+
                         <a href="/ai-exercises" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                 <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">AI Practice Session</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.progress.ai_practice') }}</span>
                         </a>
-                        
+
                         <a href="/dashboard" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <i data-lucide="home" class="w-4 h-4 text-blue-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Back to Dashboard</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.progress.back_dashboard') }}</span>
                         </a>
                     </div>
                 </div>
@@ -380,20 +380,20 @@
                 <div class="bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl p-6 text-white">
                     <div class="flex items-center gap-2 mb-3">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        <span class="font-semibold">Keep Going!</span>
+                        <span class="font-semibold">{{ __('app.progress.keep_going') }}</span>
                     </div>
                     @if($totalSessions == 0)
-                        <p class="text-white/90 text-sm mb-4">Start your ear training journey today. Every expert was once a beginner!</p>
+                        <p class="text-white/90 text-sm mb-4">{{ __('app.progress.motiv_0') }}</p>
                     @elseif($overallAccuracy >= 80)
-                        <p class="text-white/90 text-sm mb-4">Amazing work! You're performing excellently. Keep up the great progress!</p>
+                        <p class="text-white/90 text-sm mb-4">{{ __('app.progress.motiv_high') }}</p>
                     @elseif($overallAccuracy >= 60)
-                        <p class="text-white/90 text-sm mb-4">Good progress! You're on the right track. A little more practice and you'll master it!</p>
+                        <p class="text-white/90 text-sm mb-4">{{ __('app.progress.motiv_mid') }}</p>
                     @else
-                        <p class="text-white/90 text-sm mb-4">Every practice session makes you better. Keep practicing and you'll see improvement!</p>
+                        <p class="text-white/90 text-sm mb-4">{{ __('app.progress.motiv_low') }}</p>
                     @endif
                     <div class="flex items-center gap-2 text-white/70 text-xs">
                         <i data-lucide="info" class="w-3 h-3"></i>
-                        <span>Practice daily for best results</span>
+                        <span>{{ __('app.progress.practice_daily') }}</span>
                     </div>
                 </div>
             </div>
@@ -404,9 +404,9 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-2">
                     <i data-lucide="history" class="w-5 h-5 text-purple-600"></i>
-                    <h3 class="font-semibold text-gray-900">Recent Activity</h3>
+                    <h3 class="font-semibold text-gray-900">{{ __('app.progress.recent_activity') }}</h3>
                 </div>
-                <span class="text-sm text-gray-500">Last 10 sessions</span>
+                <span class="text-sm text-gray-500">{{ __('app.progress.last_10') }}</span>
             </div>
             
             @if($recentActivity->count() > 0)
@@ -414,12 +414,12 @@
                     <table class="w-full">
                         <thead>
                             <tr class="text-left border-b border-gray-200">
-                                <th class="pb-3 text-sm font-medium text-gray-500">Date</th>
-                                <th class="pb-3 text-sm font-medium text-gray-500">Practice Type</th>
-                                <th class="pb-3 text-sm font-medium text-gray-500">Questions</th>
-                                <th class="pb-3 text-sm font-medium text-gray-500">Score</th>
-                                <th class="pb-3 text-sm font-medium text-gray-500">Accuracy</th>
-                                <th class="pb-3 text-sm font-medium text-gray-500">Duration</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_date') }}</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_type') }}</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_questions') }}</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_score') }}</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_accuracy') }}</th>
+                                <th class="pb-3 text-sm font-medium text-gray-500">{{ __('app.progress.col_duration') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -440,7 +440,7 @@
                                     <td class="py-4">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                                             <i data-lucide="music" class="w-3 h-3"></i>
-                                            {{ $activity->practice->name ?? 'Practice' }}
+                                            {{ $activity->practice->name ?? __('app.progress.practice_fallback') }}
                                         </span>
                                     </td>
                                     <td class="py-4 text-sm text-gray-900">{{ $activity->total_questions }}</td>
@@ -468,11 +468,11 @@
                     <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                         <i data-lucide="calendar" class="w-8 h-8 text-gray-400"></i>
                     </div>
-                    <h4 class="font-semibold text-gray-900 mb-2">No recent activity</h4>
-                    <p class="text-gray-500 text-sm mb-4">Complete some practice sessions to see your activity history.</p>
-                    <a href="/learn" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium">
+                    <h4 class="font-semibold text-gray-900 mb-2">{{ __('app.progress.no_activity_title') }}</h4>
+                    <p class="text-gray-500 text-sm mb-4">{{ __('app.progress.no_activity_desc') }}</p>
+                    <a href="{{ locale_url('/learn') }}" class="inline-flex items-center gap-2 px-4 py-2 btn-primary text-white rounded-lg font-medium">
                         <i data-lucide="play" class="w-4 h-4"></i>
-                        Start Practicing
+                        {{ __('app.progress.start_practicing') }}
                     </a>
                 </div>
             @endif

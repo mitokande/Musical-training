@@ -26,8 +26,8 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
 <footer class="bg-gray-950 text-gray-400 mt-0 border-t border-gray-800/60">
 
     {{-- ── Main Navigation Grid ── --}}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
-        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10 ft-wrap">
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-x-8 gap-y-10">
 
             {{-- A. Brand Column --}}
             <div class="col-span-2 sm:col-span-2 lg:col-span-2">
@@ -127,7 +127,7 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
 
     {{-- ── App Download · Address · Language ── --}}
     <div class="border-t border-gray-800/60">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ft-wrap">
 
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
@@ -158,7 +158,7 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
                     <div class="lg:hidden mt-4 space-y-1.5 text-xs text-gray-500">
                         <div class="flex items-start gap-2">
                             <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-gray-600"></i>
-                            <span>Harmoniva, H&amp;P LLC · 8 The Green STE B · Dover, DE 19901 US</span>
+                            <span>Harmoniva, Softchain Solutions · 8 The Green STE B · Dover, DE 19901 US</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <i data-lucide="mail" class="w-3.5 h-3.5 shrink-0 text-gray-600"></i>
@@ -171,7 +171,7 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
                 <div class="hidden lg:flex flex-col items-center gap-1.5 text-xs text-gray-500 text-center">
                     <div class="flex items-center gap-1.5">
                         <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 text-gray-600"></i>
-                        <span>Harmoniva, H&amp;P LLC</span>
+                        <span>Harmoniva, Softchain Solutions</span>
                     </div>
                     <span>8 The Green STE B · Dover, DE 19901 US</span>
                     <div class="flex items-center gap-1.5 mt-0.5">
@@ -231,17 +231,18 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
 
     {{-- ── Copyright Bar ── --}}
     <div class="border-t border-gray-800/60">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-[100px] sm:pb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-[100px] sm:pb-6 ft-wrap">
             {{--
                 Mobile : legal links on TOP, copyright below  (flex-col-reverse)
                 Desktop: copyright on left, legal links right (sm:flex-row)
             --}}
             <div class="flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-3">
                 <p class="text-xs text-gray-600">&copy; 2026 Harmoniva. {{ __('app.footer.copyright') }}</p>
-                <div class="flex items-center gap-5 text-xs text-gray-500">
+                <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500">
                     <a href="{{ locale_url('/privacy-policy') }}"   class="hover:text-white transition-colors">{{ __('app.footer.privacy_policy') }}</a>
                     <a href="{{ locale_url('/terms-of-service') }}" class="hover:text-white transition-colors">{{ __('app.footer.terms_of_service') }}</a>
                     <a href="{{ locale_url('/cookie-policy') }}"    class="hover:text-white transition-colors">{{ __('app.footer.cookie_policy') }}</a>
+                    <a href="{{ locale_url('/refund-policy') }}"    class="hover:text-white transition-colors">{{ __('app.footer.refund_policy') }}</a>
                 </div>
             </div>
         </div>

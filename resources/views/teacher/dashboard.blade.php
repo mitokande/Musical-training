@@ -146,7 +146,11 @@
                         <p class="text-sm font-semibold text-gray-800 truncate">{{ $appointment->student->name }} {{ $appointment->student->surname }}</p>
                         <p class="text-xs text-gray-500">{{ $appointment->starts_at->timezone($tz)->format('D, M j · H:i') }}</p>
                     </div>
-                    @if($appointment->meeting_url)
+                    @if($appointment->roomIsOpen())
+                        <a href="{{ route('lessons.room', $appointment) }}" class="px-2.5 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition shrink-0" title="{{ crm_trans('lesson_room.start_lesson') }}">
+                            <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                        </a>
+                    @elseif($appointment->meeting_url)
                         <a href="{{ $appointment->meeting_url }}" target="_blank" rel="noopener" class="p-1.5 text-green-600 hover:text-green-800" title="{{ crm_trans('my_appointments.join') }}">
                             <i data-lucide="video" class="w-4 h-4"></i>
                         </a>

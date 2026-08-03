@@ -20,7 +20,12 @@
             : '/'.implode('/', $seoSegments);
         $seoBasePath = rtrim($seoBasePath, '/') ?: '/';
         $seoIsLocalized = in_array($seoBasePath, $seoPublicPages, true);
-        $seoCurrentLocale = app()->getLocale();
+        // Canonical/hreflang locale comes from the URL itself, never
+        // app()->getLocale() (which an IP guess can pollute) — so the un-prefixed
+        // English URL always canonicalises to itself, not to /de.
+        $seoCurrentLocale = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
+            ? $seoSegments[0]
+            : 'en';
         $seoCanonical = locale_url($seoBasePath, $seoIsLocalized ? $seoCurrentLocale : 'en');
         $seoOgLocales = config('locales.og');
     @endphp

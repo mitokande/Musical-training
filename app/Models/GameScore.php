@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class GameScore extends Model
@@ -37,7 +38,7 @@ class GameScore extends Model
             ->first();
     }
 
-    public static function weeklyLeaderboard(string $gameSlug, int $limit = 10): \Illuminate\Support\Collection
+    public static function weeklyLeaderboard(string $gameSlug, int $limit = 10): Collection
     {
         return static::selectRaw('user_id, MAX(score) as best_score, MAX(max_streak) as best_streak')
             ->where('game_slug', $gameSlug)
@@ -49,7 +50,7 @@ class GameScore extends Model
             ->get();
     }
 
-    public static function allTimeLeaderboard(string $gameSlug, int $limit = 10): \Illuminate\Support\Collection
+    public static function allTimeLeaderboard(string $gameSlug, int $limit = 10): Collection
     {
         return static::selectRaw('user_id, MAX(score) as best_score, MAX(max_streak) as best_streak')
             ->where('game_slug', $gameSlug)
@@ -60,7 +61,7 @@ class GameScore extends Model
             ->get();
     }
 
-    public static function globalLeaderboard(int $limit = 20): \Illuminate\Support\Collection
+    public static function globalLeaderboard(int $limit = 20): Collection
     {
         $perGame = static::select('user_id', 'game_slug', DB::raw('MAX(score) as max_score'))
             ->groupBy('user_id', 'game_slug');
@@ -72,7 +73,7 @@ class GameScore extends Model
             ->orderByDesc('total_score')
             ->limit($limit)
             ->get()
-            ->each(fn($r) => $r->user = User::select(['id', 'name', 'country'])->find($r->user_id));
+            ->each(fn ($r) => $r->user = User::select(['id', 'name', 'country'])->find($r->user_id));
     }
 
     public static function userRank(int $userId, string $gameSlug, bool $weekly = true): int

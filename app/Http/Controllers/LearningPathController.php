@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LearningPathExercise;
 use App\Models\UserLearningPathProgress;
 use App\Services\LearningPathQuestionGenerator;
+use App\Services\Practice\PracticeProgressRecorder;
 use App\Services\UsageQuotaService;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,7 @@ class LearningPathController extends Controller
     public function __construct(
         private LearningPathQuestionGenerator $generator,
         private UsageQuotaService $usage,
+        private PracticeProgressRecorder $recorder,
     ) {}
 
     /**
@@ -210,38 +212,17 @@ class LearningPathController extends Controller
             ]);
         }
 
-        $exercise = LearningPathExercise::find($request->exercise_id);
-
-        $progress = UserLearningPathProgress::firstOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'learning_path_exercise_id' => $request->exercise_id,
-            ],
-            [
-                'question_count_attempted' => $lp['question_count'],
-                'total_questions' => 0,
-                'correct_answers' => 0,
-                'score' => 0,
-                'completed' => false,
-            ]
-        );
-
-        $progress->total_questions++;
-        if ($isCorrect) {
-            $progress->correct_answers++;
-        }
-        $progress->question_count_attempted = $lp['question_count'];
-        $progress->score = $progress->total_questions > 0
-            ? round(($progress->correct_answers / $progress->total_questions) * 100, 2)
-            : 0;
-
         if ($isLastQuestion) {
-            $progress->completed = true;
-            $progress->completed_at = now();
             session()->forget('learning_path_session');
         }
 
-        $progress->save();
+        $progress = $this->recorder->recordLearningPathAnswer(
+            (int) auth()->id(),
+            (int) $request->exercise_id,
+            (int) $lp['question_count'],
+            $isCorrect,
+            $isLastQuestion,
+        );
 
         return response()->json([
             'is_correct' => $isCorrect,

@@ -711,6 +711,34 @@ return [
         'error_invalid_transition' => 'This action is not possible in the appointment\'s current state.',
     ],
 
+    // Embedded Zoom Lesson Room. Also used by ZoomMeetingProvider for the
+    // meeting topic shown inside Zoom itself.
+    'lesson_room' => [
+        'title' => 'Lesson Room',
+        'with' => 'Lesson with :name',
+        'student' => 'Student',
+        'leave' => 'Leave the lesson room',
+        'start_lesson' => 'Start lesson',
+        'join_lesson' => 'Join lesson',
+        'open_in_zoom' => 'Open in Zoom',
+        'not_open' => 'This lesson room is not open yet.',
+        'opens_at' => 'It opens at :time.',
+        'unavailable' => 'Live video is temporarily unavailable. Please use the Zoom link instead.',
+        'error' => 'Could not connect to the lesson. Try again, or open it in the Zoom app.',
+        'lesson_info' => 'Lesson',
+        'topic' => 'Topic',
+        'duration' => 'Duration',
+        'minutes' => ':count min',
+        'timezone' => 'Timezone',
+        'view_profile' => 'View profile',
+        'assign_exercise' => 'Assign an exercise',
+        'notes' => 'Lesson notes',
+        'notes_placeholder' => 'Private notes about this lesson…',
+        'save_notes' => 'Save notes',
+        'saving' => 'Saving…',
+        'meeting_topic' => 'Harmoniva lesson with :student',
+    ],
+
     'my_appointments' => [
         'title' => 'My Appointments',
         'subtitle' => 'Your lesson appointments with teachers.',

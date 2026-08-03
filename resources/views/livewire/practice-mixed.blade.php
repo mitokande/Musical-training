@@ -9,7 +9,7 @@
             <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
                 <i data-lucide="trophy" class="w-10 h-10 text-white"></i>
             </div>
-            <h1 class="text-2xl font-bold text-white mb-2">Practice Complete!</h1>
+            <h1 class="text-2xl font-bold text-white mb-2">{{ __('app.practice_ui.mixed.complete') }}</h1>
             <p class="text-white/80">{{ $sessionTitle }}</p>
         </div>
         
@@ -26,7 +26,7 @@
                         @elseif($coachNotes['score_percentage'] >= 60) text-yellow-600
                         @else text-red-600
                         @endif">{{ round($coachNotes['score_percentage']) }}%</span>
-                    <p class="text-xs text-gray-500 mt-1">Score</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('app.practice.score') }}</p>
                 </div>
             </div>
         </div>
@@ -39,21 +39,21 @@
                         <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
                     </div>
                     <span class="text-2xl font-bold text-green-600">{{ $correctCount }}</span>
-                    <p class="text-xs text-green-600/70">Correct</p>
+                    <p class="text-xs text-green-600/70">{{ __('app.practice_ui.common.correct') }}</p>
                 </div>
                 <div class="text-center p-4 bg-red-50 rounded-xl">
                     <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-red-100 flex items-center justify-center">
                         <i data-lucide="x" class="w-5 h-5 text-red-600"></i>
                     </div>
                     <span class="text-2xl font-bold text-red-600">{{ $totalQuestions - $correctCount }}</span>
-                    <p class="text-xs text-red-600/70">Incorrect</p>
+                    <p class="text-xs text-red-600/70">{{ __('app.profile.total_incorrect') }}</p>
                 </div>
                 <div class="text-center p-4 bg-yellow-50 rounded-xl">
                     <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-yellow-100 flex items-center justify-center">
                         <i data-lucide="sparkles" class="w-5 h-5 text-yellow-600"></i>
                     </div>
                     <span class="text-2xl font-bold text-yellow-600">+{{ $xpEarned }}</span>
-                    <p class="text-xs text-yellow-600/70">XP Earned</p>
+                    <p class="text-xs text-yellow-600/70">{{ __('app.practice_ui.mixed.xp_earned') }}</p>
                 </div>
             </div>
             
@@ -64,7 +64,7 @@
                         <i data-lucide="bot" class="w-5 h-5 text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-purple-900 mb-1">AI Coach Summary</h3>
+                        <h3 class="font-semibold text-purple-900 mb-1">{{ __('app.practice_ui.mixed.ai_summary') }}</h3>
                         <p class="text-gray-700 text-sm leading-relaxed">{{ $coachNotes['summary'] }}</p>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                     <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                         <i data-lucide="thumbs-up" class="w-3.5 h-3.5 text-green-600"></i>
                     </div>
-                    Your Strengths
+                    {{ __('app.practice_ui.mixed.strengths') }}
                 </h3>
                 <ul class="space-y-2">
                     @foreach($coachNotes['strengths'] as $strength)
@@ -97,7 +97,7 @@
                     <div class="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
                         <i data-lucide="target" class="w-3.5 h-3.5 text-orange-600"></i>
                     </div>
-                    Areas to Improve
+                    {{ __('app.practice_ui.mixed.improve') }}
                 </h3>
                 <ul class="space-y-2">
                     @foreach($coachNotes['weak_areas'] as $area)
@@ -117,7 +117,7 @@
                     <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                         <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-blue-600"></i>
                     </div>
-                    Practice Suggestions
+                    {{ __('app.practice_ui.mixed.suggestions') }}
                 </h3>
                 <ul class="space-y-2">
                     @foreach($coachNotes['suggestions'] as $suggestion)
@@ -137,7 +137,7 @@
                         <i data-lucide="heart" class="w-5 h-5 text-white"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-amber-900 mb-1">Keep Going!</h3>
+                        <h3 class="font-semibold text-amber-900 mb-1">{{ __('app.progress.keep_going') }}</h3>
                         <p class="text-amber-800 text-sm leading-relaxed">{{ $coachNotes['encouragement'] }}</p>
                     </div>
                 </div>
@@ -149,20 +149,21 @@
             <div class="flex flex-col sm:flex-row gap-3">
                 <a href="/ai-exercises" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:shadow-lg transition-shadow">
                     <i data-lucide="sparkles" class="w-5 h-5"></i>
-                    New AI Session
+                    {{ __('app.practice_ui.mixed.new_session') }}
                 </a>
                 <a href="/learn" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
-                    Learning Path
+                    {{ __('app.learn.title') }}
                 </a>
                 <a href="/dashboard" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
                     <i data-lucide="home" class="w-5 h-5"></i>
-                    Dashboard
+                    {{ __('app.nav.dashboard') }}
                 </a>
             </div>
         </div>
     </div>
     
+    @include('livewire.partials.practice-i18n')
     <script>
         // Re-initialize Lucide icons for results page
         document.addEventListener('DOMContentLoaded', function() {
@@ -298,7 +299,7 @@
                 $staffClef = $clefFor($clefRoot[0], $clefRoot[1]);
             @endphp
             @if(!$currentPractice)
-                <div class="text-center py-8 text-gray-500">No practice questions available.</div>
+                <div class="text-center py-8 text-gray-500">{{ __('app.practice_ui.mixed.no_questions') }}</div>
             @else
 
             <!-- Note Visual -->
@@ -373,9 +374,9 @@
                          the Exercise Setup Rhythm Recognition header panel) --}}
                     <div class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center py-5">
                         <div class="text-center">
-                            <p class="text-sm text-gray-500 mb-1">Time Signature</p>
+                            <p class="text-sm text-gray-500 mb-1">{{ __('app.practice_ui.rhythm.time_signature') }}</p>
                             <div class="text-5xl font-bold text-gray-800">{{ $practice['time_signature'] ?? '4/4' }}</div>
-                            <p class="text-sm text-gray-400 mt-1">Tempo: {{ $practice['tempo'] ?? 80 }} BPM • {{ $practice['bars'] ?? 1 }} bar(s)</p>
+                            <p class="text-sm text-gray-400 mt-1">{{ __('app.practice_ui.rhythm.tempo_label') }} {{ $practice['tempo'] ?? 80 }} BPM • {{ $practice['bars'] ?? 1 }} bar(s)</p>
                         </div>
                     </div>
                 @elseif($rhythmMode === 'reading')
@@ -385,7 +386,7 @@
                     <div class="text-center text-sm text-gray-500">
                         <span class="font-bold text-gray-700 text-base">{{ $practice['time_signature'] ?? '4/4' }}</span>
                         <span class="mx-2 text-gray-300">•</span>
-                        Tempo: <span class="font-semibold text-gray-700">{{ $practice['tempo'] ?? 80 }} BPM</span>
+                        {{ __('app.practice_ui.rhythm.tempo_label') }} <span class="font-semibold text-gray-700">{{ $practice['tempo'] ?? 80 }} BPM</span>
                     </div>
                 @else
                     {{-- Built rhythm on a single-line staff (top of the exercise) --}}
@@ -393,7 +394,7 @@
                          class="min-h-[110px] w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
                     {{-- Correct-answer reveal (shown only after an incorrect Check) --}}
                     <div id="rhythmReveal" class="hidden mt-3">
-                        <p class="text-xs font-semibold text-gray-500 text-center mb-1">Correct rhythm</p>
+                        <p class="text-xs font-semibold text-gray-500 text-center mb-1">{{ __('app.practice_ui.rhythm.correct_rhythm') }}</p>
                         <div id="rhythmRevealRow"
                              class="w-full bg-green-50 border border-green-200 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
                     </div>
@@ -406,10 +407,10 @@
                 <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-center gap-3">
                     <i data-lucide="info" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
                     <div class="text-xs text-indigo-700 leading-relaxed">
-                        <strong>Key:</strong> {{ $practice['key_signature'] ?? 'C' }} &nbsp;·&nbsp;
-                        <strong>Clef:</strong> {{ ucfirst($practice['clef'] ?? 'treble') }} &nbsp;·&nbsp;
-                        <strong>Tempo:</strong> {{ $practice['tempo'] ?? 60 }} BPM &nbsp;·&nbsp;
-                        <strong>Notes:</strong> {{ count($mdNotes) }}
+                        <strong>{{ __('app.practice_ui.mixed.key_label') }}</strong> {{ $practice['key_signature'] ?? 'C' }} &nbsp;·&nbsp;
+                        <strong>{{ __('app.practice_ui.mixed.clef_label') }}</strong> {{ ucfirst($practice['clef'] ?? 'treble') }} &nbsp;·&nbsp;
+                        <strong>{{ __('app.practice_ui.rhythm.tempo_label') }}</strong> {{ $practice['tempo'] ?? 60 }} BPM &nbsp;·&nbsp;
+                        <strong>{{ __('app.practice_ui.mixed.notes_label') }}</strong> {{ count($mdNotes) }}
                     </div>
                 </div>
             @else
@@ -539,7 +540,7 @@
                                 class="hidden font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm sm:text-base bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                             >
                                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                Next
+                                {{ __('app.practice_ui.common.next') }}
                             </button>
                         @else
                             <button
@@ -555,12 +556,12 @@
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span wire:loading.remove wire:target="generateCoachNotes">Finish</span>
-                                <span wire:loading wire:target="generateCoachNotes">Generating AI Feedback...</span>
+                                <span wire:loading.remove wire:target="generateCoachNotes">{{ __('app.practice_ui.common.finish') }}</span>
+                                <span wire:loading wire:target="generateCoachNotes">{{ __('app.practice_ui.mixed.generating_ai') }}</span>
                             </button>
                         @endif
                 </div>
-                <p id="playStatus" class="text-xs text-gray-400">Listen to the note, then select your answer</p>
+                <p id="playStatus" class="text-xs text-gray-400">{{ __('app.practice_ui.mixed.listen_note') }}</p>
             </div>
             @endif
 
@@ -596,11 +597,11 @@
                      data-type="{{ $type }}">
                     <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 flex items-center justify-center gap-2" data-answer="ascending">
                         <i data-lucide="trending-up" class="w-5 h-5 text-green-500"></i>
-                        Ascending
+                        {{ __('app.practice_ui.direction.ascending') }}
                     </button>
                     <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 flex items-center justify-center gap-2" data-answer="descending">
                         <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i>
-                        Descending
+                        {{ __('app.practice_ui.direction.descending') }}
                     </button>
                 </div>
             @elseif($type === 'interval_comparison')
@@ -610,11 +611,11 @@
                      data-type="{{ $type }}">
                     <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 flex flex-col items-center justify-center gap-1" data-answer="a">
                         <span class="text-2xl font-bold text-green-600">A</span>
-                        <span class="text-sm text-gray-500">Interval A is larger</span>
+                        <span class="text-sm text-gray-500">{{ __('app.practice_ui.comparison.a_larger') }}</span>
                     </button>
                     <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 flex flex-col items-center justify-center gap-1" data-answer="b">
                         <span class="text-2xl font-bold text-blue-600">B</span>
-                        <span class="text-sm text-gray-500">Interval B is larger</span>
+                        <span class="text-sm text-gray-500">{{ __('app.practice_ui.comparison.b_larger') }}</span>
                     </button>
                 </div>
             @elseif($type === 'harmonic_interval' || $type === 'melodic_interval')
@@ -755,7 +756,7 @@
                         }
                         shuffle($recOptions);
                     @endphp
-                    <p class="text-sm text-gray-500 text-center">Which rhythm did you hear?</p>
+                    <p class="text-sm text-gray-500 text-center">{{ __('app.practice_ui.rhythm.which_rhythm') }}</p>
                     <div id="answerOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3"
                          data-target="{{ $rhythmAnswerTarget }}"
                          data-practice-id="{{ $practice['id'] ?? 0 }}"
@@ -776,8 +777,13 @@
                          data-practice-id="{{ $practice['id'] ?? 0 }}"
                          data-type="rhythm-reading">
                         <p class="text-xs text-gray-400">
-                            Use <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Tab</kbd>
-                            to start &amp; tap, or <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Space</kbd> to tap
+                            {{-- Same key as practice-rhythm: shortcuts sit mid-sentence
+                                 in English, before the verb in Turkish. --}}
+                            @php $mxKbd = 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono'; @endphp
+                            {!! __('app.practice_ui.rhythm.kbd_hint', [
+                                'tab' => '<kbd class="'.$mxKbd.'">Tab</kbd>',
+                                'space' => '<kbd class="'.$mxKbd.'">Space</kbd>',
+                            ]) !!}
                         </p>
                         <button id="rhythmTapButton" type="button"
                             class="w-full max-w-[16rem] h-20 rounded-2xl font-bold text-xl select-none transition-all
@@ -834,7 +840,7 @@
                                         class="hidden font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     >
                                         <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                        Next
+                                        {{ __('app.practice_ui.common.next') }}
                                     </button>
                                 @else
                                     <button
@@ -850,18 +856,18 @@
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        <span wire:loading.remove wire:target="generateCoachNotes">Finish</span>
-                                        <span wire:loading wire:target="generateCoachNotes">Generating AI Feedback...</span>
+                                        <span wire:loading.remove wire:target="generateCoachNotes">{{ __('app.practice_ui.common.finish') }}</span>
+                                        <span wire:loading wire:target="generateCoachNotes">{{ __('app.practice_ui.mixed.generating_ai') }}</span>
                                     </button>
                                 @endif
                             </div>
-                            <p id="playStatus" class="text-xs text-gray-400 text-center">Listen to the note, then select your answer</p>
+                            <p id="playStatus" class="text-xs text-gray-400 text-center">{{ __('app.practice_ui.mixed.listen_note') }}</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Instruction text — below card, above palette --}}
-                <p class="text-sm text-gray-500 text-center" style="margin-top:15px; margin-bottom:15px;">Click the notes below to rebuild the rhythm you heard.</p>
+                <p class="text-sm text-gray-500 text-center" style="margin-top:15px; margin-bottom:15px;">{{ __('app.practice_ui.rhythm.rebuild_hint') }}</p>
 
                 {{-- Answer options wrapper + note palette + controls (all below the card) --}}
                 <div id="answerOptions"
@@ -876,19 +882,19 @@
                     <div class="flex flex-wrap items-center justify-center gap-2" style="margin-top:35px;">
                         <button type="button" id="rhythmPlayMineBtn"
                                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="volume-2" class="w-4 h-4"></i> Play my rhythm
+                            <i data-lucide="volume-2" class="w-4 h-4"></i> {{ __('app.practice_ui.rhythm.play_mine') }}
                         </button>
                         <button type="button" id="rhythmDeleteBtn"
                                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="delete" class="w-4 h-4"></i> Delete last
+                            <i data-lucide="delete" class="w-4 h-4"></i> {{ __('app.practice_ui.common.delete_last') }}
                         </button>
                         <button type="button" id="rhythmClearBtn"
                                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="eraser" class="w-4 h-4"></i> Clear
+                            <i data-lucide="eraser" class="w-4 h-4"></i> {{ __('app.practice_ui.common.clear') }}
                         </button>
                         <button type="button" id="rhythmCheckBtn"
                                 class="btn-primary inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg transition-shadow disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="check" class="w-4 h-4"></i> Check
+                            <i data-lucide="check" class="w-4 h-4"></i> {{ __('app.practice_ui.common.check') }}
                         </button>
                     </div>
                 </div>
@@ -1254,7 +1260,7 @@
                     fillBar.classList.add(over ? 'bg-red-500' : full ? 'bg-green-500' : 'bg-amber-400');
                 }
                 if (fillLabel) {
-                    fillLabel.textContent = `${fmt(sum / beatTicks)} / ${fmt(totalBeats)} beats`
+                    fillLabel.textContent = pt('beats_progress', {done: fmt(sum / beatTicks), total: fmt(totalBeats)})
                         + (over ? ' (too long)' : '');
                     fillLabel.classList.remove('text-gray-600', 'text-green-600', 'text-red-600');
                     fillLabel.classList.add(over ? 'text-red-600' : full ? 'text-green-600' : 'text-gray-600');
@@ -1306,7 +1312,7 @@
                     const tempo = (playButton && playButton.dataset.tempo) || 80;
                     const original = playMineBtn.innerHTML;
                     playMineBtn.disabled = true;
-                    playMineBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> Playing...';
+                    playMineBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> ' + pt('playing');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     const totalMs = await playRhythmAudio(built, tempo, timeSig);
                     setTimeout(() => {
@@ -1321,7 +1327,7 @@
                 if (answered || built.length === 0) return;
                 const answer = built.join(',');
                 checkBtn.disabled = true;
-                checkBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Checking...';
+                checkBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> ' + pt('checking');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 try {
                     const data = await @this.call('answerPractice', 'rhythm', answer, target);
@@ -1337,10 +1343,10 @@
                     if (finishPracticeBtn) finishPracticeBtn.classList.remove('hidden');
 
                     if (data.is_correct) {
-                        checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Correct';
+                        checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> ' + pt('correct_label');
                         table.classList.remove('border-gray-300');
                         table.classList.add('border-green-400', 'bg-green-50');
-                        feedbackMessage.textContent = '✓ Correct! Well done!';
+                        feedbackMessage.textContent = pt('correct_well_done');
                         feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                         feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                         const xpEl = document.getElementById('xpEarned');
@@ -1348,10 +1354,10 @@
                         const sc = document.getElementById('scoreCorrect');
                         if (sc) sc.textContent = (parseInt(sc.textContent) || 0) + 1;
                     } else {
-                        checkBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Incorrect';
+                        checkBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> ' + pt('incorrect_label');
                         table.classList.remove('border-gray-300');
                         table.classList.add('border-red-400', 'bg-red-50');
-                        feedbackMessage.textContent = '✗ Not quite — the correct rhythm is shown below.';
+                        feedbackMessage.textContent = pt('not_quite_rhythm');
                         feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                         feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                         const reveal = document.getElementById('rhythmReveal');
@@ -1368,7 +1374,7 @@
                     console.error('Error checking rhythm:', e);
                     answered = false;
                     checkBtn.disabled = false;
-                    checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Check';
+                    checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> ' + pt('check_label');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
             };
@@ -1420,7 +1426,7 @@
                             this.classList.remove('border-gray-200');
                             this.classList.add('border-green-400', 'bg-green-50');
                             drawOption(this, '#16a34a');
-                            feedbackMessage.textContent = '✓ Correct! Well done!';
+                            feedbackMessage.textContent = pt('correct_well_done');
                             feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                             feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                             const xpEl = document.getElementById('xpEarned');
@@ -1438,7 +1444,7 @@
                                     drawOption(b, '#16a34a');
                                 }
                             });
-                            feedbackMessage.textContent = '✗ Incorrect — the correct pattern is highlighted in green.';
+                            feedbackMessage.textContent = pt('incorrect_pattern');
                             feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                             feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                         }
@@ -1493,7 +1499,7 @@
 
             // The rhythm is visible from the start — that is the point of reading mode.
             setTimeout(() => { if (staffBox) drawRhythmStaff(staffBox, notes, timeSig); }, 120);
-            if (playStatus) playStatus.textContent = 'Press Play — the metronome will count you in';
+            if (playStatus) playStatus.textContent = pt('press_play_metronome');
 
             playButton.onclick = async function() {
                 if (playButton.disabled || answered) return;
@@ -1504,7 +1510,7 @@
                 setTapActive(true);
 
                 playButton.disabled = true;
-                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Get Ready...';
+                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('get_ready');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 await Tone.start();
@@ -1534,8 +1540,8 @@
                 // even when the user tapped in perfect sync with the metronome.
                 rhythmStartTime = wallNowRef + startOffset;
                 setTimeout(() => {
-                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                    if (playStatus) playStatus.textContent = 'Tap or press Tab/Space along with the rhythm!';
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
+                    if (playStatus) playStatus.textContent = pt('tap_along');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, startOffset);
 
@@ -1696,7 +1702,7 @@
             }
             if (playStatus) {
                 playStatus.classList.remove('hidden');
-                playStatus.textContent = 'Listen to the note to start';
+                playStatus.textContent = pt('listen_note_start');
             }
             if (nextButton) nextButton.classList.add('hidden');
             if (finishPracticeBtn) finishPracticeBtn.classList.add('hidden');
@@ -1956,16 +1962,16 @@
                 playButton.onclick = async function() {
                     await Tone.start();
                     playButton.disabled = true;
-                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                    playStatus.textContent = 'Playing...';
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
+                    playStatus.textContent = pt('playing');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
 
                     const playMode = this.dataset.playMode;
 
                     const resetPlayBtn = (label) => {
                         playButton.disabled = false;
-                        playButton.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i> ${label || 'Play Again'}`;
-                        playStatus.textContent = 'Click to play again';
+                        playButton.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i> ${label || pt('play_again')}`;
+                        playStatus.textContent = pt('click_replay');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     };
 
@@ -1978,10 +1984,10 @@
                         // Interval A then pause then Interval B
                         const intervalA = this.dataset.intervalA.split(',');
                         const intervalB = this.dataset.intervalB.split(',');
-                        playStatus.textContent = 'Playing Interval A...';
+                        playStatus.textContent = pt('playing_a');
                         window.HarmonivaAudio.playSequential(intervalA, 700, 1);
                         setTimeout(() => {
-                            playStatus.textContent = 'Playing Interval B...';
+                            playStatus.textContent = pt('playing_b');
                             window.HarmonivaAudio.playSequential(intervalB, 700, 1);
                         }, 2000);
                         setTimeout(() => resetPlayBtn('Play Again'), 4200);
@@ -2019,14 +2025,14 @@
                         // data-reference-note and take the plain branch below.
                         const refNote = this.dataset.referenceNote;
                         const questionNote = this.dataset.note;
-                        playStatus.textContent = 'Playing reference note (Do)...';
+                        playStatus.textContent = pt('playing_ref');
                         // Wait for the sampler so the ref/question gap stays accurate
                         // even on the first click (sample loading can take seconds).
                         await window.HarmonivaAudio.prepare();
                         window.HarmonivaAudio.playNote(refNote, 1.5);
                         if (typeof window._markSingleNoteRefShown === 'function') window._markSingleNoteRefShown();
                         setTimeout(() => {
-                            playStatus.textContent = 'Playing...';
+                            playStatus.textContent = pt('playing');
                             window.HarmonivaAudio.playNote(questionNote, 1.5);
                         }, 1800);
                         setTimeout(() => resetPlayBtn('Play Again'), 3800);
@@ -2055,7 +2061,7 @@
                         answerButtons.forEach(b => b.disabled = true);
                         
                         // Show loading state on clicked button
-                        this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Checking...';
+                        this.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('checking');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         
                         try {
@@ -2116,7 +2122,7 @@
                                 this.classList.add('correct');
                                 this.classList.remove('text-gray-700');
                                 this.classList.add('text-green-700');
-                                feedbackMessage.textContent = '✓ Correct! Well done!';
+                                feedbackMessage.textContent = pt('correct_well_done');
                                 feedbackMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700');
                                 feedbackMessage.classList.add('bg-green-100', 'text-green-700');
                                 
@@ -2147,7 +2153,7 @@
                                             : practiceType === 'interval_construction'
                                                 ? target.replace('##', 'x')
                                                 : target.charAt(0).toUpperCase() + target.slice(1);
-                                feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${correctDisplay}.`;
+                                feedbackMessage.textContent = pt('incorrect_answer_is', {answer: correctDisplay});
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                                 
@@ -2173,7 +2179,7 @@
                         } catch (error) {
                             console.error('Error checking answer:', error);
                             this.innerHTML = originalText;
-                            feedbackMessage.textContent = 'Error checking answer. Please try again.';
+                            feedbackMessage.textContent = pt('error_checking');
                             feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                             feedbackMessage.classList.add('bg-red-100', 'text-red-700');
                             

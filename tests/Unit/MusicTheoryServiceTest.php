@@ -12,53 +12,53 @@ class MusicTheoryServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->music = new MusicTheoryService();
+        $this->music = new MusicTheoryService;
     }
 
     // ── Direction tests (from acceptance criteria) ────────────────────────────
 
-    public function test_C4_to_E4_is_ascending(): void
+    public function test_c4_to_e4_is_ascending(): void
     {
         $this->assertSame('ascending', $this->music->getDirection('C', 4, 'E', 4));
     }
 
-    public function test_E4_to_C4_is_descending(): void
+    public function test_e4_to_c4_is_descending(): void
     {
         $this->assertSame('descending', $this->music->getDirection('E', 4, 'C', 4));
     }
 
-    public function test_C5_to_E4_is_descending(): void
+    public function test_c5_to_e4_is_descending(): void
     {
         $this->assertSame('descending', $this->music->getDirection('C', 5, 'E', 4));
     }
 
-    public function test_A3_to_C4_is_ascending(): void
+    public function test_a3_to_c4_is_ascending(): void
     {
         $this->assertSame('ascending', $this->music->getDirection('A', 3, 'C', 4));
     }
 
-    public function test_G4_to_G4_is_unison(): void
+    public function test_g4_to_g4_is_unison(): void
     {
         $this->assertSame('unison', $this->music->getDirection('G', 4, 'G', 4));
     }
 
     // ── Interval name calculation ─────────────────────────────────────────────
 
-    public function test_C4_to_E4_is_Major_3rd(): void
+    public function test_c4_to_e4_is_major_3rd(): void
     {
         $semitones = abs($this->music->semitonesBetween('C', 4, 'E', 4));
         $this->assertSame(4, $semitones);
         $this->assertSame('Major 3rd', $this->music->intervalNameFromSemitones($semitones));
     }
 
-    public function test_A3_to_C4_is_Minor_3rd(): void
+    public function test_a3_to_c4_is_minor_3rd(): void
     {
         $semitones = abs($this->music->semitonesBetween('A', 3, 'C', 4));
         $this->assertSame(3, $semitones);
         $this->assertSame('Minor 3rd', $this->music->intervalNameFromSemitones($semitones));
     }
 
-    public function test_C4_to_C5_is_Perfect_Octave(): void
+    public function test_c4_to_c5_is_perfect_octave(): void
     {
         $semitones = abs($this->music->semitonesBetween('C', 4, 'C', 5));
         $this->assertSame(12, $semitones);
@@ -67,7 +67,7 @@ class MusicTheoryServiceTest extends TestCase
 
     // ── noteAboveByInterval — cross-octave correctness ────────────────────────
 
-    public function test_B4_plus_M3_ascending_lands_in_octave5(): void
+    public function test_b4_plus_m3_ascending_lands_in_octave5(): void
     {
         $result = $this->music->noteAboveByInterval('B', 4, 'Major 3rd');
         $this->assertNotNull($result);
@@ -77,7 +77,7 @@ class MusicTheoryServiceTest extends TestCase
         $this->assertSame('ascending', $this->music->getDirection('B', 4, $result['note'], $result['octave']));
     }
 
-    public function test_A4_plus_P5_ascending_lands_in_octave5(): void
+    public function test_a4_plus_p5_ascending_lands_in_octave5(): void
     {
         $result = $this->music->noteAboveByInterval('A', 4, 'Perfect 5th');
         $this->assertNotNull($result);
@@ -86,7 +86,7 @@ class MusicTheoryServiceTest extends TestCase
         $this->assertSame('ascending', $this->music->getDirection('A', 4, $result['note'], $result['octave']));
     }
 
-    public function test_C4_plus_P8_ascending_lands_in_octave5(): void
+    public function test_c4_plus_p8_ascending_lands_in_octave5(): void
     {
         $result = $this->music->noteAboveByInterval('C', 4, 'Perfect Octave');
         $this->assertNotNull($result);
@@ -96,24 +96,24 @@ class MusicTheoryServiceTest extends TestCase
 
     // ── MIDI number arithmetic ────────────────────────────────────────────────
 
-    public function test_midi_number_C4_is_60(): void
+    public function test_midi_number_c4_is_60(): void
     {
         $this->assertSame(60, $this->music->midiNumber('C', 4));
     }
 
-    public function test_note_from_midi_60_is_C4(): void
+    public function test_note_from_midi_60_is_c4(): void
     {
         $result = $this->music->noteFromMidi(60);
         $this->assertSame('C', $result['note']);
         $this->assertSame(4, $result['octave']);
     }
 
-    public function test_signed_semitones_C4_to_E4_is_positive_4(): void
+    public function test_signed_semitones_c4_to_e4_is_positive_4(): void
     {
         $this->assertSame(4, $this->music->semitonesBetween('C', 4, 'E', 4));
     }
 
-    public function test_signed_semitones_E4_to_C4_is_negative_4(): void
+    public function test_signed_semitones_e4_to_c4_is_negative_4(): void
     {
         $this->assertSame(-4, $this->music->semitonesBetween('E', 4, 'C', 4));
     }
@@ -123,7 +123,7 @@ class MusicTheoryServiceTest extends TestCase
     public function test_correct_answer_appears_exactly_once_in_options(): void
     {
         $correct = 'Major 3rd';
-        $pool    = ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th'];
+        $pool = ['Minor 2nd', 'Major 2nd', 'Minor 3rd', 'Major 3rd', 'Perfect 4th'];
         $distractors = $this->music->buildOptions($correct, $pool, 1);
 
         // Build final options array as components do (correct + distractors)
@@ -136,7 +136,7 @@ class MusicTheoryServiceTest extends TestCase
     public function test_wrong_options_do_not_include_correct_answer(): void
     {
         $correct = 'Perfect 5th';
-        $pool    = ['Minor 2nd', 'Major 2nd', 'Perfect 4th', 'Perfect 5th', 'Minor 6th'];
+        $pool = ['Minor 2nd', 'Major 2nd', 'Perfect 4th', 'Perfect 5th', 'Minor 6th'];
 
         $distractors = $this->music->buildOptions($correct, $pool, 3);
 
@@ -205,8 +205,8 @@ class MusicTheoryServiceTest extends TestCase
         $this->assertNotNull($result);
 
         // If we stored both at octave 4 (the old bug), getDirection would say descending
-        $wrongDirection  = $this->music->getDirection('B', 4, $result['note'], 4);
-        $rightDirection  = $this->music->getDirection('B', 4, $result['note'], $result['octave']);
+        $wrongDirection = $this->music->getDirection('B', 4, $result['note'], 4);
+        $rightDirection = $this->music->getDirection('B', 4, $result['note'], $result['octave']);
 
         $this->assertSame('descending', $wrongDirection, 'Same-octave assumption gives wrong result');
         $this->assertSame('ascending', $rightDirection, 'Correct octave-aware direction');
@@ -279,7 +279,7 @@ class MusicTheoryServiceTest extends TestCase
         $this->assertNull($this->music->largerIntervalPair('C,E', 'C,H'));
     }
 
-    public function test_resolve_direction_matches_getDirection_for_all_chromatic_pairs(): void
+    public function test_resolve_direction_matches_get_direction_for_all_chromatic_pairs(): void
     {
         // For every chromatic pair, resolveNote2OctaveFromDirection then getDirection
         // must round-trip back to the stated direction.
@@ -288,7 +288,9 @@ class MusicTheoryServiceTest extends TestCase
 
         foreach ($notes as $n1) {
             foreach ($notes as $n2) {
-                if ($n1 === $n2) continue; // unison is ambiguous, skip
+                if ($n1 === $n2) {
+                    continue;
+                } // unison is ambiguous, skip
                 foreach ($directions as $dir) {
                     $oct2 = $this->music->resolveNote2OctaveFromDirection($n1, 4, $n2, $dir);
                     $derived = $this->music->getDirection($n1, 4, $n2, $oct2);

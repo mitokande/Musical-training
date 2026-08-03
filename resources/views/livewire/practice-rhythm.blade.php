@@ -1,5 +1,6 @@
 <div>
     <!-- VexFlow -->
+    @include('livewire.partials.practice-i18n')
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 
     <!-- Main Content -->
@@ -7,10 +8,10 @@
 
         @if(!$currentPractice)
             <div class="card p-12 text-center">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">No exercises found</h3>
-                <p class="text-gray-500 mb-4">No rhythm exercises match your settings.</p>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ __('app.practice_ui.common.no_exercises') }}</h3>
+                <p class="text-gray-500 mb-4">{{ __('app.practice_ui.rhythm.empty') }}</p>
                 <a href="/exercise-setup" class="btn-primary text-white font-semibold py-2.5 px-6 rounded-lg inline-flex items-center gap-2">
-                    <i data-lucide="settings-2" class="w-4 h-4"></i> Adjust Settings
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> {{ __('app.practice_ui.common.adjust_settings') }}
                 </a>
             </div>
         @else
@@ -80,7 +81,7 @@
                 <div class="text-center text-sm text-gray-500 mb-6">
                     <span class="font-bold text-gray-700 text-base">{{ $currentPractice->time_signature }}</span>
                     <span class="mx-2 text-gray-300">•</span>
-                    Tempo: <span class="font-semibold text-gray-700">{{ $currentPractice->tempo }} BPM</span>
+                    {{ __('app.practice_ui.rhythm.tempo_label') }} <span class="font-semibold text-gray-700">{{ $currentPractice->tempo }} BPM</span>
                 </div>
 
                 <!-- Play button + Next button -->
@@ -94,26 +95,31 @@
                                 data-time-sig="{{ $currentPractice->time_signature }}"
                                 data-metronome="1">
                                 <i data-lucide="play" class="w-5 h-5"></i>
-                                Play
+                                {{ __('app.practice_ui.common.play') }}
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
+                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="check" class="w-5 h-5"></i> Finish
+                                    <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
                             @endif
                         </div>
                         <p id="playStatus" class="text-sm text-gray-500">Press Play — the metronome will count you in</p>
                         <p class="text-xs text-gray-400 -mt-1">
-                            Use <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Tab</kbd>
-                            to start &amp; tap, or <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono">Space</kbd> to tap
+                            {{-- One key: the two shortcuts sit mid-sentence in English
+                                 but before the verb in Turkish. --}}
+                            @php $rhKbd = 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono'; @endphp
+                            {!! __('app.practice_ui.rhythm.kbd_hint', [
+                                'tab' => '<kbd class="'.$rhKbd.'">Tab</kbd>',
+                                'space' => '<kbd class="'.$rhKbd.'">Space</kbd>',
+                            ]) !!}
                         </p>
 
                         <!-- Tap Button — visible from start, enabled only when rhythm is playing -->
@@ -142,7 +148,7 @@
                      class="min-h-[110px] w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-2 overflow-x-auto flex items-center justify-center mb-3"></div>
                 {{-- Correct-answer reveal (shown only after an incorrect Check) --}}
                 <div id="rhythmReveal" class="hidden mb-4">
-                    <p class="text-xs font-semibold text-gray-500 text-center mb-1">Correct rhythm</p>
+                    <p class="text-xs font-semibold text-gray-500 text-center mb-1">{{ __('app.practice_ui.rhythm.correct_rhythm') }}</p>
                     <div id="rhythmRevealRow"
                          class="w-full bg-green-50 border border-green-200 rounded-xl p-2 overflow-x-auto flex items-center justify-center"></div>
                 </div>
@@ -164,32 +170,32 @@
                                 data-tempo="{{ $currentPractice->tempo ?? 80 }}"
                                 data-time-sig="{{ $currentPractice->time_signature ?? '4/4' }}">
                                 <i data-lucide="play" class="w-5 h-5"></i>
-                                Play Rhythm
+                                {{ __('app.practice_ui.rhythm.play_rhythm') }}
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
+                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="check" class="w-5 h-5"></i> Finish
+                                    <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
                             @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Listen, then build the rhythm you heard</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.rhythm.listen_build') }}</p>
                     </div>
                 </div>
 
-                <p class="text-sm text-gray-500 mb-3 text-center">Click the notes below to rebuild the rhythm you heard.</p>
+                <p class="text-sm text-gray-500 mb-3 text-center">{{ __('app.practice_ui.rhythm.rebuild_hint') }}</p>
 
                 {{-- Bar-fill meter --}}
                 <div class="max-w-xs mx-auto mb-4">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-medium text-gray-500">Bar</span>
+                        <span class="text-xs font-medium text-gray-500">{{ __('app.practice_ui.rhythm.bar') }}</span>
                         <span id="rhythmFillLabel" class="text-xs font-semibold text-gray-600">0 / 0 beats</span>
                     </div>
                     <div class="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -209,19 +215,19 @@
                     <div class="flex flex-wrap items-center justify-center gap-2">
                         <button type="button" id="rhythmPlayMineBtn"
                                 class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="volume-2" class="w-4 h-4"></i> Play my rhythm
+                            <i data-lucide="volume-2" class="w-4 h-4"></i> {{ __('app.practice_ui.rhythm.play_mine') }}
                         </button>
                         <button type="button" id="rhythmDeleteBtn"
                                 class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="delete" class="w-4 h-4"></i> Delete last
+                            <i data-lucide="delete" class="w-4 h-4"></i> {{ __('app.practice_ui.common.delete_last') }}
                         </button>
                         <button type="button" id="rhythmClearBtn"
                                 class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="eraser" class="w-4 h-4"></i> Clear
+                            <i data-lucide="eraser" class="w-4 h-4"></i> {{ __('app.practice_ui.common.clear') }}
                         </button>
                         <button type="button" id="rhythmCheckBtn"
                                 class="btn-primary inline-flex items-center gap-1.5 rounded-lg px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg transition-shadow disabled:opacity-40 disabled:cursor-not-allowed">
-                            <i data-lucide="check" class="w-4 h-4"></i> Check
+                            <i data-lucide="check" class="w-4 h-4"></i> {{ __('app.practice_ui.common.check') }}
                         </button>
                     </div>
                 </div>
@@ -236,9 +242,9 @@
                 <!-- Time signature display -->
                 <div class="w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center mb-6 py-5">
                     <div class="text-center">
-                        <p class="text-sm text-gray-500 mb-1">Time Signature</p>
+                        <p class="text-sm text-gray-500 mb-1">{{ __('app.practice_ui.rhythm.time_signature') }}</p>
                         <div class="text-5xl font-bold text-gray-800">{{ $currentPractice->time_signature }}</div>
-                        <p class="text-sm text-gray-400 mt-1">Tempo: {{ $currentPractice->tempo }} BPM • {{ $currentPractice->bars }} bar(s)</p>
+                        <p class="text-sm text-gray-400 mt-1">{{ __('app.practice_ui.rhythm.tempo_label') }} {{ $currentPractice->tempo }} BPM • {{ trans_choice('app.practice_ui.rhythm.bars_count', $currentPractice->bars, ['count' => $currentPractice->bars]) }}</p>
                     </div>
                 </div>
 
@@ -253,28 +259,28 @@
                                 data-time-sig="{{ $currentPractice->time_signature }}"
                                 data-metronome="{{ $metronome ? '1' : '0' }}">
                                 <i data-lucide="play" class="w-5 h-5"></i>
-                                Play Rhythm
+                                {{ __('app.practice_ui.rhythm.play_rhythm') }}
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
+                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
-                                    <i data-lucide="check" class="w-5 h-5"></i> Finish
+                                    <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
                             @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Listen to the rhythm pattern</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.rhythm.listen_pattern') }}</p>
                     </div>
                 </div>
 
                 <!-- Answer Options: 4 VexFlow staves in 2×2 grid -->
-                <p class="text-sm text-gray-500 mb-3 text-center">Which rhythm did you hear?</p>
+                <p class="text-sm text-gray-500 mb-3 text-center">{{ __('app.practice_ui.rhythm.which_rhythm') }}</p>
                 <div id="answerOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3"
                      data-target="{{ $correctStr }}"
                      data-practice-id="{{ $currentPractice->id }}">
@@ -298,7 +304,7 @@
         <div class="flex items-center justify-center gap-4 text-sm text-gray-500">
             <span class="flex items-center gap-1"><i data-lucide="sparkles" class="w-4 h-4 text-yellow-500"></i>+<span id="xpEarned">0</span> XP</span>
             <span>•</span>
-            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
+            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> {{ __('app.practice_ui.common.correct') }}</span>
         </div>
 
         <script>
@@ -588,7 +594,7 @@
             playButton.onclick = async function() {
                 if (playButton.disabled) return;
                 playButton.disabled = true;
-                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Playing...';
+                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('playing');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 // Audio-clock scheduling: loads sampler first, then schedules every click
@@ -598,8 +604,8 @@
                 setTimeout(() => {
                     if (window._practiceGen !== myGen) return;
                     playButton.disabled = false;
-                    playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                    if (playStatus) playStatus.textContent = 'Click to play again';
+                    playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
+                    if (playStatus) playStatus.textContent = pt('click_replay');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, totalMs + 200);
             };
@@ -640,7 +646,7 @@
                         if (data.is_correct) {
                             this.classList.add('border-green-400', 'bg-green-50');
                             if (feedbackMessage) {
-                                feedbackMessage.textContent = '✓ Correct!';
+                                feedbackMessage.textContent = pt('correct_short');
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                                 feedbackMessage.style.display = 'block';
                             }
@@ -656,7 +662,7 @@
                         } else {
                             this.classList.add('border-red-400', 'bg-red-50');
                             if (feedbackMessage) {
-                                feedbackMessage.textContent = '✗ Incorrect — the correct pattern is highlighted in green.';
+                                feedbackMessage.textContent = pt('incorrect_pattern');
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                                 feedbackMessage.style.display = 'block';
                             }
@@ -768,7 +774,7 @@
                 if (feedbackMsg) feedbackMsg.style.display = 'none';
 
                 playButton.disabled = true;
-                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Get Ready...';
+                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('get_ready');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 await Tone.start();
@@ -792,8 +798,8 @@
                 setTimeout(() => {
                     if (window._practiceGen !== myGen) return;
                     rhythmStartTime = Date.now();
-                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing...';
-                    if (playStatus) playStatus.textContent = 'Tap or press Tab/Space along with the rhythm!';
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
+                    if (playStatus) playStatus.textContent = pt('tap_along');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, startOffset);
 
@@ -1223,7 +1229,7 @@
                     fillBar.classList.add(over ? 'bg-red-500' : full ? 'bg-green-500' : 'bg-amber-400');
                 }
                 if (fillLabel) {
-                    fillLabel.textContent = `${fmt(sum / beatTicks)} / ${fmt(totalBeats)} beats`
+                    fillLabel.textContent = pt('beats_progress', {done: fmt(sum / beatTicks), total: fmt(totalBeats)})
                         + (over ? ' (too long)' : '');
                     fillLabel.classList.remove('text-gray-600', 'text-green-600', 'text-red-600');
                     fillLabel.classList.add(over ? 'text-red-600' : full ? 'text-green-600' : 'text-gray-600');
@@ -1271,7 +1277,7 @@
                     const tempo = (playButton && playButton.dataset.tempo) || 80;
                     const original = playMineBtn.innerHTML;
                     playMineBtn.disabled = true;
-                    playMineBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> Playing...';
+                    playMineBtn.innerHTML = '<i data-lucide="volume-2" class="w-4 h-4"></i> ' + pt('playing');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     const totalMs = await playRhythmAudio(built, tempo, timeSig);
                     setTimeout(() => {
@@ -1286,7 +1292,7 @@
                 if (answered || built.length === 0) return;
                 const answer = built.join(',');
                 checkBtn.disabled = true;
-                checkBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Checking...';
+                checkBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> ' + pt('checking');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 try {
                     const response = await fetch('/api/practice/check-answer', {
@@ -1309,20 +1315,20 @@
                     if (st) st.textContent = (parseInt(st.textContent) || 0) + 1;
 
                     if (data.is_correct) {
-                        checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Correct';
+                        checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> ' + pt('correct_label');
                         table.classList.remove('border-gray-300');
                         table.classList.add('border-green-400', 'bg-green-50');
-                        feedbackMessage.textContent = '✓ Correct! Well done!';
+                        feedbackMessage.textContent = pt('correct_well_done');
                         feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                         const xpEl = document.getElementById('xpEarned');
                         if (xpEl) xpEl.textContent = (parseInt(xpEl.textContent) || 0) + 10;
                         const sc = document.getElementById('scoreCorrect');
                         if (sc) sc.textContent = (parseInt(sc.textContent) || 0) + 1;
                     } else {
-                        checkBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> Incorrect';
+                        checkBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> ' + pt('incorrect_label');
                         table.classList.remove('border-gray-300');
                         table.classList.add('border-red-400', 'bg-red-50');
-                        feedbackMessage.textContent = '✗ Not quite — the correct rhythm is shown below.';
+                        feedbackMessage.textContent = pt('not_quite_rhythm');
                         feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                         const reveal = document.getElementById('rhythmReveal');
                         const revealRow = document.getElementById('rhythmRevealRow');
@@ -1336,7 +1342,7 @@
                     console.error('Error checking rhythm:', e);
                     answered = false;
                     checkBtn.disabled = false;
-                    checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Check';
+                    checkBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> ' + pt('check_label');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
             };
@@ -1359,14 +1365,14 @@
             playButton.onclick = async function() {
                 if (playButton.disabled) return;
                 playButton.disabled = true;
-                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Playing...';
+                playButton.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> ' + pt('playing');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 const totalMs = await playRhythmAudio(notes, tempo, timeSig);
                 setTimeout(() => {
                     if (window._practiceGen !== myGen) return;
                     playButton.disabled = false;
-                    playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                    if (playStatus) playStatus.textContent = 'Click to play again';
+                    playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
+                    if (playStatus) playStatus.textContent = pt('click_replay');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, totalMs + 400);
             };

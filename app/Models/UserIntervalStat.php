@@ -54,13 +54,13 @@ class UserIntervalStat extends Model
     {
         $row = static::firstOrCreate(
             [
-                'user_id'       => $userId,
-                'practice_id'   => $practiceId,
+                'user_id' => $userId,
+                'practice_id' => $practiceId,
                 'interval_name' => $interval,
             ],
             [
-                'total_questions'   => 0,
-                'correct_answers'   => 0,
+                'total_questions' => 0,
+                'correct_answers' => 0,
                 'incorrect_answers' => 0,
             ]
         );
@@ -91,6 +91,7 @@ class UserIntervalStat extends Model
     public static function multiplierFromAccuracy(float $accuracyPercent): float
     {
         $accuracyFraction = max(0.0, min(1.0, $accuracyPercent / 100));
+
         return round(1.0 + (1.0 - $accuracyFraction) * 1.0, 2);
     }
 
@@ -135,32 +136,32 @@ class UserIntervalStat extends Model
                 }
 
                 /** @var static|null $row */
-                $row    = $rows[$practiceId][$name] ?? null;
+                $row = $rows[$practiceId][$name] ?? null;
                 $tested = $row !== null && $row->total_questions > 0;
 
-                $accuracy   = $tested ? $row->accuracy : 0.0;
+                $accuracy = $tested ? $row->accuracy : 0.0;
                 $multiplier = $tested
                     ? self::multiplierFromAccuracy($accuracy)
                     : self::UNTESTED_MULTIPLIER;
 
                 $intervals[] = [
-                    'interval'          => $name,
-                    'semitones'         => $semitones,
-                    'total_questions'   => $row->total_questions ?? 0,
-                    'correct_answers'   => $row->correct_answers ?? 0,
+                    'interval' => $name,
+                    'semitones' => $semitones,
+                    'total_questions' => $row->total_questions ?? 0,
+                    'correct_answers' => $row->correct_answers ?? 0,
                     'incorrect_answers' => $row->incorrect_answers ?? 0,
-                    'accuracy'          => $accuracy,
-                    'multiplier'        => $multiplier,
-                    'tested'            => $tested,
-                    'last_answered_at'  => $row->last_answered_at ?? null,
+                    'accuracy' => $accuracy,
+                    'multiplier' => $multiplier,
+                    'tested' => $tested,
+                    'last_answered_at' => $row->last_answered_at ?? null,
                 ];
             }
 
             $result[] = [
                 'practice_id' => $practiceId,
-                'slug'        => $meta['slug'],
-                'name'        => $meta['name'],
-                'intervals'   => $intervals,
+                'slug' => $meta['slug'],
+                'name' => $meta['name'],
+                'intervals' => $intervals,
             ];
         }
 

@@ -3,13 +3,13 @@
 namespace App\Exports;
 
 use App\Models\UserPractice;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Http\Request;
 
-class ExerciseReportExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
+class ExerciseReportExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
 {
     protected $request;
 

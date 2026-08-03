@@ -9,6 +9,7 @@ use Illuminate\View\Component;
 class practice_content extends Component
 {
     public $practices;
+
     /**
      * Create a new component instance.
      */

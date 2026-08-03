@@ -199,7 +199,7 @@
                     </a>
                     @endauth
                     <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
-                        <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> {{ __('pages.pricing.premium_guarantee') }}</span>
+                        <a href="{{ locale_url('/refund-policy') }}" style="display:inline-flex;align-items:center;gap:4px;color:inherit;text-decoration:underline;text-underline-offset:2px;"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> {{ __('pages.pricing.premium_guarantee') }}</a>
                         <span>·</span>
                         <span>{{ __('pages.pricing.premium_cancel_anytime') }}</span>
                     </p>
@@ -423,6 +423,17 @@
                 </div>
             </div>
             @endforeach
+        </div>
+
+        {{-- Billing legal links: the money-back guarantee advertised on the cards
+             has to be one click away from the cards themselves. --}}
+        <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-8 text-xs text-gray-400 reveal">
+            <a href="{{ locale_url('/refund-policy') }}" class="inline-flex items-center gap-1.5 hover:text-purple-600 transition-colors">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                {{ __('app.footer.refund_policy') }}
+            </a>
+            <a href="{{ locale_url('/subscription-terms') }}" class="hover:text-purple-600 transition-colors">{{ __('pages.refund.contact_subscription_link') }}</a>
+            <a href="{{ locale_url('/terms-of-service') }}" class="hover:text-purple-600 transition-colors">{{ __('app.footer.terms_of_service') }}</a>
         </div>
     </div>
 </section>

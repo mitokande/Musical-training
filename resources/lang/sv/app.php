@@ -532,6 +532,7 @@ return [
         'privacy_policy' => 'Integritetspolicy',
         'terms_of_service' => 'Användarvillkor',
         'cookie_policy' => 'Cookiepolicy',
+        'refund_policy' => "Återbetalningspolicy",
     ],
 
     'language' => [

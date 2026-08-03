@@ -51,8 +51,8 @@ class ScalePractice extends Model
             'Locrian' => [0, 1, 3, 5, 6, 8, 10, 12],
             'Major Pentatonic' => [0, 2, 4, 7, 9, 12],
             'Minor Pentatonic' => [0, 3, 5, 7, 10, 12],
-            'Blues Scale'      => [0, 3, 5, 6, 7, 10, 12],
-            'Chromatic Scale'  => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            'Blues Scale' => [0, 3, 5, 6, 7, 10, 12],
+            'Chromatic Scale' => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             'Whole Tone Scale' => [0, 2, 4, 6, 8, 10, 12],
             // legacy aliases
             'Pentatonic' => [0, 2, 4, 7, 9, 12],
@@ -71,8 +71,8 @@ class ScalePractice extends Model
         return [
             'Major Pentatonic' => [0, 1, 2, 4, 5, 7],
             'Minor Pentatonic' => [0, 2, 3, 4, 6, 7],
-            'Blues Scale'      => [0, 2, 3, 4, 4, 6, 7],
-            'Chromatic Scale'  => [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7],
+            'Blues Scale' => [0, 2, 3, 4, 4, 6, 7],
+            'Chromatic Scale' => [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7],
             'Whole Tone Scale' => [0, 1, 2, 3, 4, 5, 7],
             // legacy aliases
             'Pentatonic' => [0, 1, 2, 4, 5, 7],

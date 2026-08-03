@@ -10,8 +10,8 @@
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
                     <div class="text-center">
-                        <h1 class="text-xl font-bold text-white">Single Note Practice</h1>
-                        <p class="text-white/80 text-sm">Listening Exercise</p>
+                        <h1 class="text-xl font-bold text-white">{{ __('app.practice_ui.single_note.title') }}</h1>
+                        <p class="text-white/80 text-sm">{{ __('app.practice_ui.common.listening_exercise') }}</p>
                     </div>
                     <div class="absolute right-0 top-1/2 -translate-y-1/2">
                         <span class="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white/90 ring-1 ring-white/20 backdrop-blur">
@@ -46,33 +46,37 @@
                     <div class="flex flex-wrap justify-center gap-3 mb-3">
                         <button id="playButton"
                                 class="btn-primary text-white font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg transition-all">
-                            <i data-lucide="play" class="w-5 h-5"></i> Play
+                            <i data-lucide="play" class="w-5 h-5"></i> {{ __('app.practice_ui.common.play') }}
                         </button>
                         @if(!$isLastQuestion)
                         <button id="nextPracticeBtn" wire:click="getNextPractice"
                                 class="hidden font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
                                        bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200 hover:border-blue-400">
-                            <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                         </button>
                         @else
                         <a id="nextPracticeBtn" href="/learn"
                            class="hidden font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 hover:shadow-lg
                                   bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200 hover:border-blue-400">
-                            <i data-lucide="check" class="w-5 h-5"></i> Finish
+                            <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                         </a>
                         @endif
                     </div>
-                    <p id="playStatus" class="text-sm text-gray-500">Press Play to hear the note(s), then answer below</p>
+                    <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.single_note.prompt') }}</p>
                 </div>
 
                 <!-- Piano Keyboard Answer -->
                 <div id="pianoAnswerArea">
                     @if($groupSize > 1)
                     <p class="text-xs text-gray-400 text-center mb-3">
-                        Click <strong>{{ $groupSize }}</strong> keys in order to answer
+                        {{-- One key with a :count placeholder — the number sits in the
+                             middle in English but before the verb in Turkish. --}}
+                        {!! __('app.practice_ui.single_note.click_n_keys', [
+                            'count' => '<strong>'.e($groupSize).'</strong>',
+                        ]) !!}
                     </p>
                     @else
-                    <p class="text-xs text-gray-400 text-center mb-3">Click the key that matches the note you heard</p>
+                    <p class="text-xs text-gray-400 text-center mb-3">{{ __('app.practice_ui.single_note.hint') }}</p>
                     @endif
 
                     <!-- Keyboard -->
@@ -139,7 +143,7 @@
                     <div class="flex justify-center mt-3">
                         <button id="deleteLastNoteBtn"
                                 class="hidden text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-200 hover:bg-red-50 transition-all">
-                            <i data-lucide="delete" class="w-3 h-3"></i> Delete last note
+                            <i data-lucide="delete" class="w-3 h-3"></i> {{ __('app.practice_ui.single_note.delete_last') }}
                         </button>
                     </div>
                 </div>
@@ -157,10 +161,11 @@
                 +<span id="xpEarned">0</span> XP
             </span>
             <span>•</span>
-            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
+            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> {{ __('app.practice_ui.common.correct') }}</span>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+        @include('livewire.partials.practice-i18n')
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
         window.initPracticeSingleNote = function () {
             window._practiceGen = (window._practiceGen || 0) + 1;
@@ -403,7 +408,7 @@
                 if (!label) return;
                 const idx = Math.min(answerCount, groupTargets.length - 1);
                 const oct = (groupTargets[idx] || '').split('/')[1] || clefOctave;
-                label.textContent = 'Oct ' + oct;
+                label.textContent = pt('oct') + oct;
             }
 
             function resetKeyStyles() {
@@ -446,14 +451,14 @@
                 staffContainer.classList.add(allCorrect ? 'border-green-500' : 'border-red-500');
 
                 if (allCorrect) {
-                    feedbackMsg.textContent = '✓ Correct! Well done!';
+                    feedbackMsg.textContent = pt('correct_well_done');
                     feedbackMsg.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                 } else {
                     const correctList = groupTargets.map(t => {
                         const [n, o] = t.split('/');
                         return window.HarmonivaNotation.toDisplaySymbol(n) + (o || '');
                     }).join(', ');
-                    feedbackMsg.textContent = '✗ Incorrect. Correct: ' + correctList;
+                    feedbackMsg.textContent = pt('incorrect_correct_is') + correctList;
                     feedbackMsg.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                 }
                 feedbackMsg.classList.remove('hidden');
@@ -529,9 +534,9 @@
                 await Tone.start();
 
                 playButton.disabled = true;
-                playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> Playing…';
+                playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5"></i> ' + pt('playing');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
-                if (playStatus) playStatus.textContent = 'Playing…';
+                if (playStatus) playStatus.textContent = pt('playing');
 
                 // On first play only: clear any stale state.
                 // On replay: keep the user's existing answers on the staff.
@@ -561,9 +566,9 @@
 
                 playedOnce = true;
                 playButton.disabled = false;
-                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
+                playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
-                if (playStatus) playStatus.textContent = 'Now click the piano keys to answer';
+                if (playStatus) playStatus.textContent = pt('click_keys_answer');
             });
 
             // ── Delete last note ──────────────────────────────────────────

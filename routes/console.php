@@ -36,3 +36,16 @@ Schedule::call(function () {
 
 // Expire paid subscriptions whose period has ended (downgrades lapsed users).
 Schedule::command('subscriptions:expire')->hourly()->withoutOverlapping();
+
+// --- Ad Studio ---
+
+// Build and render pending ad creatives. NOT on the application queue: the
+// worker above runs with Laravel's default 60s per-job timeout, and a 1080x1920
+// 30s render takes ~3 minutes on this box — it would be killed mid-frame, and
+// while it ran it would hold the queue lock that transactional email needs. Its
+// own schedule entry has no per-job timeout and its own overlap lock, so a long
+// render delays nothing but the next render.
+Schedule::command('ads:process-queue')
+    ->everyMinute()
+    ->withoutOverlapping(30)
+    ->runInBackground();

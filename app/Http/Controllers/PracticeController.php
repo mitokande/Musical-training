@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChordPractice;
-use App\Models\DailyExerciseCount;
-use App\Models\FeedItem;
 use App\Models\HarmonicIntervalPractice;
 use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalConstructionPractice;
@@ -16,17 +14,23 @@ use App\Models\RhythmPractice;
 use App\Models\ScalePractice;
 use App\Models\SingleNotePractice;
 use App\Models\TeacherAssignmentAttempt;
-use App\Models\UserIntervalStat;
-use App\Models\UserLearningPathProgress;
 use App\Models\UserPractice;
-use App\Services\LearningPathQuestionGenerator;
 use App\Services\MusicTheoryService;
+use App\Services\Practice\PracticeAnswerGrader;
+use App\Services\Practice\PracticeCatalog;
+use App\Services\Practice\PracticeProgressRecorder;
 use App\Services\Teacher\TeacherAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PracticeController extends Controller
 {
+    public function __construct(
+        private readonly PracticeCatalog $catalog,
+        private readonly PracticeAnswerGrader $grader,
+        private readonly PracticeProgressRecorder $recorder,
+    ) {}
+
     protected static array $practiceModels = [
         1 => SingleNotePractice::class,
         2 => IntervalDirectionPractice::class,
@@ -162,39 +166,23 @@ class PracticeController extends Controller
             $isCorrect = strtolower(trim($answer)) === strtolower(trim($target));
         }
 
-        $correctCount = 0;
-        $totalCount = 0;
-        if ($userId = auth()->id()) {
-            $userPractice = UserPractice::firstOrCreate(
-                ['user_id' => $userId, 'practice_id' => $practiceId],
-                ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
-            );
-            $userPractice->total_questions++;
-            if ($isCorrect) {
-                $userPractice->correct_answers++;
-            } else {
-                $userPractice->incorrect_answers++;
-            }
-            $userPractice->score = $userPractice->total_questions > 0
-                ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
-            $userPractice->save();
-            $daily = DailyExerciseCount::incrementCount($userId, $practiceId);
-            // On the first activity of a new day, check for a streak milestone.
-            if ($daily->wasRecentlyCreated && ($actor = auth()->user())) {
-                FeedItem::checkStreakAchievement($actor);
-            }
-            $correctCount = $userPractice->correct_answers;
-            $totalCount = $userPractice->total_questions;
-        }
+        // The legacy DB path is the only one that counts toward the daily
+        // exercise quota and therefore the streak — preserved deliberately.
+        $totals = $this->recorder->recordPracticeAnswer(
+            auth()->id(),
+            $practiceId,
+            $isCorrect,
+            countsTowardDaily: true,
+        );
 
         $this->recordIntervalStat($practiceId, $question->getAttributes(), $isCorrect);
 
         return response()->json([
             'is_correct' => $isCorrect,
             'correctAnswer' => $target,
-            'xp' => $correctCount * 10,
-            'correctCount' => $correctCount,
-            'totalCount' => $totalCount,
+            'xp' => $totals['xp'],
+            'correctCount' => $totals['correct_count'],
+            'totalCount' => $totals['total_count'],
         ]);
     }
 
@@ -204,23 +192,7 @@ class PracticeController extends Controller
      */
     protected function recordIntervalStat(?int $practiceId, array $data, bool $isCorrect): void
     {
-        if (! $practiceId) {
-            return;
-        }
-
-        $slug = array_search($practiceId, self::$slugToPracticeId, true);
-        if ($slug === false) {
-            return;
-        }
-
-        $interval = app(MusicTheoryService::class)->intervalForStats($data, $slug);
-        if ($interval === null) {
-            return;
-        }
-
-        if ($userId = auth()->id()) {
-            UserIntervalStat::record($userId, $practiceId, $interval, $isCorrect);
-        }
+        $this->recorder->recordIntervalStat(auth()->id(), $practiceId, $data, $isCorrect);
     }
 
     protected function checkLPAnswer(Request $request, array $lp, int $idx): JsonResponse
@@ -230,52 +202,24 @@ class PracticeController extends Controller
         $questionData = $lp['questions'][$idx];
         $practiceType = $lp['practice_type'];
 
-        /** @var LearningPathQuestionGenerator $generator */
-        $generator = app(LearningPathQuestionGenerator::class);
-        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
-        $answer = trim($request->answer);
-
-        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
-        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
-        $isCorrect = $normalizedAnswer === $normalizedCorrect;
-
-        // Note-answer types accept enharmonic equivalents: the piano answer
-        // keyboard emits sharp names while lessons may teach flat spellings.
-        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
-            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
-        }
-
-        $progress = UserLearningPathProgress::firstOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'learning_path_exercise_id' => $lp['exercise_id'],
-            ],
-            [
-                'question_count_attempted' => $lp['question_count'],
-                'total_questions' => 0,
-                'correct_answers' => 0,
-                'score' => 0,
-                'completed' => false,
-            ]
+        ['correct' => $correct, 'is_correct' => $isCorrect] = $this->grader->grade(
+            $questionData,
+            $practiceType,
+            (string) $request->answer,
         );
-
-        $progress->total_questions++;
-        if ($isCorrect) {
-            $progress->correct_answers++;
-        }
-        $progress->question_count_attempted = $lp['question_count'];
-        $progress->score = $progress->total_questions > 0
-            ? round(($progress->correct_answers / $progress->total_questions) * 100, 2)
-            : 0;
 
         $isLast = ($idx + 1) >= $lp['question_count'];
         if ($isLast) {
-            $progress->completed = true;
-            $progress->completed_at = now();
             session()->forget('learning_path_session');
         }
 
-        $progress->save();
+        $progress = $this->recorder->recordLearningPathAnswer(
+            (int) auth()->id(),
+            (int) $lp['exercise_id'],
+            (int) $lp['question_count'],
+            $isCorrect,
+            $isLast,
+        );
 
         $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
 
@@ -303,20 +247,13 @@ class PracticeController extends Controller
 
         $questionData = $ta['questions'][$idx];
         $practiceType = $ta['practice_type'];
-
-        $generator = app(LearningPathQuestionGenerator::class);
-        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
         $answer = trim($request->answer);
 
-        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
-        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
-        $isCorrect = $normalizedAnswer === $normalizedCorrect;
-
-        // Note-answer types accept enharmonic equivalents: the piano answer
-        // keyboard emits sharp names while lessons may teach flat spellings.
-        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
-            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
-        }
+        ['correct' => $correct, 'is_correct' => $isCorrect] = $this->grader->grade(
+            $questionData,
+            $practiceType,
+            $answer,
+        );
 
         $service = app(TeacherAssignmentService::class);
         $completed = $service->recordAnswer((int) $ta['attempt_id'], $idx, $answer, $correct, $isCorrect);
@@ -353,19 +290,11 @@ class PracticeController extends Controller
         $questionData = $tp['questions'][$idx];
         $practiceType = $tp['practice_type'];
 
-        $generator = app(LearningPathQuestionGenerator::class);
-        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
-        $answer = trim($request->answer);
-
-        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
-        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
-        $isCorrect = $normalizedAnswer === $normalizedCorrect;
-
-        // Note-answer types accept enharmonic equivalents: the piano answer
-        // keyboard emits sharp names while lessons may teach flat spellings.
-        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
-            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
-        }
+        ['correct' => $correct, 'is_correct' => $isCorrect] = $this->grader->grade(
+            $questionData,
+            $practiceType,
+            (string) $request->answer,
+        );
 
         $total = (int) ($tp['question_count'] ?? count($tp['questions']));
         $isLast = ($idx + 1) >= $total;
@@ -398,41 +327,19 @@ class PracticeController extends Controller
         $questionData = $ep['questions'][$idx];
         $practiceType = $ep['practice_type'];
 
-        $generator = app(LearningPathQuestionGenerator::class);
-        $correct = $generator->getAnswerFromSessionQuestion($questionData, $practiceType);
-        $answer = trim($request->answer);
+        ['correct' => $correct, 'is_correct' => $isCorrect] = $this->grader->grade(
+            $questionData,
+            $practiceType,
+            (string) $request->answer,
+        );
 
-        $normalizedAnswer = strtolower(preg_replace('/\s+/', '', $answer));
-        $normalizedCorrect = strtolower(preg_replace('/\s+/', '', $correct));
-        $isCorrect = $normalizedAnswer === $normalizedCorrect;
-
-        // For interval construction: also accept enharmonic equivalents
-        // Note-answer types accept enharmonic equivalents: the piano answer
-        // keyboard emits sharp names while lessons may teach flat spellings.
-        if (! $isCorrect && in_array($practiceType, ['interval-construction-practice', 'single-note-practice'], true)) {
-            $isCorrect = app(MusicTheoryService::class)->notesAreEnharmonic($answer, $correct);
-        }
-
-        $correctCount = 0;
-        $totalCount = 0;
-        if ($userId = auth()->id()) {
-            $practiceId = Practice::where('slug', $practiceType)->value('id');
-            $userPractice = UserPractice::firstOrCreate(
-                ['user_id' => $userId, 'practice_id' => $practiceId],
-                ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
-            );
-            $userPractice->total_questions++;
-            if ($isCorrect) {
-                $userPractice->correct_answers++;
-            } else {
-                $userPractice->incorrect_answers++;
-            }
-            $userPractice->score = $userPractice->total_questions > 0
-                ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
-            $userPractice->save();
-            $correctCount = $userPractice->correct_answers;
-            $totalCount = $userPractice->total_questions;
-        }
+        // Exercise-setup runs roll into UserPractice but never into the daily
+        // exercise count — matching the behaviour this branch has always had.
+        $totals = $this->recorder->recordPracticeAnswer(
+            auth()->id(),
+            Practice::where('slug', $practiceType)->value('id'),
+            $isCorrect,
+        );
 
         $this->recordIntervalStat(self::$slugToPracticeId[$practiceType] ?? null, $questionData, $isCorrect);
 
@@ -446,9 +353,9 @@ class PracticeController extends Controller
         return response()->json([
             'is_correct' => $isCorrect,
             'correctAnswer' => $correct,
-            'xp' => $correctCount * 10,
-            'correctCount' => $correctCount,
-            'totalCount' => $totalCount,
+            'xp' => $totals['xp'],
+            'correctCount' => $totals['correct_count'],
+            'totalCount' => $totals['total_count'],
         ]);
     }
 
@@ -478,35 +385,18 @@ class PracticeController extends Controller
         $isCorrect = strtolower(preg_replace('/\s+/', '', $answer))
             === strtolower(preg_replace('/\s+/', '', $target));
 
-        $correctCount = 0;
-        $totalCount = 0;
-        if ($userId = auth()->id()) {
-            $practice = Practice::where('slug', $slug)->first();
-            if ($practice) {
-                $userPractice = UserPractice::firstOrCreate(
-                    ['user_id' => $userId, 'practice_id' => $practice->id],
-                    ['total_questions' => 0, 'correct_answers' => 0, 'incorrect_answers' => 0, 'score' => 0]
-                );
-                $userPractice->total_questions++;
-                if ($isCorrect) {
-                    $userPractice->correct_answers++;
-                } else {
-                    $userPractice->incorrect_answers++;
-                }
-                $userPractice->score = $userPractice->total_questions > 0
-                    ? ($userPractice->correct_answers / $userPractice->total_questions) * 100 : 0;
-                $userPractice->save();
-                $correctCount = $userPractice->correct_answers;
-                $totalCount = $userPractice->total_questions;
-            }
-        }
+        $totals = $this->recorder->recordPracticeAnswer(
+            auth()->id(),
+            Practice::where('slug', $slug)->value('id'),
+            $isCorrect,
+        );
 
         return response()->json([
             'is_correct' => $isCorrect,
             'correctAnswer' => $target,
-            'xp' => $correctCount * 10,
-            'correctCount' => $correctCount,
-            'totalCount' => $totalCount,
+            'xp' => $totals['xp'],
+            'correctCount' => $totals['correct_count'],
+            'totalCount' => $totals['total_count'],
         ]);
     }
 

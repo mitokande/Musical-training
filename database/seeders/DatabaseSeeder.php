@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\HarmonicIntervalPractice;
 use App\Models\IntervalComparisonPractice;
 use App\Models\IntervalConstructionPractice;
 use App\Models\IntervalDirectionPractice;
 use App\Models\MelodicIntervalPractice;
-use App\Models\HarmonicIntervalPractice;
 use App\Models\Practice;
 use App\Models\SingleNotePractice;
 use App\Models\User;
@@ -39,7 +39,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'benmithat18@gmail.com',
             'password' => \Hash::make(env('ADMIN_PASSWORD_2', \Str::random(16))),
         ]);
-
 
         Practice::create([
             'name' => 'Single Note Practice',

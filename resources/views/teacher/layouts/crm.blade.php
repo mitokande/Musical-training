@@ -53,7 +53,7 @@
 
     @stack('head')
 </head>
-<body class="font-sans bg-gray-50 min-h-screen" x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024">
+<body class="font-sans bg-gray-50 min-h-screen" x-data="{ sidebarOpen: false }">
 
 @php
     // Highlight the matching top-bar button for the current CRM page.
@@ -72,14 +72,13 @@
     $caps = $capabilities ?? app(\App\Services\Teacher\TeacherCapabilityService::class)->capabilities(auth()->user());
 @endphp
 
-{{-- Mobile overlay --}}
-<div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 bg-black/30 z-40 lg:hidden" x-transition.opacity x-cloak></div>
+{{-- Mobile/tablet drawer overlay (never shown at lg+, where the sidebar is pinned) --}}
+<div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/30 z-30 lg:hidden" x-transition.opacity x-cloak></div>
 
-{{-- Sidebar --}}
-<aside x-show="sidebarOpen"
-       x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-       x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-       class="fixed top-16 left-0 z-40 w-[270px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col lg:translate-x-0" x-cloak>
+{{-- Sidebar — visibility is CSS-driven (lg:translate-x-0) so it stays in lockstep
+     with the content margin (lg:ml-[270px]); below lg it slides in as a drawer. --}}
+<aside :class="{ '!translate-x-0': sidebarOpen }"
+       class="fixed top-16 left-0 z-40 w-[270px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0">
 
     {{-- Teacher identity --}}
     <div class="px-5 py-5 border-b border-gray-100 text-center shrink-0">

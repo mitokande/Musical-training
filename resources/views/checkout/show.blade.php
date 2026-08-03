@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>Checkout — {{ config('app.name', 'Harmoniva') }} Premium</title>
+    <title>{{ __('app.checkout.meta_title', ['app' => config('app.name', 'Harmoniva')]) }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
@@ -31,15 +31,15 @@
 
 @php
     $sym = $currencySymbol;
-    $roleLabels = ['user' => 'Student', 'teacher' => 'Teacher', 'school' => 'Music School'];
+    $roleLabels = ['user' => __('app.checkout.role_student'), 'teacher' => __('app.checkout.role_teacher'), 'school' => __('app.checkout.role_school')];
     $roleLabel = $roleLabels[$plan->role] ?? ucfirst($plan->role);
     $yearlySave = round($monthly['total'] * 12 - $yearly['total'], 2);
     $yearlyPct = $monthly['total'] > 0 ? (int) round((1 - $yearly['total'] / ($monthly['total'] * 12)) * 100) : 0;
     $highlights = [
-        'Unlimited exercises — every practice type, no daily cap',
-        'AI Exercises, AI Coach & adaptive difficulty',
-        'Detailed progress charts & all modules unlocked',
-        'Games leaderboard access',
+        __('app.checkout.hl_unlimited'),
+        __('app.checkout.hl_ai'),
+        __('app.checkout.hl_progress'),
+        __('app.checkout.hl_games'),
     ];
 
     // While the payment provider cannot charge a real card, this page offers the
@@ -65,20 +65,20 @@
 
     <div class="mb-8">
         <a href="{{ route('pricing.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
-            <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to pricing
+            <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> {{ __('app.checkout.back_to_pricing') }}
         </a>
         @if($checkoutEnabled)
-            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Complete your upgrade</h1>
-            <p class="mt-2 text-gray-500">You're upgrading the <strong>{{ $roleLabel }}</strong> account to Harmoniva Premium.</p>
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">{{ __('app.checkout.h_upgrade') }}</h1>
+            <p class="mt-2 text-gray-500">{!! __('app.checkout.p_upgrade', ['role' => $roleLabel]) !!}</p>
         @elseif($trialState === 'eligible')
-            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Try Premium free for {{ $trialDays }} days</h1>
-            <p class="mt-2 text-gray-500">We have a special welcome gift for you — unlock every Premium feature on your <strong>{{ $roleLabel }}</strong> account, no credit card needed.</p>
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">{{ __('app.checkout.h_trial_eligible', ['days' => $trialDays]) }}</h1>
+            <p class="mt-2 text-gray-500">{!! __('app.checkout.p_trial_eligible', ['role' => $roleLabel]) !!}</p>
         @elseif($trialState === 'active')
-            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Your Premium trial is active</h1>
-            <p class="mt-2 text-gray-500">Everything below is already unlocked on your <strong>{{ $roleLabel }}</strong> account.</p>
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">{{ __('app.checkout.h_trial_active') }}</h1>
+            <p class="mt-2 text-gray-500">{!! __('app.checkout.p_trial_active', ['role' => $roleLabel]) !!}</p>
         @else
-            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">Premium is almost open</h1>
-            <p class="mt-2 text-gray-500">Card payments are opening shortly. We'll let you know the moment you can subscribe.</p>
+            <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">{{ __('app.checkout.h_soon') }}</h1>
+            <p class="mt-2 text-gray-500">{{ __('app.checkout.p_soon') }}</p>
         @endif
     </div>
 
@@ -91,20 +91,20 @@
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white" style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                         <i data-lucide="crown" style="width:14px;height:14px;"></i> Premium
                     </span>
-                    <span class="text-sm text-gray-400">{{ $roleLabel }} plan</span>
+                    <span class="text-sm text-gray-400">{{ __('app.checkout.role_plan', ['role' => $roleLabel]) }}</span>
                 </div>
 
                 {{-- Billing cycle toggle --}}
                 <div class="inline-flex p-1 rounded-xl bg-gray-100 mb-6">
                     <button type="button" @click="yearly = false"
                             :class="!yearly ? 'bg-white shadow text-gray-900' : 'text-gray-500'"
-                            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all">Monthly</button>
+                            class="px-4 py-2 rounded-lg text-sm font-semibold transition-all">{{ __('app.checkout.cycle_monthly') }}</button>
                     <button type="button" @click="yearly = true"
                             :class="yearly ? 'bg-white shadow text-gray-900' : 'text-gray-500'"
                             class="px-4 py-2 rounded-lg text-sm font-semibold transition-all inline-flex items-center gap-1.5">
-                        Yearly
+                        {{ __('app.checkout.cycle_yearly') }}
                         @if($yearlyPct > 0)
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Save {{ $yearlyPct }}%</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">{{ __('app.checkout.save_pct', ['pct' => $yearlyPct]) }}</span>
                         @endif
                     </button>
                 </div>
@@ -112,14 +112,14 @@
                 {{-- Price line --}}
                 <div class="flex items-end gap-2 mb-1">
                     <span class="text-4xl font-extrabold text-gray-900">{{ $sym }}<span x-text="price.toFixed(2)"></span></span>
-                    <span class="text-gray-400 mb-1.5" x-text="yearly ? '/ year' : '/ month'"></span>
+                    <span class="text-gray-400 mb-1.5" x-text="yearly ? '{{ __('app.checkout.per_year') }}' : '{{ __('app.checkout.per_month') }}'"></span>
                 </div>
                 <p class="text-sm text-gray-400 mb-6" x-show="yearly" x-cloak>
-                    That's {{ $sym }}{{ number_format($yearly['total'] / 12, 2) }} / month — you save {{ $sym }}{{ number_format($yearlySave, 2) }} a year.
+                    {{ __('app.checkout.yearly_breakdown', ['permonth' => $sym.number_format($yearly['total'] / 12, 2), 'save' => $sym.number_format($yearlySave, 2)]) }}
                 </p>
 
                 <div class="border-t border-gray-100 pt-5">
-                    <h3 class="text-sm font-bold text-gray-900 mb-3">What's included</h3>
+                    <h3 class="text-sm font-bold text-gray-900 mb-3">{{ __('app.checkout.included_title') }}</h3>
                     <ul class="space-y-2.5">
                         @foreach($highlights as $h)
                             <li class="flex items-start gap-2.5 text-sm text-gray-600">
@@ -134,13 +134,13 @@
             {{-- Trust row --}}
             <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500 px-2">
                 @if($checkoutEnabled)
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> Secure checkout</span>
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="rotate-ccw" style="width:15px;height:15px;color:#7c3aed;"></i> {{ $refundDays }}-day money-back guarantee</span>
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> Cancel anytime</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_secure') }}</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="rotate-ccw" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_guarantee', ['days' => $refundDays]) }}</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_cancel') }}</span>
                 @else
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="credit-card" style="width:15px;height:15px;color:#7c3aed;"></i> No credit card required</span>
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> Nothing charged when it ends</span>
-                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> Nothing to cancel</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="credit-card" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_no_card') }}</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="shield-check" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_nothing_charged') }}</span>
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="x-circle" style="width:15px;height:15px;color:#7c3aed;"></i> {{ __('app.checkout.trust_nothing_cancel') }}</span>
                 @endif
             </div>
         </div>
@@ -152,18 +152,18 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-6 sm:p-7 lg:sticky lg:top-24">
                 @if($trialState === 'eligible')
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white mb-4" style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
-                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i> Free trial
+                        <i data-lucide="sparkles" style="width:14px;height:14px;"></i> {{ __('app.checkout.trial_badge') }}
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $trialDays }} days of Premium, free</h3>
-                    <p class="text-sm text-gray-500 mb-5">Full access to everything listed here. We don't ask for a card, and nothing is charged when the {{ $trialDays }} days are up — your account simply returns to the free plan.</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ __('app.checkout.trial_box_title', ['days' => $trialDays]) }}</h3>
+                    <p class="text-sm text-gray-500 mb-5">{{ __('app.checkout.trial_box_desc', ['days' => $trialDays]) }}</p>
 
                     <div class="space-y-3 text-sm mb-6">
                         <div class="flex justify-between text-gray-600">
-                            <span>Premium ({{ $roleLabel }}) · {{ $trialDays }} days</span>
+                            <span>{{ __('app.checkout.trial_line', ['role' => $roleLabel, 'days' => $trialDays]) }}</span>
                             <span>{{ $sym }}0.00</span>
                         </div>
                         <div class="border-t border-gray-100 pt-3 flex justify-between items-baseline">
-                            <span class="font-bold text-gray-900">Total due today</span>
+                            <span class="font-bold text-gray-900">{{ __('app.checkout.total_today') }}</span>
                             <span class="font-extrabold text-lg text-gray-900">{{ $sym }}0.00</span>
                         </div>
                     </div>
@@ -175,57 +175,57 @@
                                 style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
                             <span class="inline-flex items-center justify-center gap-2">
                                 <i data-lucide="sparkles" style="width:16px;height:16px;"></i>
-                                Start my {{ $trialDays }}-day free trial
+                                {{ __('app.checkout.trial_cta', ['days' => $trialDays]) }}
                             </span>
                         </button>
                     </form>
 
                     <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
-                        No credit card required. Card payments open shortly —<br>you can subscribe then if you want to keep Premium.
+                        {!! __('app.checkout.trial_fineprint') !!}
                     </p>
 
                 @elseif($trialState === 'active')
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white mb-4" style="background:linear-gradient(135deg,#7c3aed,#c026d3);">
                         <i data-lucide="crown" style="width:14px;height:14px;"></i> {{ trans_choice('app.trial.days_left', auth()->user()->trialDaysLeft(), ['count' => auth()->user()->trialDaysLeft()]) }}
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">You already have Premium</h3>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ __('app.checkout.active_title') }}</h3>
                     <p class="text-sm text-gray-500 mb-5">
-                        Your free trial runs until <strong>{{ auth()->user()->trial_ends_at->format('M j, Y') }}</strong>. Nothing will be charged — we never took a card.
+                        {!! __('app.checkout.active_desc', ['date' => auth()->user()->trial_ends_at->translatedFormat('j M Y')]) !!}
                     </p>
                     <a href="{{ route('billing.index') }}" class="block w-full py-3.5 text-center text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
-                        View my plan
+                        {{ __('app.checkout.active_cta') }}
                     </a>
                     <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
-                        Card payments open shortly. You'll be able to subscribe<br>before your trial runs out.
+                        {!! __('app.checkout.active_fineprint') !!}
                     </p>
 
                 @else
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">Card payments open soon</h3>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ __('app.checkout.closed_title') }}</h3>
                     <p class="text-sm text-gray-500 mb-5">
-                        We're finishing setup with our payment provider. Premium isn't purchasable just yet — please check back shortly.
+                        {{ __('app.checkout.closed_desc') }}
                     </p>
                     <a href="{{ route('dashboard') }}" class="block w-full py-3.5 text-center text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all">
-                        Back to dashboard
+                        {{ __('app.checkout.closed_cta') }}
                     </a>
                 @endif
             </div>
             @else
             <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-6 sm:p-7 lg:sticky lg:top-24">
-                <h3 class="text-lg font-bold text-gray-900 mb-5">Order summary</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-5">{{ __('app.checkout.summary_title') }}</h3>
 
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between text-gray-600">
-                        <span>Premium ({{ $roleLabel }}) <span x-text="yearly ? '· yearly' : '· monthly'"></span></span>
+                        <span>Premium ({{ $roleLabel }}) <span x-text="yearly ? '{{ __('app.checkout.summary_yearly') }}' : '{{ __('app.checkout.summary_monthly') }}'"></span></span>
                         <span>{{ $sym }}<span x-text="sub.toFixed(2)"></span></span>
                     </div>
                     @if($taxRate > 0)
                         <div class="flex justify-between text-gray-600">
-                            <span>Tax ({{ (int) round($taxRate * 100) }}%)</span>
+                            <span>{{ __('app.checkout.tax_line', ['pct' => (int) round($taxRate * 100)]) }}</span>
                             <span>{{ $sym }}<span x-text="tax.toFixed(2)"></span></span>
                         </div>
                     @endif
                     <div class="border-t border-gray-100 pt-3 flex justify-between items-baseline">
-                        <span class="font-bold text-gray-900">Total due today</span>
+                        <span class="font-bold text-gray-900">{{ __('app.checkout.total_today') }}</span>
                         <span class="font-extrabold text-lg text-gray-900">{{ $sym }}<span x-text="price.toFixed(2)"></span></span>
                     </div>
                 </div>
@@ -244,10 +244,11 @@
                         <input type="checkbox" name="terms" value="1" required
                                class="mt-0.5 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
                         <span class="text-xs text-gray-500 leading-relaxed">
-                            I agree to the
-                            <a href="{{ route('page.subscription-terms') }}" target="_blank" class="text-purple-600 underline">Subscription Terms</a>,
-                            <a href="{{ route('page.terms-of-service') }}" target="_blank" class="text-purple-600 underline">Terms of Service</a> and
-                            <a href="{{ route('page.refund-policy') }}" target="_blank" class="text-purple-600 underline">Refund Policy</a>.
+                            {!! __('app.checkout.agree', [
+                                'subscription' => '<a href="'.locale_url('/subscription-terms').'" target="_blank" class="text-purple-600 underline">'.__('app.checkout.agree_subscription').'</a>',
+                                'terms' => '<a href="'.locale_url('/terms-of-service').'" target="_blank" class="text-purple-600 underline">'.__('app.checkout.agree_terms').'</a>',
+                                'refund' => '<a href="'.locale_url('/refund-policy').'" target="_blank" class="text-purple-600 underline">'.__('app.checkout.agree_refund').'</a>',
+                            ]) !!}
                         </span>
                     </label>
 
@@ -256,18 +257,17 @@
                             style="background:linear-gradient(135deg,#9333ea,#7c3aed);">
                         <span class="inline-flex items-center justify-center gap-2">
                             <i data-lucide="lock" style="width:16px;height:16px;"></i>
-                            Continue to Secure Payment
+                            {{ __('app.checkout.pay_cta') }}
                         </span>
                     </button>
 
                     <p class="mt-3 text-center text-[11px] text-gray-400 leading-relaxed">
-                        You'll be redirected to <span class="font-semibold text-gray-500">Stripe</span> to complete your payment securely.<br>
-                        We never see or store your card details.
+                        {!! __('app.checkout.pay_fineprint') !!}
                     </p>
 
                     <div class="mt-4 flex items-center justify-center gap-2 text-[11px] text-gray-400">
                         <i data-lucide="shield-check" style="width:13px;height:13px;color:#7c3aed;"></i>
-                        <span>256-bit SSL encrypted · Powered by Stripe</span>
+                        <span>{{ __('app.checkout.pay_ssl') }}</span>
                     </div>
                 </form>
             </div>

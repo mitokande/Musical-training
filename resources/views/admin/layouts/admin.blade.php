@@ -57,16 +57,17 @@
 
     @stack('head')
 </head>
-<body class="font-sans bg-gray-50 min-h-screen" x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="sidebarOpen = window.innerWidth >= 1024">
+<body class="font-sans bg-gray-50 min-h-screen" x-data="{ sidebarOpen: false }">
 
     @include('partials.navbar', ['active' => 'admin'])
 
-    {{-- Mobile overlay --}}
-    <div x-show="sidebarOpen && window.innerWidth < 1024" @click="sidebarOpen = false" class="fixed inset-0 bg-black/30 z-40 lg:hidden" x-transition.opacity x-cloak></div>
+    {{-- Mobile/tablet drawer overlay (never shown at lg+, where the sidebar is pinned) --}}
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/30 z-30 lg:hidden" x-transition.opacity x-cloak></div>
 
-    {{-- Sidebar --}}
-    <aside x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-           class="fixed top-16 left-0 z-40 w-[270px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col lg:translate-x-0" x-cloak>
+    {{-- Sidebar — visibility is CSS-driven (lg:translate-x-0) so it stays in lockstep
+         with the content margin (lg:ml-[270px]); below lg it slides in as a drawer. --}}
+    <aside :class="{ '!translate-x-0': sidebarOpen }"
+           class="fixed top-16 left-0 z-40 w-[270px] h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0">
 
         {{-- Navigation --}}
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1" x-data="{
@@ -189,6 +190,12 @@
                 <i data-lucide="cpu" class="w-[18px] h-[18px]"></i> AI Usage
             </a>
 
+            @if (config('ad_studio.enabled'))
+                <a href="{{ route('admin.ad-studio.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.ad-studio.*') ? 'active' : 'text-gray-700' }}">
+                    <i data-lucide="clapperboard" class="w-[18px] h-[18px]"></i> Ad Studio
+                </a>
+            @endif
+
             {{-- CRM --}}
             <div>
                 <button @click="toggle('crm')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.tasks.*') || request()->routeIs('admin.appointments.*') ? 'active' : 'text-gray-700' }}">
@@ -218,6 +225,11 @@
                 @if($unreadCount > 0)
                     <span class="ml-auto px-1.5 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full">{{ $unreadCount }}</span>
                 @endif
+            </a>
+
+            {{-- Zoom live-lesson host pool --}}
+            <a href="{{ route('admin.zoom.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.zoom.*') ? 'active' : 'text-gray-700' }}">
+                <i data-lucide="video" class="w-[18px] h-[18px]"></i> Zoom Hosts
             </a>
 
             {{-- Email Center --}}

@@ -653,6 +653,7 @@ return [
         'privacy_policy' => 'سياسة الخصوصية',
         'terms_of_service' => 'شروط الخدمة',
         'cookie_policy' => 'سياسة ملفات تعريف الارتباط',
+        'refund_policy' => "سياسة الاسترداد",
     ],
 
     'language' => [

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TeacherAppointment extends Model
 {
@@ -61,6 +62,30 @@ class TeacherAppointment extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(TeacherAppointmentActivity::class, 'appointment_id');
+    }
+
+    public function zoomMeeting(): HasOne
+    {
+        return $this->hasOne(ZoomMeeting::class, 'appointment_id');
+    }
+
+    public function isZoomHosted(): bool
+    {
+        return $this->meeting_provider === 'zoom';
+    }
+
+    /**
+     * Whether the embedded Lesson Room is open right now: a confirmed,
+     * Zoom-hosted lesson inside its join window (config/zoom.php).
+     */
+    public function roomIsOpen(): bool
+    {
+        if (! $this->isConfirmed() || ! $this->isZoomHosted()) {
+            return false;
+        }
+
+        return now()->gte($this->starts_at->subMinutes((int) config('zoom.join.opens_minutes_before')))
+            && now()->lte($this->ends_at->addMinutes((int) config('zoom.join.closes_minutes_after')));
     }
 
     public function isConfirmed(): bool

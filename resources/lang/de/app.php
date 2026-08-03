@@ -846,6 +846,7 @@ return [
         'privacy_policy' => 'Datenschutzrichtlinie',
         'terms_of_service' => 'Nutzungsbedingungen',
         'cookie_policy' => 'Cookie-Richtlinie',
+        'refund_policy' => "Rückerstattungsrichtlinie",
     ],
     'language' => [
         'select' => 'Sprache auswählen',

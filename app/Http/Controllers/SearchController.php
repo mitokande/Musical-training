@@ -104,8 +104,8 @@ class SearchController extends Controller
             $articles = Article::published()
                 ->where(function ($query) use ($q) {
                     $query->where('title', 'LIKE', "%{$q}%")
-                          ->orWhere('excerpt', 'LIKE', "%{$q}%")
-                          ->orWhere('body', 'LIKE', "%{$q}%");
+                        ->orWhere('excerpt', 'LIKE', "%{$q}%")
+                        ->orWhere('body', 'LIKE', "%{$q}%");
                 })
                 ->latest('published_at')
                 ->take(10)
@@ -113,16 +113,16 @@ class SearchController extends Controller
 
             $practices = Practice::where(function ($query) use ($q) {
                 $query->where('name', 'LIKE', "%{$q}%")
-                      ->orWhere('description', 'LIKE', "%{$q}%")
-                      ->orWhere('type', 'LIKE', "%{$q}%");
+                    ->orWhere('description', 'LIKE', "%{$q}%")
+                    ->orWhere('type', 'LIKE', "%{$q}%");
             })
-            ->take(10)
-            ->get();
+                ->take(10)
+                ->get();
 
             $exercises = LearningPathExercise::where('is_active', true)
                 ->where(function ($query) use ($q) {
                     $query->where('title', 'LIKE', "%{$q}%")
-                          ->orWhere('description', 'LIKE', "%{$q}%");
+                        ->orWhere('description', 'LIKE', "%{$q}%");
                 })
                 ->with('category')
                 ->orderBy('sort_order')
@@ -132,7 +132,7 @@ class SearchController extends Controller
             $categories = ExerciseCategory::active()
                 ->where(function ($query) use ($q) {
                     $query->where('name', 'LIKE', "%{$q}%")
-                          ->orWhere('description', 'LIKE', "%{$q}%");
+                        ->orWhere('description', 'LIKE', "%{$q}%");
                 })
                 ->take(12)
                 ->get();

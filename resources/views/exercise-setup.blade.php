@@ -43,6 +43,7 @@
     </script>
 
     <style>
+        html, body { overflow-x: hidden; max-width: 100%; }
         .hero-gradient { background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 50%, #a78bfa 100%); }
         .card { background:white; border-radius:16px; border:1px solid #ede9fe; box-shadow:0 2px 8px 0 rgb(109 40 217/0.06),0 1px 2px -1px rgb(0 0 0/0.06); }
         .card-header { background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%); margin:-1.5rem -1.5rem 1.25rem; padding:0.875rem 1.5rem; border-radius:15px 15px 0 0; border-bottom:1px solid #ddd6fe; }
@@ -74,9 +75,36 @@
         .start-btn:hover { background:linear-gradient(135deg,#14532d 0%,#166534 100%); transform:translateY(-2px); box-shadow:0 12px 28px -6px rgb(22 101 52/0.5); }
         @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgb(22 101 52/0.4)} 50%{box-shadow:0 0 0 8px rgb(22 101 52/0)} }
         .start-btn:not(:hover) { animation:pulse-ring 2.5s ease-in-out infinite; }
+        .start-btn-inline { background:linear-gradient(135deg,#166534 0%,#15803d 100%); transition:all 0.2s; }
+        .start-btn-inline:hover { background:linear-gradient(135deg,#14532d 0%,#166534 100%); transform:translateY(-1px); box-shadow:0 6px 16px -4px rgb(22 101 52/0.45); }
+        /* Session Summary card: desktop (xl+) only — hidden on mobile + tablet */
+        .session-summary-card { display:none; }
+        @media(min-width:1280px) { .session-summary-card { display:block; } }
+
+        /* Mobile: fully stacked single column */
         @media(max-width:768px) {
             .three-col { flex-direction:column; }
             .sidebar-col { width:100% !important; }
+        }
+        /* Tablet (portrait): drop the right rail to a full-width bottom row so the
+           center settings panel widens to fill the freed space. */
+        @media(min-width:769px) and (max-width:1279px) {
+            .three-col { flex-wrap:wrap; align-items:flex-start; }
+            .three-col > .col-right { width:100% !important; order:3; }
+            /* Break the hero + settings out to the FULL viewport width (edge to edge) */
+            .edge-wide {
+                max-width:none !important;
+                width:100vw !important;
+                margin-left:calc(50% - 50vw) !important;
+                margin-right:calc(50% - 50vw) !important;
+                padding-left:0.75rem !important;
+                padding-right:0.75rem !important;
+            }
+            /* Footer: black area flush to both page edges, its content filled edge to edge */
+            footer.bg-gray-950 { width:100vw !important; margin-left:calc(50% - 50vw) !important; }
+            footer.bg-gray-950 .max-w-7xl { max-width:none !important; padding-left:0.75rem !important; padding-right:0.75rem !important; }
+            /* Push the footer well below the setup boxes in portrait */
+            .main-setup-wrap { padding-bottom:800px; }
         }
         @media(max-width:640px) {
             .card-header { margin:-1.5rem -0.75rem 1.25rem; padding:0.875rem 0.75rem; border-radius:15px 15px 0 0; }
@@ -144,14 +172,14 @@
 
     <!-- ===== HEADER ===== -->
     <div class="hero-gradient">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 edge-wide">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                             <i data-lucide="wand-sparkles" class="w-5 h-5 text-white"></i>
                         </div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white">Exercise Setup Studio</h1>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ __('app.setup_ui.studio_title') }}</h1>
                     </div>
                     <p class="text-white/80 text-sm sm:text-base">{{ __('app.exercises.setup_subtitle') }}</p>
                 </div>
@@ -220,17 +248,10 @@
                 @endguest
             </div>
         </div>
-    @elseif($studioLimit !== -1)
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-semibold">
-                <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
-                {{ __('app.limits.sessions_used_today', ['used' => min($studioUsed, $studioLimit), 'limit' => $studioLimit]) }}
-            </div>
-        </div>
     @endif
 
     <!-- ===== MAIN LAYOUT ===== -->
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4 sm:pt-4 sm:pb-8 main-setup-wrap edge-wide">
         <div class="flex gap-6 three-col">
 
             <!-- ===== LEFT: Category Selector ===== -->
@@ -239,12 +260,12 @@
 
                 @php
                 $categories = [
-                    ['key' => 'intervals',              'label' => 'Intervals',              'icon' => 'music-2',          'color' => 'purple'],
-                    ['key' => 'single-note',            'label' => 'Single Note',            'icon' => 'music-2',          'color' => 'lime'],
-                    ['key' => 'chords',                 'label' => 'Chords',                 'icon' => 'piano',            'color' => 'orange'],
-                    ['key' => 'scales',                 'label' => 'Scales & Modes',         'icon' => 'waves',            'color' => 'amber'],
-                    ['key' => 'rhythm',                 'label' => 'Rhythm',                 'icon' => 'drum',             'color' => 'red'],
-                    ['key' => 'melodic-dictation',      'label' => 'Melodic Dictation',      'icon' => 'pencil-line',      'color' => 'pink'],
+                    ['key' => 'intervals',              'label' => __('app.setup_ui.cat_intervals'),              'icon' => 'music-2',          'color' => 'purple'],
+                    ['key' => 'single-note',            'label' => __('app.setup_ui.cat_single_note'),            'icon' => 'music-2',          'color' => 'lime'],
+                    ['key' => 'chords',                 'label' => __('app.setup_ui.cat_chords'),                 'icon' => 'piano',            'color' => 'orange'],
+                    ['key' => 'scales',                 'label' => __('app.setup_ui.cat_scales'),         'icon' => 'waves',            'color' => 'amber'],
+                    ['key' => 'rhythm',                 'label' => __('app.setup_ui.cat_rhythm'),                 'icon' => 'drum',             'color' => 'red'],
+                    ['key' => 'melodic-dictation',      'label' => __('app.setup_ui.cat_dictation'),      'icon' => 'pencil-line',      'color' => 'pink'],
                 ];
                 $colorMap = [
                     'purple'=>['bg'=>'bg-purple-100','text'=>'text-purple-600'],
@@ -275,6 +296,15 @@
                 </div>
                 @endforeach
                 </div>
+
+                @if($studioLimit !== -1 && !$studioExhausted && !session('studio_limit_reached'))
+                    <div class="mt-3 px-1">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-semibold">
+                            <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+                            {{ __('app.limits.sessions_used_today', ['used' => min($studioUsed, $studioLimit), 'limit' => $studioLimit]) }}
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- ===== CENTER: Settings Panel (45%) ===== -->
@@ -282,9 +312,16 @@
 
                 <!-- Chord Settings — shown BEFORE general settings when chords selected -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'chords'" x-cloak>
-                    <div class="card-header card-header-orange flex items-center gap-2">
-                        <i data-lucide="piano" class="w-5 h-5 text-orange-700"></i>
-                        <h2 class="text-base font-bold text-orange-900">{{ __('app.exercises.chord_settings') }}</h2>
+                    <div class="card-header card-header-orange flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="piano" class="w-5 h-5 text-orange-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-orange-900 truncate">{{ __('app.exercises.chord_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <div class="mb-5">
@@ -311,7 +348,7 @@
                         </div>
 
                         <!-- Color Chords -->
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Color Chords</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">{{ __('app.setup_ui.color_chords') }}</p>
                         <div class="flex flex-wrap gap-2">
                             @foreach(['Major 6th','Minor 6th','Add9','Minor Add9'] as $chord)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
@@ -325,7 +362,7 @@
                     <div class="flex gap-3">
                         <!-- Left 50%: Voicing — 2 options stacked -->
                         <div class="w-1/2 flex flex-col">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Voicing</label>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.voicing') }}</label>
                             <div class="flex flex-col gap-1.5 h-20">
                                 <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
                                         :class="voicing === 'block' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
@@ -353,32 +390,39 @@
 
                 <!-- Rhythm Settings — shown BEFORE general settings when rhythm selected -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'rhythm'" x-cloak>
-                    <div class="card-header card-header-red flex items-center gap-2">
-                        <i data-lucide="drum" class="w-5 h-5 text-red-700"></i>
-                        <h2 class="text-base font-bold text-red-900">{{ __('app.exercises.rhythm_settings') }}</h2>
+                    <div class="card-header card-header-red flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="drum" class="w-5 h-5 text-red-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-red-900 truncate">{{ __('app.exercises.rhythm_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <!-- Mode Selector -->
                     <div class="mb-5">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Rhythm Mode</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('app.setup_ui.rhythm_mode') }}</label>
                         <div class="grid grid-cols-3 gap-2">
                             <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
                                     :class="rhythmMode === 'dictation' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
                                     @click="rhythmMode = 'dictation'">
                                 <i data-lucide="headphones" class="w-4 h-4"></i>
-                                Recognition
+                                {{ __('app.setup_ui.mode_recognition') }}
                             </button>
                             <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
                                     :class="rhythmMode === 'build' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
                                     @click="rhythmMode = 'build'">
                                 <i data-lucide="pencil-ruler" class="w-4 h-4"></i>
-                                Dictation
+                                {{ __('app.setup_ui.mode_dictation') }}
                             </button>
                             <button class="py-2.5 text-sm font-semibold rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
                                     :class="rhythmMode === 'reading' ? 'bg-purple-700 text-white border-purple-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300'"
                                     @click="rhythmMode = 'reading'">
                                 <i data-lucide="music" class="w-4 h-4"></i>
-                                Reading
+                                {{ __('app.setup_ui.mode_reading') }}
                             </button>
                         </div>
                         <p class="text-xs text-gray-500 mt-2"
@@ -462,17 +506,17 @@
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="rhythmRests ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="rhythmRests = !rhythmRests">
-                                        Rests
+                                        {{ __('app.setup_ui.rests') }}
                                     </button>
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="rhythmDotted ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="rhythmDotted = !rhythmDotted">
-                                        Dotted
+                                        {{ __('app.setup_ui.dotted') }}
                                     </button>
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="rhythmTriplets ? 'bg-red-400 text-white border-red-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-red-300'"
                                             @click="rhythmTriplets = !rhythmTriplets">
-                                        Triplets
+                                        {{ __('app.setup_ui.triplets') }}
                                     </button>
                                 </div>
                             </div>
@@ -483,7 +527,7 @@
                                 <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl" style="height:56px">
                                     <p class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                                         <i data-lucide="activity" class="w-4 h-4 text-red-600"></i>
-                                        Metronome
+                                        {{ __('app.setup_ui.metronome') }}
                                     </p>
                                     <button @click="metronome = !metronome"
                                         class="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
@@ -494,7 +538,7 @@
                                 </div>
                                 <!-- Tempo — aligned with Row 2 -->
                                 <div class="flex-1 px-3 py-2 bg-gray-50 rounded-xl flex flex-col justify-center">
-                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">Tempo: <span class="text-red-600" x-text="tempo"></span> BPM</p>
+                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">{{ __('app.setup_ui.tempo_label') }} <span class="text-red-600" x-text="tempo"></span> BPM</p>
                                     <input type="range" min="40" max="160" step="10" x-model.number="tempo" class="w-full h-1.5 rounded-lg">
                                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>40</span><span>160</span></div>
                                 </div>
@@ -506,9 +550,16 @@
 
                 <!-- Melodic Dictation Settings — shown BEFORE general settings when dictation selected -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'melodic-dictation'" x-cloak>
-                    <div class="card-header card-header-pink flex items-center gap-2">
-                        <i data-lucide="pencil-line" class="w-5 h-5 text-pink-700"></i>
-                        <h2 class="text-base font-bold text-pink-900">{{ __('app.exercises.dictation_settings') }}</h2>
+                    <div class="card-header card-header-pink flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="pencil-line" class="w-5 h-5 text-pink-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-pink-900 truncate">{{ __('app.exercises.dictation_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <!-- Time Signature -->
@@ -545,19 +596,19 @@
                             </div>
                             <!-- Col 2: Major / Minor (~18%) -->
                             <div class="flex flex-col flex-1 sm:flex-none sm:w-[18%]">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Mode</label>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.mode') }}</label>
                                 <div class="bg-gray-100 rounded-xl p-2 flex flex-col gap-1.5 flex-1" style="min-height:99px;">
                                     <button class="flex-1 text-xs font-bold rounded-xl border-2 transition-all"
                                             :class="dictationMode === 'major' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 bg-white text-gray-600 hover:border-slate-400'"
-                                            @click="dictationMode = 'major'">Major</button>
+                                            @click="dictationMode = 'major'">{{ __('app.setup_ui.major') }}</button>
                                     <button class="flex-1 text-xs font-bold rounded-xl border-2 transition-all"
                                             :class="dictationMode === 'minor' ? 'bg-pink-600 text-white border-pink-600 shadow-md' : 'border-gray-200 bg-white text-gray-600 hover:border-pink-400'"
-                                            @click="dictationMode = 'minor'">Minor</button>
+                                            @click="dictationMode = 'minor'">{{ __('app.setup_ui.minor') }}</button>
                                 </div>
                             </div>
                             <!-- Col 3: Key Signature (flex-1) -->
                             <div class="w-full sm:w-auto sm:flex-1 flex flex-col">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Key Signature</label>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.key_signature') }}</label>
                                 <div class="flex rounded-xl overflow-hidden border border-gray-200 flex-1 min-h-[90px]">
                                     <!-- Left: flat / down arrow -->
                                     <button class="w-1/5 flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-r border-gray-200 transition-all"
@@ -636,13 +687,13 @@
                                 <div class="flex gap-2">
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="dictationRests ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
-                                            @click="dictationRests = !dictationRests">Rests</button>
+                                            @click="dictationRests = !dictationRests">{{ __('app.setup_ui.rests') }}</button>
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="dictationDotted ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
-                                            @click="dictationDotted = !dictationDotted">Dotted</button>
+                                            @click="dictationDotted = !dictationDotted">{{ __('app.setup_ui.dotted') }}</button>
                                     <button class="flex-1 h-10 rounded-xl border-2 transition-all flex items-center justify-center text-xs font-bold"
                                             :class="dictationTriplets ? 'bg-pink-400 text-white border-pink-400 shadow-md' : 'border-gray-300 bg-white text-gray-700 hover:border-pink-300'"
-                                            @click="dictationTriplets = !dictationTriplets">Triplets</button>
+                                            @click="dictationTriplets = !dictationTriplets">{{ __('app.setup_ui.triplets') }}</button>
                                 </div>
                             </div>
                             <!-- Metronome + Tempo -->
@@ -650,7 +701,7 @@
                                 <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl" style="height:56px">
                                     <p class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                                         <i data-lucide="activity" class="w-4 h-4 text-pink-600"></i>
-                                        Metronome
+                                        {{ __('app.setup_ui.metronome') }}
                                     </p>
                                     <button @click="dictationMetronome = !dictationMetronome"
                                         class="relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0"
@@ -660,7 +711,7 @@
                                     </button>
                                 </div>
                                 <div class="flex-1 px-3 py-2 bg-gray-50 rounded-xl flex flex-col justify-center">
-                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">Tempo: <span class="text-pink-600" x-text="dictationTempo"></span> BPM</p>
+                                    <p class="text-xs font-semibold text-gray-700 mb-1.5">{{ __('app.setup_ui.tempo_label') }} <span class="text-pink-600" x-text="dictationTempo"></span> BPM</p>
                                     <input type="range" min="40" max="160" step="10" x-model.number="dictationTempo" class="w-full h-1.5 rounded-lg">
                                     <div class="flex justify-between text-xs text-gray-400 mt-1"><span>40</span><span>160</span></div>
                                 </div>
@@ -671,9 +722,16 @@
 
                 <!-- Intervals (Melodic / Harmonic / Construction / Comparison) -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'intervals'" x-cloak>
-                    <div class="card-header flex items-center gap-2">
-                        <i data-lucide="music-2" class="w-5 h-5 text-purple-700"></i>
-                        <h2 class="text-base font-bold text-purple-900">{{ __('app.exercises.interval_settings') }}</h2>
+                    <div class="card-header flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="music-2" class="w-5 h-5 text-purple-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-purple-900 truncate">{{ __('app.exercises.interval_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <!-- Interval Sub-Type Selector -->
@@ -681,22 +739,22 @@
                         <button class="flex-1 py-2 px-2 text-sm font-semibold rounded-xl border-2 transition-all text-center leading-tight"
                                 :class="intervalSubType === 'melodic-intervals' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300 bg-white'"
                                 @click="intervalSubType = 'melodic-intervals'">
-                            Melodic<br>Intervals
+                            {!! __('app.setup_ui.sub_melodic') !!}
                         </button>
                         <button class="flex-1 py-2 px-2 text-sm font-semibold rounded-xl border-2 transition-all text-center leading-tight"
                                 :class="intervalSubType === 'harmonic-intervals' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300 bg-white'"
                                 @click="intervalSubType = 'harmonic-intervals'">
-                            Harmonic<br>Intervals
+                            {!! __('app.setup_ui.sub_harmonic') !!}
                         </button>
                         <button class="flex-1 py-2 px-2 text-sm font-semibold rounded-xl border-2 transition-all text-center leading-tight"
                                 :class="intervalSubType === 'intervals-construction' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300 bg-white'"
                                 @click="intervalSubType = 'intervals-construction'">
-                            Interval<br>Construction
+                            {!! __('app.setup_ui.sub_construction') !!}
                         </button>
                         <button class="flex-1 py-2 px-2 text-sm font-semibold rounded-xl border-2 transition-all text-center leading-tight"
                                 :class="intervalSubType === 'interval-comparison' ? 'bg-purple-600 text-white border-purple-600 shadow-md' : 'border-gray-200 text-gray-600 hover:border-purple-300 bg-white'"
                                 @click="intervalSubType = 'interval-comparison'">
-                            Interval<br>Comparison
+                            {!! __('app.setup_ui.sub_comparison') !!}
                         </button>
                     </div>
 
@@ -736,15 +794,22 @@
 
                 <!-- Scales Settings — shown BEFORE general settings when scales selected -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'scales'" x-cloak>
-                    <div class="card-header card-header-amber flex items-center gap-2">
-                        <i data-lucide="waves" class="w-5 h-5 text-amber-700"></i>
-                        <h2 class="text-base font-bold text-amber-900">{{ __('app.exercises.scale_settings') }}</h2>
+                    <div class="card-header card-header-amber flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="waves" class="w-5 h-5 text-amber-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-amber-900 truncate">{{ __('app.exercises.scale_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">{{ __('app.exercises.scale_types_label') }}</label>
 
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Gamlar / Scales</p>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">{{ __('app.setup_ui.scales_group') }}</p>
                         <div class="flex flex-wrap gap-2 mb-4">
                             @foreach(['Major','Natural Minor','Harmonic Minor','Melodic Minor','Major Pentatonic','Minor Pentatonic','Blues Scale','Chromatic Scale','Whole Tone Scale'] as $scale)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
@@ -753,7 +818,7 @@
                             @endforeach
                         </div>
 
-                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Modlar / Modes</p>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">{{ __('app.setup_ui.modes_group') }}</p>
                         <div class="flex flex-wrap gap-2">
                             @foreach(['Ionian','Dorian','Phrygian','Lydian','Mixolydian','Aeolian','Locrian'] as $scale)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
@@ -777,14 +842,21 @@
 
                 <!-- Single Note Settings — shown BEFORE general settings when single-note selected -->
                 <div class="card px-3 py-6 sm:p-6" x-show="selectedCategory === 'single-note'" x-cloak>
-                    <div class="card-header card-header-indigo flex items-center gap-2">
-                        <i data-lucide="music-2" class="w-5 h-5 text-indigo-700"></i>
-                        <h2 class="text-base font-bold text-indigo-900">Single Note Settings</h2>
+                    <div class="card-header card-header-indigo flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i data-lucide="music-2" class="w-5 h-5 text-indigo-700 shrink-0"></i>
+                            <h2 class="text-base font-bold text-indigo-900 truncate">{{ __('app.setup_ui.single_note_settings') }}</h2>
+                        </div>
+                        <button @click="startExercise()"
+                            class="start-btn-inline shrink-0 text-white font-semibold py-2 px-3.5 rounded-xl flex items-center gap-1.5 text-sm shadow">
+                            <i data-lucide="play-circle" class="w-4 h-4"></i>
+                            <span class="whitespace-nowrap">{{ __('app.exercises.start_exercise') }}</span>
+                        </button>
                     </div>
 
                     <!-- Note Keyboard Selector (white + black clickable) -->
                     <div class="mb-5">
-                        <label class="block text-sm font-semibold text-gray-700 mb-3">Notes to use</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.setup_ui.notes_to_use') }}</label>
                         <div class="relative select-none" style="height:92px;">
                             <!-- White keys -->
                             <div class="flex h-full" style="gap:2px;">
@@ -821,14 +893,14 @@
                                 @endforeach
                             </div>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2">Click white or black keys to include/exclude notes.</p>
+                        <p class="text-xs text-gray-400 mt-2">{{ __('app.setup_ui.notes_hint') }}</p>
                     </div>
 
                     <!-- Play notes in groups of + Answer using -->
                     <div class="flex flex-col gap-4 sm:flex-row sm:gap-3 sm:items-start">
                         <!-- Group size (2-9, compact) -->
                         <div class="sm:shrink-0">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Play notes in groups of</label>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.groups_of') }}</label>
                             <div class="flex gap-1">
                                 @foreach([2,3,4,5,6,7,8,9] as $n)
                                 <button class="flex-1 min-w-0 sm:flex-none sm:w-9 h-11 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center"
@@ -840,7 +912,7 @@
 
                         <!-- Answer using (flex-1 — fills remaining space) -->
                         <div class="flex-1 flex flex-col">
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Answer using</label>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.answer_using') }}</label>
                             <div class="flex gap-2" style="height:2.75rem;">
                                 <button class="flex-1 text-sm font-medium rounded-xl border-2 transition-all flex items-center justify-center gap-1.5"
                                         :class="singleNoteAnswerMode === 'keyboard' ? 'bg-indigo-700 text-white border-indigo-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-indigo-400'"
@@ -898,7 +970,7 @@
                                 </div>
                                 <!-- Tempo — scales only -->
                                 <div class="flex flex-col w-44 relative flex-shrink-0" x-show="selectedCategory === 'scales'" x-cloak @click.outside="scaleTempoOpen = false">
-                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Tempo</label>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('app.setup_ui.tempo') }}</label>
                                     <button @click="scaleTempoOpen = !scaleTempoOpen"
                                             class="w-full h-20 flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-xl border border-slate-700 text-white transition-all"
                                             style="background:linear-gradient(135deg,#1e293b,#334155)">
@@ -975,7 +1047,7 @@
 
                             <!-- Difficulty — only for melodic dictation -->
                             <div class="flex-1 relative" x-show="selectedCategory === 'melodic-dictation'" x-cloak @click.outside="diffOpen = false">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">Difficulty</label>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">{{ __('app.setup_ui.difficulty') }}</label>
                                 <button @click="diffOpen = !diffOpen"
                                         class="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:border-slate-400 bg-white transition-all">
                                     <span x-text="{'beginner':'Beginner','intermediate':'Intermediate','advanced':'Advanced'}[dictationDifficulty]"></span>
@@ -985,13 +1057,13 @@
                                      class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
                                     <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                             :class="dictationDifficulty === 'beginner' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                            @click="dictationDifficulty = 'beginner'; diffOpen = false">Beginner</button>
+                                            @click="dictationDifficulty = 'beginner'; diffOpen = false">{{ __('app.setup_ui.level_beginner') }}</button>
                                     <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                             :class="dictationDifficulty === 'intermediate' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                            @click="dictationDifficulty = 'intermediate'; diffOpen = false">Intermediate</button>
+                                            @click="dictationDifficulty = 'intermediate'; diffOpen = false">{{ __('app.setup_ui.level_intermediate') }}</button>
                                     <button class="w-full text-left px-3 py-1.5 text-sm transition-colors"
                                             :class="dictationDifficulty === 'advanced' ? 'bg-slate-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-50'"
-                                            @click="dictationDifficulty = 'advanced'; diffOpen = false">Advanced</button>
+                                            @click="dictationDifficulty = 'advanced'; diffOpen = false">{{ __('app.setup_ui.level_advanced') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -1002,10 +1074,10 @@
             </div>
 
             <!-- ===== RIGHT: Summary + Plans ===== -->
-            <div class="w-[238px] flex-shrink-0 space-y-4 sidebar-col">
+            <div class="w-[238px] flex-shrink-0 space-y-4 sidebar-col col-right">
 
                 <!-- Summary Card -->
-                <div class="card p-5">
+                <div class="card p-5 session-summary-card">
                     <div class="card-header card-header-neutral flex items-center gap-2" style="margin:-1.25rem -1.25rem 1rem;">
                         <i data-lucide="clipboard-list" class="w-4 h-4 text-slate-600"></i>
                         <h3 class="text-sm font-bold text-slate-800">{{ __('app.exercises.session_summary') }}</h3>
@@ -1039,13 +1111,6 @@
                             class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-50/60 placeholder-gray-400">
                     </div>
                 </div>
-
-                <!-- Start Exercise Button -->
-                <button @click="startExercise()"
-                    class="w-full start-btn text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-base shadow-lg">
-                    <i data-lucide="play-circle" class="w-5 h-5"></i>
-                    {{ __('app.exercises.start_exercise') }}
-                </button>
 
                 <!-- Livewire: AI recommendation + Saved plans -->
                 <livewire:exercise-setup-studio />

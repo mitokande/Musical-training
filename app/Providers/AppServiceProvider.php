@@ -7,10 +7,12 @@ use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\Analytics\PostHogService;
 use App\Services\Teacher\TeacherCapabilityService;
+use App\Services\Zoom\ZoomClient;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -38,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
         // initialised at most once per process and the batched event queue is
         // flushed a single time when the request ends.
         $this->app->singleton(PostHogService::class);
+
+        // Single shared Zoom REST client, so the Server-to-Server OAuth token
+        // is fetched at most once per process. Tests swap this binding for a
+        // fake to drive live lessons without network calls.
+        $this->app->singleton(ZoomClient::class);
     }
 
     /**
@@ -51,6 +58,14 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Login::class, [RecordAuthAnalytics::class, 'login']);
         Event::listen(Verified::class, [RecordAuthAnalytics::class, 'verified']);
 
+        // Mobile API limiters. The default `api` group ships with no limiter at
+        // all, and answer submission needs a far higher ceiling than login.
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)
+            ->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('api-auth', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        RateLimiter::for('api-answer', fn (Request $request) => Limit::perMinute(240)
+            ->by($request->user()?->id ?: $request->ip()));
+
         // Throttle Email Center sends below the SES account MaxSendRate.
         RateLimiter::for('email-center-send', function () {
             $perSecond = (int) rescue(
@@ -61,6 +76,9 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perSecond(max(1, $perSecond));
         });
+
+        // Zoom rate-limits per endpoint; keep our own calls well under it.
+        RateLimiter::for('zoom-api', fn () => Limit::perSecond(max(1, (int) config('zoom.api_rate_per_second'))));
 
         // Teacher CRM: a teacher may see a student's private performance data
         // only with an active mutually-approved relationship AND the premium

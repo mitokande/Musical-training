@@ -21,19 +21,19 @@ namespace App\Services;
 class RhythmGroupingService
 {
     private const TWELFTHS = [
-        'whole'             => 48,
-        'dotted-half'       => 36,
-        'half'              => 24,
-        'dotted-quarter'    => 18,
-        'quarter'           => 12,
-        'dotted-eighth'     => 9,
-        'eighth'            => 6,
-        'triplet-eighth'    => 4,
-        'sixteenth'         => 3,
-        'whole_rest'        => 48,
-        'half_rest'         => 24,
-        'quarter_rest'      => 12,
-        'eighth_rest'       => 6,
+        'whole' => 48,
+        'dotted-half' => 36,
+        'half' => 24,
+        'dotted-quarter' => 18,
+        'quarter' => 12,
+        'dotted-eighth' => 9,
+        'eighth' => 6,
+        'triplet-eighth' => 4,
+        'sixteenth' => 3,
+        'whole_rest' => 48,
+        'half_rest' => 24,
+        'quarter_rest' => 12,
+        'eighth_rest' => 6,
     ];
 
     /** Duration of a note value in twelfths. Returns 0 for unknown values. */
@@ -51,8 +51,8 @@ class RhythmGroupingService
     public function beatTwelfths(int $denominator): int
     {
         return match ($denominator) {
-            8  => 18,
-            2  => 24,
+            8 => 18,
+            2 => 24,
             default => 12,
         };
     }
@@ -140,20 +140,20 @@ class RhythmGroupingService
      * Always returns exactly visualGroupCount($num, $den) groups (some may be empty
      * when a long note from a previous group spans into that group).
      *
-     * @param  array<string> $noteValues flat sequence of note/rest names
+     * @param  array<string>  $noteValues  flat sequence of note/rest names
      * @return array<int, array<string>> indexed visual groups
      */
     public function group(array $noteValues, string $timeSig): array
     {
         [$num, $den] = array_map('intval', explode('/', $timeSig));
-        $groupT   = $this->visualGroupTwelfths($den);
+        $groupT = $this->visualGroupTwelfths($den);
         $numGroups = $this->visualGroupCount($num, $den);
 
         $groups = array_fill(0, max(1, $numGroups), []);
-        $pos    = 0;
+        $pos = 0;
 
         foreach ($noteValues as $nv) {
-            $dur      = $this->noteTwelfths($nv);
+            $dur = $this->noteTwelfths($nv);
             $groupIdx = $groupT > 0
                 ? min($numGroups - 1, intdiv($pos, $groupT))
                 : 0;

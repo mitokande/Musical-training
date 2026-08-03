@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=660">
+<title>Harmoniva — 660x90</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:660px;height:90px;overflow:hidden;background:transparent}
+a{text-decoration:none;color:inherit;display:block}
+
+/* ============ SAHNE / STAGE ============ */
+.b{
+  position:relative;width:660px;height:90px;overflow:hidden;border-radius:10px;
+  font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:linear-gradient(115deg,#0a0514 0%,#170c2e 42%,#241148 72%,#0d0720 100%);
+  cursor:pointer;isolation:isolate;
+  box-shadow:inset 0 0 0 1px rgba(167,139,250,.22);
+}
+.b::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:10px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);z-index:9}
+
+/* hareketli mor ışıklar */
+.glow{position:absolute;border-radius:50%;filter:blur(26px);pointer-events:none;z-index:0}
+.g1{width:230px;height:230px;left:-60px;top:-100px;background:rgba(139,92,246,.55);animation:g1 7s linear infinite}
+.g2{width:200px;height:200px;right:-40px;top:-70px;background:rgba(192,132,252,.34);animation:g2 7s linear infinite}
+@keyframes g1{0%{transform:translate(0,0)}35%{transform:translate(150px,18px)}70%{transform:translate(400px,-6px)}100%{transform:translate(0,0)}}
+@keyframes g2{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-260px,14px) scale(1.15)}100%{transform:translate(0,0) scale(1)}}
+
+/* ince ızgara dokusu */
+.grid{position:absolute;inset:0;z-index:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:22px 22px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent)}
+
+/* üst ilerleme çizgisi */
+.bar{position:absolute;left:0;top:0;height:2px;z-index:8;
+  background:linear-gradient(90deg,#8b5cf6,#c084fc,#f0abfc);animation:bar 7s linear infinite}
+@keyframes bar{0%{width:0}100%{width:660px}}
+
+/* ============ SAHNE KATMANLARI ============ */
+.s{position:absolute;inset:0;z-index:2;display:flex;align-items:center;opacity:0;will-change:transform,opacity}
+.s1{animation:sc1 7s cubic-bezier(.22,.9,.28,1) infinite}
+.s2{animation:sc2 7s cubic-bezier(.22,.9,.28,1) infinite}
+.s3{animation:sc3 7s cubic-bezier(.22,.9,.28,1) infinite}
+.s4{animation:sc4 7s cubic-bezier(.22,.9,.28,1) infinite}
+@keyframes sc1{0%{opacity:0;transform:translateX(26px)}4%{opacity:1;transform:translateX(0)}21%{opacity:1;transform:translateX(0)}26%{opacity:0;transform:translateX(-26px)}100%{opacity:0;transform:translateX(-26px)}}
+@keyframes sc2{0%,21%{opacity:0;transform:translateX(26px)}29%{opacity:1;transform:translateX(0)}46%{opacity:1;transform:translateX(0)}51%{opacity:0;transform:translateX(-26px)}100%{opacity:0;transform:translateX(-26px)}}
+@keyframes sc3{0%,46%{opacity:0;transform:translateX(26px)}54%{opacity:1;transform:translateX(0)}71%{opacity:1;transform:translateX(0)}76%{opacity:0;transform:translateX(-26px)}100%{opacity:0;transform:translateX(-26px)}}
+@keyframes sc4{0%,71%{opacity:0;transform:translateX(26px)}79%{opacity:1;transform:translateX(0)}97%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(0)}}
+
+/* ============ TİPOGRAFİ ============ */
+.txt{flex:1;padding-right:16px;min-width:0}
+.eyebrow{font-size:9px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#c4b5fd;margin-bottom:3px}
+.h{font-size:16px;line-height:1.15;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap}
+.h em{font-style:normal;background:linear-gradient(90deg,#c084fc,#f0abfc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#e9d5ff}
+.p{font-size:11.5px;line-height:1.25;font-weight:500;color:#c9c1e8;margin-top:3px;white-space:nowrap}
+.up1{animation:up 7s cubic-bezier(.2,.8,.2,1) infinite}
+.up2{animation:up 7s cubic-bezier(.2,.8,.2,1) infinite;animation-delay:.09s}
+@keyframes up{0%{opacity:0;transform:translateY(9px)}5%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(0)}}
+
+/* ============ SAHNE 1 : LOGO / KANCA ============ */
+.lock{display:flex;align-items:center;gap:11px;padding-left:18px}
+.ic{width:46px;height:46px;border-radius:13px;flex:none;background-size:cover;
+  box-shadow:0 0 0 1px rgba(167,139,250,.4),0 6px 18px rgba(124,58,237,.5);
+  animation:pop 7s cubic-bezier(.2,1.5,.4,1) infinite}
+@keyframes pop{0%{opacity:0;transform:scale(.5) rotate(-14deg)}6%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:1;transform:scale(1) rotate(0)}}
+.wm{font-size:23px;font-weight:800;color:#fff;letter-spacing:-.6px;line-height:1}
+.wm i{font-style:normal;color:#a78bfa}
+.wm span{font-size:11px;font-weight:700;color:#c084fc;letter-spacing:.6px;vertical-align:2px}
+
+/* eşitleyici çubukları */
+.eq{display:flex;align-items:flex-end;gap:3px;height:34px;padding-right:20px}
+.eq i{display:block;width:4px;border-radius:2px;background:linear-gradient(180deg,#e9d5ff,#8b5cf6);animation:eq 1.05s ease-in-out infinite}
+.eq i:nth-child(1){height:12px;animation-delay:0s}
+.eq i:nth-child(2){height:26px;animation-delay:.12s}
+.eq i:nth-child(3){height:17px;animation-delay:.24s}
+.eq i:nth-child(4){height:32px;animation-delay:.06s}
+.eq i:nth-child(5){height:9px;animation-delay:.3s}
+.eq i:nth-child(6){height:22px;animation-delay:.18s}
+.eq i:nth-child(7){height:14px;animation-delay:.36s}
+@keyframes eq{0%,100%{transform:scaleY(.42)}50%{transform:scaleY(1)}}
+.eq i{transform-origin:bottom}
+
+/* mini piyano */
+.pno{display:flex;gap:1.5px;padding-right:14px}
+.pno b{display:block;width:9px;height:30px;border-radius:0 0 3px 3px;background:linear-gradient(180deg,#ede9fe,#b9adde);animation:key 2.1s ease-in-out infinite}
+.pno b.k{background:linear-gradient(180deg,#3b2963,#1a0f33);height:20px;width:7px;margin:0 -4.5px;position:relative;z-index:2}
+.pno b:nth-child(2){animation-delay:.2s}.pno b:nth-child(3){animation-delay:.4s}
+.pno b:nth-child(4){animation-delay:.6s}.pno b:nth-child(5){animation-delay:.8s}
+.pno b:nth-child(6){animation-delay:1s}.pno b:nth-child(7){animation-delay:1.2s}
+@keyframes key{0%,72%,100%{transform:translateY(0);filter:none}80%{transform:translateY(3px);filter:brightness(1.35)}}
+
+/* ============ SAHNE 2 : ÖĞRENCİ UYGULAMA EKRANI ============ */
+.card{flex:none;border-radius:9px;background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.05));
+  border:1px solid rgba(196,181,253,.3);box-shadow:0 8px 22px rgba(0,0,0,.45);backdrop-filter:blur(2px);
+  animation:cardin 7s cubic-bezier(.2,.9,.25,1) infinite}
+@keyframes cardin{0%{opacity:0;transform:translateY(10px) scale(.94)}6%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.c2{width:158px;height:66px;margin-left:16px;padding:6px 7px}
+.stf{position:relative;height:22px;margin-bottom:5px}
+.stf u{position:absolute;left:0;right:0;height:1px;background:rgba(233,213,255,.45);display:block}
+.stf u:nth-of-type(1){top:2px}.stf u:nth-of-type(2){top:7px}.stf u:nth-of-type(3){top:12px}
+.stf u:nth-of-type(4){top:17px}.stf u:nth-of-type(5){top:22px}
+.nt{position:absolute;width:8px;height:6px;border-radius:50%;background:#fff;transform:rotate(-20deg);box-shadow:0 0 8px rgba(255,255,255,.6)}
+.nt::after{content:"";position:absolute;right:0;bottom:2px;width:1.5px;height:15px;background:#fff}
+.n1{left:14px;top:14px;animation:ntin 7s ease infinite}
+.n2{left:40px;top:4px;animation:ntin 7s ease infinite;animation-delay:.12s}
+@keyframes ntin{0%{opacity:0;transform:translateY(-6px) rotate(-20deg)}8%{opacity:1;transform:translateY(0) rotate(-20deg)}100%{opacity:1}}
+.wave{position:absolute;right:6px;top:5px;display:flex;align-items:center;gap:2px;height:14px}
+.wave i{width:2px;height:100%;border-radius:1px;background:#a78bfa;animation:eq .8s ease-in-out infinite;transform-origin:center}
+.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}
+.chips{display:flex;gap:4px}
+.chip{flex:1;height:15px;border-radius:5px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);
+  font-size:8px;font-weight:700;color:#e9d5ff;display:flex;align-items:center;justify-content:center}
+.chip.ok{background:linear-gradient(90deg,#16a34a,#22c55e);border-color:#4ade80;color:#fff;
+  animation:okp 7s ease infinite}
+@keyframes okp{0%,13%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,197,94,0)}
+16%{transform:scale(1.12);box-shadow:0 0 0 4px rgba(34,197,94,.35)}20%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.prog{margin-top:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden;position:relative}
+.prog i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#8b5cf6,#e879f9);animation:pg 7s cubic-bezier(.3,.9,.3,1) infinite}
+@keyframes pg{0%,4%{width:8%}22%{width:88%}100%{width:88%}}
+
+/* ============ SAHNE 3 : ÖĞRETMEN CRM PANELİ ============ */
+.c3{width:172px;height:68px;margin-left:16px;padding:5px 6px;display:flex;gap:5px}
+.side{width:16px;display:flex;flex-direction:column;gap:3px;padding-top:1px}
+.side i{height:4px;border-radius:2px;background:rgba(233,213,255,.3);display:block}
+.side i:first-child{background:#a78bfa}
+.rows{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.row{display:flex;align-items:center;gap:4px;opacity:0}
+.row:nth-child(1){animation:rowin 7s ease infinite;animation-delay:.05s}
+.row:nth-child(2){animation:rowin 7s ease infinite;animation-delay:.17s}
+.row:nth-child(3){animation:rowin 7s ease infinite;animation-delay:.29s}
+@keyframes rowin{0%{opacity:0;transform:translateX(8px)}8%{opacity:1;transform:translateX(0)}100%{opacity:1;transform:translateX(0)}}
+.av{width:10px;height:10px;border-radius:50%;flex:none;background:linear-gradient(135deg,#a78bfa,#e879f9)}
+.av.b2{background:linear-gradient(135deg,#38bdf8,#818cf8)}
+.av.b3{background:linear-gradient(135deg,#fb923c,#f472b6)}
+.rb{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.rb i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#8b5cf6,#c084fc);width:0;animation:rbf 7s cubic-bezier(.3,.9,.3,1) infinite}
+.row:nth-child(1) .rb i{animation-delay:.15s;--w:82%}
+.row:nth-child(2) .rb i{animation-delay:.27s;--w:58%}
+.row:nth-child(3) .rb i{animation-delay:.39s;--w:71%}
+@keyframes rbf{0%{width:0}20%{width:var(--w,70%)}100%{width:var(--w,70%)}}
+.tag{font-size:7px;font-weight:800;padding:1px 4px;border-radius:4px;flex:none;letter-spacing:.2px}
+.tg1{background:rgba(139,92,246,.9);color:#fff}
+.tg2{background:rgba(56,189,248,.22);color:#7dd3fc}
+.tg3{background:rgba(244,114,182,.22);color:#f9a8d4}
+.cal{width:44px;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:8px;gap:2.5px;align-content:start;padding-top:1px}
+.cal i{border-radius:2px;background:rgba(255,255,255,.14);display:block}
+.cal i.on{background:linear-gradient(135deg,#8b5cf6,#e879f9);animation:bk 7s ease infinite}
+@keyframes bk{0%,12%{transform:scale(1);box-shadow:0 0 0 0 rgba(232,121,249,0)}
+16%{transform:scale(1.3);box-shadow:0 0 0 3px rgba(232,121,249,.3)}22%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(232,121,249,0)}}
+
+/* ============ SAHNE 4 : CTA ============ */
+.s4{padding-left:18px;gap:11px}
+.ic4{width:40px;height:40px;border-radius:12px;flex:none;background-size:cover;
+  box-shadow:0 0 0 1px rgba(167,139,250,.45),0 6px 16px rgba(124,58,237,.55);
+  animation:pop 7s cubic-bezier(.2,1.5,.4,1) infinite}
+.cta{flex:none;margin-right:16px;position:relative;overflow:hidden;
+  padding:9px 16px;border-radius:22px;font-size:12.5px;font-weight:800;color:#fff;white-space:nowrap;
+  background:linear-gradient(95deg,#7c3aed,#a855f7 55%,#d946ef);
+  box-shadow:0 6px 18px rgba(168,85,247,.55),inset 0 1px 0 rgba(255,255,255,.28);
+  animation:cta 7s cubic-bezier(.2,1.4,.4,1) infinite}
+@keyframes cta{0%{opacity:0;transform:scale(.8)}82%{opacity:1;transform:scale(1)}
+88%{transform:scale(1.06)}92%{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+.cta::after{content:"";position:absolute;top:0;bottom:0;width:38px;transform:skewX(-22deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shine 7s ease-in-out infinite}
+@keyframes shine{0%,84%{left:-60px}94%{left:150px}100%{left:150px}}
+.dom{font-size:9.5px;font-weight:700;color:#c4b5fd;letter-spacing:.7px;margin-top:4px}
+
+/* erişilebilirlik */
+@media (prefers-reduced-motion:reduce){
+  .glow,.eq i,.pno b,.wave i,.cal i.on,.chip.ok,.cta::after{animation:none!important}
+}
+</style>
+</head>
+<body>
+<a href="https://harmoniva.app" target="_blank" rel="noopener" aria-label="Harmoniva — müzik eğitimi platformu">
+<div class="b">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="grid"></div>
+  <div class="bar"></div>
+
+  <!-- SAHNE 1 — KANCA -->
+  <div class="s s1">
+    <div class="lock">
+      <div class="ic" id="ic1"></div>
+      <div>
+        <div class="wm"><i>H</i>armoniva<span>.APP</span></div>
+        <div class="p up1" style="margin-top:5px;color:#d8d2f0;font-size:12px;font-weight:600">Müzik eğitiminde <b style="color:#e9d5ff">benzersiz</b> bir platform.</div>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="pno"><b></b><b class="k"></b><b></b><b class="k"></b><b></b><b></b><b class="k"></b></div>
+  </div>
+
+  <!-- SAHNE 2 — ÖĞRENCİ -->
+  <div class="s s2">
+    <div class="card c2">
+      <div class="stf">
+        <u></u><u></u><u></u><u></u><u></u>
+        <div class="nt n1"></div><div class="nt n2"></div>
+        <div class="wave"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="chips">
+        <div class="chip">M2</div><div class="chip ok">M3 ✓</div><div class="chip">P5</div>
+      </div>
+      <div class="prog"><i></i></div>
+    </div>
+    <div class="txt" style="padding-left:16px">
+      <div class="eyebrow up1">ÖĞRENCİLER İÇİN</div>
+      <div class="h up1">Aralık, akor, gam ve ritim <em>çalış</em>.</div>
+      <div class="p up2">Kişiselleştirilmiş egzersizlerle hızla ilerle.</div>
+    </div>
+  </div>
+
+  <!-- SAHNE 3 — ÖĞRETMEN -->
+  <div class="s s3">
+    <div class="card c3">
+      <div class="side"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="rows">
+        <div class="row"><span class="av"></span><span class="rb"><i></i></span><span class="tag tg1">ÖDEV</span></div>
+        <div class="row"><span class="av b2"></span><span class="rb"><i></i></span><span class="tag tg2">DERS</span></div>
+        <div class="row"><span class="av b3"></span><span class="rb"><i></i></span><span class="tag tg3">%71</span></div>
+      </div>
+      <div class="cal">
+        <i></i><i></i><i></i><i></i>
+        <i></i><i class="on"></i><i></i><i></i>
+        <i></i><i></i><i></i><i></i>
+      </div>
+    </div>
+    <div class="txt" style="padding-left:16px">
+      <div class="eyebrow up1">ÖĞRETMENLER İÇİN</div>
+      <div class="h up1">Öğrenci yönet, <em>ödev ver</em>, gelişimi takip et.</div>
+      <div class="p up2">Takvim ve öğretmen profili tek yerde.</div>
+    </div>
+  </div>
+
+  <!-- SAHNE 4 — CTA -->
+  <div class="s s4">
+    <div class="ic4" id="ic2"></div>
+    <div class="txt">
+      <div class="h up1" style="font-size:14px">Öğrenciler için güçlü <em>kulak eğitimi</em>.</div>
+      <div class="p up2" style="font-size:12px">Öğretmenler için akıllı müzik platformu.</div>
+    </div>
+    <div>
+      <div class="cta">Harmoniva’yı keşfet →</div>
+      <div class="dom" style="text-align:center;margin-right:16px">harmoniva.app</div>
+    </div>
+  </div>
+</div>
+</a>
+<script>
+/* Reklam sunucuları için tıklama etiketi (Google Ads / DoubleClick uyumlu) */
+var clickTag = "https://harmoniva.app";
+document.querySelector("a").addEventListener("click", function (e) {
+  if (clickTag && clickTag !== "https://harmoniva.app") { e.preventDefault(); window.open(clickTag, "_blank"); }
+});
+/* logo ikonu tek bir data-URI'den iki yere uygulanır (dosya boyutu için) */
+(function(){var u="url(data:image/png;base64,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)";
+document.getElementById("ic1").style.backgroundImage=u;
+document.getElementById("ic2").style.backgroundImage=u;})();
+</script>
+</body>
+</html>

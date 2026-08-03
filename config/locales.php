@@ -48,5 +48,13 @@ return [
         '/find-teachers' => 'pages.find-teachers',
         '/ear-training-guide' => 'pages.ear-training-guide',
         '/how-it-works' => 'pages.how-it-works',
+        '/learn' => 'learn',
+        '/pricing/teachers-and-schools' => 'pricing-teachers',
+        '/piano-studio' => 'piano-studio',
+        '/refund-policy' => 'pages.refund-policy',
+        '/subscription-terms' => 'pages.subscription-terms',
+        '/cookie-policy' => 'pages.cookie-policy',
+        '/terms-of-service' => 'pages.terms-of-service',
+        '/privacy-policy' => 'pages.privacy-policy',
     ],
 ];

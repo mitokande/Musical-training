@@ -44,7 +44,7 @@
                     </div>
                     <div class="flex gap-4 py-4 border-b border-gray-100">
                         <dt class="w-36 text-sm font-semibold text-gray-500 uppercase tracking-wide flex-shrink-0">{{ __('pages.press.fact_entity_label') }}</dt>
-                        <dd class="text-gray-900 font-medium">H&amp;P LLC</dd>
+                        <dd class="text-gray-900 font-medium">Softchain Solutions</dd>
                     </div>
                     <div class="flex gap-4 py-4 border-b border-gray-100">
                         <dt class="w-36 text-sm font-semibold text-gray-500 uppercase tracking-wide flex-shrink-0">{{ __('pages.press.fact_product_label') }}</dt>

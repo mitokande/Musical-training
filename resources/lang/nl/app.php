@@ -652,6 +652,7 @@ return [
         'privacy_policy' => 'Privacybeleid',
         'terms_of_service' => 'Servicevoorwaarden',
         'cookie_policy' => 'Cookiebeleid',
+        'refund_policy' => "Restitutiebeleid",
     ],
 
     'language' => [

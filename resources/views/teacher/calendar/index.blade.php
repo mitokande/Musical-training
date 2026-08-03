@@ -97,9 +97,14 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="font-semibold text-gray-900">{{ $appointment->student->name }} {{ $appointment->student->surname }}</p>
                                     <p class="text-sm text-gray-600">{{ $appointment->starts_at->timezone($tz)->format('D, M j, Y H:i') }}–{{ $appointment->ends_at->timezone($tz)->format('H:i') }}</p>
+                                    @if($appointment->roomIsOpen())
+                                        <a href="{{ route('lessons.room', $appointment) }}" class="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition">
+                                            <i data-lucide="video" class="w-3.5 h-3.5"></i> {{ crm_trans('lesson_room.start_lesson') }}
+                                        </a>
+                                    @endif
                                     @if($appointment->meeting_url)
-                                        <a href="{{ $appointment->meeting_url }}" target="_blank" rel="noopener" class="text-xs font-semibold text-primary-600 hover:text-primary-800 inline-flex items-center gap-1">
-                                            <i data-lucide="video" class="w-3 h-3"></i> {{ $appointment->meeting_url }}
+                                        <a href="{{ $appointment->meeting_url }}" target="_blank" rel="noopener" class="block text-xs font-semibold text-primary-600 hover:text-primary-800 truncate">
+                                            <i data-lucide="external-link" class="w-3 h-3 inline"></i> {{ $appointment->meeting_url }}
                                         </a>
                                     @endif
                                 </div>

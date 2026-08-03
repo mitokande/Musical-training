@@ -653,6 +653,7 @@ return [
         'privacy_policy' => 'Polityka prywatności',
         'terms_of_service' => 'Regulamin',
         'cookie_policy' => 'Polityka cookies',
+        'refund_policy' => "Polityka zwrotów",
     ],
 
     'language' => [

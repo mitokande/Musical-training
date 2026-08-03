@@ -653,6 +653,7 @@ return [
         'privacy_policy' => 'Политика конфиденциальности',
         'terms_of_service' => 'Условия использования',
         'cookie_policy' => 'Политика cookie',
+        'refund_policy' => "Политика возврата",
     ],
 
     'language' => [

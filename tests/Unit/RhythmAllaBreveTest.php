@@ -30,11 +30,11 @@ class RhythmAllaBreveTest extends TestCase
     public function test_generated_2_2_questions_store_correct_tempo(): void
     {
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['2/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['2/2'],
             'allowed_note_values' => ['quarter', 'half'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 5);
@@ -50,11 +50,11 @@ class RhythmAllaBreveTest extends TestCase
     public function test_generated_3_2_questions_store_correct_tempo(): void
     {
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['3/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['3/2'],
             'allowed_note_values' => ['quarter', 'half'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 5);
@@ -70,11 +70,11 @@ class RhythmAllaBreveTest extends TestCase
     public function test_generated_4_2_questions_store_correct_tempo(): void
     {
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['4/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['4/2'],
             'allowed_note_values' => ['quarter', 'half'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 5);
@@ -97,11 +97,11 @@ class RhythmAllaBreveTest extends TestCase
         ];
 
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['2/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['2/2'],
             'allowed_note_values' => ['quarter', 'half', 'whole'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 10);
@@ -114,7 +114,7 @@ class RhythmAllaBreveTest extends TestCase
             $total = array_reduce($noteValues, fn ($carry, $v) => $carry + ($quarterBeats[$v] ?? 0), 0.0);
             $this->assertEqualsWithDelta(
                 4.0, $total, 0.001,
-                "2/2 bar should fill exactly 4 quarter-note beats (2 half-note beats), got {$total} for: " . implode(',', $noteValues)
+                "2/2 bar should fill exactly 4 quarter-note beats (2 half-note beats), got {$total} for: ".implode(',', $noteValues)
             );
         }
     }
@@ -129,11 +129,11 @@ class RhythmAllaBreveTest extends TestCase
         ];
 
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['3/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['3/2'],
             'allowed_note_values' => ['quarter', 'half'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 10);
@@ -161,11 +161,11 @@ class RhythmAllaBreveTest extends TestCase
         ];
 
         $exercise = new LearningPathExercise(['config_json' => [
-            'practice_type'       => 'rhythm-practice',
-            'time_signatures'     => ['4/2'],
+            'practice_type' => 'rhythm-practice',
+            'time_signatures' => ['4/2'],
             'allowed_note_values' => ['quarter', 'half'],
-            'tempo_range'         => [50, 50],
-            'bars'                => 1,
+            'tempo_range' => [50, 50],
+            'bars' => 1,
         ]]);
 
         $questions = $this->generator->generate($exercise, 10);
@@ -188,11 +188,11 @@ class RhythmAllaBreveTest extends TestCase
     {
         foreach (['4/4' => 80, '3/4' => 80, '6/8' => 80] as $ts => $bpm) {
             $exercise = new LearningPathExercise(['config_json' => [
-                'practice_type'       => 'rhythm-practice',
-                'time_signatures'     => [$ts],
+                'practice_type' => 'rhythm-practice',
+                'time_signatures' => [$ts],
                 'allowed_note_values' => ['quarter', 'half'],
-                'tempo_range'         => [$bpm, $bpm],
-                'bars'                => 1,
+                'tempo_range' => [$bpm, $bpm],
+                'bars' => 1,
             ]]);
 
             $questions = $this->generator->generate($exercise, 3);

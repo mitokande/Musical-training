@@ -27,11 +27,11 @@ class LearningPathExercise extends Model
     ];
 
     protected $casts = [
-        'config_json'    => 'array',
-        'tags'           => 'array',
+        'config_json' => 'array',
+        'tags' => 'array',
         'skills_trained' => 'array',
-        'translations'   => 'array',
-        'is_active'      => 'boolean',
+        'translations' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function category(): BelongsTo
@@ -57,12 +57,14 @@ class LearningPathExercise extends Model
     public function getLocalizedTitle(): string
     {
         $locale = app()->getLocale();
+
         return $this->translations[$locale]['title'] ?? $this->title;
     }
 
     public function getLocalizedDescription(): string
     {
         $locale = app()->getLocale();
+
         return $this->translations[$locale]['description'] ?? $this->description;
     }
 }

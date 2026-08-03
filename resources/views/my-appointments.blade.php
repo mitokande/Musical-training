@@ -89,9 +89,16 @@
                                     @endif
                                 </p>
                                 @if($appointment->isConfirmed() && $appointment->meeting_url)
-                                    <a href="{{ $appointment->meeting_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition">
-                                        <i data-lucide="video" class="w-3.5 h-3.5"></i> {{ __($ma.'.join') }}
-                                    </a>
+                                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                                        @if($appointment->roomIsOpen())
+                                            <a href="{{ route('lessons.room', $appointment) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition">
+                                                <i data-lucide="video" class="w-3.5 h-3.5"></i> {{ __('teacher.lesson_room.join_lesson') }}
+                                            </a>
+                                        @endif
+                                        <a href="{{ $appointment->meeting_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition">
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> {{ __($ma.'.join') }}
+                                        </a>
+                                    </div>
                                 @endif
                             </div>
                             @if($actionable && $appointment->starts_at->isFuture())

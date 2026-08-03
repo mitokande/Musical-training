@@ -3,13 +3,13 @@
 namespace App\Exports;
 
 use App\Models\Subscription;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Illuminate\Http\Request;
 
-class SubscriptionsExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
+class SubscriptionsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping
 {
     protected $request;
 

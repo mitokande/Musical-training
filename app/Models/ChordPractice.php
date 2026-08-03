@@ -40,26 +40,26 @@ class ChordPractice extends Model
     {
         return [
             // Triads & Sus
-            'Major'              => [0, 4, 7],
-            'Minor'              => [0, 3, 7],
-            'Diminished'         => [0, 3, 6],
-            'Augmented'          => [0, 4, 8],
-            'Sus2'               => [0, 2, 7],
-            'Sus4'               => [0, 5, 7],
+            'Major' => [0, 4, 7],
+            'Minor' => [0, 3, 7],
+            'Diminished' => [0, 3, 6],
+            'Augmented' => [0, 4, 8],
+            'Sus2' => [0, 2, 7],
+            'Sus4' => [0, 5, 7],
             // 7th Chords
-            'Major 7th'          => [0, 4, 7, 11],
-            'Dominant 7th'       => [0, 4, 7, 10],
-            'Minor 7th'          => [0, 3, 7, 10],
-            'Minor Major 7th'    => [0, 3, 7, 11],
-            'Half-Diminished 7th'=> [0, 3, 6, 10],
-            'Half Diminished'    => [0, 3, 6, 10],  // legacy alias
-            'Diminished 7th'     => [0, 3, 6, 9],
-            'Augmented 7th'      => [0, 4, 8, 10],
+            'Major 7th' => [0, 4, 7, 11],
+            'Dominant 7th' => [0, 4, 7, 10],
+            'Minor 7th' => [0, 3, 7, 10],
+            'Minor Major 7th' => [0, 3, 7, 11],
+            'Half-Diminished 7th' => [0, 3, 6, 10],
+            'Half Diminished' => [0, 3, 6, 10],  // legacy alias
+            'Diminished 7th' => [0, 3, 6, 9],
+            'Augmented 7th' => [0, 4, 8, 10],
             // Color Chords
-            'Major 6th'          => [0, 4, 7, 9],
-            'Minor 6th'          => [0, 3, 7, 9],
-            'Add9'               => [0, 4, 7, 14],
-            'Minor Add9'         => [0, 3, 7, 14],
+            'Major 6th' => [0, 4, 7, 9],
+            'Minor 6th' => [0, 3, 7, 9],
+            'Add9' => [0, 4, 7, 14],
+            'Minor Add9' => [0, 3, 7, 14],
         ];
     }
 
@@ -72,11 +72,11 @@ class ChordPractice extends Model
     public static function chordLetterSteps(): array
     {
         return [
-            'Sus2'       => [0, 1, 4],       // root, 2nd, 5th
-            'Sus4'       => [0, 3, 4],       // root, 4th, 5th
-            'Major 6th'  => [0, 2, 4, 5],    // root, 3rd, 5th, 6th
-            'Minor 6th'  => [0, 2, 4, 5],    // root, 3rd, 5th, 6th
-            'Add9'       => [0, 2, 4, 8],    // root, 3rd, 5th, 9th (D = 8 steps above C)
+            'Sus2' => [0, 1, 4],       // root, 2nd, 5th
+            'Sus4' => [0, 3, 4],       // root, 4th, 5th
+            'Major 6th' => [0, 2, 4, 5],    // root, 3rd, 5th, 6th
+            'Minor 6th' => [0, 2, 4, 5],    // root, 3rd, 5th, 6th
+            'Add9' => [0, 2, 4, 8],    // root, 3rd, 5th, 9th (D = 8 steps above C)
             'Minor Add9' => [0, 2, 4, 8],    // root, 3rd, 5th, 9th
         ];
     }
@@ -106,7 +106,7 @@ class ChordPractice extends Model
         if ($inversion > 0 && count($noteArray) > $inversion) {
             for ($i = 0; $i < $inversion; $i++) {
                 if (preg_match('/^([A-Ga-g](?:#{1,2}|b{1,2})?)(\d+)$/', $noteArray[$i], $m)) {
-                    $noteArray[$i] = $m[1] . ((int) $m[2] + 1);
+                    $noteArray[$i] = $m[1].((int) $m[2] + 1);
                 }
             }
             $noteArray = array_merge(

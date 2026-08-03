@@ -22,10 +22,10 @@ class QuestionnaireQuestion extends Model
     protected function casts(): array
     {
         return [
-            'options'      => 'array',
+            'options' => 'array',
             'translations' => 'array',
-            'is_required'  => 'boolean',
-            'is_active'    => 'boolean',
+            'is_required' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

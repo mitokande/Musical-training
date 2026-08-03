@@ -846,6 +846,7 @@ return [
         'privacy_policy' => 'Política de privacidade',
         'terms_of_service' => 'Termos de serviço',
         'cookie_policy' => 'Política de cookies',
+        'refund_policy' => "Política de reembolso",
     ],
     'language' => [
         'select' => 'Selecionar idioma',

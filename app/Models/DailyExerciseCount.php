@@ -17,7 +17,11 @@ class DailyExerciseCount extends Model
     protected function casts(): array
     {
         return [
-            'date' => 'date',
+            // Format matters: the plain 'date' cast writes a full datetime, so
+            // the value stored never equals the bare Y-m-d that firstOrCreate
+            // and getRemainingForUser look it up by. MySQL coerces a DATE
+            // column either way; SQLite does not.
+            'date' => 'date:Y-m-d',
         ];
     }
 

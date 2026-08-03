@@ -14,13 +14,14 @@ class IntervalComparisonConsistencyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->music = new MusicTheoryService();
+        $this->music = new MusicTheoryService;
     }
 
     private function sanitize(array $questions): array
     {
         $method = new ReflectionMethod(AIController::class, 'sanitizeAIQuestions');
         $method->setAccessible(true);
+
         return $method->invoke(app(AIController::class), $questions);
     }
 

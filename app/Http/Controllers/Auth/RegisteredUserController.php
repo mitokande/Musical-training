@@ -22,24 +22,24 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'role'     => ['required', 'string', 'in:user,teacher,school'],
-            'name'     => ['required', 'string', 'max:255'],
-            'surname'  => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'role' => ['required', 'string', 'in:user,teacher,school'],
+            'name' => ['required', 'string', 'max:255'],
+            'surname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'country'  => ['nullable', 'string', 'max:2'],
+            'country' => ['nullable', 'string', 'max:2'],
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'surname'  => $request->surname,
+            'name' => $request->name,
+            'surname' => $request->surname,
             'username' => $this->generateUniqueUsername($request->name, $request->surname),
-            'email'    => $request->email,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'plan'     => 'free',
-            'locale'   => session('locale', config('app.locale')),
-            'country'  => $request->country,
+            'role' => $request->role,
+            'plan' => 'free',
+            'locale' => session('locale', config('app.locale')),
+            'country' => $request->country,
         ]);
 
         // Store detected country in session based on the user's locale
@@ -63,12 +63,12 @@ class RegisteredUserController extends Controller
 
     private function generateUniqueUsername(string $name, string $surname): string
     {
-        $base = Str::slug($name . $surname, '');
+        $base = Str::slug($name.$surname, '');
         $username = $base;
         $counter = 1;
 
         while (User::where('username', $username)->exists()) {
-            $username = $base . $counter;
+            $username = $base.$counter;
             $counter++;
         }
 

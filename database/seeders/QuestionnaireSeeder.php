@@ -12,13 +12,13 @@ class QuestionnaireSeeder extends Seeder
         $questions = [
             // ── Background ──────────────────────────────────────────────────────
             [
-                'key'           => 'music_history',
+                'key' => 'music_history',
                 'question_text' => 'Muzikle ne zamandir ilgileniyorsunuz?',
                 'question_type' => 'single_choice',
-                'options'       => ['1 yildan az', '1-3 yil', '3-5 yil', '5-10 yil', '10 yildan fazla'],
-                'category'      => 'background',
-                'sort_order'    => 1,
-                'translations'  => [
+                'options' => ['1 yildan az', '1-3 yil', '3-5 yil', '5-10 yil', '10 yildan fazla'],
+                'category' => 'background',
+                'sort_order' => 1,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Müzikle ne zamandır ilgileniyorsunuz?',
                         'options' => ['1 yıldan az', '1-3 yıl', '3-5 yıl', '5-10 yıl', '10 yıldan fazla'],
@@ -82,13 +82,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'instrument_experience',
+                'key' => 'instrument_experience',
                 'question_text' => 'Enstruman calmadaki deneyim seviyeniz nedir?',
                 'question_type' => 'single_choice',
-                'options'       => ['Hic calismadim', 'Yeni basliyorum', 'Temel seviye', 'Orta seviye', 'Ileri seviye'],
-                'category'      => 'background',
-                'sort_order'    => 2,
-                'translations'  => [
+                'options' => ['Hic calismadim', 'Yeni basliyorum', 'Temel seviye', 'Orta seviye', 'Ileri seviye'],
+                'category' => 'background',
+                'sort_order' => 2,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Enstrüman çalmadaki deneyim seviyeniz nedir?',
                         'options' => ['Hiç çalışmadım', 'Yeni başlıyorum', 'Temel seviye', 'Orta seviye', 'İleri seviye'],
@@ -152,13 +152,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'formal_education',
+                'key' => 'formal_education',
                 'question_text' => 'Daha once muzik egitimi aldiniz mi?',
                 'question_type' => 'single_choice',
-                'options'       => ['Hayir, tamamen kendi kendime', 'Bireysel dersler', 'Muzik okulu / kursu', 'Konservatuvar / universite', 'Profesyonel egitim'],
-                'category'      => 'background',
-                'sort_order'    => 3,
-                'translations'  => [
+                'options' => ['Hayir, tamamen kendi kendime', 'Bireysel dersler', 'Muzik okulu / kursu', 'Konservatuvar / universite', 'Profesyonel egitim'],
+                'category' => 'background',
+                'sort_order' => 3,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Daha önce müzik eğitimi aldınız mı?',
                         'options' => ['Hayır, tamamen kendi kendime', 'Bireysel dersler', 'Müzik okulu / kursu', 'Konservatuvar / üniversite', 'Profesyonel eğitim'],
@@ -224,13 +224,13 @@ class QuestionnaireSeeder extends Seeder
 
             // ── Skills ──────────────────────────────────────────────────────────
             [
-                'key'           => 'ear_training_level',
+                'key' => 'ear_training_level',
                 'question_text' => 'Kulak egitimi seviyenizi nasil degerlendirirsiniz?',
                 'question_type' => 'scale',
-                'options'       => null,
-                'category'      => 'skills',
-                'sort_order'    => 10,
-                'translations'  => [
+                'options' => null,
+                'category' => 'skills',
+                'sort_order' => 10,
+                'translations' => [
                     'tr' => ['question_text' => 'Kulak eğitimi seviyenizi nasıl değerlendirirsiniz?'],
                     'en' => ['question_text' => 'How would you rate your ear training level?'],
                     'de' => ['question_text' => 'Wie würden Sie Ihr Gehörbildungsniveau einschätzen?'],
@@ -249,13 +249,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'rhythm_perception',
+                'key' => 'rhythm_perception',
                 'question_text' => 'Ritim alginiz ne seviyede?',
                 'question_type' => 'scale',
-                'options'       => null,
-                'category'      => 'skills',
-                'sort_order'    => 11,
-                'translations'  => [
+                'options' => null,
+                'category' => 'skills',
+                'sort_order' => 11,
+                'translations' => [
                     'tr' => ['question_text' => 'Ritim algınız ne seviyede?'],
                     'en' => ['question_text' => 'What is your level of rhythm perception?'],
                     'de' => ['question_text' => 'Wie ist Ihr Rhythmusgefühl?'],
@@ -274,13 +274,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'sight_reading',
+                'key' => 'sight_reading',
                 'question_text' => 'Nota okuma seviyeniz nedir?',
                 'question_type' => 'single_choice',
-                'options'       => ['Nota okuyamiyorum', 'Basit melodi okuyabiliyorum', 'Orta zorlukta parcalar', 'Akici nota okuyabiliyorum'],
-                'category'      => 'skills',
-                'sort_order'    => 12,
-                'translations'  => [
+                'options' => ['Nota okuyamiyorum', 'Basit melodi okuyabiliyorum', 'Orta zorlukta parcalar', 'Akici nota okuyabiliyorum'],
+                'category' => 'skills',
+                'sort_order' => 12,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Nota okuma seviyeniz nedir?',
                         'options' => ['Nota okuyamıyorum', 'Basit melodi okuyabiliyorum', 'Orta zorlukta parçalar', 'Akıcı nota okuyabiliyorum'],
@@ -344,13 +344,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'interval_recognition',
+                'key' => 'interval_recognition',
                 'question_text' => 'Araliklaryi duyarak taniyabilme beceriniz?',
                 'question_type' => 'scale',
-                'options'       => null,
-                'category'      => 'skills',
-                'sort_order'    => 13,
-                'translations'  => [
+                'options' => null,
+                'category' => 'skills',
+                'sort_order' => 13,
+                'translations' => [
                     'tr' => ['question_text' => 'Aralıkları duyarak tanıyabilme beceriniz?'],
                     'en' => ['question_text' => 'How well can you recognize intervals by ear?'],
                     'de' => ['question_text' => 'Wie gut können Sie Intervalle nach Gehör erkennen?'],
@@ -369,13 +369,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'chord_recognition',
+                'key' => 'chord_recognition',
                 'question_text' => 'Akorlari duyarak tanimlayabilme beceriniz?',
                 'question_type' => 'scale',
-                'options'       => null,
-                'category'      => 'skills',
-                'sort_order'    => 14,
-                'translations'  => [
+                'options' => null,
+                'category' => 'skills',
+                'sort_order' => 14,
+                'translations' => [
                     'tr' => ['question_text' => 'Akorları duyarak tanımlayabilme beceriniz?'],
                     'en' => ['question_text' => 'How well can you identify chords by ear?'],
                     'de' => ['question_text' => 'Wie gut können Sie Akkorde nach Gehör identifizieren?'],
@@ -394,13 +394,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'difficult_topics',
+                'key' => 'difficult_topics',
                 'question_text' => 'Hangi konularda zorlaniyorsunuz?',
                 'question_type' => 'multi_choice',
-                'options'       => ['Araliklar', 'Akorlar', 'Ritim', 'Nota okuma', 'Melodi dikte', 'Tonal analiz', 'Transpozisyon'],
-                'category'      => 'skills',
-                'sort_order'    => 15,
-                'translations'  => [
+                'options' => ['Araliklar', 'Akorlar', 'Ritim', 'Nota okuma', 'Melodi dikte', 'Tonal analiz', 'Transpozisyon'],
+                'category' => 'skills',
+                'sort_order' => 15,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Hangi konularda zorlanıyorsunuz?',
                         'options' => ['Aralıklar', 'Akorlar', 'Ritim', 'Nota okuma', 'Melodi dikte', 'Tonal analiz', 'Transpozisyon'],
@@ -466,13 +466,13 @@ class QuestionnaireSeeder extends Seeder
 
             // ── Goals ────────────────────────────────────────────────────────────
             [
-                'key'           => 'learning_objectives',
+                'key' => 'learning_objectives',
                 'question_text' => 'Temel ogrenme hedefleriniz nelerdir?',
                 'question_type' => 'multi_choice',
-                'options'       => ['Kulak egitimi gelistirme', 'Nota okuma', 'Muzik teorisi', 'Sinav hazirligi', 'Enstruman performansi', 'Kompozisyon / duzenleme', 'Hobi olarak muzik'],
-                'category'      => 'goals',
-                'sort_order'    => 20,
-                'translations'  => [
+                'options' => ['Kulak egitimi gelistirme', 'Nota okuma', 'Muzik teorisi', 'Sinav hazirligi', 'Enstruman performansi', 'Kompozisyon / duzenleme', 'Hobi olarak muzik'],
+                'category' => 'goals',
+                'sort_order' => 20,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Temel öğrenme hedefleriniz nelerdir?',
                         'options' => ['Kulak eğitimi geliştirme', 'Nota okuma', 'Müzik teorisi', 'Sınav hazırlığı', 'Enstrüman performansı', 'Kompozisyon / düzenleme', 'Hobi olarak müzik'],
@@ -536,13 +536,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'exam_preparation',
+                'key' => 'exam_preparation',
                 'question_text' => 'Sinav hazirliginiz var mi?',
                 'question_type' => 'single_choice',
-                'options'       => ['Hayir', 'ABRSM', 'Konservatuvar girisi', 'Universite sinavi', 'Diger'],
-                'category'      => 'goals',
-                'sort_order'    => 21,
-                'translations'  => [
+                'options' => ['Hayir', 'ABRSM', 'Konservatuvar girisi', 'Universite sinavi', 'Diger'],
+                'category' => 'goals',
+                'sort_order' => 21,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Sınav hazırlığınız var mı?',
                         'options' => ['Hayır', 'ABRSM', 'Konservatuvar girişi', 'Üniversite sınavı', 'Diğer'],
@@ -606,13 +606,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'weekly_study_time',
+                'key' => 'weekly_study_time',
                 'question_text' => 'Haftada kac saat calisma zamani ayirabilirsiniz?',
                 'question_type' => 'single_choice',
-                'options'       => ['1 saatten az', '1-3 saat', '3-5 saat', '5-10 saat', '10 saatten fazla'],
-                'category'      => 'goals',
-                'sort_order'    => 22,
-                'translations'  => [
+                'options' => ['1 saatten az', '1-3 saat', '3-5 saat', '5-10 saat', '10 saatten fazla'],
+                'category' => 'goals',
+                'sort_order' => 22,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Haftada kaç saat çalışma zamanı ayırabilirsiniz?',
                         'options' => ['1 saatten az', '1-3 saat', '3-5 saat', '5-10 saat', '10 saatten fazla'],
@@ -678,13 +678,13 @@ class QuestionnaireSeeder extends Seeder
 
             // ── Preferences ──────────────────────────────────────────────────────
             [
-                'key'           => 'learning_style',
+                'key' => 'learning_style',
                 'question_text' => 'Tercih ettiginiz ogrenme yontemi nedir?',
                 'question_type' => 'single_choice',
-                'options'       => ['Gorsel (nota, grafik)', 'Isitsel (dinleme, tekrar)', 'Uygulamali (calarak ogrenme)', 'Karisik'],
-                'category'      => 'preferences',
-                'sort_order'    => 30,
-                'translations'  => [
+                'options' => ['Gorsel (nota, grafik)', 'Isitsel (dinleme, tekrar)', 'Uygulamali (calarak ogrenme)', 'Karisik'],
+                'category' => 'preferences',
+                'sort_order' => 30,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Tercih ettiğiniz öğrenme yöntemi nedir?',
                         'options' => ['Görsel (nota, grafik)', 'İşitsel (dinleme, tekrar)', 'Uygulamalı (çalarak öğrenme)', 'Karışık'],
@@ -748,13 +748,13 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'practice_time_preference',
+                'key' => 'practice_time_preference',
                 'question_text' => 'Gunun hangi saatlerinde calismayyi tercih edersiniz?',
                 'question_type' => 'single_choice',
-                'options'       => ['Sabah', 'Ogleden sonra', 'Aksam', 'Gece', 'Farketmez'],
-                'category'      => 'preferences',
-                'sort_order'    => 31,
-                'translations'  => [
+                'options' => ['Sabah', 'Ogleden sonra', 'Aksam', 'Gece', 'Farketmez'],
+                'category' => 'preferences',
+                'sort_order' => 31,
+                'translations' => [
                     'tr' => [
                         'question_text' => 'Günün hangi saatlerinde çalışmayı tercih edersiniz?',
                         'options' => ['Sabah', 'Öğleden sonra', 'Akşam', 'Gece', 'Fark etmez'],
@@ -818,14 +818,14 @@ class QuestionnaireSeeder extends Seeder
                 ],
             ],
             [
-                'key'           => 'free_notes',
+                'key' => 'free_notes',
                 'question_text' => 'Eklemek istediginiz notlariniz var mi?',
                 'question_type' => 'text',
-                'options'       => null,
-                'category'      => 'preferences',
-                'sort_order'    => 32,
-                'is_required'   => false,
-                'translations'  => [
+                'options' => null,
+                'category' => 'preferences',
+                'sort_order' => 32,
+                'is_required' => false,
+                'translations' => [
                     'tr' => ['question_text' => 'Eklemek istediğiniz notlarınız var mı?'],
                     'en' => ['question_text' => 'Do you have any additional notes you\'d like to add?'],
                     'de' => ['question_text' => 'Haben Sie weitere Anmerkungen, die Sie hinzufügen möchten?'],

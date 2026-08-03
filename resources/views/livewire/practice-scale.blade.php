@@ -2,10 +2,10 @@
     <main wire:id="practice-scale-{{ $currentPracticeIndex }}" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         @if(!$currentPractice)
             <div class="card p-12 text-center">
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">No exercises found</h3>
-                <p class="text-gray-500 mb-4">No scale exercises match your filter settings.</p>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ __('app.practice_ui.common.no_exercises') }}</h3>
+                <p class="text-gray-500 mb-4">{{ __('app.practice_ui.scale.empty') }}</p>
                 <a href="/exercise-setup" class="btn-primary text-white font-semibold py-2.5 px-6 rounded-lg inline-flex items-center gap-2">
-                    <i data-lucide="settings-2" class="w-4 h-4"></i> Adjust Settings
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> {{ __('app.practice_ui.common.adjust_settings') }}
                 </a>
             </div>
         @else
@@ -16,8 +16,8 @@
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
                     <div class="text-center">
-                        <h1 class="text-xl font-bold text-white">Scale & Mode Recognition</h1>
-                        <p class="text-white/80 text-sm">Identify the scale type by ear</p>
+                        <h1 class="text-xl font-bold text-white">{{ __('app.practice_ui.scale.title') }}</h1>
+                        <p class="text-white/80 text-sm">{{ __('app.practice_ui.scale.subtitle') }}</p>
                     </div>
                     <div class="absolute right-0 top-1/2 -translate-y-1/2">
                         <span class="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold text-white/90 ring-1 ring-white/20">
@@ -74,21 +74,21 @@
                                 data-notes="{{ implode(',', $currentPractice->note_array ?? []) }}"
                                 data-tempo="{{ $scaleTempo ?? 'normal' }}">
                                 <i data-lucide="play" class="w-5 h-5"></i>
-                                Play Scale
+                                {{ __('app.practice_ui.scale.play') }}
                             </button>
                             @if ($currentPracticeIndex < (count($practices) - 1))
                                 <button id="nextPracticeBtn" wire:click="getNextPractice"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
-                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> Next
+                                    <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
                                 <a href="/learn" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
-                                    <i data-lucide="check" class="w-5 h-5"></i> Finish
+                                    <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
                             @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Listen to the scale</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.scale.listen') }}</p>
                     </div>
                 </div>
 
@@ -130,10 +130,11 @@
         <div class="flex items-center justify-center gap-4 text-sm text-gray-500">
             <span class="flex items-center gap-1"><i data-lucide="sparkles" class="w-4 h-4 text-yellow-500"></i>+<span id="xpEarned">0</span> XP</span>
             <span>•</span>
-            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> Correct</span>
+            <span><span id="scoreCorrect">0</span> / <span id="scoreTotal">0</span> {{ __('app.practice_ui.common.correct') }}</span>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+        @include('livewire.partials.practice-i18n')
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             // Draw the scale on a staff. showAll=false shows only the starting note (so the
             // notation doesn't give away the answer); showAll=true reveals the full scale as a
@@ -205,15 +206,15 @@
                 playButton.onclick = async function() {
                     await Tone.start();
                     playButton.disabled = true;
-                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5 inline"></i> Playing...';
-                    playStatus.textContent = 'Playing scale...';
+                    playButton.innerHTML = '<i data-lucide="volume-2" class="w-5 h-5 inline"></i> ' + pt('playing');
+                    playStatus.textContent = pt('playing_scale');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     window.HarmonivaAudio.playSequential(notes, tempoMs, 1);
                     setTimeout(() => {
                         if (window._practiceGen !== myGen) return;
                         playButton.disabled = false;
-                        playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> Play Again';
-                        playStatus.textContent = 'Click to play again';
+                        playButton.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i> ' + pt('play_again');
+                        playStatus.textContent = pt('click_replay');
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }, notes.length * tempoMs + 500);
                 };
@@ -246,11 +247,11 @@
                             if (nextButton) nextButton.classList.remove('hidden');
                             if (data.is_correct) {
                                 this.classList.add('correct', 'text-green-700');
-                                feedbackMessage.textContent = '✓ Correct! Well done!';
+                                feedbackMessage.textContent = pt('correct_well_done');
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                             } else {
                                 this.classList.add('incorrect', 'text-red-700');
-                                feedbackMessage.textContent = `✗ Incorrect. The correct answer is ${target}.`;
+                                feedbackMessage.textContent = pt('incorrect_answer_is', {answer: target});
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                                 answerButtons.forEach(b => { if (b.dataset.answer === target) b.classList.add('correct', 'text-green-700'); });
                             }
