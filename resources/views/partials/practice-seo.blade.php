@@ -42,7 +42,7 @@
         '@type' => 'BreadcrumbList',
         'itemListElement' => [
             ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
-            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Learning Path', 'item' => route('learn')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Learning Path', 'item' => locale_url('/learn')],
             ['@type' => 'ListItem', 'position' => 3, 'name' => $practiceName, 'item' => $practiceUrl],
         ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

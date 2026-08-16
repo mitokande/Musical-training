@@ -22,7 +22,7 @@ class SocialAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', 'Google ile giriş yapılamadı. Lütfen tekrar deneyin.');
+            return redirect()->route('login')->with('error', __('app.messages.google_login_failed'));
         }
 
         $user = User::where('google_id', $googleUser->getId())->first();
@@ -54,6 +54,10 @@ class SocialAuthController extends Controller
             'avatar_url' => $googleUser->getAvatar(),
             'role' => 'user',
             'plan' => 'free',
+            // Same as the password signup path. Without this the users.locale
+            // column default ('tr') wins, so a German visitor who signs up with
+            // Google lands on a Turkish account.
+            'locale' => session('locale', config('app.locale')),
             'email_verified_at' => now(),
         ]);
 

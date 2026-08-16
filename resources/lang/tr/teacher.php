@@ -120,6 +120,8 @@ return [
         'submitted' => 'Profiliniz incelemeye gönderildi.',
         'submit_missing_intro' => 'Göndermeden önce lütfen aşağıdakileri tamamlayın:',
         'public_url' => 'Herkese açık profil adresi',
+        'seo_description_fallback' => 'Harmoniva\'da :name ile müzik öğrenin — dersler, kulak eğitimi ve ilerleme takibi.',
+        'seo_description_location' => 'Konum: :location.',
         'add_more' => 'Daha fazla ekle',
         'remove' => 'Kaldır',
         'edit' => 'Düzenle',
@@ -127,6 +129,7 @@ return [
         'cancel' => 'Vazgeç',
     ],
     'fields' => [
+        'cover_formats_hint' => 'JPG / PNG / WebP · en fazla 8 MB',
         'headline' => 'Kısa başlık',
         'headline_placeholder' => 'örn. 10 yıl konservatuvar deneyimli piyano öğretmeni',
         'expertise' => 'Uzmanlık',
@@ -360,6 +363,10 @@ return [
         'status_invitation-revoked' => 'Davet iptal edildi.',
         'status_relationship-revoked' => 'İlişki sonlandırıldı.',
         'profile' => [
+            'reward_type_sticker' => 'Çıkartma 🌟',
+            'reward_type_badge' => 'Rozet 🏅',
+            'reward_type_encouragement' => 'Teşvik 💬',
+            'reward_type_milestone' => 'Dönüm Noktası 🏆',
             'overview' => 'Genel bakış',
             'total_exercises' => 'Yanıtlanan sorular',
             'accuracy' => 'Doğruluk',
@@ -437,6 +444,7 @@ return [
         'save' => 'Kaydet',
     ],
     'assignments' => [
+        'reward_label_ph' => 'örn. Ritim Yıldızı ⭐',
         'title' => 'Ödevler',
         'subtitle' => 'Standart Harmoniva alıştırmalarından ödev oluşturun ve sonuçları takip edin.',
         'create' => 'Ödev oluştur',

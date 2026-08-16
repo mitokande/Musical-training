@@ -63,7 +63,7 @@
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">{{ crm_trans($a.'.field_type') }}</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">{{ crm_trans($a.'.due') }}</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ crm_trans($a.'.recipients') }}</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{{ crm_trans('assignments.report_status') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">

@@ -149,7 +149,7 @@
 
         <div>
             <label class="{{ $lbl }}">{{ crm_trans($a.'.field_reward') }}</label>
-            <input type="text" name="reward_label" maxlength="100" class="{{ $inp }}" value="{{ old('reward_label') }}" placeholder="örn. Rhythm Star ⭐">
+            <input type="text" name="reward_label" maxlength="100" class="{{ $inp }}" value="{{ old('reward_label') }}" placeholder="{{ __('teacher.assignments.reward_label_ph') }}">
         </div>
 
         <button class="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white text-base font-semibold rounded-xl shadow-sm transition">

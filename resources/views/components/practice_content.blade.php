@@ -19,7 +19,7 @@
                 <i data-lucide="play" class="w-5 h-5"></i>
                 Play
             </button>
-            <p id="playStatus" class="text-sm text-gray-500">Listen to the note to start</p>
+            <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_ui.direction.listen_start') }}</p>
         </div>
     </div>
 

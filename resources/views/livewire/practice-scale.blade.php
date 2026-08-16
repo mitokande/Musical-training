@@ -12,7 +12,7 @@
         <div class="card overflow-hidden mb-6">
             <div class="hero-gradient p-6">
                 <div class="relative flex items-center justify-center">
-                    <a href="/learn" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+                    <a href="{{ locale_url('/learn') }}" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
                     <div class="text-center">
@@ -82,7 +82,7 @@
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
-                                <a href="/learn" id="nextPracticeBtn"
+                                <a href="{{ locale_url('/learn') }}" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200">
                                     <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
@@ -116,9 +116,11 @@
                         shuffle($options);
                     @endphp
                     @foreach($options as $option)
+                        {{-- data-answer stays canonical (that is what the checker compares);
+                             only the visible label is localised. --}}
                         <button class="answer-btn card p-4 text-center font-semibold text-gray-700 hover:shadow-md transition-all text-sm"
                                 data-answer="{{ strtolower($option) }}">
-                            {{ $option }}
+                            {{ music_label($option, 'scale') }}
                         </button>
                     @endforeach
                 </div>
@@ -134,6 +136,7 @@
         </div>
 
         @include('livewire.partials.practice-i18n')
+        @include('livewire.partials.music-labels')
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
         <script>
             // Draw the scale on a staff. showAll=false shows only the starting note (so the
@@ -251,7 +254,7 @@
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-green-100 text-green-700';
                             } else {
                                 this.classList.add('incorrect', 'text-red-700');
-                                feedbackMessage.textContent = pt('incorrect_answer_is', {answer: target});
+                                feedbackMessage.textContent = pt('incorrect_answer_is', {answer: window.musicLabel(target, 'scale')});
                                 feedbackMessage.className = 'mt-4 p-4 rounded-lg text-center font-medium bg-red-100 text-red-700';
                                 answerButtons.forEach(b => { if (b.dataset.answer === target) b.classList.add('correct', 'text-green-700'); });
                             }

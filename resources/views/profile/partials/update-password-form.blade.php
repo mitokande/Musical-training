@@ -21,7 +21,7 @@
         </div>
         @else
         <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p class="text-sm text-blue-800 dark:text-blue-300">Google ile giris yaptiniz. Asagida bir sifre belirleyerek email+sifre ile de giris yapabilirsiniz.</p>
+            <p class="text-sm text-blue-800 dark:text-blue-300">{{ __('app.profile.google_set_password_hint') }}</p>
         </div>
         @endif
 

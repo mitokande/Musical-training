@@ -190,6 +190,23 @@
 
     <div class="max-w-7xl mx-auto px-[5px] sm:px-6 lg:px-8 pt-5 sm:pt-[30px] pb-6">
 
+        {{-- The game name and description previously lived only in <title>/<meta>,
+             leaving every /games/{slug} page without an H1 — no on-page signal of
+             what the page is about for either crawlers or screen readers. --}}
+        {{-- The language switcher lives here because this page carries no footer,
+             which is where the site's only other switcher sits. Without it, a
+             visitor whose language was resolved differently than they expected
+             had no way to correct it from a game page. --}}
+        <header class="px-2 sm:px-0 mb-4 sm:mb-5 flex items-start justify-between gap-4">
+            <div class="min-w-0">
+                <h1 class="text-white font-extrabold text-xl sm:text-2xl tracking-tight">{{ $game['name'] }}</h1>
+                <p class="text-white/40 text-xs sm:text-sm mt-1 max-w-2xl">{{ $game['description'] }}</p>
+            </div>
+            <div class="flex-shrink-0">
+                @include('partials.language-switcher', ['variant' => 'dark', 'drop' => 'down'])
+            </div>
+        </header>
+
         <div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
 
             <!-- Game Panel -->
@@ -269,7 +286,7 @@
                     @if($personalBestRecord)
                     <div class="flex items-baseline gap-2 mb-2">
                         <span class="text-3xl font-black text-white">{{ number_format($personalBestRecord->score) }}</span>
-                        <span class="text-white/40 text-sm">pts</span>
+                        <span class="text-white/40 text-sm">{{ __('app.games.pts') }}</span>
                     </div>
                     <div class="flex items-center gap-3 text-white/40 text-xs">
                         <span class="flex items-center gap-1">
@@ -370,7 +387,7 @@
                 <div class="tier-gold rounded-2xl p-5">
                     <div class="flex items-center gap-2 mb-4">
                         <span class="text-xl leading-none">🥇</span>
-                        <span class="text-amber-300 font-bold text-sm tracking-wide">Top 1 – 10</span>
+                        <span class="text-amber-300 font-bold text-sm tracking-wide">{{ __('app.games.top_range', ['from' => 1, 'to' => 10]) }}</span>
                     </div>
                     <div class="space-y-0.5">
                         @foreach($allTimeLeaderboard->slice(0, 10) as $i => $entry)
@@ -390,7 +407,7 @@
                 <div class="tier-silver rounded-2xl p-5">
                     <div class="flex items-center gap-2 mb-4">
                         <span class="text-xl leading-none">🥈</span>
-                        <span class="text-slate-300 font-bold text-sm tracking-wide">Top 11 – 20</span>
+                        <span class="text-slate-300 font-bold text-sm tracking-wide">{{ __('app.games.top_range', ['from' => 11, 'to' => 20]) }}</span>
                     </div>
                     <div class="space-y-0.5">
                         @foreach($allTimeLeaderboard->slice(10, 10) as $i => $entry)
@@ -410,7 +427,7 @@
                 <div class="tier-bronze rounded-2xl p-5">
                     <div class="flex items-center gap-2 mb-4">
                         <span class="text-xl leading-none">🏅</span>
-                        <span class="text-orange-400/75 font-bold text-sm tracking-wide">Top 21 – 30</span>
+                        <span class="text-orange-400/75 font-bold text-sm tracking-wide">{{ __('app.games.top_range', ['from' => 21, 'to' => 30]) }}</span>
                     </div>
                     <div class="space-y-0.5">
                         @foreach($allTimeLeaderboard->slice(20, 10) as $i => $entry)

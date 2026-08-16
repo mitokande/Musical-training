@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailAutomation;
 use App\Models\EmailCampaign;
 use App\Models\EmailEvent;
 use App\Models\EmailMessage;
@@ -60,11 +61,22 @@ class EmailCenterController extends Controller
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->type, fn ($q, $t) => $q->where('email_type', $t))
             ->when($request->search, fn ($q, $s) => $q->where('recipient_email', 'like', "%{$s}%"))
+            ->when($request->automation, fn ($q, $a) => $q->where('automation_id', $a))
+            // Audience is read off the template that was actually sent, so the
+            // filter reflects the mail the recipient received rather than the
+            // role their account happens to carry today.
+            ->when($request->audience, fn ($q, $a) => $q->whereHas('template', function ($t) use ($a) {
+                $a === 'student'
+                    ? $t->where('slug', 'not like', '%-teacher')->where('slug', 'not like', '%-school')
+                    : $t->where('slug', 'like', '%-'.$a);
+            }))
             ->latest()
             ->paginate(30)
             ->withQueryString();
 
-        return view('admin.email-center.logs.index', compact('messages'));
+        $automations = EmailAutomation::orderBy('id')->get(['id', 'name']);
+
+        return view('admin.email-center.logs.index', compact('messages', 'automations'));
     }
 
     public function logShow(EmailMessage $message)

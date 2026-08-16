@@ -172,25 +172,56 @@ class EntitlementLimitsTest extends TestCase
 
     // ── AI gating ──────────────────────────────────────────────────────────
 
-    public function test_ai_exercises_and_coach_require_premium(): void
+    /**
+     * AI Coach is gated at the route ('plan:ai_coach'), so a free user never
+     * reaches the page. AI Exercises deliberately differs: the page is an
+     * upsell that free users may look at, and only the generate POST is gated.
+     */
+    public function test_ai_coach_requires_premium(): void
     {
         $free = User::factory()->create(['role' => 'user', 'plan' => 'free']);
         $premium = User::factory()->create(['role' => 'user', 'plan' => 'premium']);
 
-        $this->actingAs($free)->get('/ai-exercises')->assertRedirect(route('dashboard'));
         $this->actingAs($free)->get('/ai-coach')->assertRedirect(route('dashboard'));
-
-        $this->actingAs($premium)->get('/ai-exercises')->assertOk();
         $this->actingAs($premium)->get('/ai-coach')->assertOk();
     }
 
-    public function test_free_teacher_and_school_cannot_access_ai_features(): void
+    public function test_ai_exercises_page_is_visible_to_free_users_but_generating_is_gated(): void
+    {
+        $free = User::factory()->create(['role' => 'user', 'plan' => 'free']);
+        $premium = User::factory()->create(['role' => 'user', 'plan' => 'premium']);
+
+        // The page renders for everyone, but free users get the upsell state.
+        $this->actingAs($free)->get('/ai-exercises')
+            ->assertOk()
+            ->assertViewHas('canUseAi', false);
+
+        $this->actingAs($premium)->get('/ai-exercises')
+            ->assertOk()
+            ->assertViewHas('canUseAi', true);
+
+        // The actual entitlement lives on the generate route.
+        $this->actingAs($free)
+            ->post(route('ai.generate-practices'), ['exercise_types' => ['chord-practice']])
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_free_teacher_and_school_cannot_generate_ai_exercises(): void
     {
         $teacher = $this->teacher();
         $school = User::factory()->create(['role' => 'school', 'plan' => 'free']);
 
-        $this->actingAs($teacher)->get('/ai-exercises')->assertRedirect(route('dashboard'));
-        $this->actingAs($school)->get('/ai-exercises')->assertRedirect(route('dashboard'));
+        foreach ([$teacher, $school] as $user) {
+            $this->actingAs($user)->get('/ai-exercises')
+                ->assertOk()
+                ->assertViewHas('canUseAi', false);
+
+            $this->actingAs($user)
+                ->post(route('ai.generate-practices'), ['exercise_types' => ['chord-practice']])
+                ->assertRedirect(route('dashboard'));
+
+            $this->actingAs($user)->get('/ai-coach')->assertRedirect(route('dashboard'));
+        }
     }
 
     public function test_ask_ai_daily_limit_for_free_users_is_one(): void

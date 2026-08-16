@@ -28,6 +28,10 @@ return [
     ],
 
     'verify' => [
+        'preheader' => 'One click and your Harmoniva account is live',
+        'title' => 'Confirm your email',
+        'btn_sub' => 'The link is valid for 60 minutes.',
+        'fallback' => 'Button not working? Copy this link into your browser:',
         'subject' => 'Verify your email address',
         'line1' => 'Please confirm your email address to activate your :app account.',
         'action' => 'Verify email address',

@@ -133,19 +133,19 @@
         $sectionLinks = [
             1 => route('register'),
             2 => route('dashboard'),
-            3 => route('learn'),
+            3 => locale_url('/learn'),
             4 => route('exercise-setup.index'),
             5 => route('exercise-setup.index'),
             6 => route('ai.exercises'),
-            7 => route('piano.studio'),
+            7 => locale_url('/piano-studio'),
             8 => route('games.index'),
             9 => route('progress'),
-            10 => route('teachers.directory'),
+            10 => locale_url('/find-teachers'),
             11 => route('feed'),
             12 => route('assignments.index'),
-            13 => route('page.teachers-solution'),
-            14 => route('page.schools'),
-            15 => route('pricing.index'),
+            13 => locale_url('/teachers'),
+            14 => locale_url('/schools'),
+            15 => locale_url('/pricing'),
         ];
         $hk = fn ($k, $r = []) => __('pages.how_it_works.'.$k, $r);
         @endphp
@@ -292,7 +292,7 @@
                 </ul>
             </div>
 
-            {!! guideBtn(route('learn'), $hk('s3_btn')) !!}
+            {!! guideBtn(locale_url('/learn'), $hk('s3_btn')) !!}
 
             @include('pages.partials.guide-faq', ['label' => $hk('faq_label'), 'faqs' => [
                 ['q'=>$hk('s3_faq_q1'),'a'=>$hk('s3_faq_a1')],
@@ -524,7 +524,7 @@
                 </ul>
             </div>
 
-            {!! guideBtn(route('piano.studio'), $hk('s7_btn'), 'piano') !!}
+            {!! guideBtn(locale_url('/piano-studio'), $hk('s7_btn'), 'piano') !!}
 
             @include('pages.partials.guide-faq', ['label' => $hk('faq_label'), 'faqs' => [
                 ['q'=>$hk('s7_faq_q1'),'a'=>$hk('s7_faq_a1')],
@@ -674,7 +674,7 @@
                 </ul>
             </div>
 
-            {!! guideBtn(route('teachers.directory'), $hk('s10_btn'), 'users') !!}
+            {!! guideBtn(locale_url('/find-teachers'), $hk('s10_btn'), 'users') !!}
 
             @include('pages.partials.guide-faq', ['label' => $hk('faq_label'), 'faqs' => [
                 ['q'=>$hk('s10_faq_q1'),'a'=>$hk('s10_faq_a1')],
@@ -824,8 +824,8 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                {!! guideBtn(route('page.teachers-solution'), $hk('s13_btn'), 'briefcase') !!}
-                <a href="{{ route('pricing.teachers') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s13_btn_pricing') }} <i data-lucide="tag" class="w-4 h-4"></i></a>
+                {!! guideBtn(locale_url('/teachers'), $hk('s13_btn'), 'briefcase') !!}
+                <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s13_btn_pricing') }} <i data-lucide="tag" class="w-4 h-4"></i></a>
             </div>
 
             <div class="mt-6">
@@ -864,8 +864,8 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                {!! guideBtn(route('page.schools'), $hk('s14_btn'), 'building-2') !!}
-                <a href="{{ route('page.request-demo') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s14_btn_demo') }} <i data-lucide="calendar" class="w-4 h-4"></i></a>
+                {!! guideBtn(locale_url('/schools'), $hk('s14_btn'), 'building-2') !!}
+                <a href="{{ locale_url('/request-demo') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s14_btn_demo') }} <i data-lucide="calendar" class="w-4 h-4"></i></a>
             </div>
 
             <div class="mt-6">
@@ -915,8 +915,8 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                {!! guideBtn(route('pricing.index'), $hk('s15_btn'), 'tag') !!}
-                <a href="{{ route('pricing.teachers') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s15_btn_teachers') }} <i data-lucide="briefcase" class="w-4 h-4"></i></a>
+                {!! guideBtn(locale_url('/pricing'), $hk('s15_btn'), 'tag') !!}
+                <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm w-full sm:w-auto border-2 border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-all">{{ $hk('s15_btn_teachers') }} <i data-lucide="briefcase" class="w-4 h-4"></i></a>
             </div>
 
             <div class="mt-6">

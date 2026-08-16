@@ -23,6 +23,7 @@ return [
     ],
 
     'profile' => [
+        'seo_description_fallback' => 'Découvrez :name sur Harmoniva — cours de musique, professeurs et formation de l\'oreille pour tous les niveaux.',
         'title' => 'Profil de l\'École',
         'subtitle' => 'Gérez le profil public de votre école.',
     ],

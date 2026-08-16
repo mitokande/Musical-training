@@ -120,6 +120,8 @@ return [
         'submitted' => 'Seu perfil foi enviado para revisão.',
         'submit_missing_intro' => 'Por favor, complete o seguinte antes de enviar:',
         'public_url' => 'URL do perfil público',
+        'seo_description_fallback' => 'Aprenda música com :name na Harmoniva — aulas, treino auditivo e acompanhamento do progresso.',
+        'seo_description_location' => 'Localizado em :location.',
         'add_more' => 'Adicionar mais',
         'remove' => 'Remover',
         'edit' => 'Editar',
@@ -127,6 +129,7 @@ return [
         'cancel' => 'Cancelar',
     ],
     'fields' => [
+        'cover_formats_hint' => 'JPG / PNG / WebP · máx. 8 MB',
         'headline' => 'Título breve',
         'headline_placeholder' => 'ex. Professor de piano com 10 anos de experiência em conservatório',
         'expertise' => 'Especialidade',
@@ -360,6 +363,10 @@ return [
         'status_invitation-revoked' => 'Convite revogado.',
         'status_relationship-revoked' => 'Relação encerrada.',
         'profile' => [
+            'reward_type_sticker' => 'Adesivo 🌟',
+            'reward_type_badge' => 'Medalha 🏅',
+            'reward_type_encouragement' => 'Incentivo 💬',
+            'reward_type_milestone' => 'Marco 🏆',
             'overview' => 'Visão geral',
             'total_exercises' => 'Perguntas respondidas',
             'accuracy' => 'Precisão',
@@ -437,6 +444,7 @@ return [
         'save' => 'Salvar',
     ],
     'assignments' => [
+        'reward_label_ph' => 'ex.: Estrela do ritmo ⭐',
         'title' => 'Tarefas',
         'subtitle' => 'Crie deveres a partir dos exercícios padrão do Harmoniva e acompanhe os resultados.',
         'create' => 'Criar dever',
@@ -779,4 +787,19 @@ return [
         'no_students' => 'Você ainda não tem alunos ativos.',
         'shared_count' => '{1} compartilhado com :count aluno|[2,*] compartilhado com :count alunos',
     ],
+    'limits' => [
+        'students_reached' => 'Você atingiu o limite de alunos gratuitos (:limit). O Premium remove esse limite.',
+        'assignments_reached' => 'Você atingiu o limite de tarefas ativas (:limit). Assine o Premium para tarefas ilimitadas.',
+        'assignment_ai_premium' => 'A criação de tarefas com apoio de IA é um recurso Premium.',
+        'messages_reached' => 'Você atingiu o limite diário de mensagens (:limit). Assine o Premium para mensagens ilimitadas.',
+        'documents_reached' => 'Você atingiu o limite de envio de documentos (:limit). Assine o Premium para mais espaço.',
+        'students_counter' => ':used / :limit alunos gratuitos',
+        'assignments_counter' => ':used / :limit tarefas ativas',
+        'documents_counter' => ':used / :limit documentos',
+        'messages_counter' => ':used / :limit mensagens hoje',
+        'teachers_counter' => ':used / :limit professores',
+        'incentive_teacher' => 'Dica: com :discount+ alunos Premium você ganha um desconto Premium.',
+        'incentive_school' => 'Dica: com :free+ alunos Premium sua escola usa a Harmoniva gratuitamente.',
+    ],
+
 ];

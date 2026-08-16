@@ -120,6 +120,8 @@ return [
         'submitted' => 'Votre profil a été soumis pour révision.',
         'submit_missing_intro' => 'Veuillez compléter les éléments suivants avant de soumettre :',
         'public_url' => 'URL du profil public',
+        'seo_description_fallback' => 'Apprenez la musique avec :name sur Harmoniva — cours, formation de l\'oreille et suivi des progrès.',
+        'seo_description_location' => 'Situé à :location.',
         'add_more' => 'Ajouter plus',
         'remove' => 'Supprimer',
         'edit' => 'Modifier',
@@ -127,6 +129,7 @@ return [
         'cancel' => 'Annuler',
     ],
     'fields' => [
+        'cover_formats_hint' => 'JPG / PNG / WebP · max. 8 Mo',
         'headline' => 'Titre court',
         'headline_placeholder' => "p. ex. Professeur de piano avec 10 ans d'expérience en conservatoire",
         'expertise' => 'Spécialité',
@@ -360,6 +363,10 @@ return [
         'status_invitation-revoked' => 'Invitation révoquée.',
         'status_relationship-revoked' => 'Relation terminée.',
         'profile' => [
+            'reward_type_sticker' => 'Autocollant 🌟',
+            'reward_type_badge' => 'Badge 🏅',
+            'reward_type_encouragement' => 'Encouragement 💬',
+            'reward_type_milestone' => 'Étape clé 🏆',
             'overview' => "Vue d'ensemble",
             'total_exercises' => 'Questions répondues',
             'accuracy' => 'Précision',
@@ -437,6 +444,7 @@ return [
         'save' => 'Enregistrer',
     ],
     'assignments' => [
+        'reward_label_ph' => 'p. ex. Étoile du rythme ⭐',
         'title' => 'Devoirs',
         'subtitle' => 'Créez des devoirs à partir des exercices standard de Harmoniva et suivez les résultats.',
         'create' => 'Créer un devoir',
@@ -779,4 +787,19 @@ return [
         'no_students' => "Vous n'avez pas encore d'élèves actifs.",
         'shared_count' => '{1} partagé avec :count élève|[2,*] partagé avec :count élèves',
     ],
+    'limits' => [
+        'students_reached' => 'Vous avez atteint votre limite d\'élèves gratuits (:limit). Premium supprime cette limite.',
+        'assignments_reached' => 'Vous avez atteint votre limite de devoirs actifs (:limit). Passez à Premium pour un nombre illimité.',
+        'assignment_ai_premium' => 'La création de devoirs assistée par IA est une fonctionnalité Premium.',
+        'messages_reached' => 'Vous avez atteint votre limite quotidienne de messages (:limit). Passez à Premium pour un nombre illimité.',
+        'documents_reached' => 'Vous avez atteint votre limite d\'envoi de documents (:limit). Passez à Premium pour plus d\'espace.',
+        'students_counter' => ':used / :limit élèves gratuits',
+        'assignments_counter' => ':used / :limit devoirs actifs',
+        'documents_counter' => ':used / :limit documents',
+        'messages_counter' => ':used / :limit messages aujourd\'hui',
+        'teachers_counter' => ':used / :limit professeurs',
+        'incentive_teacher' => 'Astuce : avec :discount+ élèves Premium, vous bénéficiez d\'une remise Premium.',
+        'incentive_school' => 'Astuce : avec :free+ élèves Premium, votre école utilise Harmoniva gratuitement.',
+    ],
+
 ];

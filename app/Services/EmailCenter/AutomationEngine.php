@@ -6,8 +6,10 @@ use App\Models\EmailAutomation;
 use App\Models\EmailMessage;
 use App\Models\EmailTemplate;
 use App\Models\ExerciseSession;
+use App\Models\TeacherStudentRelationship;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -30,13 +32,8 @@ class AutomationEngine
         'trial_ended',
     ];
 
-    /**
-     * Automations that must reach teacher and school accounts too. These have
-     * audience-specific template variants (welcome-teacher, premium-intro-school,
-     * …) resolved per recipient. Everything else is student-practice copy and
-     * stays limited to role=user. The free trial is offered to all three roles.
-     */
-    private const ALL_ROLE_KEYS = ['welcome', 'premium_intro', 'trial_ending', 'trial_ended'];
+    /** The audiences every automation is run for, in send order. */
+    public const AUDIENCES = ['student', 'teacher', 'school'];
 
     /**
      * Automations that are service mail, not marketing. "Your trial ends in 3
@@ -60,17 +57,22 @@ class AutomationEngine
 
             $sent = 0;
 
-            foreach ($this->dueUsers($automation)->limit($this->batchLimit)->get() as $user) {
-                $message = $this->dispatcher->dispatch(
-                    recipient: $user,
-                    emailType: in_array($automation->key, self::TRANSACTIONAL_KEYS, true) ? 'transactional' : 'automation',
-                    template: $this->templateFor($automation, $user),
-                    automation: $automation,
-                    context: $this->context($automation, $user),
-                );
+            // Each audience is targeted by its own conditions and mailed with
+            // its own template variant. The audiences partition the user base,
+            // so nobody is picked up twice.
+            foreach (self::AUDIENCES as $audience) {
+                foreach ($this->dueUsers($automation, $audience)->limit($this->batchLimit)->get() as $user) {
+                    $message = $this->dispatcher->dispatch(
+                        recipient: $user,
+                        emailType: in_array($automation->key, self::TRANSACTIONAL_KEYS, true) ? 'transactional' : 'automation',
+                        template: $this->templateFor($automation, $user),
+                        automation: $automation,
+                        context: $this->context($automation, $user),
+                    );
 
-                if ($message) {
-                    $sent++;
+                    if ($message) {
+                        $sent++;
+                    }
                 }
             }
 
@@ -108,19 +110,14 @@ class AutomationEngine
         return $base;
     }
 
-    protected function dueUsers(EmailAutomation $automation): Builder
+    protected function dueUsers(EmailAutomation $automation, string $audience = 'student'): Builder
     {
         $query = User::query()
             ->with('teacherProfile') // audience resolution (template variant + links)
+            ->forEmailAudience($audience)
             ->whereNotNull('email_verified_at')
             ->whereNull('suspended_at')
             ->where('is_restricted', false);
-
-        if (! in_array($automation->key, self::ALL_ROLE_KEYS, true)) {
-            $query->where('role', 'user');
-        } else {
-            $query->whereIn('role', ['user', 'teacher', 'school']);
-        }
 
         switch ($automation->key) {
             case 'welcome':
@@ -132,26 +129,35 @@ class AutomationEngine
                 break;
 
             case 'first_exercise_reminder':
+                // "You haven't done the first thing yet" — which thing depends on
+                // the audience: a student practises, a teacher takes on students,
+                // a school takes on teachers.
                 $days = (int) $automation->configValue('delay_days', 2);
                 $query->where('created_at', '<=', now()->subDays($days))
-                    ->where('created_at', '>=', now()->subDays(30))
-                    ->whereDoesntHave('exerciseSessions');
+                    ->where('created_at', '>=', now()->subDays(30));
+                $this->withoutFirstStep($query, $audience);
                 $this->neverReceived($query, $automation);
                 break;
 
             case 'learning_path_reminder':
+                // Someone with something waiting for them who has gone quiet.
                 $inactive = (int) $automation->configValue('inactive_days', 7);
-                $query->where('last_active_at', '<', now()->subDays($inactive))
-                    ->whereExists(function ($sub) {
-                        $sub->selectRaw('1')->from('user_learning_path_progress')
-                            ->whereColumn('user_learning_path_progress.user_id', 'users.id');
-                    });
+                $query->where('last_active_at', '<', now()->subDays($inactive));
+                $this->hasSomethingWaiting($query, $audience);
                 $this->notReceivedWithin($query, $automation, (int) $automation->configValue('cooldown_days', 14));
                 break;
 
             case 'weekly_progress':
-                $query->where('last_active_at', '>=', now()->subDays(7))
-                    ->whereHas('exerciseSessions', fn ($q) => $q->where('created_at', '>=', now()->subDays(7)));
+                $query->where('last_active_at', '>=', now()->subDays(7));
+
+                if ($audience === 'student') {
+                    $query->whereHas('exerciseSessions', fn ($q) => $q->where('created_at', '>=', now()->subDays(7)));
+                } else {
+                    // A teacher/school digest is about the people under them, so
+                    // having any is enough — their own practice is irrelevant.
+                    $this->hasSomethingWaiting($query, $audience);
+                }
+
                 $this->notReceivedWithin($query, $automation, 6);
                 break;
 
@@ -173,9 +179,17 @@ class AutomationEngine
                 break;
 
             case 'premium_upsell':
+                // Engaged free accounts. "Engaged" is practice volume for a
+                // student, and having anyone to teach for a teacher/school.
                 $query->where('plan', 'free')
-                    ->where('created_at', '<=', now()->subDays((int) $automation->configValue('min_account_days', 14)))
-                    ->whereHas('exerciseSessions', fn ($q) => $q, '>=', (int) $automation->configValue('min_sessions', 10));
+                    ->where('created_at', '<=', now()->subDays((int) $automation->configValue('min_account_days', 14)));
+
+                if ($audience === 'student') {
+                    $query->whereHas('exerciseSessions', fn ($q) => $q, '>=', (int) $automation->configValue('min_sessions', 10));
+                } else {
+                    $this->hasSomethingWaiting($query, $audience);
+                }
+
                 $this->notReceivedWithin($query, $automation, (int) $automation->configValue('cooldown_days', 30));
                 break;
 
@@ -208,6 +222,36 @@ class AutomationEngine
         }
 
         return $query->orderBy('id');
+    }
+
+    /**
+     * The account has not taken the first step that makes Harmoniva useful to
+     * it: practising (student), taking on a student (teacher), taking on a
+     * teacher (school).
+     */
+    protected function withoutFirstStep(Builder $query, string $audience): void
+    {
+        match ($audience) {
+            'school' => $query->whereDoesntHave('schoolTeacherRelationships', fn ($q) => $q->active()),
+            'teacher' => $query->whereDoesntHave('studentRelationships', fn ($q) => $q->active()),
+            default => $query->whereDoesntHave('exerciseSessions'),
+        };
+    }
+
+    /**
+     * The mirror image: the account has people depending on it (or its own
+     * Learning Path progress), so a nudge has something concrete to point at.
+     */
+    protected function hasSomethingWaiting(Builder $query, string $audience): void
+    {
+        match ($audience) {
+            'school' => $query->whereHas('schoolTeacherRelationships', fn ($q) => $q->active()),
+            'teacher' => $query->whereHas('studentRelationships', fn ($q) => $q->active()),
+            default => $query->whereExists(function ($sub) {
+                $sub->selectRaw('1')->from('user_learning_path_progress')
+                    ->whereColumn('user_learning_path_progress.user_id', 'users.id');
+            }),
+        };
     }
 
     protected function neverReceived(Builder $query, EmailAutomation $automation): void
@@ -255,7 +299,70 @@ class AutomationEngine
             return [];
         }
 
+        return match ($user->emailAudience()) {
+            'school' => $this->schoolWeekly($user),
+            'teacher' => $this->teacherWeekly($user),
+            default => $this->studentWeekly($user),
+        };
+    }
+
+    /** The student's own week of practice. */
+    protected function studentWeekly(User $user): array
+    {
         $sessions = ExerciseSession::where('user_id', $user->id)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->get();
+
+        return [
+            'weekly_sessions' => (string) $sessions->count(),
+            'weekly_accuracy' => $sessions->avg('accuracy') !== null ? round($sessions->avg('accuracy')).'%' : '—',
+            'weekly_minutes' => (string) (int) round($sessions->sum('duration_seconds') / 60),
+        ];
+    }
+
+    /** A teacher's week is their students' week, not their own. */
+    protected function teacherWeekly(User $user): array
+    {
+        $studentIds = $user->studentRelationships()->active()->pluck('student_id');
+
+        return array_merge($this->weeklyFor($studentIds), [
+            'weekly_students' => (string) $studentIds->count(),
+            'weekly_assignments' => (string) $user->teacherAssignments()
+                ->where('created_at', '>=', now()->subDays(7))->count(),
+        ]);
+    }
+
+    /** A school's week aggregates every student of every teacher on its roster. */
+    protected function schoolWeekly(User $user): array
+    {
+        $teacherIds = $user->schoolTeacherRelationships()->active()->pluck('teacher_id');
+
+        $studentIds = TeacherStudentRelationship::query()
+            ->whereIn('teacher_id', $teacherIds)
+            ->where('status', TeacherStudentRelationship::STATUS_ACTIVE)
+            ->distinct()
+            ->pluck('student_id');
+
+        return array_merge($this->weeklyFor($studentIds), [
+            'weekly_teachers' => (string) $teacherIds->count(),
+            'weekly_students' => (string) $studentIds->count(),
+        ]);
+    }
+
+    /**
+     * Session count and average accuracy over the last 7 days for a set of
+     * students. An empty roster must still render, so the numbers degrade to
+     * 0 / '—' rather than being left as unsubstituted placeholders.
+     *
+     * @param  Collection<int, int>  $studentIds
+     */
+    protected function weeklyFor($studentIds): array
+    {
+        if ($studentIds->isEmpty()) {
+            return ['weekly_sessions' => '0', 'weekly_accuracy' => '—', 'weekly_minutes' => '0'];
+        }
+
+        $sessions = ExerciseSession::whereIn('user_id', $studentIds)
             ->where('created_at', '>=', now()->subDays(7))
             ->get();
 

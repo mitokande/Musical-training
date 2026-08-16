@@ -62,19 +62,20 @@ class LocaleLandingRedirectTest extends TestCase
         // x-default: it must render English and canonicalise to itself, never /de.
         $response = $this->get('/contact', ['Accept-Language' => 'de-DE,de;q=0.9']);
 
-        // Canonical points to itself and the page renders English. /de/contact
-        // still appears — but only as the German hreflang alternate, never as
-        // this page's canonical.
+        // Canonical points to itself and the page renders English, never /de.
         $response->assertOk()
             ->assertSee('<link rel="canonical" href="'.url('/contact').'">', false)
             ->assertSee('<html lang="en"', false)
             ->assertDontSee('<link rel="canonical" href="'.url('/de/contact').'">', false);
     }
 
-    public function test_prefixed_public_page_is_self_canonical_to_its_locale(): void
+    public function test_translated_prefixed_public_page_is_self_canonical_to_its_locale(): void
     {
-        $this->get('/de/contact')
+        // Turkish has the full pages.contact section, so /tr/contact is a real
+        // translation and canonicalises to itself. See PublicPageSeoTest for the
+        // untranslated counterpart.
+        $this->get('/tr/contact')
             ->assertOk()
-            ->assertSee('<link rel="canonical" href="'.url('/de/contact').'">', false);
+            ->assertSee('<link rel="canonical" href="'.url('/tr/contact').'">', false);
     }
 }

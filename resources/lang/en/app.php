@@ -3,6 +3,8 @@
 return [
 
     'nav' => [
+        'impersonating' => 'You are viewing as :name (impersonation mode)',
+        'return_admin' => 'Return to admin',
         'home' => 'Home',
         'dashboard' => 'Dashboard',
         'practice' => 'Practice',
@@ -201,6 +203,8 @@ return [
     ],
 
     'profile' => [
+        'phone_ph' => '+1 555 123 4567',
+        'google_set_password_hint' => 'You signed in with Google. Set a password below to also sign in with your email and password.',
         'title' => 'Profile',
         'general' => 'General Info',
         'general_info' => 'General Info',
@@ -739,6 +743,20 @@ return [
     ],
 
     'messages' => [
+        'ai_no_types' => 'No valid practice types selected.',
+        'ai_no_key' => 'OpenAI API key not configured.',
+        'ai_no_questions' => 'No practice questions could be generated. Please try again.',
+        'lp_no_questions' => 'Could not generate questions for this exercise. Please try again.',
+        'ai_session_saved' => 'AI Practice session configuration saved!',
+        'ai_no_questions_generated' => 'No practice questions generated. Please try again.',
+        'ai_process_failed' => 'Could not process the generated questions. Please try again.',
+        'ai_session_expired' => 'Your AI session has expired. Please start a new session.',
+        'google_login_failed' => 'Google sign-in failed. Please try again.',
+        'account_restricted' => 'Your account is restricted. You do not have permission to access this page.',
+        'practice_not_found' => 'Practice not found',
+        'unauthorized_admin' => 'Unauthorized. Admin access required.',
+        'unauthorized_teacher' => 'Unauthorized. Teacher access required.',
+        'unauthorized_school' => 'Unauthorized. Music School access required.',
         'profile_updated' => 'Your profile has been updated.',
         'avatar_updated' => 'Your profile photo has been updated.',
         'password_updated' => 'Your password has been updated.',
@@ -1114,6 +1132,7 @@ return [
         'how_step3_title' => 'Track & Improve',
         'how_step3_desc' => 'Watch your progress on a detailed dashboard and let AI adjust your training path.',
         'how_learn_more' => 'Learn more — full guide',
+        'plan_learn_more' => 'Learn More — Full Details',
 
         'roles_label' => 'For Everyone',
         'roles_title_main' => 'Students, Teachers',
@@ -1182,6 +1201,11 @@ return [
     ],
 
     'games' => [
+        'ib_lives_hint' => '3 lives. 5-streak earns a bonus life!',
+        'pts' => 'pts',
+        'top_range' => 'Top :from – :to',
+        'daily_challenge_task' => 'Score 500+ in Note Rush',
+        'skill_focus_value' => 'Staff reading speed',
         'cc_intro' => 'Listen to one chord and identify its quality.',
         'cc_all_types' => 'All chord types mixed',
         'cc_survive' => 'Survive as long as you can',
@@ -1729,7 +1753,83 @@ return [
      * but under unrelated groups (profile.interests_options, games.chord_clash…),
      * and reusing those would couple this screen to changes made for them.
      */
+    /*
+     * Dashboard, Learning Path lesson page and the two AI screens. These were
+     * hardcoded in the blades, so non-English users saw English here even
+     * though the rest of the app was translated.
+     */
+    'home_ui' => [
+        'role_student' => 'Student',
+        'welcome_sub' => 'Ready to level up your ear training today?',
+        'continue_learning' => 'Continue Learning',
+        'exercise_setup' => 'Exercise Setup',
+        'ai_exercises' => 'AI Exercises',
+        'ask_ai' => 'Ask AI',
+        'piano_studio' => 'Piano Studio',
+        'current_streak' => 'Current Streak',
+        'total_practice' => 'Total Practice',
+        'minutes_logged' => 'minutes logged',
+        'xp_points' => 'XP Points',
+        'experience_earned' => 'experience earned',
+        'badges' => 'Badges',
+        'achievements' => 'achievements',
+        'daily_goal' => "Today's Practice Goal",
+        'goal_left' => 'Keep going! :minutes minutes left to reach your goal.',
+        'skill_mastery' => 'Skill Mastery',
+        'view_all' => 'View All',
+        'scales' => 'Scales',
+        'intervals' => 'Intervals',
+        'ai_coach' => 'AI Coach',
+        'generate_plan' => 'Generate Weekly Plan',
+        'quick_actions' => 'Quick Actions',
+        'continue_path' => 'Continue Learning Path',
+        'custom_session' => 'Custom Exercise Session',
+        'progress_report' => 'View Progress Report',
+        'upgrade_premium' => 'Upgrade to Premium',
+        'learn_more' => 'Learn More',
+        // Learning Path lesson page
+        'lp_title' => 'Learning Path',
+        'lp_previous' => 'Previous',
+        'lp_next' => 'Next',
+        'lp_choose_count' => 'Choose question count',
+        'lp_free_note' => 'Free users can always practice 5 questions. Upgrade to Premium for full sets.',
+        'lp_free' => 'Free',
+        'lp_quick' => 'Quick practice',
+        'lp_start' => 'Start',
+        'lp_premium' => 'Premium',
+        'lp_standard' => 'Standard session',
+        'lp_unlock' => 'Unlock',
+        'lp_full' => 'Full',
+        'lp_full_lesson' => 'Full lesson',
+        'lp_skills' => "Skills you'll train",
+        // AI chat / coach
+        'ai_ask_title' => 'Ask Your AI Music Assistant',
+        'ai_weekly_plan' => 'Personalized weekly plan',
+        'ai_weekly_desc' => 'AI analyzes your practice history and profile to prepare a personalized weekly study plan.',
+        'ai_theory_sub' => 'Music theory & ear training',
+        'ai_theory_desc' => 'Ask questions about music theory and ear training',
+        'your_profile' => 'Your Profile',
+        'instrument' => 'Instrument',
+        'level' => 'Level',
+        'weekly_practice' => 'Weekly Practice',
+        'my_progress' => 'My Progress',
+        'progress_sub' => "Track your ear training journey and see how far you've come",
+        'sessions' => 'Sessions',
+        'accuracy' => 'Accuracy',
+        'questions' => 'Questions',
+    ],
+
     'setup_ui' => [
+        'triads_sus' => 'Triads & Sus',
+        'seventh_chords' => '7th Chords',
+        'voicing_block' => 'Block',
+        'voicing_arpeggio' => 'Arpeggio',
+        'clef_hint_treble_oct' => 'Treble (G) — octaves 4–5',
+        'clef_hint_bass_oct' => 'Bass (F) — octaves 2–3',
+        'clef_hint_alto_oct' => 'Alto (C) — octaves 3–4',
+        'clef_hint_treble_range' => 'Treble (G) — G3 – E5',
+        'clef_hint_bass_range' => 'Bass (F) — C2 – C4',
+        'clef_hint_alto_range' => 'Alto (C) — C3 – C5',
         'studio_title' => 'Exercise Setup Studio',
         // Left column — exercise categories
         'cat_intervals' => 'Intervals',
@@ -1816,8 +1916,63 @@ return [
         'oct' => 'Oct ',
     ],
 
+    /*
+     * Canonical chord/scale type name => on-screen label.
+     *
+     * The keys are the exact ChordPractice::chordIntervals() /
+     * ScalePractice::scaleIntervals() names and must never be translated —
+     * the generator, session configs and data-answer attributes all use them.
+     * Only the values change per locale. Read via music_label() / the
+     * music_label_map() bridge for inline scripts; an unlisted type falls back
+     * to its canonical English spelling.
+     */
+    'music' => [
+        'chord' => [
+            'Major' => 'Major',
+            'Minor' => 'Minor',
+            'Diminished' => 'Diminished',
+            'Augmented' => 'Augmented',
+            'Sus2' => 'Sus2',
+            'Sus4' => 'Sus4',
+            'Major 7th' => 'Major 7th',
+            'Dominant 7th' => 'Dominant 7th',
+            'Minor 7th' => 'Minor 7th',
+            'Minor Major 7th' => 'Minor Major 7th',
+            'Half-Diminished 7th' => 'Half-Diminished 7th',
+            'Half Diminished' => 'Half Diminished',
+            'Diminished 7th' => 'Diminished 7th',
+            'Augmented 7th' => 'Augmented 7th',
+            'Major 6th' => 'Major 6th',
+            'Minor 6th' => 'Minor 6th',
+            'Add9' => 'Add9',
+            'Minor Add9' => 'Minor Add9',
+        ],
+
+        'scale' => [
+            'Major' => 'Major',
+            'Natural Minor' => 'Natural Minor',
+            'Harmonic Minor' => 'Harmonic Minor',
+            'Melodic Minor' => 'Melodic Minor',
+            'Ionian' => 'Ionian',
+            'Dorian' => 'Dorian',
+            'Phrygian' => 'Phrygian',
+            'Lydian' => 'Lydian',
+            'Mixolydian' => 'Mixolydian',
+            'Aeolian' => 'Aeolian',
+            'Locrian' => 'Locrian',
+            'Major Pentatonic' => 'Major Pentatonic',
+            'Minor Pentatonic' => 'Minor Pentatonic',
+            'Blues Scale' => 'Blues Scale',
+            'Chromatic Scale' => 'Chromatic Scale',
+            'Whole Tone Scale' => 'Whole Tone Scale',
+            'Pentatonic' => 'Pentatonic',
+            'Blues' => 'Blues',
+        ],
+    ],
+
     'practice_ui' => [
         'common' => [
+            'key_space' => 'Space',
             'play' => 'Play',
             'next' => 'Next',
             'finish' => 'Finish',

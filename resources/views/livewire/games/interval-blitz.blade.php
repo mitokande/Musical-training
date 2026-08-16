@@ -67,7 +67,7 @@
         {{-- Idle --}}
         <div x-show="gameState === 'idle'" class="flex flex-col items-center justify-center h-48 gap-5">
             <div class="text-white/10 text-5xl font-black">P4 m3</div>
-            <p class="text-white/40 text-sm text-center">{{ __('app.games.ib_intro') }}<br>3 lives. 5-streak earns a bonus life!</p>
+            <p class="text-white/40 text-sm text-center">{{ __('app.games.ib_intro') }}<br>{{ __('app.games.ib_lives_hint') }}</p>
             <div class="flex flex-wrap gap-2 justify-center">
                 <button @click="difficulty='easy'"
                         :class="difficulty==='easy' ? 'border-sky-400 text-sky-300 bg-sky-400/10' : 'border-white/10 text-white/40'"

@@ -6,9 +6,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $exercise->getLocalizedTitle() }} — {{ config('app.name') }}</title>
     @php
         $lpTitle = $exercise->getLocalizedTitle();
+        // Lesson titles are only unique inside their own curriculum: "The Full
+        // Twelve" is lesson 14 of Melodic Intervals, lesson 14 of Harmonic
+        // Intervals AND lesson 13 of Interval Construction. Nine lesson pages
+        // shipped byte-identical <title>s, which reads as duplicate content and
+        // gives searchers no way to tell the results apart — so the curriculum
+        // name goes in the tab title (the H1 on the page keeps the short form).
+        $lpTitleTag = trim($lpTitle.($category?->name ? ' — '.$category->name : ''));
+    @endphp
+    <title>{{ $lpTitleTag }} — {{ config('app.name') }}</title>
+    @php
         $lpDescription = \Illuminate\Support\Str::limit(
             strip_tags((string) ($exercise->getLocalizedDescription() ?: $lpTitle)),
             160
@@ -36,7 +45,7 @@
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => url('/')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Learning Path', 'item' => route('learn')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Learning Path', 'item' => locale_url('/learn')],
                 ['@type' => 'ListItem', 'position' => 3, 'name' => $lpTitle, 'item' => $lpUrl],
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -45,14 +54,14 @@
     <link rel="canonical" href="{{ $lpUrl }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:title" content="{{ $lpTitle }} — Harmoniva">
+    <meta property="og:title" content="{{ $lpTitleTag }} — Harmoniva">
     <meta property="og:description" content="{{ $lpDescription }}">
     <meta property="og:url" content="{{ $lpUrl }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $lpTitle }} — Harmoniva">
+    <meta name="twitter:title" content="{{ $lpTitleTag }} — Harmoniva">
     <meta name="twitter:description" content="{{ $lpDescription }}">
     <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
     <script type="application/ld+json">{!! $lpJsonLd !!}</script>
@@ -86,9 +95,9 @@
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         <div class="flex items-center gap-3">
-            <a href="{{ route('learn') }}" class="flex items-center gap-2 text-gray-500 hover:text-gray-700">
+            <a href="{{ locale_url('/learn') }}" class="flex items-center gap-2 text-gray-500 hover:text-gray-700">
                 <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                <span class="text-sm font-medium">Learning Path</span>
+                <span class="text-sm font-medium">{{ __('app.home_ui.lp_title') }}</span>
             </a>
             <span class="text-gray-300">/</span>
             <span class="text-sm text-gray-700 font-medium truncate max-w-xs">{{ $exercise->getLocalizedTitle() }}</span>
@@ -97,13 +106,13 @@
             @if($prev)
                 <a href="{{ route('learning-path.show', $prev->slug) }}"
                    class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-1">
-                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Previous
+                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> {{ __('app.home_ui.lp_previous') }}
                 </a>
             @endif
             @if($next)
                 <a href="{{ route('learning-path.show', $next->slug) }}"
                    class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-1">
-                    Next <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    {{ __('app.home_ui.lp_next') }} <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 </a>
             @endif
         </div>
@@ -205,7 +214,7 @@
                     {{ __('app.limits.cta_create_account') }}
                 </a>
             @else
-                <a href="{{ route('pricing.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                <a href="{{ locale_url('/pricing') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
                     {{ __('app.limits.cta_upgrade') }}
                 </a>
             @endguest
@@ -218,14 +227,14 @@
 
     <div class="space-y-3">
         <div class="flex items-center justify-between flex-wrap gap-2">
-            <h2 class="text-lg font-bold text-gray-800">Choose question count</h2>
+            <h2 class="text-lg font-bold text-gray-800">{{ __('app.home_ui.lp_choose_count') }}</h2>
             @if($quotaLimit !== -1)
                 <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $quotaExhausted ? 'bg-orange-100 text-orange-700' : 'bg-purple-50 text-purple-600' }}">
                     {{ __('app.limits.sessions_used_today', ['used' => min($quotaUsed, $quotaLimit), 'limit' => $quotaLimit]) }}
                 </span>
             @endif
         </div>
-        <p class="text-sm text-gray-500">Free users can always practice 5 questions. Upgrade to Premium for full sets.</p>
+        <p class="text-sm text-gray-500">{{ __('app.home_ui.lp_free_note') }}</p>
 
         <div class="grid grid-cols-3 gap-4">
 
@@ -237,12 +246,12 @@
                         class="w-full bg-white border-2 border-purple-300 hover:border-purple-500 rounded-2xl p-5 text-left transition group">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-2xl font-black text-purple-600">5</span>
-                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Free</span>
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-semibold">{{ __('app.home_ui.lp_free') }}</span>
                     </div>
-                    <div class="text-sm font-semibold text-gray-700">Quick practice</div>
+                    <div class="text-sm font-semibold text-gray-700">{{ __('app.home_ui.lp_quick') }}</div>
                     <div class="text-xs text-gray-400 mt-1">~{{ max(1, round($exercise->estimated_duration_minutes * 0.35)) }} min</div>
                     <div class="mt-3 flex items-center gap-1 text-purple-600 text-xs font-medium group-hover:gap-2 transition-all">
-                        Start <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        {{ __('app.home_ui.lp_start') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </div>
                 </button>
             </form>
@@ -257,13 +266,13 @@
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-2xl font-black text-purple-600">10</span>
                             <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold flex items-center gap-1">
-                                <i data-lucide="crown" class="w-3 h-3"></i> Premium
+                                <i data-lucide="crown" class="w-3 h-3"></i> {{ __('app.home_ui.lp_premium') }}
                             </span>
                         </div>
-                        <div class="text-sm font-semibold text-gray-700">Standard session</div>
+                        <div class="text-sm font-semibold text-gray-700">{{ __('app.home_ui.lp_standard') }}</div>
                         <div class="text-xs text-gray-400 mt-1">~{{ max(1, round($exercise->estimated_duration_minutes * 0.7)) }} min</div>
                         <div class="mt-3 flex items-center gap-1 text-purple-600 text-xs font-medium group-hover:gap-2 transition-all">
-                            Start <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            {{ __('app.home_ui.lp_start') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                         </div>
                     </button>
                 </form>
@@ -272,14 +281,14 @@
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-2xl font-black text-gray-300">10</span>
                         <span class="px-2 py-0.5 bg-gray-200 text-gray-500 rounded-full text-xs font-semibold flex items-center gap-1">
-                            <i data-lucide="lock" class="w-3 h-3"></i> Premium
+                            <i data-lucide="lock" class="w-3 h-3"></i> {{ __('app.home_ui.lp_premium') }}
                         </span>
                     </div>
-                    <div class="text-sm font-semibold text-gray-400">Standard session</div>
+                    <div class="text-sm font-semibold text-gray-400">{{ __('app.home_ui.lp_standard') }}</div>
                     <div class="text-xs text-gray-300 mt-1">~{{ max(1, round($exercise->estimated_duration_minutes * 0.7)) }} min</div>
-                    <a href="{{ auth()->check() ? route('pricing.index') : route('register') }}"
+                    <a href="{{ auth()->check() ? locale_url('/pricing') : route('register') }}"
                        class="mt-3 flex items-center gap-1 text-orange-500 text-xs font-medium hover:underline">
-                        Unlock <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        {{ __('app.home_ui.lp_unlock') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>
                 </div>
             @endif
@@ -294,13 +303,13 @@
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-2xl font-black text-purple-700">15</span>
                             <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold flex items-center gap-1">
-                                <i data-lucide="zap" class="w-3 h-3"></i> Full
+                                <i data-lucide="zap" class="w-3 h-3"></i> {{ __('app.home_ui.lp_full') }}
                             </span>
                         </div>
-                        <div class="text-sm font-semibold text-gray-700">Full lesson</div>
+                        <div class="text-sm font-semibold text-gray-700">{{ __('app.home_ui.lp_full_lesson') }}</div>
                         <div class="text-xs text-gray-400 mt-1">~{{ $exercise->estimated_duration_minutes }} min</div>
                         <div class="mt-3 flex items-center gap-1 text-purple-700 text-xs font-medium group-hover:gap-2 transition-all">
-                            Start <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            {{ __('app.home_ui.lp_start') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                         </div>
                     </button>
                 </form>
@@ -309,14 +318,14 @@
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-2xl font-black text-gray-300">15</span>
                         <span class="px-2 py-0.5 bg-gray-200 text-gray-500 rounded-full text-xs font-semibold flex items-center gap-1">
-                            <i data-lucide="lock" class="w-3 h-3"></i> Premium
+                            <i data-lucide="lock" class="w-3 h-3"></i> {{ __('app.home_ui.lp_premium') }}
                         </span>
                     </div>
-                    <div class="text-sm font-semibold text-gray-400">Full lesson</div>
+                    <div class="text-sm font-semibold text-gray-400">{{ __('app.home_ui.lp_full_lesson') }}</div>
                     <div class="text-xs text-gray-300 mt-1">~{{ $exercise->estimated_duration_minutes }} min</div>
-                    <a href="{{ auth()->check() ? route('pricing.index') : route('register') }}"
+                    <a href="{{ auth()->check() ? locale_url('/pricing') : route('register') }}"
                        class="mt-3 flex items-center gap-1 text-orange-500 text-xs font-medium hover:underline">
-                        Unlock <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        {{ __('app.home_ui.lp_unlock') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>
                 </div>
             @endif
@@ -329,7 +338,7 @@
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <h3 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
                 <i data-lucide="target" class="w-4 h-4 text-purple-500"></i>
-                Skills you'll train
+                {{ __('app.home_ui.lp_skills') }}
             </h3>
             <div class="flex flex-wrap gap-2">
                 @foreach($exercise->skills_trained as $skill)
@@ -347,7 +356,7 @@
                    class="flex-1 bg-white border border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-sm transition flex items-center gap-3">
                     <i data-lucide="chevron-left" class="w-5 h-5 text-gray-400 shrink-0"></i>
                     <div>
-                        <div class="text-xs text-gray-400">Previous</div>
+                        <div class="text-xs text-gray-400">{{ __('app.home_ui.lp_previous') }}</div>
                         <div class="text-sm font-semibold text-gray-700 truncate">{{ $prev->getLocalizedTitle() }}</div>
                     </div>
                 </a>
@@ -359,7 +368,7 @@
                 <a href="{{ route('learning-path.show', $next->slug) }}"
                    class="flex-1 bg-white border border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-sm transition flex items-center justify-end gap-3">
                     <div class="text-right">
-                        <div class="text-xs text-gray-400">Next</div>
+                        <div class="text-xs text-gray-400">{{ __('app.home_ui.lp_next') }}</div>
                         <div class="text-sm font-semibold text-gray-700 truncate">{{ $next->getLocalizedTitle() }}</div>
                     </div>
                     <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 shrink-0"></i>

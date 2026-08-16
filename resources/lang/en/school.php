@@ -30,6 +30,9 @@ return [
     ],
 
     'profile' => [
+        // School wording for the public-profile meta description fallback;
+        // teacher.profile.seo_description_location supplies the city/country half.
+        'seo_description_fallback' => 'Discover :name on Harmoniva — music lessons, teachers and ear training for every level.',
         'title' => 'School Profile',
         'subtitle' => 'Manage your public school profile.',
     ],

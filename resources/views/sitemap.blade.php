@@ -29,6 +29,15 @@
         <changefreq>weekly</changefreq>
     </url>
 @endforeach
+@foreach ($lessons as $lesson)
+    <url>
+        <loc>{{ $lesson['loc'] }}</loc>
+@if ($lesson['lastmod'])
+        <lastmod>{{ $lesson['lastmod'] }}</lastmod>
+@endif
+        <changefreq>monthly</changefreq>
+    </url>
+@endforeach
 @foreach ($articles as $article)
     <url>
         <loc>{{ route('articles.show', $article->slug) }}</loc>

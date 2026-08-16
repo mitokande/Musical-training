@@ -112,7 +112,7 @@
             <div class="space-y-4 text-gray-600 text-[17px] leading-relaxed">
                 <p>
                     {!! __('pages.community.teachers_detail_p1', [
-                        'directory_link' => '<a href="'.route('teachers.directory').'" class="text-primary-600 font-semibold underline decoration-primary-300 underline-offset-2 hover:text-primary-700">'.__('pages.community.find_a_teacher').'</a>',
+                        'directory_link' => '<a href="'.locale_url('/find-teachers').'" class="text-primary-600 font-semibold underline decoration-primary-300 underline-offset-2 hover:text-primary-700">'.__('pages.community.find_a_teacher').'</a>',
                         'profile_link' => '<a href="'.url('/teachers/tuba-gunvar').'" class="text-rose-600 font-semibold underline decoration-rose-300 underline-offset-2 hover:text-rose-700">Tuba Günvar</a>',
                     ]) !!}
                 </p>
@@ -120,7 +120,7 @@
             </div>
 
             <div class="flex flex-col sm:flex-row flex-wrap gap-4 mt-8">
-                <a href="{{ route('teachers.directory') }}" class="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">
+                <a href="{{ locale_url('/find-teachers') }}" class="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-lg hover:-translate-y-0.5" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">
                     <i data-lucide="search" class="w-4 h-4"></i>
                     {{ __('pages.community.find_a_teacher') }}
                 </a>

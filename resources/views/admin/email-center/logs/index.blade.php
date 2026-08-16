@@ -21,6 +21,18 @@
                         <option value="{{ $type }}" @selected(request('type') === $type)>{{ str_replace('_', ' ', ucfirst($type)) }}</option>
                     @endforeach
                 </select>
+                <select name="automation" class="rounded-lg border-gray-300 text-sm">
+                    <option value="">All automations</option>
+                    @foreach ($automations as $automation)
+                        <option value="{{ $automation->id }}" @selected((string) request('automation') === (string) $automation->id)>{{ $automation->name }}</option>
+                    @endforeach
+                </select>
+                <select name="audience" class="rounded-lg border-gray-300 text-sm">
+                    <option value="">All audiences</option>
+                    @foreach (['student', 'teacher', 'school'] as $audience)
+                        <option value="{{ $audience }}" @selected(request('audience') === $audience)>{{ ucfirst($audience) }}</option>
+                    @endforeach
+                </select>
                 <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Filter</button>
             </form>
         </div>

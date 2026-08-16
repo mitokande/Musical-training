@@ -42,7 +42,7 @@
             <!-- Header -->
             <div class="hero-gradient p-6">
                 <div class="relative flex items-center justify-center">
-                    <a href="/learn" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+                    <a href="{{ locale_url('/learn') }}" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
                     <div class="text-center">
@@ -104,21 +104,21 @@
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
-                                <a href="/learn" id="nextPracticeBtn"
+                                <a href="{{ locale_url('/learn') }}" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
                                     <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
                                 </a>
                             @endif
                         </div>
-                        <p id="playStatus" class="text-sm text-gray-500">Press Play — the metronome will count you in</p>
+                        <p id="playStatus" class="text-sm text-gray-500">{{ __('app.practice_js.press_play_metronome') }}</p>
                         <p class="text-xs text-gray-400 -mt-1">
                             {{-- One key: the two shortcuts sit mid-sentence in English
                                  but before the verb in Turkish. --}}
                             @php $rhKbd = 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono'; @endphp
                             {!! __('app.practice_ui.rhythm.kbd_hint', [
                                 'tab' => '<kbd class="'.$rhKbd.'">Tab</kbd>',
-                                'space' => '<kbd class="'.$rhKbd.'">Space</kbd>',
+                                'space' => '<kbd class="'.$rhKbd.'">'.__('app.practice_ui.common.key_space').'</kbd>',
                             ]) !!}
                         </p>
 
@@ -179,7 +179,7 @@
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
-                                <a href="/learn" id="nextPracticeBtn"
+                                <a href="{{ locale_url('/learn') }}" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
                                     <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}
@@ -268,7 +268,7 @@
                                     <i data-lucide="arrow-right" class="w-5 h-5"></i> {{ __('app.practice_ui.common.next') }}
                                 </button>
                             @else
-                                <a href="/learn" id="nextPracticeBtn"
+                                <a href="{{ locale_url('/learn') }}" id="nextPracticeBtn"
                                     class="font-semibold py-3 px-5 sm:px-8 rounded-lg flex items-center gap-2 bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                                     style="display:none">
                                     <i data-lucide="check" class="w-5 h-5"></i> {{ __('app.practice_ui.common.finish') }}

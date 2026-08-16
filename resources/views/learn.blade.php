@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ $seoHtmlLang }}">
 <head>
     @include('partials.google-analytics')
     @include('partials.posthog')
@@ -9,13 +9,16 @@
 
     <title>{{ __('pages.learn.meta_title') }} | {{ config('app.name', 'Harmoniva') }}</title>
     <meta name="description" content="{{ __('pages.learn.meta_description') }}">
-    @include('partials.public-seo-alt')
+    @include('partials.public-seo-alt', [
+        'seoPageTitle' => __('pages.learn.meta_title'),
+        'seoPageDescription' => __('pages.learn.meta_description'),
+    ])
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:locale" content="{{ config('locales.og')[app()->getLocale()] ?? 'en_US' }}">
+    <meta property="og:locale" content="{{ $seoOgLocale }}">
     <meta property="og:title" content="{{ __('pages.learn.og_title') }}">
     <meta property="og:description" content="{{ __('pages.learn.og_description') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $seoCanonical }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -23,6 +26,37 @@
     <meta name="twitter:title" content="{{ __('pages.learn.tw_title') }}">
     <meta name="twitter:description" content="{{ __('pages.learn.tw_description') }}">
     <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+
+    {{-- The Learning Path hub had no structured data, so the free 150-lesson
+         curriculum it links to was invisible to rich results. Each lesson page
+         already declares its own Course; this describes the series and points
+         Google at the individual lessons. The JSON is assembled in PHP so Blade
+         never sees the literal "at-context" / "at-type" keys as directives. --}}
+    @php
+        $learnJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Course',
+            'name' => __('pages.learn.meta_title'),
+            'description' => __('pages.learn.meta_description'),
+            'url' => $seoCanonical,
+            'isAccessibleForFree' => true,
+            'inLanguage' => $seoHtmlLang,
+            'provider' => [
+                '@type' => 'Organization',
+                'name' => 'Harmoniva',
+                'url' => url('/'),
+                'logo' => asset('images/logo-full.png'),
+            ],
+            'hasPart' => $lpExercises->map(fn ($lpExercise) => [
+                '@type' => 'Course',
+                'name' => $lpExercise->getLocalizedTitle(),
+                'url' => route('learning-path.show', $lpExercise->slug),
+                'isAccessibleForFree' => true,
+                'provider' => ['@type' => 'Organization', 'name' => 'Harmoniva', 'url' => url('/')],
+            ])->values()->all(),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $learnJsonLd !!}</script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

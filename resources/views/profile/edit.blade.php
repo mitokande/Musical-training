@@ -267,7 +267,7 @@
                                         <span class="text-gray-400">{{ $totalQuestions }} {{ __('app.profile.total_questions') }}</span>
                                     </div>
                                 @else
-                                    <p class="text-xs text-gray-400 pt-1">{{ __('app.profile.no_sessions') }} <a href="{{ route('learn') }}" class="text-primary-600 hover:underline">{{ __('app.exercises.start') }} →</a></p>
+                                    <p class="text-xs text-gray-400 pt-1">{{ __('app.profile.no_sessions') }} <a href="{{ locale_url('/learn') }}" class="text-primary-600 hover:underline">{{ __('app.exercises.start') }} →</a></p>
                                 @endif
                             </div>
                         </div>
@@ -371,7 +371,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium {{ empty($user->phone) ? 'text-red-600' : 'text-gray-700' }} mb-1">{{ __('app.profile.phone') }} {{ empty($user->phone) ? '(' . __('app.common.missing') . ')' : '' }}</label>
-                                        <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="+90 5xx xxx xx xx" class="w-full px-4 py-2.5 border {{ empty($user->phone) ? 'border-red-300 ring-1 ring-red-200' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                                        <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="{{ __('app.profile.phone_ph') }}" class="w-full px-4 py-2.5 border {{ empty($user->phone) ? 'border-red-300 ring-1 ring-red-200' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium {{ empty($user->country) ? 'text-red-600' : 'text-gray-700' }} mb-1">{{ __('app.profile.country') }} {{ empty($user->country) ? '(' . __('app.common.missing') . ')' : '' }}</label>
@@ -597,7 +597,7 @@
                             <div class="text-center py-10">
                                 <i data-lucide="bar-chart-2" class="w-10 h-10 mx-auto text-gray-300 mb-3"></i>
                                 <p class="text-sm text-gray-500 mb-4">{{ __('app.profile.no_sessions') }}</p>
-                                <a href="{{ route('learn') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition">
+                                <a href="{{ locale_url('/learn') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition">
                                     <i data-lucide="play" class="w-4 h-4"></i> {{ __('app.profile.practice_start') }}
                                 </a>
                             </div>

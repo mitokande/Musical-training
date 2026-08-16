@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ $seoHtmlLang }}">
 <head>
     @include('partials.google-analytics')
     @include('partials.posthog')
@@ -15,13 +15,16 @@
 
     <title>{{ __('pages.piano_studio.meta_title') }} - {{ config('app.name', 'Harmoniva') }}</title>
     <meta name="description" content="{{ __('pages.piano_studio.meta_description') }}">
-    @include('partials.public-seo-alt')
+    @include('partials.public-seo-alt', [
+        'seoPageTitle' => __('pages.piano_studio.meta_title'),
+        'seoPageDescription' => __('pages.piano_studio.meta_description'),
+    ])
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:locale" content="{{ config('locales.og')[app()->getLocale()] ?? 'en_US' }}">
+    <meta property="og:locale" content="{{ $seoOgLocale }}">
     <meta property="og:title" content="{{ __('pages.piano_studio.og_title') }}">
     <meta property="og:description" content="{{ __('pages.piano_studio.og_description') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $seoCanonical }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">

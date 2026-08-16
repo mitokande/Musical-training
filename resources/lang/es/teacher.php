@@ -120,6 +120,8 @@ return [
         'submitted' => 'Tu perfil se ha enviado para revisión.',
         'submit_missing_intro' => 'Completa lo siguiente antes de enviar:',
         'public_url' => 'URL del perfil público',
+        'seo_description_fallback' => 'Aprende música con :name en Harmoniva: clases, entrenamiento auditivo y seguimiento del progreso.',
+        'seo_description_location' => 'Ubicado en :location.',
         'add_more' => 'Añadir más',
         'remove' => 'Eliminar',
         'edit' => 'Editar',
@@ -127,6 +129,7 @@ return [
         'cancel' => 'Cancelar',
     ],
     'fields' => [
+        'cover_formats_hint' => 'JPG / PNG / WebP · máx. 8 MB',
         'headline' => 'Titular breve',
         'headline_placeholder' => 'p. ej. Profesor de piano con 10 años de experiencia en conservatorio',
         'expertise' => 'Especialidad',
@@ -360,6 +363,10 @@ return [
         'status_invitation-revoked' => 'Invitación revocada.',
         'status_relationship-revoked' => 'Relación finalizada.',
         'profile' => [
+            'reward_type_sticker' => 'Pegatina 🌟',
+            'reward_type_badge' => 'Insignia 🏅',
+            'reward_type_encouragement' => 'Ánimo 💬',
+            'reward_type_milestone' => 'Hito 🏆',
             'overview' => 'Resumen',
             'total_exercises' => 'Preguntas respondidas',
             'accuracy' => 'Precisión',
@@ -437,6 +444,7 @@ return [
         'save' => 'Guardar',
     ],
     'assignments' => [
+        'reward_label_ph' => 'p. ej. Estrella del ritmo ⭐',
         'title' => 'Tareas',
         'subtitle' => 'Crea deberes a partir de los ejercicios estándar de Harmoniva y sigue los resultados.',
         'create' => 'Crear deberes',

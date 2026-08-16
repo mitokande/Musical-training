@@ -148,11 +148,13 @@ class CheckoutTest extends TestCase
         $this->actingAs($user)->post(route('checkout.store'), ['cycle' => 'monthly', 'terms' => '1']);
         $subscription = Subscription::first();
 
+        // Both headings render through {{ }}, so the apostrophe and the
+        // ampersand arrive HTML-escaped — assert with escaping on (the default).
         $this->actingAs($user)->get(route('checkout.success', $subscription))
-            ->assertOk()->assertSee("You're Premium", false);
+            ->assertOk()->assertSee("You're Premium");
 
         $this->actingAs($user)->get(route('billing.index'))
-            ->assertOk()->assertSee('Billing & Subscription', false)
+            ->assertOk()->assertSee('Billing & Subscription')
             ->assertSee($subscription->invoices()->first()->invoice_number);
     }
 

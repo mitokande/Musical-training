@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\SetLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 
 class LanguageController extends Controller
 {
@@ -23,9 +25,17 @@ class LanguageController extends Controller
         }
 
         session(['locale' => $locale]);
-        // Mark this as a deliberate choice (not an IP guess) so SetLocale treats
-        // the session locale as explicit and the `/` landing honours it.
+        // Mark this as a deliberate choice so SetLocale treats the session locale
+        // as explicit and the `/` landing honours it.
         session(['locale_selected' => true]);
+
+        // The session expires in 120 minutes; guest usage quotas live in a
+        // one-year cookie. Mirroring the choice into a cookie of the same length
+        // keeps a guest's language from reverting to their browser's mid-visit —
+        // which is how an English session ended up showing a Turkish
+        // "daily limit reached" screen on the games pages.
+        Cookie::queue(Cookie::make(SetLocale::LOCALE_COOKIE, $locale, 60 * 24 * 365));
+
         app()->setLocale($locale);
 
         // Redirect to the localized equivalent of the page they were on, so the

@@ -235,11 +235,11 @@
                             <i data-lucide="message-square" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-base leading-tight">Ask Your AI Music Assistant</h3>
-                            <p class="text-white/70 text-xs">Music theory & ear training</p>
+                            <h3 class="font-bold text-base leading-tight">{{ __('app.home_ui.ai_ask_title') }}</h3>
+                            <p class="text-white/70 text-xs">{{ __('app.home_ui.ai_theory_sub') }}</p>
                         </div>
                     </div>
-                    <p class="text-white/85 text-sm mb-4 leading-relaxed">Ask questions about music theory and ear training</p>
+                    <p class="text-white/85 text-sm mb-4 leading-relaxed">{{ __('app.home_ui.ai_theory_desc') }}</p>
                     <a href="/ai-chat" class="block text-center bg-white text-violet-700 font-semibold py-2.5 px-4 rounded-xl hover:bg-gray-100 transition-colors text-sm">
                         Ask a Question →
                     </a>
@@ -253,19 +253,19 @@
             <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
                 <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
                     <i data-lucide="user-check" class="w-4 h-4 text-purple-500"></i>
-                    Your Profile
+                    {{ __('app.home_ui.your_profile') }}
                 </h3>
                 <div class="space-y-2.5">
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Instrument</span>
+                        <span class="text-gray-500">{{ __('app.home_ui.instrument') }}</span>
                         <span class="font-medium text-gray-800">{{ $profile?->primary_instrument ?: '—' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Level</span>
+                        <span class="text-gray-500">{{ __('app.home_ui.level') }}</span>
                         <span class="font-medium text-gray-800">{{ $levelLabels[$profile?->musical_level ?? ''] ?? '—' }}</span>
                     </div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">Weekly Practice</span>
+                        <span class="text-gray-500">{{ __('app.home_ui.weekly_practice') }}</span>
                         <span class="font-medium text-gray-800">{{ $profile?->weekly_practice_hours ? $profile->weekly_practice_hours . ' hrs' : '—' }}</span>
                     </div>
                 </div>
@@ -280,25 +280,25 @@
             <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
                 <h3 class="font-semibold text-gray-800 mb-1 flex items-center gap-2 text-sm">
                     <i data-lucide="trending-up" class="w-4 h-4 text-green-500"></i>
-                    My Progress
+                    {{ __('app.home_ui.my_progress') }}
                 </h3>
-                <p class="text-xs text-gray-400 mb-4">Track your ear training journey and see how far you've come</p>
+                <p class="text-xs text-gray-400 mb-4">{{ __('app.home_ui.progress_sub') }}</p>
                 <div class="grid grid-cols-2 gap-2.5">
                     <div class="bg-orange-50 rounded-xl p-3 text-center">
                         <div class="text-xl font-bold text-gray-900">{{ $streak }}</div>
-                        <div class="text-xs text-gray-500 mt-0.5">🔥 Streak</div>
+                        <div class="text-xs text-gray-500 mt-0.5">🔥 {{ __('app.practice.streak') }}</div>
                     </div>
                     <div class="bg-blue-50 rounded-xl p-3 text-center">
                         <div class="text-xl font-bold text-gray-900">{{ $totalSessions }}</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Sessions</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('app.home_ui.sessions') }}</div>
                     </div>
                     <div class="bg-green-50 rounded-xl p-3 text-center">
                         <div class="text-xl font-bold text-gray-900">{{ $accuracy }}%</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Accuracy</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('app.home_ui.accuracy') }}</div>
                     </div>
                     <div class="bg-purple-50 rounded-xl p-3 text-center">
                         <div class="text-xl font-bold text-gray-900">{{ $totalQuestions }}</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Questions</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ __('app.home_ui.questions') }}</div>
                     </div>
                 </div>
                 <a href="/progress" class="mt-3 block text-center text-xs font-medium text-purple-600 hover:text-purple-700 transition-colors">

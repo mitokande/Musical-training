@@ -9,6 +9,7 @@ use App\Http\Middleware\ForceDefaultLocaleForPublicPages;
 use App\Http\Middleware\SchoolMiddleware;
 use App\Http\Middleware\SetApiLocale;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\ShareSeoContext;
 use App\Http\Middleware\TeacherMiddleware;
 use App\Http\Middleware\TrackExerciseUsage;
 use App\Services\Analytics\PostHogService;
@@ -40,6 +41,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'track.exercise' => TrackExerciseUsage::class,
             'check.restriction' => CheckUserRestriction::class,
         ]);
+        // A language code is not a secret, and this cookie rides along on every
+        // request to the domain — assets included. Encrypted it would be ~300
+        // bytes of Laravel payload; in the clear it is ~20. SetLocale validates
+        // the value against its supported-locale list on every read, so a
+        // tampered cookie can only ever select a language the site already ships.
+        $middleware->encryptCookies(except: [
+            SetLocale::LOCALE_COOKIE,
+        ]);
         $middleware->web(append: [
             SetLocale::class,
             // Runs after SetLocale to pin the un-prefixed form of a localized
@@ -47,6 +56,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // x-default, so crawlers never see it self-canonicalise to /de.
             ForceDefaultLocaleForPublicPages::class,
             CheckUserRestriction::class,
+            // Canonical/hreflang/<html lang> for the URL being served, shared
+            // with every view. Last, so it sees the locale the two middlewares
+            // above settled on.
+            ShareSeoContext::class,
         ]);
         // The api group has no session, so SetLocale/CheckUserRestriction
         // (which redirect) cannot be reused — these are their stateless twins.

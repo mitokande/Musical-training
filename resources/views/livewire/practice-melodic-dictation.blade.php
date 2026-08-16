@@ -13,7 +13,7 @@
 --}}
 @include('livewire.partials.melodic-dictation', [
     // Routes
-    'mdBackUrl' => '/learn',
+    'mdBackUrl' => locale_url('/learn'),
     'mdEmptyUrl' => '/exercise-setup',
 
     // Empty state

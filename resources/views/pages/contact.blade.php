@@ -63,8 +63,29 @@
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ __('pages.contact.form_title') }}</h2>
                     <p class="text-gray-500 text-sm mb-8">{{ __('pages.contact.form_subtitle') }}</p>
 
-                    <form action="#" method="POST" class="space-y-5">
+                    @if (session('contact_status') === 'sent')
+                        <div class="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3.5">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5"></i>
+                            <p class="text-sm text-green-800">{{ __('pages.contact.success') }}</p>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"></i>
+                            <ul class="text-sm text-red-800 space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('contact.submit') }}" method="POST" class="space-y-5">
                         @csrf
+
+                        {{-- Honeypot: hidden from humans, filled by bots. --}}
+                        <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true" />
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
@@ -73,6 +94,7 @@
                                     type="text"
                                     id="contact_name"
                                     name="name"
+                                    value="{{ old('name', auth()->user()?->name) }}"
                                     placeholder="{{ __('pages.contact.ph_name') }}"
                                     class="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-shadow"
                                     required
@@ -84,6 +106,7 @@
                                     type="email"
                                     id="contact_email"
                                     name="email"
+                                    value="{{ old('email', auth()->user()?->email) }}"
                                     placeholder="{{ __('pages.contact.ph_email') }}"
                                     class="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-shadow"
                                     required
@@ -100,12 +123,10 @@
                                     class="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white transition-shadow pr-10"
                                     required
                                 >
-                                    <option value="" disabled selected>{{ __('pages.contact.subject_select') }}</option>
-                                    <option value="general">{{ __('pages.contact.subject_general') }}</option>
-                                    <option value="billing">{{ __('pages.contact.subject_billing') }}</option>
-                                    <option value="technical">{{ __('pages.contact.subject_technical') }}</option>
-                                    <option value="schools">{{ __('pages.contact.subject_schools') }}</option>
-                                    <option value="other">{{ __('pages.contact.subject_other') }}</option>
+                                    <option value="" disabled @selected(! old('subject'))>{{ __('pages.contact.subject_select') }}</option>
+                                    @foreach (['general', 'billing', 'technical', 'schools', 'other'] as $topic)
+                                        <option value="{{ $topic }}" @selected(old('subject') === $topic)>{{ __('pages.contact.subject_'.$topic) }}</option>
+                                    @endforeach
                                 </select>
                                 <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                             </div>
@@ -120,7 +141,7 @@
                                 placeholder="{{ __('pages.contact.ph_message') }}"
                                 class="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-shadow resize-none"
                                 required
-                            ></textarea>
+                            >{{ old('message') }}</textarea>
                         </div>
 
                         <button

@@ -322,7 +322,7 @@
                    onchange="if (this.files.length) this.form.submit()">
             <button type="submit" class="px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">{{ crm_trans('fields.upload_cover') }}</button>
         </form>
-        <p class="text-xs text-gray-400 mt-2">JPG / PNG / WebP · max 8 MB</p>
+        <p class="text-xs text-gray-400 mt-2">{{ crm_trans('fields.cover_formats_hint') }}</p>
         @error('cover')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
         @error('upload')<p class="text-sm text-red-600 mt-2">{{ $message }}</p>@enderror
     </div>

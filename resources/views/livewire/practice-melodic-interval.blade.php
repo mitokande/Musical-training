@@ -5,7 +5,7 @@
             <!-- Header -->
             <div class="hero-gradient p-6">
                 <div class="relative flex items-center justify-center">
-                    <a href="/learn" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-105 active:scale-95">
+                    <a href="{{ locale_url('/learn') }}" class="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-105 active:scale-95">
                         <i data-lucide="arrow-left" class="w-6 h-6"></i>
                     </a>
 
@@ -66,7 +66,7 @@
                             </button>
                         @else
                             <a
-                                href="/learn"
+                                href="{{ locale_url('/learn') }}"
                                 id="nextPracticeBtn"
                                 class="font-semibold py-3 px-5 sm:px-8 rounded-lg hidden flex items-center gap-2 hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed
                                     bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 hover:text-blue-800 hover:border-blue-400"

@@ -28,7 +28,7 @@ class CheckUserRestriction
 
             if (! $isAllowed) {
                 return redirect()->route('dashboard')
-                    ->with('warning', 'Hesabınız kısıtlanmış durumda. Bu sayfaya erişim izniniz yok.');
+                    ->with('warning', __('app.messages.account_restricted'));
             }
         }
 

@@ -20,10 +20,12 @@ Disallow: /assignments
 Disallow: /my-teachers
 Disallow: /my-appointments
 Disallow: /dev/
-# Game test routes (exact match only — real game slugs stay crawlable)
-Disallow: /games/a$
-Disallow: /games/b$
-Disallow: /games/c$
+# NOTE: the /games/a, /games/b and /games/c A/B-test URLs are deliberately NOT
+# disallowed here. They serve <meta name="robots" content="noindex, nofollow">,
+# and that tag is what keeps them out of the index — but Google has to fetch the
+# page to see it. Blocking them here did the opposite: the URLs stayed in Search
+# Console as "blocked by robots.txt" instead of being dropped. Three cheap pages
+# are worth the crawl.
 # Auth
 Disallow: /login
 Disallow: /register

@@ -125,6 +125,11 @@ return [
         'submitted' => 'Your profile was submitted for review.',
         'submit_missing_intro' => 'Please complete the following before submitting:',
         'public_url' => 'Public profile URL',
+        // Snippet of last resort for a public profile with no seo_description,
+        // no about text and no headline — a public page must never ship an
+        // empty <meta name="description"> for Google to fill in itself.
+        'seo_description_fallback' => 'Learn music with :name on Harmoniva — lessons, ear training and progress tracking.',
+        'seo_description_location' => 'Based in :location.',
         'add_more' => 'Add more',
         'remove' => 'Remove',
         'edit' => 'Edit',
@@ -133,6 +138,7 @@ return [
     ],
 
     'fields' => [
+        'cover_formats_hint' => 'JPG / PNG / WebP · max 8 MB',
         'headline' => 'Short headline',
         'headline_placeholder' => 'e.g. Piano teacher with 10 years of conservatory experience',
         'expertise' => 'Expertise',
@@ -374,6 +380,10 @@ return [
         'status_invitation-revoked' => 'Invitation revoked.',
         'status_relationship-revoked' => 'Relationship ended.',
         'profile' => [
+            'reward_type_sticker' => 'Sticker 🌟',
+            'reward_type_badge' => 'Badge 🏅',
+            'reward_type_encouragement' => 'Encouragement 💬',
+            'reward_type_milestone' => 'Milestone 🏆',
             'overview' => 'Overview',
             'total_exercises' => 'Answered questions',
             'accuracy' => 'Accuracy',
@@ -455,6 +465,7 @@ return [
     ],
 
     'assignments' => [
+        'reward_label_ph' => 'e.g. Rhythm Star ⭐',
         'title' => 'Assignments',
         'subtitle' => 'Create homework from canonical Harmoniva exercises and track results.',
         'create' => 'Create homework',

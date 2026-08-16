@@ -217,7 +217,7 @@
 
             <!-- Back Link -->
             <div class="text-center">
-                <a href="/learn" class="text-sm text-gray-500 hover:text-purple-600 transition-colors">
+                <a href="{{ locale_url('/learn') }}" class="text-sm text-gray-500 hover:text-purple-600 transition-colors">
                     ← {{ __('app.mixed_setup.back_to_learning_path') }}
                 </a>
             </div>

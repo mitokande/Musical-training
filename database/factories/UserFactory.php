@@ -35,6 +35,11 @@ class UserFactory extends Factory
             // same role/plan as one reloaded from the database.
             'role' => 'user',
             'plan' => 'free',
+            // The users.locale column defaults to 'tr', which would make every
+            // factory user render the app in Turkish and break any test that
+            // asserts on the English source copy. Tests that care about a
+            // specific locale pass their own.
+            'locale' => 'en',
         ];
     }
 

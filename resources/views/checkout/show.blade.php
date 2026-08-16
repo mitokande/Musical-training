@@ -64,7 +64,7 @@
 <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
 
     <div class="mb-8">
-        <a href="{{ route('pricing.index') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+        <a href="{{ locale_url('/pricing') }}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors">
             <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> {{ __('app.checkout.back_to_pricing') }}
         </a>
         @if($checkoutEnabled)

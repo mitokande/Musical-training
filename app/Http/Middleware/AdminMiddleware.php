@@ -16,7 +16,7 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (! auth()->check() || auth()->user()->role !== 'admin') {
-            abort(403, 'Unauthorized. Admin access required.');
+            abort(403, __('app.messages.unauthorized_admin'));
         }
 
         return $next($request);

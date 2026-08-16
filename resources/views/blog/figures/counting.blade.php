@@ -1,0 +1,6 @@
+<svg role="img" aria-labelledby="figt-counting" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120">
+<title id="figt-counting">{{ $t('fig_counting_alt') }}</title>
+<rect x="72" y="14" width="48" height="46" rx="14" fill="#7c3aed"/><text x="96" y="40" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle">{{ $t('fig_note_c') }}</text><text x="96" y="53" font-size="9.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.8">1</text><rect x="156" y="14" width="48" height="46" rx="14" fill="#f3e8ff"/><text x="180" y="40" font-size="19" font-weight="800" fill="#7c3aed" text-anchor="middle">{{ $t('fig_note_d') }}</text><text x="180" y="53" font-size="9.5" font-weight="700" fill="#7c3aed" text-anchor="middle" opacity="0.8">2</text><rect x="240" y="14" width="48" height="46" rx="14" fill="#7c3aed"/><text x="264" y="40" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle">{{ $t('fig_note_e') }}</text><text x="264" y="53" font-size="9.5" font-weight="700" fill="#ffffff" text-anchor="middle" opacity="0.8">3</text>
+<path d="M96 68 L96 78 L264 78 L264 68" fill="none" stroke="#f97316" stroke-width="1.4"/>
+<rect x="115.0" y="84" width="130" height="22" rx="11.0" fill="#ffedd5"/><text x="180" y="98.67" font-size="10.5" font-weight="700" fill="#c2410c" text-anchor="middle">{{ $t('fig_count_label') }}</text>
+</svg>

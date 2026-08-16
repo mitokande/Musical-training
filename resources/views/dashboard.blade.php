@@ -97,34 +97,34 @@
                     <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                         <i data-lucide="music" class="w-6 h-6 text-white"></i>
                     </div>
-                    <span class="px-3 py-1 bg-purple-500 text-white text-xs font-semibold rounded-full">Student</span>
+                    <span class="px-3 py-1 bg-purple-500 text-white text-xs font-semibold rounded-full">{{ __('app.home_ui.role_student') }}</span>
                 </div>
                 
                 <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
                     Welcome back, {{ explode(' ', Auth::user()->name ?? 'Mithat')[0] }}! 🎵
                 </h1>
-                <p class="text-white/80 mb-6">Ready to level up your ear training today?</p>
+                <p class="text-white/80 mb-6">{{ __('app.home_ui.welcome_sub') }}</p>
                 
                 <div class="flex flex-wrap gap-3">
-                    <a href="/learn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-teal-800 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
+                    <a href="{{ locale_url('/learn') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-teal-800 font-semibold rounded-lg hover:bg-gray-100 transition-colors">
                         <i data-lucide="play-circle" class="w-5 h-5"></i>
-                        Continue Learning
+                        {{ __('app.home_ui.continue_learning') }}
                     </a>
                     <a href="/exercise-setup" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
                         <i data-lucide="wand-sparkles" class="w-5 h-5"></i>
-                        Exercise Setup
+                        {{ __('app.home_ui.exercise_setup') }}
                     </a>
                     <a href="/ai-exercises" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        AI Exercises
+                        {{ __('app.home_ui.ai_exercises') }}
                     </a>
                     <a href="/ai-chat" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
                         <i data-lucide="message-circle" class="w-5 h-5"></i>
-                        Ask AI
+                        {{ __('app.home_ui.ask_ai') }}
                     </a>
-                    <a href="/piano-studio" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
+                    <a href="{{ locale_url('/piano-studio') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm">
                         <i data-lucide="piano" class="w-5 h-5"></i>
-                        Piano Studio
+                        {{ __('app.home_ui.piano_studio') }}
                     </a>
                 </div>
             </div>
@@ -135,41 +135,41 @@
             <!-- Current Streak -->
             <div class="card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Current Streak</span>
+                    <span class="text-sm text-gray-500">{{ __('app.home_ui.current_streak') }}</span>
                     <span class="text-orange-500">🔥</span>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">0</div>
-                <p class="text-sm text-gray-500">days in a row 🔥</p>
+                <p class="text-sm text-gray-500">{{ __('app.dashboard.days_in_a_row') }} 🔥</p>
             </div>
 
             <!-- Total Practice -->
             <div class="card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Total Practice</span>
+                    <span class="text-sm text-gray-500">{{ __('app.home_ui.total_practice') }}</span>
                     <i data-lucide="clock" class="w-5 h-5 text-blue-500"></i>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">3</div>
-                <p class="text-sm text-gray-500">minutes logged</p>
+                <p class="text-sm text-gray-500">{{ __('app.home_ui.minutes_logged') }}</p>
             </div>
 
             <!-- XP Points -->
             <div class="card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">XP Points</span>
+                    <span class="text-sm text-gray-500">{{ __('app.home_ui.xp_points') }}</span>
                     <i data-lucide="sparkles" class="w-5 h-5 text-yellow-500"></i>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">90</div>
-                <p class="text-sm text-gray-500">experience earned</p>
+                <p class="text-sm text-gray-500">{{ __('app.home_ui.experience_earned') }}</p>
             </div>
 
             <!-- Badges -->
             <div class="card p-5">
                 <div class="flex items-start justify-between mb-3">
-                    <span class="text-sm text-gray-500">Badges</span>
+                    <span class="text-sm text-gray-500">{{ __('app.home_ui.badges') }}</span>
                     <i data-lucide="award" class="w-5 h-5 text-purple-500"></i>
                 </div>
                 <div class="text-3xl font-bold text-gray-900 mb-1">0</div>
-                <p class="text-sm text-gray-500">achievements</p>
+                <p class="text-sm text-gray-500">{{ __('app.home_ui.achievements') }}</p>
             </div>
         </div>
 
@@ -183,7 +183,7 @@
                         <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                             <i data-lucide="target" class="w-4 h-4 text-green-600"></i>
                         </div>
-                        <h3 class="font-semibold text-gray-900">Today's Practice Goal</h3>
+                        <h3 class="font-semibold text-gray-900">{{ __('app.home_ui.daily_goal') }}</h3>
                     </div>
                     
                     <div class="flex items-center justify-between mb-3">
@@ -195,7 +195,7 @@
                         <div class="progress-bar h-2 rounded-full" style="width: 0%"></div>
                     </div>
                     
-                    <p class="text-sm text-gray-500">Keep going! 15 minutes left to reach your goal.</p>
+                    <p class="text-sm text-gray-500">{{ __('app.home_ui.goal_left', ['minutes' => 15]) }}</p>
                 </div>
 
                 <!-- Skill Mastery -->
@@ -203,10 +203,10 @@
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-2">
                             <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i>
-                            <h3 class="font-semibold text-gray-900">Skill Mastery</h3>
+                            <h3 class="font-semibold text-gray-900">{{ __('app.home_ui.skill_mastery') }}</h3>
                         </div>
                         <a href="#" class="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1">
-                            View All
+                            {{ __('app.home_ui.view_all') }}
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </a>
                     </div>
@@ -215,7 +215,7 @@
                         <!-- Scales -->
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-700">Scales</span>
+                                <span class="text-sm font-medium text-gray-700">{{ __('app.home_ui.scales') }}</span>
                                 <span class="text-sm font-semibold text-purple-600">50%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
@@ -226,7 +226,7 @@
                         <!-- Intervals -->
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-700">Intervals</span>
+                                <span class="text-sm font-medium text-gray-700">{{ __('app.home_ui.intervals') }}</span>
                                 <span class="text-sm font-semibold text-purple-600">100%</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2">
@@ -243,7 +243,7 @@
                 <div class="ai-coach-gradient rounded-xl p-6 text-white">
                     <div class="flex items-center gap-2 mb-4">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        <h3 class="font-semibold">AI Coach</h3>
+                        <h3 class="font-semibold">{{ __('app.home_ui.ai_coach') }}</h3>
                     </div>
                     
                     <p class="text-white/90 text-sm mb-5 text-center">
@@ -252,48 +252,48 @@
                     
                     <button class="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        Generate Weekly Plan
+                        {{ __('app.home_ui.generate_plan') }}
                     </button>
                 </div>
 
                 <!-- Quick Actions -->
                 <div class="card p-5">
-                    <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <h3 class="font-semibold text-gray-900 mb-4">{{ __('app.home_ui.quick_actions') }}</h3>
                     
                     <div class="space-y-2">
-                        <a href="/learn" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="{{ locale_url('/learn') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                                 <i data-lucide="play-circle" class="w-4 h-4 text-green-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Continue Learning Path</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.home_ui.continue_path') }}</span>
                         </a>
                         
-                        <a href="/piano-studio" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="{{ locale_url('/piano-studio') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                                 <i data-lucide="piano" class="w-4 h-4 text-orange-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Piano Studio</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.home_ui.piano_studio') }}</span>
                         </a>
                         
                         <a href="/exercise-setup" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                 <i data-lucide="wand-sparkles" class="w-4 h-4 text-purple-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Custom Exercise Session</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.home_ui.custom_session') }}</span>
                         </a>
 
                         <a href="/ai-exercises" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                                 <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">AI Exercises</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.home_ui.ai_exercises') }}</span>
                         </a>
                         
                         <a href="/progress" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-600"></i>
                             </div>
-                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">View Progress Report</span>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">{{ __('app.home_ui.progress_report') }}</span>
                         </a>
                     </div>
                 </div>
@@ -304,13 +304,13 @@
                         <i data-lucide="crown" class="w-6 h-6"></i>
                     </div>
                     
-                    <h3 class="font-bold text-lg mb-2">Upgrade to Premium</h3>
+                    <h3 class="font-bold text-lg mb-2">{{ __('app.home_ui.upgrade_premium') }}</h3>
                     <p class="text-white/90 text-sm mb-5">
                         Unlock unlimited lessons, AI coaching, and advanced analytics.
                     </p>
                     
                     <a href="{{ route('checkout.show') }}" class="block text-center w-full bg-white text-purple-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors">
-                        Learn More
+                        {{ __('app.home_ui.learn_more') }}
                     </a>
                 </div>
             </div>

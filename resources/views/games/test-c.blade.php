@@ -420,8 +420,8 @@
                         <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
                         <span class="text-amber-300 text-xs font-semibold uppercase tracking-wider">{{ __('app.games.daily_challenge') }}</span>
                     </div>
-                    <p class="text-white font-bold text-base leading-tight mb-1">Score 500+ in Note Rush</p>
-                    <p class="text-white/40 text-sm mb-4">{{ __('app.games.skill_focus') }}: Staff reading speed</p>
+                    <p class="text-white font-bold text-base leading-tight mb-1">{{ __('app.games.daily_challenge_task') }}</p>
+                    <p class="text-white/40 text-sm mb-4">{{ __('app.games.skill_focus') }}: {{ __('app.games.skill_focus_value') }}</p>
                     <a href="{{ route('games.show', 'note-rush') }}"
                        class="block w-full text-center py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 text-amber-300 text-sm font-semibold transition-all">
                         {{ __('app.games.challenge_cta') }} →
@@ -509,7 +509,7 @@
         {{-- ─── BRIDGE LINK ────────────────────────────────────────────────── --}}
         <div class="text-center py-4">
             <span class="section-dim text-sm">{{ __('app.games.structured_prompt') }}</span>
-            <a href="{{ route('learn') }}" class="text-violet-600 hover:text-violet-500 text-sm ml-2 transition-colors font-medium">
+            <a href="{{ locale_url('/learn') }}" class="text-violet-600 hover:text-violet-500 text-sm ml-2 transition-colors font-medium">
                 {{ __('app.games.back_practice') }} →
             </a>
         </div>
@@ -524,7 +524,7 @@
         <a href="/games/b" style="color:rgba(21,10,53,0.4);text-decoration:none;">B</a>
         <a href="/games/c" style="color:#7c3aed;text-decoration:none;font-weight:900;">C</a>
         <span style="color:rgba(21,10,53,0.3)">|</span>
-        <a href="/games" style="color:rgba(21,10,53,0.4);text-decoration:none;">Orijinal</a>
+        <a href="/games" style="color:rgba(21,10,53,0.4);text-decoration:none;">Original</a>
     </div>
 
     <script>

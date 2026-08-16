@@ -57,4 +57,49 @@ return [
         '/terms-of-service' => 'pages.terms-of-service',
         '/privacy-policy' => 'pages.privacy-policy',
     ],
+
+    /*
+     * public_pages path => the `pages.*` translation section its blade reads.
+     * locale_page_translated() uses this to tell whether a localized URL really
+     * carries translated copy: a /{locale} route whose section is missing (or
+     * mostly missing) renders English at a second URL, which Google reads as a
+     * duplicate and folds into the English page. Such a URL must canonicalise
+     * to English, drop out of the hreflang set, and stay out of the sitemap
+     * until its translation lands — at which point it turns itself back on.
+     */
+    'page_sections' => [
+        '/pricing' => 'pricing',
+        '/students' => 'students',
+        '/teachers' => 'teachers',
+        '/schools' => 'schools',
+        '/piano-learners' => 'piano_learners',
+        '/community-feed' => 'community',
+        '/request-demo' => 'request_demo',
+        '/faq' => 'faq',
+        '/contact' => 'contact',
+        '/help' => 'help',
+        '/about' => 'about',
+        '/press' => 'press',
+        '/partners' => 'partners',
+        '/music-theory-basics' => 'music_theory',
+        '/blog' => 'articles',
+        '/find-teachers' => 'find_teachers',
+        '/ear-training-guide' => 'ear_guide',
+        '/how-it-works' => 'how_it_works',
+        '/learn' => 'learn',
+        '/pricing/teachers-and-schools' => 'pricing_teachers',
+        '/piano-studio' => 'piano_studio',
+        '/refund-policy' => 'refund',
+        '/subscription-terms' => 'subscription',
+        '/cookie-policy' => 'cookie',
+        '/terms-of-service' => 'terms',
+        '/privacy-policy' => 'privacy',
+    ],
+
+    /*
+     * Share of a section's English keys a locale must define before its URL is
+     * advertised as a real translation. Below this the page is still mostly
+     * English fallback copy, so claiming it via hreflang is a duplicate signal.
+     */
+    'page_translation_threshold' => 0.95,
 ];

@@ -27,6 +27,15 @@
                             · Total: <span class="font-semibold text-gray-600">{{ $automation->send_count }}</span>
                             · Last run: {{ $automation->last_run_at?->diffForHumans() ?? 'never' }}
                         </div>
+                        @php $split = $audienceCounts[$automation->id] ?? []; @endphp
+                        <div class="flex items-center gap-2 mt-2 text-xs">
+                            <span class="text-gray-400">Last 30 days by audience:</span>
+                            @foreach (['student' => 'bg-purple-100 text-purple-700', 'teacher' => 'bg-emerald-100 text-emerald-700', 'school' => 'bg-blue-100 text-blue-700'] as $audience => $classes)
+                                <span class="px-2 py-0.5 rounded-full {{ ($split[$audience] ?? 0) > 0 ? $classes : 'bg-gray-100 text-gray-400' }}">
+                                    {{ ucfirst($audience) }}: {{ $split[$audience] ?? 0 }}
+                                </span>
+                            @endforeach
+                        </div>
                     </div>
 
                     <div class="flex items-end gap-3 flex-wrap">

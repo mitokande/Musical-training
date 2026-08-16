@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{-- $seoHtmlLang, not app()->getLocale(): a localized URL whose translation is
+     still missing renders English copy, and must say so. --}}
+<html lang="{{ $seoHtmlLang }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,40 +10,23 @@
     @hasSection('robots')
     <meta name="robots" content="@yield('robots')">
     @endif
-    @php
-        // Per-locale canonical + hreflang alternates for the public template
-        // pages. Only pages listed in config('locales.public_pages') advertise
-        // alternates, so we never claim a localized URL that isn't translated.
-        $seoPrefixed = config('locales.prefixed');
-        $seoPublicPages = array_keys((array) config('locales.public_pages'));
-        $seoSegments = request()->segments();
-        $seoBasePath = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
-            ? '/'.implode('/', array_slice($seoSegments, 1))
-            : '/'.implode('/', $seoSegments);
-        $seoBasePath = rtrim($seoBasePath, '/') ?: '/';
-        $seoIsLocalized = in_array($seoBasePath, $seoPublicPages, true);
-        // Canonical/hreflang locale comes from the URL itself, never
-        // app()->getLocale() (which an IP guess can pollute) — so the un-prefixed
-        // English URL always canonicalises to itself, not to /de.
-        $seoCurrentLocale = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
-            ? $seoSegments[0]
-            : 'en';
-        $seoCanonical = locale_url($seoBasePath, $seoIsLocalized ? $seoCurrentLocale : 'en');
-        $seoOgLocales = config('locales.og');
-    @endphp
+    {{-- Canonical + hreflang come from App\Services\Seo\PublicPageSeo (shared by
+         the view composer in AppServiceProvider). A localized URL is only claimed
+         as an alternate once that locale really has the page's translation —
+         otherwise it is English copy at a second URL, which Google folds into the
+         English page and reports as a duplicate. --}}
     <link rel="canonical" href="@yield('canonical', $seoCanonical)">
-    @if ($seoIsLocalized)
-    <link rel="alternate" hreflang="en" href="{{ locale_url($seoBasePath, 'en') }}">
-    @foreach ($seoPrefixed as $seoAltLocale)
-    <link rel="alternate" hreflang="{{ $seoAltLocale }}" href="{{ locale_url($seoBasePath, $seoAltLocale) }}">
+    @foreach ($seoAlternates as $seoAltLocale => $seoAltUrl)
+    <link rel="alternate" hreflang="{{ $seoAltLocale }}" href="{{ $seoAltUrl }}">
     @endforeach
-    <link rel="alternate" hreflang="x-default" href="{{ locale_url($seoBasePath, 'en') }}">
+    @if ($seoAlternates !== [])
+    <link rel="alternate" hreflang="x-default" href="{{ $seoAlternates['en'] }}">
     @endif
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:locale" content="{{ $seoOgLocales[$seoCurrentLocale] ?? 'en_US' }}">
+    <meta property="og:locale" content="{{ $seoOgLocale }}">
     <meta property="og:title" content="@yield('title', 'AI-Powered Ear Training')">
     <meta property="og:description" content="@yield('description', 'AI-powered ear training for musicians, students, teachers, and music schools.')">
     <meta property="og:url" content="@yield('canonical', $seoCanonical)">
@@ -67,8 +52,31 @@
             'url' => url('/'),
             'logo' => asset('images/logo-full.png'),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        // Page-level node carrying the language of *this* URL. Organization is a
+        // language-neutral entity, so inLanguage does not belong on it; without a
+        // WebPage node the localized URLs had no machine-readable language at all
+        // beyond <html lang>, which matters for multilingual crawling and for AI
+        // answer engines picking the right-language source.
+        $webPageJsonLd = json_encode(array_filter([
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            '@id' => $seoCanonical.'#webpage',
+            'url' => $seoCanonical,
+            'name' => trim(View::yieldContent('title')) ?: 'Harmoniva',
+            'description' => trim(View::yieldContent('description')) ?: null,
+            'inLanguage' => $seoHtmlLang,
+            'isPartOf' => [
+                '@type' => 'WebSite',
+                '@id' => url('/').'#website',
+                'name' => 'Harmoniva',
+                'url' => url('/'),
+            ],
+            'publisher' => ['@id' => url('/').'#organization'],
+        ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     @endphp
     <script type="application/ld+json">{!! $organizationJsonLd !!}</script>
+    <script type="application/ld+json">{!! $webPageJsonLd !!}</script>
     @yield('structured-data')
 
     @include('partials.google-analytics')
@@ -128,7 +136,7 @@
                     {{-- Mobile hamburger (same drawer pattern as the landing page) --}}
                     <button id="sa-nav-burger" onclick="saMenuToggle()"
                             class="sm:hidden flex items-center justify-center p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                            style="width:40px;height:40px;background:none;border:none;cursor:pointer;" aria-label="Menu">
+                            style="width:40px;height:40px;background:none;border:none;cursor:pointer;" aria-label="{{ __('app.nav.menu') }}">
                         <svg id="sa-icon-menu" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
                             <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
                         </svg>
@@ -151,7 +159,7 @@
 
             {{-- Header --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #374151;flex-shrink:0;">
-                <span style="font-weight:700;color:white;font-size:0.95rem;">Menu</span>
+                <span style="font-weight:700;color:white;font-size:0.95rem;">{{ __('app.nav.menu') }}</span>
                 <button onclick="saMenuClose()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#9ca3af;background:none;border:none;cursor:pointer;border-radius:0.5rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
                 </button>

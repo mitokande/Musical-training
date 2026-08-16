@@ -138,7 +138,7 @@ class AIController extends Controller
         $localPracticeTypes = $practiceTypes->filter(fn ($p) => in_array($p->slug, $localTypeSlugs));
 
         if ($aiPracticeTypes->isEmpty() && $localPracticeTypes->isEmpty() && empty($rhythmModes)) {
-            return back()->with('error', 'No valid practice types selected.');
+            return back()->with('error', __('app.messages.ai_no_types'));
         }
 
         $numQuestions = (int) $validated['num_questions'];
@@ -249,7 +249,7 @@ class AIController extends Controller
 
             $apikey = config('services.openai.key');
             if (! $apikey) {
-                return back()->with('error', 'OpenAI API key not configured.');
+                return back()->with('error', __('app.messages.ai_no_key'));
             }
 
             // Distribute remaining questions evenly across AI types
@@ -342,7 +342,7 @@ class AIController extends Controller
         }
 
         if (empty($allQuestions)) {
-            return back()->with('error', 'No practice questions could be generated. Please try again.');
+            return back()->with('error', __('app.messages.ai_no_questions'));
         }
 
         session(['ai_practice_questions' => $allQuestions]);

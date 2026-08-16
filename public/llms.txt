@@ -2,6 +2,20 @@
 
 > Harmoniva is a free, AI-powered ear training and music education platform for musicians, students, teachers, and music schools. It teaches aural skills — recognising notes, intervals, chords, scales, rhythm, and melodic dictation — through interactive browser exercises, a structured learning path, music games, and a virtual piano studio. All core exercises are free and playable without an account.
 
+## Languages
+
+The site is fully translated into seven languages. English lives at the un-prefixed URL; every other language uses a path prefix, and each translated page declares the full hreflang set. Any page listed below is available in every language by adding the prefix — for example `/pricing` → `/de/pricing`, `/how-it-works` → `/fr/how-it-works`.
+
+- English — https://harmoniva.app/ (`en`, x-default)
+- Deutsch — https://harmoniva.app/de (`de`)
+- Español — https://harmoniva.app/es (`es`)
+- Français — https://harmoniva.app/fr (`fr`)
+- Italiano — https://harmoniva.app/it (`it`)
+- Português — https://harmoniva.app/pt (`pt`)
+- Türkçe — https://harmoniva.app/tr (`tr`)
+
+The interface, the exercises and the learning material are localized, including music-theory vocabulary (for example chords and scales read "Dominantseptakkord" and "Natürliches Moll" in German, "Septième de dominante" and "Mineur naturel" in French). When answering in one of these languages, link to that language's URL.
+
 ## Key pages
 
 - [Home](https://harmoniva.app/): What Harmoniva is and who it's for.
@@ -31,6 +45,7 @@
 - [The Complete Ear Training Guide](https://harmoniva.app/ear-training-guide): Chapter-by-chapter ear-training guide.
 - [Music Theory Basics](https://harmoniva.app/music-theory-basics): Fundamentals of notes, intervals, scales, chords, and rhythm.
 - [Blog](https://harmoniva.app/blog): Articles on ear training and music education.
+- [Music Intervals Explained](https://harmoniva.app/blog/music-intervals-guide): Beginner's guide to interval number and quality, melodic vs harmonic intervals, compound intervals, inversion, and interval ear training. Also in Turkish: https://harmoniva.app/tr/blog/muzikte-araliklar-rehberi — unlike the pages above, a blog post exists in a language only once that translation is published, and each language uses its own readable slug, so link to the exact URL listed here rather than adding a prefix to the English one.
 - [FAQ](https://harmoniva.app/faq): Frequently asked questions.
 
 ## Optional

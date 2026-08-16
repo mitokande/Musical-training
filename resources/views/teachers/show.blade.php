@@ -17,7 +17,18 @@
 
         $teacherName = $profile->displayName();
         $seoTitle = $profile->seo_title ?: ($teacherName.($profile->expertise ? ' — '.$profile->expertise : ''));
-        $seoDescription = $profile->seo_description ?: \Illuminate\Support\Str::limit(strip_tags((string) $profile->about), 160);
+        // A profile with no seo_description AND no "about" text used to emit an
+        // empty <meta name="description">, leaving Google to invent the snippet.
+        // Fall back through the fields a profile is most likely to have filled in,
+        // then to a generic line built from what we always know.
+        $profileLocation = trim(implode(', ', array_filter([$profile->city, $profile->country])));
+        $seoDescription = \Illuminate\Support\Str::limit(strip_tags((string) (
+            $profile->seo_description
+                ?: $profile->about
+                ?: $profile->headline
+                ?: $trans('profile.seo_description_fallback', ['name' => $teacherName])
+                    .($profileLocation !== '' ? ' '.$trans('profile.seo_description_location', ['location' => $profileLocation]) : '')
+        )), 160);
         $publicPhotos = $profile->media->where('visibility', 'public');
     @endphp
 

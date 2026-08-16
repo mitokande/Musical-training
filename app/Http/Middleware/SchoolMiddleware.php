@@ -14,7 +14,7 @@ class SchoolMiddleware
         $user = auth()->user();
 
         if (! $user || ! in_array($user->role, ['school', 'admin'])) {
-            abort(403, 'Unauthorized. Music School access required.');
+            abort(403, __('app.messages.unauthorized_school'));
         }
 
         // The school panel runs on the shared CRM engine, which is keyed on a

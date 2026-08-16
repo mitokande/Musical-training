@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ $seoHtmlLang }}">
 <head>
     @include('partials.google-analytics')
     @include('partials.posthog')
@@ -8,13 +8,16 @@
     @php $pk = fn ($k, $r = []) => __('pages.pricing_teachers.'.$k, $r); @endphp
     <title>{{ $pk('meta_title') }}</title>
     <meta name="description" content="{{ $pk('meta_description') }}">
-    @include('partials.public-seo-alt')
+    @include('partials.public-seo-alt', [
+        'seoPageTitle' => $pk('meta_title'),
+        'seoPageDescription' => $pk('meta_description'),
+    ])
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Harmoniva">
-    <meta property="og:locale" content="{{ config('locales.og')[app()->getLocale()] ?? 'en_US' }}">
+    <meta property="og:locale" content="{{ $seoOgLocale }}">
     <meta property="og:title" content="{{ $pk('og_title') }}">
     <meta property="og:description" content="{{ $pk('og_description') }}">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $seoCanonical }}">
     <meta property="og:image" content="{{ asset('images/og-image.png') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">

@@ -131,7 +131,7 @@ class LearningPathController extends Controller
 
         if ($questions->isEmpty()) {
             return redirect()->route('learning-path.show', $slug)
-                ->with('error', 'Could not generate questions for this exercise. Please try again.');
+                ->with('error', __('app.messages.lp_no_questions'));
         }
 
         $practiceType = $exercise->config_json['practice_type'];

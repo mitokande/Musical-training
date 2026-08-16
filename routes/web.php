@@ -49,6 +49,7 @@ use App\Http\Controllers\AIController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\MidiViewerController;
 use App\Http\Controllers\EmailPreferenceController;
@@ -65,6 +66,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\BlogPostController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Public\TeacherPublicProfileController;
 use App\Http\Controllers\School\SchoolTeacherController;
@@ -150,10 +152,16 @@ Route::get('/help', fn () => view('pages.help'))->name('page.help');
 Route::get('/how-it-works', fn () => view('pages.how-it-works'))->name('page.how-it-works');
 Route::get('/faq', fn () => view('pages.faq'))->name('page.faq');
 Route::get('/blog', fn () => view('pages.articles'))->name('page.articles');
+// Long-form posts registered in config('blog.posts'). Declared before
+// /article/{article:slug} so the slug pattern below can never swallow them.
+Route::get('/blog/{slug}', [BlogPostController::class, 'show'])
+    ->where('slug', '[A-Za-z0-9-]+')
+    ->name('blog.post');
 Route::get('/article/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
 Route::get('/ear-training-guide', fn () => view('pages.ear-training-guide'))->name('page.ear-training-guide');
 Route::get('/music-theory-basics', fn () => view('pages.music-theory-basics'))->name('page.music-theory-basics');
 Route::get('/contact', fn () => view('pages.contact'))->name('page.contact');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,1')->name('contact.submit');
 
 // Company
 Route::get('/about', fn () => view('pages.about'))->name('page.about');
@@ -166,7 +174,10 @@ Route::get('/terms-of-service', fn () => view('pages.terms-of-service'))->name('
 Route::get('/cookie-policy', fn () => view('pages.cookie-policy'))->name('page.cookie-policy');
 Route::get('/subscription-terms', fn () => view('pages.subscription-terms'))->name('page.subscription-terms');
 Route::get('/refund-policy', fn () => view('pages.refund-policy'))->name('page.refund-policy');
-Route::get('/childrens-privacy', fn () => redirect('/privacy-policy#childrens-privacy'))->name('page.childrens-privacy');
+// 301, not the default 302: the section moved into the privacy policy for good,
+// and a temporary redirect keeps the old URL in Google's index as a "page with
+// redirect" instead of passing its signals to the destination.
+Route::get('/childrens-privacy', fn () => redirect('/privacy-policy#childrens-privacy', 301))->name('page.childrens-privacy');
 
 // Locale-prefixed variants of the public template pages (/es/pricing, …).
 // Indexable per-language URLs cross-linked via hreflang in layouts/standalone.
@@ -193,6 +204,13 @@ Route::prefix('{locale}')
 
             Route::get($path, fn () => view($view));
         }
+
+        // Blog posts keep their own registry (config('blog.posts')) but are
+        // localized on the same terms: PublicPageSeo canonicalises an
+        // untranslated /{locale}/blog/{slug} to English and leaves it out of
+        // hreflang and the sitemap until that locale's blog.php lands.
+        Route::get('/blog/{slug}', [BlogPostController::class, 'show'])
+            ->where('slug', '[A-Za-z0-9-]+');
     });
 
 // ── End public static pages ───────────────────────────────────────────────

@@ -3,10 +3,10 @@
 
 @if(session('impersonator_id'))
 <div class="bg-amber-500 text-white text-sm font-medium px-4 py-2 flex items-center justify-center gap-3 relative z-[60]">
-    <span>You are viewing as <strong>{{ auth()->user()->name ?? '' }}</strong> (impersonation mode)</span>
+    <span>{!! __('app.nav.impersonating', ['name' => '<strong>'.e(auth()->user()->name ?? '').'</strong>']) !!}</span>
     <form method="POST" action="{{ route('impersonate.leave') }}" class="inline">
         @csrf
-        <button type="submit" class="underline font-semibold hover:text-amber-100">Return to admin</button>
+        <button type="submit" class="underline font-semibold hover:text-amber-100">{{ __('app.nav.return_admin') }}</button>
     </form>
 </div>
 @endif
@@ -86,18 +86,18 @@
                             ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
                             ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
                             ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
-                            ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
+                            ['href' => locale_url('/piano-studio'), 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
                         ];
                     } else {
                         // Guest / default top bar. Home shows the icon only (no label) to keep the
                         // bar on a single line; the Progress entry is intentionally omitted here.
                         $navItems = [
                             ['href' => '/dashboard', 'label' => __('app.nav.home'), 'icon' => 'home', 'key' => 'dashboard', 'icon_only' => true],
-                            ['href' => '/learn', 'label' => __('app.nav.practice'), 'icon' => 'music-2', 'key' => 'learn'],
+                            ['href' => locale_url('/learn'), 'label' => __('app.nav.practice'), 'icon' => 'music-2', 'key' => 'learn'],
                             ['href' => '/games', 'label' => __('app.nav.games'), 'icon' => 'gamepad-2', 'key' => 'games'],
                             ['href' => '/exercise-setup', 'label' => __('app.nav.setup_studio'), 'icon' => 'wand-sparkles', 'key' => 'exercise-setup'],
                             ['href' => '/ai-exercises', 'label' => __('app.nav.ai_exercises'), 'icon' => 'sparkles', 'key' => 'ai'],
-                            ['href' => '/piano-studio', 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
+                            ['href' => locale_url('/piano-studio'), 'label' => __('app.nav.piano'), 'icon' => 'piano', 'key' => 'piano'],
                         ];
                     }
                 @endphp

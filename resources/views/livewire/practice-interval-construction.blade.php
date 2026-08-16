@@ -8,7 +8,7 @@
                 <div class="relative flex items-start justify-between">
 
                     <!-- Back button -->
-                    <a href="/learn"
+                    <a href="{{ locale_url('/learn') }}"
                        class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-105 active:scale-95 mt-0.5">
                         <i data-lucide="arrow-left" class="w-5 h-5"></i>
                     </a>
@@ -105,7 +105,7 @@
                             </button>
                         @else
                             <a
-                                href="/learn"
+                                href="{{ locale_url('/learn') }}"
                                 id="nextPracticeBtn"
                                 class="hidden font-semibold py-2.5 px-6 rounded-lg flex items-center gap-2 hover:shadow-lg transition-shadow text-sm sm:text-base bg-blue-100 text-blue-700 border-2 border-blue-300 hover:bg-blue-200"
                             >

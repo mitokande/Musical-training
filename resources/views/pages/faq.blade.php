@@ -104,6 +104,7 @@
         $faqJsonLd = json_encode([
             '@context' => 'https://schema.org',
             '@type' => 'FAQPage',
+            'inLanguage' => $seoHtmlLang,
             'mainEntity' => array_map(fn (array $faq) => [
                 '@type' => 'Question',
                 'name' => $faq['q'],

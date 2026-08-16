@@ -2,6 +2,8 @@
 
 return [
     'nav' => [
+        'impersonating' => ':name olarak görüntülüyorsunuz (kimliğe bürünme modu)',
+        'return_admin' => 'Yöneticiye dön',
         'home' => 'Ana Sayfa',
         'dashboard' => 'Panel',
         'practice' => 'Pratik',
@@ -192,6 +194,8 @@ return [
         'learn_more' => 'Daha Fazla Bilgi',
     ],
     'profile' => [
+        'phone_ph' => '+90 5xx xxx xx xx',
+        'google_set_password_hint' => 'Google ile giriş yaptınız. Aşağıda bir şifre belirleyerek e-posta ve şifre ile de giriş yapabilirsiniz.',
         'title' => 'Profil',
         'general' => 'Genel Bilgiler',
         'general_info' => 'Genel Bilgiler',
@@ -747,6 +751,20 @@ return [
         'upgrade' => 'Erişmek için Yükselt',
     ],
     'messages' => [
+        'ai_no_types' => 'Geçerli bir alıştırma türü seçilmedi.',
+        'ai_no_key' => 'OpenAI API anahtarı yapılandırılmamış.',
+        'ai_no_questions' => 'Alıştırma sorusu üretilemedi. Lütfen tekrar deneyin.',
+        'lp_no_questions' => 'Bu alıştırma için soru üretilemedi. Lütfen tekrar deneyin.',
+        'ai_session_saved' => 'AI alıştırma oturumu ayarları kaydedildi!',
+        'ai_no_questions_generated' => 'Alıştırma sorusu üretilmedi. Lütfen tekrar deneyin.',
+        'ai_process_failed' => 'Üretilen sorular işlenemedi. Lütfen tekrar deneyin.',
+        'ai_session_expired' => 'AI oturumunuzun süresi doldu. Lütfen yeni bir oturum başlatın.',
+        'google_login_failed' => 'Google ile giriş yapılamadı. Lütfen tekrar deneyin.',
+        'account_restricted' => 'Hesabınız kısıtlanmış durumda. Bu sayfaya erişim izniniz yok.',
+        'practice_not_found' => 'Alıştırma bulunamadı',
+        'unauthorized_admin' => 'Yetkisiz erişim. Yönetici yetkisi gerekli.',
+        'unauthorized_teacher' => 'Yetkisiz erişim. Öğretmen yetkisi gerekli.',
+        'unauthorized_school' => 'Yetkisiz erişim. Müzik okulu yetkisi gerekli.',
         'profile_updated' => 'Profil güncellendi.',
         'avatar_updated' => 'Profil fotoğrafı güncellendi.',
         'password_updated' => 'Şifre güncellendi.',
@@ -919,7 +937,7 @@ return [
     ],
     'welcome' => [
         'page_title' => 'Harmoniva - Müzik Kulağınızı Eğitin',
-        'page_description' => 'Yapay zekâ destekli kulak eğitimi egzersizleriyle aralıkları, akorları, gamları ve ritmi ustalıkla öğrenin. Etkileşimli piyano, akıllı analizler ve kişiselleştirilmiş öğrenme yolları.',
+        'page_description' => 'Yapay zekâ destekli kulak eğitimiyle aralıkları, akorları, gamları ve ritmi öğrenin. Etkileşimli piyano, akıllı analizler ve kişisel öğrenme yolları.',
         'nav_features' => 'Özellikler',
         'nav_exercises' => 'Egzersizler',
         'nav_piano' => 'Piyano',
@@ -1120,6 +1138,7 @@ return [
         'how_step3_title' => 'İlerlemenizi Takip Edin',
         'how_step3_desc' => 'Ayrıntılı ilerleme panelinden gelişiminizi izleyin ve çalışma programınızın performansınıza göre kişiselleştirilmesine izin verin.',
         'how_learn_more' => 'Daha fazla bilgi — tam rehber',
+        'plan_learn_more' => 'Ayrıntılı bilgi — tüm özellikler',
         'roles_label' => 'Herkes İçin',
         'roles_title_main' => 'Öğrenciler, Öğretmenler',
         'roles_title_accent' => 've Müzik Okulları',
@@ -1184,6 +1203,11 @@ return [
         'quick_setup' => 'Egzersiz Ayarları',
     ],
     'games' => [
+        'ib_lives_hint' => '3 can. 5’lik seri bir ekstra can kazandırır!',
+        'pts' => 'puan',
+        'top_range' => 'İlk :from – :to',
+        'daily_challenge_task' => 'Note Rush\'ta 500+ puan yap',
+        'skill_focus_value' => 'Porte okuma hızı',
         'cc_intro' => 'Tek bir akoru dinleyin ve niteliğini tanıyın.',
         'cc_all_types' => 'Tüm akor türleri karışık',
         'cc_survive' => 'Dayanabildiğiniz kadar dayanın',
@@ -1719,7 +1743,83 @@ return [
      * geçiyor (profile.interests_options, games.chord_clash…) ama onları yeniden
      * kullanmak bu ekranı ilgisiz değişikliklere bağımlı kılardı.
      */
+    /*
+     * Panel, Öğrenme Yolu ders sayfası ve iki yapay zekâ ekranı. Bu metinler
+     * blade'lere gömülüydü; bu yüzden uygulamanın geri kalanı çevrilmiş olsa da
+     * kullanıcılar burada İngilizce görüyordu.
+     */
+    'home_ui' => [
+        'role_student' => 'Öğrenci',
+        'welcome_sub' => 'Bugün kulak eğitiminizi bir üst seviyeye taşımaya hazır mısınız?',
+        'continue_learning' => 'Öğrenmeye Devam Et',
+        'exercise_setup' => 'Egzersiz Stüdyosu',
+        'ai_exercises' => 'Yapay Zekâ Egzersizleri',
+        'ask_ai' => 'Yapay Zekâya Sor',
+        'piano_studio' => 'Piyano Stüdyosu',
+        'current_streak' => 'Güncel Seri',
+        'total_practice' => 'Toplam Çalışma',
+        'minutes_logged' => 'dakika kaydedildi',
+        'xp_points' => 'XP Puanı',
+        'experience_earned' => 'kazanılan deneyim',
+        'badges' => 'Rozetler',
+        'achievements' => 'başarım',
+        'daily_goal' => 'Bugünkü Çalışma Hedefi',
+        'goal_left' => 'Devam edin! Hedefinize ulaşmanıza :minutes dakika kaldı.',
+        'skill_mastery' => 'Beceri Hâkimiyeti',
+        'view_all' => 'Tümünü Gör',
+        'scales' => 'Gamlar',
+        'intervals' => 'Aralıklar',
+        'ai_coach' => 'Yapay Zekâ Koçu',
+        'generate_plan' => 'Haftalık Plan Oluştur',
+        'quick_actions' => 'Hızlı İşlemler',
+        'continue_path' => 'Öğrenme Yoluna Devam Et',
+        'custom_session' => 'Özel Egzersiz Oturumu',
+        'progress_report' => 'Gelişim Raporunu Gör',
+        'upgrade_premium' => "Premium'a Geç",
+        'learn_more' => 'Daha Fazla Bilgi',
+        // Öğrenme Yolu ders sayfası
+        'lp_title' => 'Öğrenme Yolu',
+        'lp_previous' => 'Önceki',
+        'lp_next' => 'Sonraki',
+        'lp_choose_count' => 'Soru sayısını seçin',
+        'lp_free_note' => "Ücretsiz kullanıcılar her zaman 5 soru çalışabilir. Tam setler için Premium'a geçin.",
+        'lp_free' => 'Ücretsiz',
+        'lp_quick' => 'Hızlı çalışma',
+        'lp_start' => 'Başla',
+        'lp_premium' => 'Premium',
+        'lp_standard' => 'Standart oturum',
+        'lp_unlock' => 'Kilidi Aç',
+        'lp_full' => 'Tam',
+        'lp_full_lesson' => 'Tam ders',
+        'lp_skills' => 'Geliştireceğiniz beceriler',
+        // Yapay zekâ sohbet / koç
+        'ai_ask_title' => 'Yapay Zekâ Müzik Asistanınıza Sorun',
+        'ai_weekly_plan' => 'Kişiselleştirilmiş haftalık plan',
+        'ai_weekly_desc' => 'Yapay zekâ, size özel bir haftalık çalışma planı hazırlamak için çalışma geçmişinizi ve profilinizi analiz eder.',
+        'ai_theory_sub' => 'Müzik teorisi ve kulak eğitimi',
+        'ai_theory_desc' => 'Müzik teorisi ve kulak eğitimi hakkında soru sorun',
+        'your_profile' => 'Profiliniz',
+        'instrument' => 'Çalgı',
+        'level' => 'Seviye',
+        'weekly_practice' => 'Haftalık Çalışma',
+        'my_progress' => 'İlerlemem',
+        'progress_sub' => 'Kulak eğitimi yolculuğunuzu takip edin, ne kadar yol aldığınızı görün',
+        'sessions' => 'Oturum',
+        'accuracy' => 'Doğruluk',
+        'questions' => 'Soru',
+    ],
+
     'setup_ui' => [
+        'triads_sus' => 'Üçlüler & Sus',
+        'seventh_chords' => '7\'li Akorlar',
+        'voicing_block' => 'Blok',
+        'voicing_arpeggio' => 'Arpej',
+        'clef_hint_treble_oct' => 'Sol Anahtarı — 4–5. oktavlar',
+        'clef_hint_bass_oct' => 'Fa Anahtarı — 2–3. oktavlar',
+        'clef_hint_alto_oct' => 'Do Anahtarı — 3–4. oktavlar',
+        'clef_hint_treble_range' => 'Sol Anahtarı — G3 – E5',
+        'clef_hint_bass_range' => 'Fa Anahtarı — C2 – C4',
+        'clef_hint_alto_range' => 'Do Anahtarı — C3 – C5',
         'studio_title' => 'Egzersiz Oluşturma Stüdyosu',
         // Sol kolon — egzersiz kategorileri
         'cat_intervals' => 'Aralıklar',
@@ -1806,8 +1906,63 @@ return [
         'oct' => 'Okt ',
     ],
 
+    /*
+     * Canonical chord/scale type name => on-screen label.
+     *
+     * The keys are the exact ChordPractice::chordIntervals() /
+     * ScalePractice::scaleIntervals() names and must never be translated —
+     * the generator, session configs and data-answer attributes all use them.
+     * Only the values change per locale. Read via music_label() / the
+     * music_label_map() bridge for inline scripts; an unlisted type falls back
+     * to its canonical English spelling.
+     */
+    'music' => [
+        'chord' => [
+            'Major' => 'Majör',
+            'Minor' => 'Minör',
+            'Diminished' => 'Eksilmiş',
+            'Augmented' => 'Artmış',
+            'Sus2' => 'Sus2',
+            'Sus4' => 'Sus4',
+            'Major 7th' => 'Majör 7\'li',
+            'Dominant 7th' => 'Dominant 7\'li',
+            'Minor 7th' => 'Minör 7\'li',
+            'Minor Major 7th' => 'Minör Majör 7\'li',
+            'Half-Diminished 7th' => 'Yarı Eksilmiş 7\'li',
+            'Half Diminished' => 'Yarı Eksilmiş',
+            'Diminished 7th' => 'Eksilmiş 7\'li',
+            'Augmented 7th' => 'Artmış 7\'li',
+            'Major 6th' => 'Majör 6\'lı',
+            'Minor 6th' => 'Minör 6\'lı',
+            'Add9' => 'Add9',
+            'Minor Add9' => 'Minör Add9',
+        ],
+
+        'scale' => [
+            'Major' => 'Majör',
+            'Natural Minor' => 'Doğal Minör',
+            'Harmonic Minor' => 'Armonik Minör',
+            'Melodic Minor' => 'Melodik Minör',
+            'Ionian' => 'İyonyen',
+            'Dorian' => 'Doryen',
+            'Phrygian' => 'Frigyen',
+            'Lydian' => 'Lidyen',
+            'Mixolydian' => 'Miksolidyen',
+            'Aeolian' => 'Eoliyen',
+            'Locrian' => 'Lokriyen',
+            'Major Pentatonic' => 'Majör Pentatonik',
+            'Minor Pentatonic' => 'Minör Pentatonik',
+            'Blues Scale' => 'Blues Gamı',
+            'Chromatic Scale' => 'Kromatik Gam',
+            'Whole Tone Scale' => 'Tam Ton Gamı',
+            'Pentatonic' => 'Pentatonik',
+            'Blues' => 'Blues',
+        ],
+    ],
+
     'practice_ui' => [
         'common' => [
+            'key_space' => 'Boşluk',
             'play' => 'Çal',
             'next' => 'İleri',
             'finish' => 'Bitir',

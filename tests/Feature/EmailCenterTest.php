@@ -8,10 +8,14 @@ use App\Models\EmailEvent;
 use App\Models\EmailMessage;
 use App\Models\EmailSuppression;
 use App\Models\EmailTemplate;
+use App\Models\ExerciseSession;
+use App\Models\SchoolTeacherRelationship;
 use App\Models\SupportConversation;
+use App\Models\TeacherStudentRelationship;
 use App\Models\User;
 use App\Services\EmailCenter\AutomationEngine;
 use App\Services\EmailCenter\EmailDispatchService;
+use App\Services\EmailCenter\EmailTemplateLibrary;
 use App\Services\EmailCenter\SegmentBuilder;
 use App\Services\EmailCenter\SesEventProcessor;
 use App\Services\EmailCenter\SesStatusService;
@@ -374,6 +378,128 @@ class EmailCenterTest extends TestCase
         // One notice per granted trial.
         app(AutomationEngine::class)->run();
         $this->assertEquals(3, EmailMessage::where('automation_id', $automation->id)->count());
+    }
+
+    // --- Audience fan-out ---
+
+    public function test_automation_sends_each_audience_its_own_template_variant(): void
+    {
+        $base = $this->makeTemplate(['slug' => 'welcome']);
+        EmailTemplate::create(['name' => 'T', 'slug' => 'welcome-teacher', 'subject' => 'T', 'html_body' => '<p>t</p>', 'category' => 'marketing', 'is_active' => true]);
+        EmailTemplate::create(['name' => 'S', 'slug' => 'welcome-school', 'subject' => 'S', 'html_body' => '<p>s</p>', 'category' => 'marketing', 'is_active' => true]);
+
+        EmailAutomation::create([
+            'key' => 'welcome', 'name' => 'Welcome', 'template_id' => $base->id,
+            'enabled' => true, 'config' => ['delay_hours' => 1],
+        ]);
+
+        $student = $this->makeVerifiedUser(['created_at' => now()->subHours(2)]);
+        $teacher = $this->makeVerifiedUser(['role' => 'teacher', 'created_at' => now()->subHours(2)]);
+        $school = $this->makeVerifiedUser(['role' => 'school', 'created_at' => now()->subHours(2)]);
+
+        app(AutomationEngine::class)->run();
+
+        $slugOf = fn (User $u) => EmailMessage::where('user_id', $u->id)->first()?->template?->slug;
+
+        $this->assertSame('welcome', $slugOf($student));
+        $this->assertSame('welcome-teacher', $slugOf($teacher));
+        $this->assertSame('welcome-school', $slugOf($school));
+    }
+
+    public function test_first_step_reminder_asks_each_audience_for_its_own_first_step(): void
+    {
+        $automation = EmailAutomation::create([
+            'key' => 'first_exercise_reminder', 'name' => 'First step',
+            'template_id' => $this->makeTemplate()->id, 'enabled' => true,
+            'config' => ['delay_days' => 2],
+        ]);
+
+        $old = ['created_at' => now()->subDays(5)];
+
+        // Due: nothing to show for themselves yet.
+        $idleStudent = $this->makeVerifiedUser($old);
+        $teacherWithoutStudents = $this->makeVerifiedUser($old + ['role' => 'teacher']);
+        $schoolWithoutTeachers = $this->makeVerifiedUser($old + ['role' => 'school']);
+
+        // Not due: already took the first step.
+        $practisingStudent = $this->makeVerifiedUser($old);
+        ExerciseSession::create([
+            'user_id' => $practisingStudent->id,
+            'exercise_type' => 'single-note-practice',
+            'settings_json' => [],
+        ]);
+
+        $teacherWithStudents = $this->makeVerifiedUser($old + ['role' => 'teacher']);
+        TeacherStudentRelationship::create([
+            'teacher_id' => $teacherWithStudents->id,
+            'student_id' => $idleStudent->id,
+            'status' => TeacherStudentRelationship::STATUS_ACTIVE,
+        ]);
+
+        $schoolWithTeachers = $this->makeVerifiedUser($old + ['role' => 'school']);
+        SchoolTeacherRelationship::create([
+            'school_id' => $schoolWithTeachers->id,
+            'teacher_id' => $teacherWithStudents->id,
+            'status' => SchoolTeacherRelationship::STATUS_ACTIVE,
+        ]);
+
+        app(AutomationEngine::class)->run();
+
+        $got = fn (User $u) => EmailMessage::where('automation_id', $automation->id)->where('user_id', $u->id)->exists();
+
+        $this->assertTrue($got($idleStudent));
+        $this->assertTrue($got($teacherWithoutStudents));
+        $this->assertTrue($got($schoolWithoutTeachers));
+
+        $this->assertFalse($got($practisingStudent));
+        $this->assertFalse($got($teacherWithStudents));
+        $this->assertFalse($got($schoolWithTeachers));
+    }
+
+    public function test_audience_scope_partitions_every_user_exactly_once(): void
+    {
+        $this->makeVerifiedUser();
+        $this->makeVerifiedUser(['role' => 'teacher']);
+        $this->makeVerifiedUser(['role' => 'school']);
+
+        $total = User::count();
+        $sum = collect(AutomationEngine::AUDIENCES)
+            ->sum(fn ($audience) => User::forEmailAudience($audience)->count());
+
+        $this->assertSame($total, $sum);
+
+        // and the SQL scope agrees with the PHP accessor for every account
+        foreach (User::with('teacherProfile')->get() as $user) {
+            $this->assertTrue(
+                User::forEmailAudience($user->emailAudience())->whereKey($user->id)->exists(),
+                "User {$user->id} is not in its own emailAudience() bucket"
+            );
+        }
+    }
+
+    public function test_system_templates_are_translated_into_every_supported_locale(): void
+    {
+        $records = app(EmailTemplateLibrary::class)->templateRecords();
+
+        // 9 lifecycle automations × student/teacher/school
+        $this->assertCount(27, $records);
+
+        foreach ($records as $record) {
+            foreach (EmailTemplate::LOCALES as $locale) {
+                if ($locale === 'en') {
+                    $this->assertNotSame('', trim($record['subject']), "{$record['slug']} has no English subject");
+
+                    continue;
+                }
+
+                $translation = $record['translations'][$locale] ?? null;
+                $this->assertNotNull($translation, "{$record['slug']} is missing the {$locale} translation");
+
+                // an untranslated key leaks through as the raw "email.foo.bar" path
+                $this->assertStringNotContainsString('email.', $translation['subject'], "{$record['slug']} [{$locale}] subject has an unresolved lang key");
+                $this->assertStringNotContainsString('email.', $translation['html_body'], "{$record['slug']} [{$locale}] body has an unresolved lang key");
+            }
+        }
     }
 
     public function test_trial_ended_automation_skips_users_who_converted_to_paid(): void

@@ -23,6 +23,7 @@ return [
     ],
 
     'profile' => [
+        'seo_description_fallback' => 'Harmoniva\'da :name — her seviyeye uygun müzik dersleri, öğretmenler ve kulak eğitimi.',
         'title' => 'Okul Profili',
         'subtitle' => 'Herkese açık okul profilinizi yönetin.',
     ],

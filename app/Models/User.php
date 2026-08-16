@@ -6,6 +6,7 @@ use App\Notifications\Auth\VerifyEmailLocalized;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -188,6 +189,31 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         }
 
         return 'student';
+    }
+
+    /**
+     * The SQL twin of emailAudience(): restrict a query to one email audience.
+     * AutomationEngine partitions its recipients with this so each audience can
+     * be targeted by its own conditions and mailed with its own template
+     * variant. The three branches are mutually exclusive and together cover
+     * every account, so no user can be picked up twice or dropped.
+     *
+     * Named forEmailAudience rather than emailAudience: a scope shares the
+     * class's static call space, and the instance method above would shadow it.
+     */
+    public function scopeForEmailAudience(Builder $query, string $audience): Builder
+    {
+        $isSchool = fn (Builder $q) => $q->where('role', 'school')
+            ->orWhereHas('teacherProfile', fn ($p) => $p->where('entity_type', TeacherProfile::ENTITY_SCHOOL));
+
+        $isTeacher = fn (Builder $q) => $q->where('role', 'teacher')->orWhereHas('teacherProfile');
+
+        return match ($audience) {
+            'school' => $query->where($isSchool),
+            // schools win over teacher, so a school-entity profile is excluded here
+            'teacher' => $query->where($isTeacher)->whereNot($isSchool),
+            default => $query->whereNot($isTeacher)->whereNot($isSchool),
+        };
     }
 
     /**
@@ -535,6 +561,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function teacherRelationships(): HasMany
     {
         return $this->hasMany(TeacherStudentRelationship::class, 'student_id');
+    }
+
+    /** Relationships where this user is the school holding the teachers. */
+    public function schoolTeacherRelationships(): HasMany
+    {
+        return $this->hasMany(SchoolTeacherRelationship::class, 'school_id');
     }
 
     public function teacherSubscriptionBenefits(): HasMany

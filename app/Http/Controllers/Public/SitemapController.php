@@ -67,11 +67,23 @@ class SitemapController extends Controller
         // own <url> per locale with the full hreflang alternate set (see the
         // sitemap view). Their English paths are dropped from STATIC_PATHS below
         // so they are never listed twice.
-        $localizedPaths = array_keys((array) config('locales.public_pages'));
+        // A locale is listed only once it actually has the page's translation:
+        // an untranslated /{locale} URL is English copy at a second address, so
+        // submitting it invites Google to fold it into the English page and log
+        // a "Duplicate, Google chose a different canonical" error. The page's own
+        // <head> canonicalises it to English for the same reason.
+        // Blog posts live in their own registry but are localized on exactly the
+        // same terms, so they join the same hreflang-carrying URL set.
+        $localizedPaths = array_merge(
+            array_keys((array) config('locales.public_pages')),
+            array_map(fn (string $slug) => '/blog/'.$slug, array_keys((array) config('blog.posts')))
+        );
         $localizedUrls = array_map(function (string $path) {
             $set = ['en' => locale_url($path, 'en')];
             foreach (config('locales.prefixed') as $locale) {
-                $set[$locale] = locale_url($path, $locale);
+                if (locale_page_translated($path, $locale)) {
+                    $set[$locale] = locale_url($path, $locale);
+                }
             }
 
             return $set;
@@ -104,10 +116,18 @@ class SitemapController extends Controller
             ]
         );
 
-        $lessonUrls = LearningPathExercise::where('is_active', true)
+        // Lessons carry a real <lastmod>: their copy and config genuinely change
+        // when the curriculum is revised, so it is worth telling crawlers. Static
+        // marketing pages deliberately get none — a made-up timestamp is worse
+        // than no timestamp, because Google stops trusting the whole file.
+        $lessons = LearningPathExercise::where('is_active', true)
+            ->select(['slug', 'updated_at'])
             ->orderBy('slug')
-            ->pluck('slug')
-            ->map(fn (string $slug) => route('learning-path.show', $slug))
+            ->get()
+            ->map(fn (LearningPathExercise $lesson) => [
+                'loc' => route('learning-path.show', $lesson->slug),
+                'lastmod' => $lesson->updated_at?->toAtomString(),
+            ])
             ->all();
 
         // Only approved, publicly visible teacher profiles are listed —
@@ -120,7 +140,8 @@ class SitemapController extends Controller
         $xml = view('sitemap', [
             'landingUrls' => $landingUrls,
             'localizedUrls' => $localizedUrls,
-            'staticUrls' => array_merge($staticUrls, $practiceUrls, $lessonUrls),
+            'staticUrls' => array_merge($staticUrls, $practiceUrls),
+            'lessons' => $lessons,
             'articles' => $articles,
             'gameUrls' => $gameUrls,
             'profiles' => $profiles,

@@ -231,10 +231,10 @@
             <form method="POST" action="{{ crm_route('students.rewards.store', $student) }}" class="space-y-2 mb-4">
                 @csrf
                 <select name="type" class="w-full rounded-lg border-gray-300 text-sm">
-                    <option value="sticker">Sticker 🌟</option>
-                    <option value="badge">Badge 🏅</option>
-                    <option value="label">Encouragement 💬</option>
-                    <option value="milestone">Milestone 🏆</option>
+                    <option value="sticker">{{ crm_trans('students.profile.reward_type_sticker') }}</option>
+                    <option value="badge">{{ crm_trans('students.profile.reward_type_badge') }}</option>
+                    <option value="label">{{ crm_trans('students.profile.reward_type_encouragement') }}</option>
+                    <option value="milestone">{{ crm_trans('students.profile.reward_type_milestone') }}</option>
                 </select>
                 <input type="text" name="label" required maxlength="100" placeholder="{{ crm_trans($p.'.reward_label') }}" class="w-full rounded-lg border-gray-300 text-sm">
                 <input type="text" name="note" maxlength="500" placeholder="{{ crm_trans($p.'.reward_note') }}" class="w-full rounded-lg border-gray-300 text-sm">

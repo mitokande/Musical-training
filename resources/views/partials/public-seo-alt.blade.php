@@ -1,33 +1,46 @@
 {{--
     Per-locale canonical + hreflang alternates for full-HTML public pages that
-    do NOT extend layouts.standalone (they have their own <head>). Mirrors the
-    logic baked into layouts/standalone.blade.php. Include it inside <head>;
-    it also exposes $seoCanonical for the page's og:url / twitter meta.
-    Only pages listed in config('locales.public_pages') advertise alternates.
+    do NOT extend layouts.standalone (they have their own <head>). Include it
+    inside <head>.
+
+    Everything here comes from App\Services\Seo\PublicPageSeo, shared by the view
+    composer in AppServiceProvider — the same values layouts/standalone renders,
+    so the two can never disagree. $seoCanonical / $seoHtmlLang / $seoOgLocale are
+    available to the including page for its own og:url and <html lang>.
 --}}
-@php
-    $seoPrefixed = config('locales.prefixed');
-    $seoPublicPages = array_keys((array) config('locales.public_pages'));
-    $seoSegments = request()->segments();
-    $seoBasePath = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
-        ? '/'.implode('/', array_slice($seoSegments, 1))
-        : '/'.implode('/', $seoSegments);
-    $seoBasePath = rtrim($seoBasePath, '/') ?: '/';
-    $seoIsLocalized = in_array($seoBasePath, $seoPublicPages, true);
-    // Canonical/hreflang locale comes from the URL itself, never app()->getLocale()
-    // (which an IP guess can pollute) — so the un-prefixed English URL always
-    // canonicalises to itself, not to /de.
-    $seoCurrentLocale = (isset($seoSegments[0]) && in_array($seoSegments[0], $seoPrefixed, true))
-        ? $seoSegments[0]
-        : 'en';
-    $seoCanonical = locale_url($seoBasePath, $seoIsLocalized ? $seoCurrentLocale : 'en');
-    $seoOgLocales = config('locales.og');
-@endphp
 <link rel="canonical" href="{{ $seoCanonical }}">
-@if ($seoIsLocalized)
-<link rel="alternate" hreflang="en" href="{{ locale_url($seoBasePath, 'en') }}">
-@foreach ($seoPrefixed as $seoAltLocale)
-<link rel="alternate" hreflang="{{ $seoAltLocale }}" href="{{ locale_url($seoBasePath, $seoAltLocale) }}">
+@foreach ($seoAlternates as $seoAltLocale => $seoAltUrl)
+<link rel="alternate" hreflang="{{ $seoAltLocale }}" href="{{ $seoAltUrl }}">
 @endforeach
-<link rel="alternate" hreflang="x-default" href="{{ locale_url($seoBasePath, 'en') }}">
+@if ($seoAlternates !== [])
+<link rel="alternate" hreflang="x-default" href="{{ $seoAlternates['en'] }}">
 @endif
+@php
+    // Same WebPage node layouts/standalone emits, for the pages that bring their
+    // own <head>. Without it these URLs carried no machine-readable language and
+    // two of them (piano-studio, pricing/teachers-and-schools) had no structured
+    // data at all. Built inside @php so Blade does not eat the "@context" key.
+    $seoWebPageJsonLd = json_encode(array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'WebPage',
+        '@id' => $seoCanonical.'#webpage',
+        'url' => $seoCanonical,
+        'name' => $seoPageTitle ?? null,
+        'description' => $seoPageDescription ?? null,
+        'inLanguage' => $seoHtmlLang,
+        'isPartOf' => [
+            '@type' => 'WebSite',
+            '@id' => url('/').'#website',
+            'name' => 'Harmoniva',
+            'url' => url('/'),
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            '@id' => url('/').'#organization',
+            'name' => 'Harmoniva',
+            'url' => url('/'),
+            'logo' => asset('images/logo-full.png'),
+        ],
+    ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+<script type="application/ld+json">{!! $seoWebPageJsonLd !!}</script>

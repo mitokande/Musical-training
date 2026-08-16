@@ -135,7 +135,7 @@ class PageController extends Controller
         session(['ai_session_config' => $sessionConfig]);
 
         // Redirect to the practice session (placeholder for now)
-        return redirect()->route('ai.exercises')->with('success', 'AI Practice session configuration saved!');
+        return redirect()->route('ai.exercises')->with('success', __('app.messages.ai_session_saved'));
     }
 
     public function practiceView($slug)
@@ -219,7 +219,7 @@ class PageController extends Controller
         $practiceClass = $practiceMap[$slug] ?? null;
 
         if (! $practiceClass) {
-            abort(404, 'Practice not found');
+            abort(404, __('app.messages.practice_not_found'));
         }
 
         $practices = $practiceClass::inRandomOrder()->get();
@@ -313,7 +313,7 @@ class PageController extends Controller
 
         if (! $questions || empty($questions)) {
             // No questions in session, redirect back to AI exercises page
-            return redirect()->route('ai.exercises')->with('error', 'No practice questions generated. Please try again.');
+            return redirect()->route('ai.exercises')->with('error', __('app.messages.ai_no_questions_generated'));
         }
 
         // Clear session after retrieving
@@ -323,7 +323,7 @@ class PageController extends Controller
         $practices = $this->convertAIQuestionsToPractices($questions);
 
         if ($practices->isEmpty()) {
-            return redirect()->route('ai.exercises')->with('error', 'Could not process the generated questions. Please try again.');
+            return redirect()->route('ai.exercises')->with('error', __('app.messages.ai_process_failed'));
         }
 
         return view('practice-mixed', [
@@ -343,7 +343,7 @@ class PageController extends Controller
     public function aiDictationPracticeView()
     {
         if (! session()->has('ai_dictation_settings')) {
-            return redirect()->route('ai.exercises')->with('error', 'Your AI session has expired. Please start a new session.');
+            return redirect()->route('ai.exercises')->with('error', __('app.messages.ai_session_expired'));
         }
 
         return view('practice-ai-dictation', ['practices' => []]);

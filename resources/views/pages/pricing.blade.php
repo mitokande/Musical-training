@@ -3,6 +3,49 @@
 @section('title', __('pages.pricing.meta_title'))
 @section('description', __('pages.pricing.meta_description'))
 
+@section('structured-data')
+    {{-- The pricing page shipped no structured data at all, so its plans and
+         prices were invisible to rich results. The figures below are duplicated
+         from the content section, which renders into the body while this block
+         renders into <head> — keep the two in step.
+         NB: never write a literal at-php or at-endphp inside a Blade comment.
+         Blade lifts raw PHP blocks out before it strips comments, so the word
+         alone opens a block here and swallows everything up to the next real
+         at-endphp — which is how this section silently ate the page once. --}}
+    @php
+        $pricingCurrency = config('payments.currency', 'USD');
+        $pricingJsonLd = json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => 'Harmoniva Premium',
+            'description' => __('pages.pricing.meta_description'),
+            'inLanguage' => $seoHtmlLang,
+            'brand' => ['@type' => 'Brand', 'name' => 'Harmoniva'],
+            'url' => $seoCanonical,
+            'image' => asset('images/og-image.png'),
+            'offers' => [
+                [
+                    '@type' => 'Offer',
+                    'name' => __('pages.pricing.premium_badge').' — '.__('pages.pricing.billing_monthly'),
+                    'price' => '6.90',
+                    'priceCurrency' => $pricingCurrency,
+                    'availability' => 'https://schema.org/InStock',
+                    'url' => $seoCanonical,
+                ],
+                [
+                    '@type' => 'Offer',
+                    'name' => __('pages.pricing.premium_badge').' — '.__('pages.pricing.billing_yearly'),
+                    'price' => '40.00',
+                    'priceCurrency' => $pricingCurrency,
+                    'availability' => 'https://schema.org/InStock',
+                    'url' => $seoCanonical,
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <script type="application/ld+json">{!! $pricingJsonLd !!}</script>
+@endsection
+
 @section('content')
 
 @php
@@ -254,7 +297,7 @@
                 </div>
             </div>
             <div class="relative mt-8 text-center md:text-left">
-                <a href="{{ route('pricing.teachers') }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-gray-900 bg-white rounded-xl hover:bg-gray-100 transition-all shadow-lg">
+                <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-gray-900 bg-white rounded-xl hover:bg-gray-100 transition-all shadow-lg">
                     <i data-lucide="graduation-cap" class="w-4 h-4"></i>
                     {{ __('pages.pricing.teaser_cta') }}
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>

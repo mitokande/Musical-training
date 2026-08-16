@@ -50,12 +50,22 @@ class EmailTemplateLibrary
 
             // Teacher audience variants
             $this->def('Welcome — Teacher', 'welcome-teacher', 'welcome_teacher', 'marketing', $this->welcomeTeacherBody($locale), $locale),
+            $this->def('First Exercise Reminder — Teacher', 'first-exercise-reminder-teacher', 'first_exercise_teacher', 'marketing', $this->firstExerciseTeacherBody($locale), $locale),
+            $this->def('Learning Path Reminder — Teacher', 'learning-path-reminder-teacher', 'learning_path_teacher', 'marketing', $this->learningPathTeacherBody($locale), $locale),
+            $this->def('Weekly Progress — Teacher', 'weekly-progress-teacher', 'weekly_progress_teacher', 'marketing', $this->weeklyProgressTeacherBody($locale), $locale, ['weekly_students', 'weekly_sessions', 'weekly_accuracy', 'weekly_assignments']),
+            $this->def('Re-engagement — Teacher', 're-engagement-teacher', 're_engagement_teacher', 'marketing', $this->reEngagementTeacherBody($locale), $locale),
+            $this->def('Premium Upsell — Teacher', 'premium-upsell-teacher', 'premium_upsell_teacher', 'marketing', $this->premiumUpsellTeacherBody($locale), $locale),
             $this->def('Premium Intro — Teacher', 'premium-intro-teacher', 'premium_intro_teacher', 'marketing', $this->premiumIntroTeacherBody($locale), $locale),
             $this->def('Trial Ending — Teacher', 'trial-ending-teacher', 'trial_ending_teacher', 'transactional', $this->trialEndingTeacherBody($locale), $locale, ['trial_days_left', 'trial_ends_on']),
             $this->def('Trial Ended — Teacher', 'trial-ended-teacher', 'trial_ended_teacher', 'transactional', $this->trialEndedTeacherBody($locale), $locale, ['trial_days_left', 'trial_ends_on']),
 
             // School audience variants
             $this->def('Welcome — School', 'welcome-school', 'welcome_school', 'marketing', $this->welcomeSchoolBody($locale), $locale),
+            $this->def('First Exercise Reminder — School', 'first-exercise-reminder-school', 'first_exercise_school', 'marketing', $this->firstExerciseSchoolBody($locale), $locale),
+            $this->def('Learning Path Reminder — School', 'learning-path-reminder-school', 'learning_path_school', 'marketing', $this->learningPathSchoolBody($locale), $locale),
+            $this->def('Weekly Progress — School', 'weekly-progress-school', 'weekly_progress_school', 'marketing', $this->weeklyProgressSchoolBody($locale), $locale, ['weekly_teachers', 'weekly_students', 'weekly_sessions', 'weekly_accuracy']),
+            $this->def('Re-engagement — School', 're-engagement-school', 're_engagement_school', 'marketing', $this->reEngagementSchoolBody($locale), $locale),
+            $this->def('Premium Upsell — School', 'premium-upsell-school', 'premium_upsell_school', 'marketing', $this->premiumUpsellSchoolBody($locale), $locale),
             $this->def('Premium Intro — School', 'premium-intro-school', 'premium_intro_school', 'marketing', $this->premiumIntroSchoolBody($locale), $locale),
             $this->def('Trial Ending — School', 'trial-ending-school', 'trial_ending_school', 'transactional', $this->trialEndingSchoolBody($locale), $locale, ['trial_days_left', 'trial_ends_on']),
             $this->def('Trial Ended — School', 'trial-ended-school', 'trial_ended_school', 'transactional', $this->trialEndedSchoolBody($locale), $locale, ['trial_days_left', 'trial_ends_on']),
@@ -495,6 +505,162 @@ HTML;
     // --- Shared body scaffolds ----------------------------------------------
 
     /** @param  array<int, string>  $paragraphs */
+    // --- Audience-variant lifecycle bodies ----------------------------------
+    //
+    // The five practice-shaped automations (first exercise, learning path,
+    // weekly digest, re-engagement, upsell) address teachers and schools about
+    // the people they look after rather than their own practice, so each has a
+    // teacher and a school variant. They share three shapes, below.
+
+    private function firstExerciseTeacherBody(string $l): string
+    {
+        return $this->nudgeBody('first_exercise_teacher', '👥', '{{dashboard_url}}', $l);
+    }
+
+    private function firstExerciseSchoolBody(string $l): string
+    {
+        return $this->nudgeBody('first_exercise_school', '🏫', '{{dashboard_url}}', $l);
+    }
+
+    private function learningPathTeacherBody(string $l): string
+    {
+        return $this->nudgeBody('learning_path_teacher', '📋', '{{dashboard_url}}', $l);
+    }
+
+    private function learningPathSchoolBody(string $l): string
+    {
+        return $this->nudgeBody('learning_path_school', '📋', '{{dashboard_url}}', $l);
+    }
+
+    private function reEngagementTeacherBody(string $l): string
+    {
+        return $this->nudgeBody('re_engagement_teacher', '🎓', '{{dashboard_url}}', $l, note: false);
+    }
+
+    private function reEngagementSchoolBody(string $l): string
+    {
+        return $this->nudgeBody('re_engagement_school', '🏫', '{{dashboard_url}}', $l, note: false);
+    }
+
+    private function weeklyProgressTeacherBody(string $l): string
+    {
+        return $this->statsBody('weekly_progress_teacher', $l, [
+            ['👥', '#7c3aed', '#f5f3ff', '{{weekly_students}}', 'm1'],
+            ['🎯', '#059669', '#ecfdf5', '{{weekly_sessions}}', 'm2'],
+            ['✅', '#ea580c', '#fff7ed', '{{weekly_accuracy}}', 'm3'],
+        ]);
+    }
+
+    private function weeklyProgressSchoolBody(string $l): string
+    {
+        return $this->statsBody('weekly_progress_school', $l, [
+            ['👨‍🏫', '#7c3aed', '#f5f3ff', '{{weekly_teachers}}', 'm1'],
+            ['👥', '#059669', '#ecfdf5', '{{weekly_students}}', 'm2'],
+            ['🎯', '#ea580c', '#fff7ed', '{{weekly_sessions}}', 'm3'],
+        ]);
+    }
+
+    private function premiumUpsellTeacherBody(string $l): string
+    {
+        return $this->upsellBody('premium_upsell_teacher', $l, [
+            ['📅', '#ecfdf5'], ['✍️', '#fef3c7'], ['⭐', '#f3e8ff'],
+        ]);
+    }
+
+    private function premiumUpsellSchoolBody(string $l): string
+    {
+        return $this->upsellBody('premium_upsell_school', $l, [
+            ['🏫', '#eff6ff'], ['👨‍🏫', '#f3e8ff'], ['📊', '#ecfdf5'],
+        ]);
+    }
+
+    /**
+     * Nudge shape: emoji, heading, greeting, one paragraph, CTA and an optional
+     * closing note. Shared by the first-step, learning-path and re-engagement
+     * reminders — re-engagement carries no note.
+     */
+    private function nudgeBody(string $p, string $emoji, string $url, string $l, bool $note = true): string
+    {
+        $button = $this->button($url, $this->t($p.'.btn', $l), $this->t($p.'.btn_sub', $l));
+        $title = $this->t($p.'.title', $l);
+        $hi = $this->hi($l);
+        $p1 = $this->t($p.'.p1', $l);
+        $noteHtml = $note
+            ? '<p style="color:#6b7280;font-size:13.5px;text-align:center;">'.$this->t($p.'.p2', $l).'</p>'
+            : '';
+
+        return <<<HTML
+<div style="text-align:center;font-size:40px;margin-bottom:6px;">{$emoji}</div>
+<h1 style="margin:0 0 14px;color:#111827;font-size:22px;text-align:center;">{$title}</h1>
+{$hi}
+<p>{$p1}</p>
+{$button}
+{$noteHtml}
+HTML;
+    }
+
+    /**
+     * Weekly-digest shape: three stat tiles over a CTA. Each tile is
+     * [emoji, figure colour, tile background, {{variable}}, label lang key].
+     *
+     * @param  array<int, array{0:string,1:string,2:string,3:string,4:string}>  $tiles
+     */
+    private function statsBody(string $p, string $l, array $tiles): string
+    {
+        $cells = [];
+        foreach ($tiles as [$emoji, $color, $bg, $var, $labelKey]) {
+            $label = $this->t($p.'.'.$labelKey, $l);
+            $cells[] = <<<HTML
+<td align="center" width="33%" style="padding:18px 8px;background:{$bg};border-radius:14px;">
+            <div style="font-size:22px;margin-bottom:4px;">{$emoji}</div>
+            <div style="font-size:26px;font-weight:800;color:{$color};">{$var}</div>
+            <div style="font-size:12px;color:#6b7280;">{$label}</div>
+        </td>
+HTML;
+        }
+
+        $row = implode("\n        <td style=\"width:10px;\"></td>\n        ", $cells);
+        $button = $this->button('{{dashboard_url}}', $this->t($p.'.btn', $l), $this->t($p.'.btn_sub', $l));
+        $title = $this->t($p.'.title', $l);
+        $subtitle = $this->t($p.'.subtitle', $l);
+
+        return <<<HTML
+<div style="text-align:center;font-size:40px;margin-bottom:6px;">📈</div>
+<h1 style="margin:0 0 6px;color:#111827;font-size:22px;text-align:center;">{$title}</h1>
+<p style="text-align:center;color:#6b7280;margin:0 0 20px;">{$subtitle}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+    <tr>
+        {$row}
+    </tr>
+</table>
+{$button}
+HTML;
+    }
+
+    /**
+     * Upsell shape: gold badge, heading, three feature rows, CTA and a closing
+     * line. Each feature is [emoji, badge background].
+     *
+     * @param  array<int, array{0:string,1:string}>  $features
+     */
+    private function upsellBody(string $p, string $l, array $features): string
+    {
+        $rows = '';
+        foreach ($features as $i => [$emoji, $bg]) {
+            $n = $i + 1;
+            $rows .= $this->feature($emoji, $this->t($p.'.f'.$n.'_t', $l), $this->t($p.'.f'.$n.'_d', $l), $bg);
+        }
+
+        return $this->audiencePremium(
+            $this->t($p.'.badge', $l),
+            $this->t($p.'.title', $l),
+            $this->t($p.'.subtitle', $l),
+            $rows,
+            $this->button('{{premium_url}}', $this->t($p.'.btn', $l), $this->t($p.'.btn_sub', $l)),
+            $this->t($p.'.p2', $l),
+        );
+    }
+
     private function trialLayout(string $emoji, string $title, string $locale, array $paragraphs, string $button): string
     {
         $hi = $this->hi($locale);
@@ -543,14 +709,44 @@ HTML;
     // --- Layout -------------------------------------------------------------
 
     /**
+     * A fully-rendered, standalone transactional email — activation, password
+     * reset and friends. These go out through Laravel notifications rather than
+     * the Email Center pipeline, so there is no EmailMessage and no tracking
+     * token: the marketing footer is dropped (they are service mail, never
+     * unsubscribable) and the layout placeholders are resolved here instead of
+     * by TemplateRenderer.
+     */
+    public function standaloneHtml(string $content, string $preheader, string $locale): string
+    {
+        return strtr($this->layout($content, $preheader, $locale, marketingFooter: false), [
+            '{{app_name}}' => (string) config('app.name'),
+            '{{app_url}}' => rtrim((string) config('app.url'), '/'),
+            '{{current_year}}' => date('Y'),
+        ]);
+    }
+
+    /**
      * Wrap body content in the branded, responsive email shell. Footer carries
      * the copyright, unsubscribe link and the email-preferences link — all
-     * localised for the recipient.
+     * localised for the recipient. Transactional mail sent outside the Email
+     * Center pipeline passes $marketingFooter = false: it has no tracking token
+     * to build those links from, and service mail must not offer an opt-out.
      */
-    public function layout(string $content, string $preheader = '', string $locale = 'en'): string
+    public function layout(string $content, string $preheader = '', string $locale = 'en', bool $marketingFooter = true): string
     {
-        $managePrefs = $this->t('footer.manage_prefs', $locale);
-        $unsubscribe = $this->t('footer.unsubscribe', $locale);
+        $footerLinks = '';
+
+        if ($marketingFooter) {
+            $managePrefs = $this->t('footer.manage_prefs', $locale);
+            $unsubscribe = $this->t('footer.unsubscribe', $locale);
+
+            $footerLinks = <<<HTML
+<br>
+    <a href="{{preferences_url}}" style="color:#7c3aed;text-decoration:none;font-weight:600;">{$managePrefs}</a>
+    &nbsp;·&nbsp;
+    <a href="{{unsubscribe_url}}" style="color:#9ca3af;text-decoration:underline;">{$unsubscribe}</a>
+HTML;
+        }
 
         return <<<HTML
 <!DOCTYPE html>
@@ -578,10 +774,7 @@ HTML;
 </td></tr>
 
 <tr><td style="padding:22px 20px 8px;text-align:center;font-size:12px;color:#9ca3af;line-height:1.8;">
-    © {{current_year}} {{app_name}} · <a href="{{app_url}}" style="color:#9ca3af;text-decoration:none;">harmoniva.app</a><br>
-    <a href="{{preferences_url}}" style="color:#7c3aed;text-decoration:none;font-weight:600;">{$managePrefs}</a>
-    &nbsp;·&nbsp;
-    <a href="{{unsubscribe_url}}" style="color:#9ca3af;text-decoration:underline;">{$unsubscribe}</a>
+    © {{current_year}} {{app_name}} · <a href="{{app_url}}" style="color:#9ca3af;text-decoration:none;">harmoniva.app</a>{$footerLinks}
 </td></tr>
 
 </table>

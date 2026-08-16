@@ -108,7 +108,7 @@
         function _updatePracticeBackUrls() {
             const url = window._practiceBackUrl;
             if (!url || url === '/learn') return;
-            document.querySelectorAll('a[href="/learn"]').forEach(a => { a.href = url; });
+            document.querySelectorAll('a[href="{{ locale_url('/learn') }}"]').forEach(a => { a.href = url; });
         }
         document.addEventListener('DOMContentLoaded', _updatePracticeBackUrls);
         document.addEventListener('livewire:init', function() {

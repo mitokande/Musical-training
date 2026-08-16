@@ -158,7 +158,7 @@ return [
 
     'students' => [
         'meta_title' => 'Harmoniva para estudiantes',
-        'meta_description' => 'Desarrolla un oído musical de primer nivel con entrenamiento auditivo asistido por IA. Intervalos, acordes, escalas, ritmo y dictado melódico, todo en un mismo lugar. Empieza gratis.',
+        'meta_description' => 'Desarrolla un oído musical de primer nivel con entrenamiento auditivo con IA: intervalos, acordes, escalas, ritmo y dictado melódico. Gratis.',
 
         // Hero
         'hero_badge' => 'Para estudiantes',
@@ -312,7 +312,7 @@ return [
 
     'schools' => [
         'meta_title' => 'Harmoniva para escuelas de música',
-        'meta_description' => 'Impulsa el entrenamiento auditivo en toda tu institución con Harmoniva. Gestión de varios profesores, analíticas por departamento, matriculación masiva y cumplimiento del RGPD.',
+        'meta_description' => 'Entrenamiento auditivo para toda tu institución: gestión de varios profesores, analíticas por departamento, matriculación masiva y RGPD.',
 
         // Hero
         'hero_badge' => 'Para escuelas de música',
@@ -383,7 +383,7 @@ return [
 
     'piano_learners' => [
         'meta_title' => 'Harmoniva para pianistas',
-        'meta_description' => 'Lleva tu práctica de piano al siguiente nivel con el entrenamiento auditivo. Reconoce intervalos, acordes y melodías de oído y conviértete en el músico que tu profesor de piano siempre supo que podías ser.',
+        'meta_description' => 'Lleva tu práctica de piano al siguiente nivel: reconoce intervalos, acordes y melodías de oído y toca con verdadera libertad musical.',
 
         // Hero
         'hero_badge' => 'Para pianistas',
@@ -463,7 +463,7 @@ return [
 
     'community' => [
         'meta_title' => 'Comunidad y profesores de música',
-        'meta_description' => 'Comparte tu progreso en el feed de la comunidad de Harmoniva, sigue a otros músicos y conecta con profesores de música verificados. Aprende en compañía y crece más rápido.',
+        'meta_description' => 'Comparte tu progreso en la comunidad de Harmoniva, sigue a otros músicos y conecta con profesores verificados. Aprende acompañado.',
 
         // Hero
         'hero_badge' => 'Comunidad y profesores',
@@ -504,7 +504,7 @@ return [
 
     'request_demo' => [
         'meta_title' => 'Solicita una demo',
-        'meta_description' => 'Descubre Harmoniva en acción. Solicita una demo personalizada para tu escuela, conservatorio o institución musical y descubre cómo escala el entrenamiento auditivo con IA.',
+        'meta_description' => 'Harmoniva en acción: solicita una demo personalizada para tu escuela o conservatorio y descubre cómo escala el entrenamiento auditivo con IA.',
 
         // Hero
         'hero_badge' => 'Para escuelas e instituciones',
@@ -614,7 +614,7 @@ return [
 
     'contact' => [
         'meta_title' => 'Contactar con soporte',
-        'meta_description' => 'Ponte en contacto con el equipo de soporte de Harmoniva. Normalmente respondemos en menos de 24 horas y estamos aquí para ayudarte con cualquier duda sobre tu cuenta, la facturación o la plataforma.',
+        'meta_description' => 'Contacta con el equipo de soporte de Harmoniva. Respondemos en menos de 24 horas: cuenta, facturación y cualquier duda sobre la plataforma.',
         'hero_badge' => 'Soporte',
         'hero_title' => 'Estamos aquí para ayudarte',
         'hero_subtitle' => 'Envíanos un mensaje y te responderemos en menos de 24 horas.',
@@ -646,6 +646,7 @@ return [
         'privacy_note' => 'Al enviar este formulario, aceptas nuestra :privacy_link.',
         'privacy_link_text' => 'Política de Privacidad',
 
+        'success' => 'Gracias: hemos recibido tu mensaje. Nuestro equipo de soporte suele responder en menos de 24 horas.',
         // Response times
         'response_title' => 'Tiempos de respuesta',
         'resp_typical_label' => 'Respuesta habitual',
@@ -735,7 +736,7 @@ return [
 
     'about' => [
         'meta_title' => 'Sobre nosotros: nuestra misión e historia',
-        'meta_description' => 'Conoce la misión de Harmoniva: hacer que el entrenamiento auditivo de nivel profesional sea accesible para todos los músicos del planeta. Entrenamiento auditivo con IA para estudiantes, profesores y escuelas de música.',
+        'meta_description' => 'La misión de Harmoniva: entrenamiento auditivo de nivel profesional al alcance de todo músico — con IA, para alumnos, profesores y escuelas.',
 
         'hero_badge' => 'Nuestra historia',
         'hero_title_a' => 'Construyendo el futuro de la',
@@ -849,7 +850,7 @@ return [
 
     'partners' => [
         'meta_title' => 'Colaboraciones e integraciones',
-        'meta_description' => 'Colabora con Harmoniva para construir juntos el futuro de la educación musical. Programas para escuelas de música, creadores de contenido, docentes y socios tecnológicos.',
+        'meta_description' => 'Colabora con Harmoniva: programas para escuelas de música, creadores de contenido, docentes y socios tecnológicos en educación musical.',
         'hero_badge' => 'Programas de colaboración',
         'hero_title_a' => 'Colabora con',
         'hero_title_b' => 'Harmoniva',
@@ -915,7 +916,7 @@ return [
 
     'music_theory' => [
         'meta_title' => 'Fundamentos de teoría musical',
-        'meta_description' => 'Aprende los fundamentos de la teoría musical —notas, intervalos, escalas, acordes, ritmo y armaduras— explicados de forma sencilla y clara para músicos de todos los niveles.',
+        'meta_description' => 'Aprende los fundamentos de la teoría musical —notas, intervalos, escalas, acordes, ritmo y armaduras— explicados de forma sencilla y clara.',
         'jsonld_headline' => 'Fundamentos de teoría musical',
         'jsonld_description' => 'Aprende los fundamentos de la teoría musical —notas, intervalos, escalas, acordes, ritmo y armaduras— explicados de forma sencilla y clara.',
         'jsonld_about' => 'Teoría musical',
@@ -983,7 +984,7 @@ return [
 
     'articles' => [
         'meta_title' => 'Artículos y recursos',
-        'meta_description' => 'Explora la biblioteca de Harmoniva: artículos de entrenamiento auditivo, guías de teoría musical, consejos de práctica e ideas sobre la IA para músicos de todos los niveles.',
+        'meta_description' => 'La biblioteca de Harmoniva: artículos de entrenamiento auditivo, guías de teoría musical, consejos de práctica e ideas sobre la IA.',
         'hero_badge' => 'Recursos',
         'hero_title' => 'Aprende. Practica. Mejora.',
         'hero_subtitle' => 'Artículos en profundidad sobre entrenamiento auditivo, teoría musical, hábitos de práctica eficaces y el papel de la IA en la educación musical moderna.',
@@ -995,6 +996,7 @@ return [
         'cat_ai' => 'IA y tecnología',
         'read_time' => ':min min de lectura',
         'read_more' => 'Leer más',
+        'coming_soon' => 'Próximamente',
 
         'a1_title' => 'Cómo entrenar tu oído en 10 minutos al día',
         'a1_excerpt' => 'No necesitas maratones de práctica para desarrollar un buen oído. Descubre una rutina diaria enfocada que da resultados reales incluso en tus días más ajetreados.',
@@ -1024,7 +1026,7 @@ return [
 
     'find_teachers' => [
         'meta_title' => 'Buscar profesores y escuelas de música',
-        'meta_description' => 'Explora todos los profesores de música y escuelas verificados de Harmoniva. Consulta sus perfiles, lee reseñas de alumnos, reserva una clase y empieza a aprender con orientación experta.',
+        'meta_description' => 'Explora profesores de música y escuelas verificados: consulta perfiles, lee reseñas de alumnos y reserva una clase, online o presencial.',
         'hero_badge' => 'Profesores y escuelas',
         'hero_title' => 'Encuentra a tu profesor o escuela de música',
         'hero_subtitle' => 'La práctica autónoma es poderosa; la orientación experta la hace imparable. Cada profesor y escuela de abajo tiene un perfil verificado en Harmoniva: consulta su trayectoria, lee reseñas reales de alumnos, escríbeles directamente y reserva una clase cuando quieras.',
@@ -1073,7 +1075,7 @@ return [
 
     'ear_guide' => [
         'meta_title' => 'La guía completa de entrenamiento auditivo',
-        'meta_description' => 'Una guía completa, capítulo a capítulo, sobre el entrenamiento auditivo: desde lo más básico hasta las técnicas avanzadas. Aprende qué practicar, cómo practicar y cómo obtener resultados.',
+        'meta_description' => 'Guía completa del entrenamiento auditivo, capítulo a capítulo: de lo más básico a lo avanzado — qué practicar, cómo y con qué resultados.',
         'jsonld_headline' => 'La guía completa de entrenamiento auditivo',
         'jsonld_description' => 'Una guía completa, capítulo a capítulo, sobre el entrenamiento auditivo: desde lo más básico hasta las técnicas avanzadas.',
         'jsonld_about' => 'Entrenamiento auditivo',
@@ -1609,7 +1611,7 @@ return [
 
     'learn' => [
         'meta_title' => 'Curso gratuito de entrenamiento auditivo',
-        'meta_description' => 'Sigue la Ruta de aprendizaje estructurada de Harmoniva: un curso gratuito, paso a paso, que abarca notas, intervalos, acordes, escalas, ritmo y dictado melódico, de principiante a avanzado.',
+        'meta_description' => 'La Ruta de aprendizaje gratuita de Harmoniva: curso paso a paso de notas, intervalos, acordes, escalas, ritmo y dictado melódico.',
         'og_title' => 'Ruta de aprendizaje estructurada — Harmoniva',
         'og_description' => 'Un curso gratuito de entrenamiento auditivo, paso a paso, que abarca notas, intervalos, acordes, escalas, ritmo y dictado melódico, de principiante a avanzado.',
         'tw_title' => 'Ruta de aprendizaje estructurada — Harmoniva',
@@ -1645,7 +1647,7 @@ return [
 
     'pricing_teachers' => [
         'meta_title' => 'Plan para profesores y escuelas — Harmoniva',
-        'meta_description' => 'Harmoniva para docentes e instituciones. Gestiona alumnos, asigna ejercicios, sigue el progreso de toda la escuela y usa Harmoniva completamente gratis cuando traigas suficientes alumnos Premium.',
+        'meta_description' => 'Harmoniva para docentes y escuelas: gestiona alumnos, asigna ejercicios, sigue el progreso — y úsalo gratis con suficientes alumnos Premium.',
         'og_title' => 'Plan para profesores y escuelas — Harmoniva',
         'og_description' => 'Harmoniva para docentes e instituciones. Gestiona alumnos, asigna ejercicios y sigue el progreso de toda la escuela con entrenamiento auditivo asistido por IA.',
         'tw_title' => 'Plan para profesores y escuelas — Harmoniva',
@@ -1886,7 +1888,7 @@ return [
 
     'piano_studio' => [
         'meta_title' => 'Estudio de Piano',
-        'meta_description' => 'Toca un piano virtual completo en tu navegador: sonido realista, grabación, compatibilidad con teclados MIDI y visualización de notas. Estudio de piano en línea gratuito de Harmoniva.',
+        'meta_description' => 'Piano virtual gratuito en tu navegador: sonido realista, grabación, compatibilidad con teclados MIDI y visualización de notas.',
         'og_title' => 'Estudio de Piano — Harmoniva',
         'og_description' => 'Toca un piano virtual completo en tu navegador: sonido realista, grabación, compatibilidad con teclados MIDI y visualización de notas.',
         'tw_title' => 'Estudio de Piano — Harmoniva',
@@ -1913,18 +1915,34 @@ return [
         'meta_description' => 'La política de reembolsos de Harmoniva. Garantía de devolución de 14 días en los planes Premium. Descubre cómo solicitar un reembolso y qué esperar.',
         'hero_title' => 'Política de reembolsos',
         'updated' => 'Última actualización: 1 de junio de 2026',
+        'summary_title' => 'La versión corta',
+        'summary_li1' => 'Prueba Premium gratis durante :trial días primero: sin tarjeta.',
+        'summary_li2' => '¿Pagaste Premium y cambiaste de opinión? Escríbenos dentro de los :days días siguientes al cargo y te devolvemos todo.',
+        'summary_li3' => 'Esto también cubre una renovación anual que no pretendías, si no has usado Premium desde que se renovó.',
+        'summary_li4' => 'Los consumidores de la UE, el Reino Unido y Turquía conservan además sus derechos legales de desistimiento.',
         'box_title' => 'Garantía de devolución de 14 días',
         'box_text' => 'Si no estás totalmente satisfecho con tu suscripción Premium de Harmoniva, contáctanos en un plazo de 14 días desde tu primer pago y te haremos un reembolso completo, sin preguntas.',
         'commit_title' => 'Nuestro compromiso con la satisfacción del cliente',
         'commit_p1' => 'Creamos Harmoniva porque creemos de verdad en lo que hace por los músicos. Si te suscribes y ves que no encaja contigo, no queremos quedarnos con tu dinero. Nuestra política de reembolsos está pensada para ser justa, clara y fácil de usar.',
         'commit_p2' => 'Respaldamos la calidad de nuestro producto. Si algo no funciona como esperabas, o sientes que el Servicio no ha cumplido lo prometido, ponte en contacto con nosotros antes de solicitar un reembolso: nuestro equipo de soporte suele resolver los problemas rápidamente y nos encantaría poder ayudarte.',
+        'trial_title' => 'Prueba antes de pagar',
+        'trial_p1' => 'Todas las cuentas empiezan en el plan gratuito, que nunca caduca y nunca pide una tarjeta. Además, cada usuario puede activar una prueba Premium gratuita de :trial días: acceso completo, sin método de pago y termina por sí sola.',
+        'trial_p2' => 'Como la prueba te ofrece la experiencia Premium completa antes de que haya ningún pago, la mayoría de las solicitudes de reembolso se pueden evitar por completo. El periodo de prueba es gratuito, así que no hay nada que reembolsar.',
         'g_title' => 'Garantía de devolución de 14 días',
         'g_intro' => 'Los nuevos suscriptores Premium tienen derecho a un reembolso completo dentro de los <strong>14 días naturales</strong> siguientes a su primer pago. Esto se aplica a:',
         'g_li1' => 'Suscripciones Premium mensuales (dentro de los 14 días del primer pago)',
         'g_li2' => 'Suscripciones Premium anuales (dentro de los 14 días del pago anual)',
         'g_li3' => 'Cualquier suscripción nueva, tanto si se mejora desde una cuenta gratuita como si empieza desde cero',
+        'g_li4' => 'Cualquier cargo realizado por error: un pago duplicado, un plan que no elegiste o un cargo posterior a una cancelación. Estos se reembolsan siempre por completo, en cuanto los detectes.',
         'g_p1' => 'El plazo de 14 días comienza en la fecha en que se procesa tu pago, no en la fecha en que inicias sesión por primera vez. Si tu pago se procesa el 1 de junio, tu plazo de reembolso finaliza al terminar el día 15 de junio.',
         'g_p2' => 'La garantía de devolución se aplica a tu primer pago de cada nivel de plan. Las renovaciones posteriores no están cubiertas por la garantía de devolución, pero puedes cancelar las renovaciones futuras en cualquier momento.',
+        'law_title' => 'Tus derechos legales',
+        'law_p1' => 'Nada en esta política limita los derechos que te correspondan según la normativa de consumo del lugar donde vives. Cuando esos derechos sean más amplios que la garantía anterior, prevalece la ley.',
+        'law_li1' => '<strong>Unión Europea y Reino Unido</strong>: los consumidores disponen de un derecho de desistimiento de 14 días en los contratos a distancia. Al empezar a usar Premium justo después de la compra, nos pides que iniciemos el servicio dentro de ese periodo; aun así puedes desistir en 14 días y, cuando ya hayamos prestado el servicio, podemos descontar un importe proporcional a lo utilizado. En la práctica reembolsamos el total y no aplicamos ese descuento.',
+        'law_li2' => '<strong>Turquía</strong>: conforme a la Ley de Protección del Consumidor (n.º 6502) y al Reglamento de Contratos a Distancia, dispones de un derecho de desistimiento de 14 días. El contenido digital suministrado de inmediato con tu consentimiento queda normalmente excluido de ese derecho; nosotros renunciamos a la exclusión y respetamos el desistimiento igualmente, en los términos anteriores.',
+        'law_li3' => '<strong>Estados Unidos</strong>: los derechos de reembolso varían según el estado y algunos otorgan a los compradores derechos de cancelación adicionales. Esta política se aplica en todo el país como mínimo; cualquier derecho más amplio que te reconozca la ley de tu estado queda intacto.',
+        'law_li4' => '<strong>En cualquier otro lugar</strong>: si la normativa de consumo local te concede un plazo más largo o un derecho más amplio que esta política, dínoslo y lo aplicaremos.',
+        'law_p2' => 'Para ejercer un derecho legal de desistimiento basta con un correo sencillo en el que declares que desistes del contrato: no se exige ningún formulario ni fórmula concreta.',
         'req_title' => 'Cómo solicitar un reembolso',
         'req_intro' => 'Solicitar un reembolso es sencillo y lleva menos de 2 minutos:',
         'req_s1_title' => 'Escríbenos en un plazo de 14 días',
@@ -1942,6 +1960,13 @@ return [
         'nr_li4' => '<strong>Cuentas canceladas por incumplir las normas</strong>: no hay reembolso disponible si tu cuenta se ha cancelado por incumplir nuestras Condiciones del servicio.',
         'nr_li5' => '<strong>Tras un uso intensivo</strong>: a nuestra entera discreción, podemos rechazar un reembolso si un usuario ha hecho un uso intensivo de las funciones Premium (por ejemplo, completar cientos de ejercicios generados por IA) antes de solicitarlo. Evaluaremos estos casos con justicia.',
         'nr_p1' => 'Si crees que tienes una reclamación de reembolso válida fuera de la política anterior (por ejemplo, un error de facturación, un cargo duplicado o un problema técnico que impide el uso), contáctanos: revisaremos tu caso de forma individual.',
+        'app_title' => 'Compras realizadas en la App Store o en Google Play',
+        'app_p1' => 'Si te suscribes dentro de una aplicación móvil de Harmoniva mediante una compra integrada, Apple o Google es el vendedor de esa transacción: nunca recibimos tus datos de pago y no podemos reembolsarla nosotros mismos.',
+        'app_li1' => '<strong>App Store de Apple</strong>: solicita el reembolso en <em>reportaproblem.apple.com</em> o desde los Ajustes de tu dispositivo. Apple resuelve estas solicitudes según su propia política.',
+        'app_li2' => '<strong>Google Play</strong>: solicita el reembolso desde tu historial de pedidos de Google Play o a través del soporte de Google Play. Google resuelve estas solicitudes según su propia política.',
+        'app_li3' => '<strong>Gestionar la suscripción</strong>: una suscripción integrada también debe cancelarse en la cuenta de la tienda que la compró; cancelar dentro de Harmoniva no detiene el cobro de la tienda.',
+        'app_p2' => 'Si la tienda rechaza tu solicitud y crees que debería aplicarse la garantía de :days días anterior, escríbenos con tu número de pedido. No podemos revertir un cargo de la tienda, pero sí podemos concederte acceso Premium equivalente o un saldo a nuestra costa para que no salgas perdiendo.',
+        'app_p3' => 'Las suscripciones compradas en nuestro sitio web las facturamos nosotros y se rigen por completo por esta política.',
         'tl_title' => 'Proceso y plazo de reembolso',
         'tl_intro' => 'Una vez aprobado tu reembolso:',
         'tl_li1' => 'Cancelaremos tu suscripción y cambiaremos de inmediato tu cuenta al plan gratuito.',
@@ -1950,10 +1975,23 @@ return [
         'tl_box_title' => 'Plazo de reembolso habitual: de 5 a 10 días laborables',
         'tl_box_desc' => 'Los reembolsos suelen aparecer en el extracto de tu tarjeta de crédito o débito en un plazo de 5 a 10 días laborables desde nuestra fecha de procesamiento. El tiempo exacto depende de tu emisor de tarjeta o banco y está fuera de nuestro control. Algunos bancos pueden tardar hasta 14 días laborables.',
         'tl_note' => 'Si no ves tu reembolso después de 14 días laborables, consulta primero con tu banco. Si el problema persiste, contáctanos e investigaremos con Stripe.',
+        'cb_title' => 'Contracargos y disputas de pago',
+        'cb_p1' => 'Si no reconoces un cargo, escríbenos antes de abrir una disputa con tu banco. Casi todos los casos que vemos son una renovación anual o la compra de un familiar, y solemos poder reembolsarlos el mismo día, mucho más rápido que un contracargo, que suele tardar entre 6 y 12 semanas en resolverse.',
+        'cb_p2' => 'Cuando se abre un contracargo respondemos con nuestros registros de la transacción. Mientras la disputa siga abierta podemos suspender el acceso Premium de la cuenta hasta que se resuelva, y una cuenta con un contracargo puede tener que saldar el importe antes de volver a suscribirse. No repercutimos a los usuarios las comisiones por disputa.',
+        'tp_title' => 'Clases, profesores y licencias de escuela',
+        'tp_p1' => 'Harmoniva conecta a alumnos con profesores independientes y escuelas de música, pero no somos parte de ningún acuerdo de clases entre ellos. Los honorarios de clases particulares, citas o matrículas acordados con un profesor o una escuela se pagan directamente a esa persona o institución según sus propias condiciones: no los cobramos nosotros y esta política no los cubre. Consulta con tu profesor o escuela sus condiciones de cancelación y reembolso.',
+        'tp_p2' => 'Esta política sí cubre las suscripciones de Harmoniva en sí, incluidos los planes de profesor y de escuela adquiridos con nosotros. Cuando una escuela o institución compra plazas para sus miembros mediante un acuerdo escrito independiente, se aplican las condiciones de reembolso de ese acuerdo, que prevalecen sobre esta página.',
+        'tp_p3' => 'Los saldos promocionales, los periodos Premium regalados o de cortesía, los cupones y los descuentos no tienen valor en efectivo y no son reembolsables ni canjeables por dinero.',
+        'cur_title' => 'Moneda, impuestos y comisiones',
+        'cur_p1' => 'Los precios se cobran en dólares estadounidenses salvo que se indique otra cosa al pagar. Los reembolsos se emiten en la moneda original y por el importe originalmente cobrado, incluidos los impuestos que hayamos recaudado.',
+        'cur_p2' => 'Si tu tarjeta está en otra moneda, el importe que vuelve a tu cuenta puede diferir ligeramente del que salió, porque tu banco aplica su propio tipo de cambio en cada conversión. Las comisiones por transacción en el extranjero las fija tu banco y nosotros no podemos reembolsarlas.',
+        'ch_title' => 'Cambios en esta política',
+        'ch_p1' => 'Podemos actualizar esta Política de reembolso a medida que el servicio evoluciona. La versión vigente en el momento de tu pago es la que rige ese pago, de modo que un cambio posterior nunca puede reducir un derecho de reembolso que ya tenías. Los cambios importantes se anuncian por correo electrónico o mediante un aviso en la aplicación antes de entrar en vigor, y la fecha de «última actualización» en la parte superior de esta página refleja siempre la versión actual.',
         'contact_title' => 'Contáctanos',
         'contact_intro' => '¿Tienes alguna pregunta sobre un reembolso? Estamos aquí para ayudarte.',
         'contact_box_title' => 'Soporte de reembolsos y facturación',
         'contact_box_desc' => 'Tiempo de respuesta: en un día laborable, de lunes a viernes.',
+        'contact_address' => 'Harmoniva está operada por Softchain Solutions, 8 The Green STE B, Dover, DE 19901, Estados Unidos.',
         'contact_footer' => 'Esta Política de reembolsos está sujeta a nuestras :terms. Para los detalles de facturación de la suscripción, consulta nuestras :subscription.',
         'contact_terms_link' => 'Condiciones del servicio',
         'contact_subscription_link' => 'Condiciones de suscripción',
@@ -1961,7 +1999,7 @@ return [
 
     'subscription' => [
         'meta_title' => 'Condiciones de suscripción',
-        'meta_description' => 'Condiciones de suscripción de Harmoniva: planes, ciclos de facturación, renovación automática, política de cancelación y detalles de la prueba gratuita, explicados de forma sencilla.',
+        'meta_description' => 'Condiciones de suscripción de Harmoniva: planes, facturación, renovación automática, cancelación y prueba gratuita, en lenguaje claro.',
         'hero_title' => 'Condiciones de suscripción',
         'updated' => 'Última actualización: 1 de junio de 2026',
         'intro' => 'Estas Condiciones de suscripción complementan nuestras :terms y regulan la facturación, la renovación y la cancelación de las suscripciones de pago. Si tienes alguna pregunta, contáctanos en :email.',
@@ -2225,7 +2263,7 @@ return [
 
     'privacy' => [
         'meta_title' => 'Política de privacidad',
-        'meta_description' => 'Política de privacidad de Harmoniva. Descubre cómo recopilamos, utilizamos y protegemos tu información personal cuando usas nuestra plataforma de entrenamiento auditivo musical.',
+        'meta_description' => 'Política de privacidad de Harmoniva: cómo recopilamos, utilizamos y protegemos tu información personal al usar la plataforma.',
 
         'hero_title' => 'Política de privacidad',
         'updated' => 'Última actualización: 1 de junio de 2026',

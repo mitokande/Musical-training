@@ -33,7 +33,7 @@ class TeacherMiddleware
         // Teacher access is granted by role (legacy teacher/admin) or by
         // holding a teacher account (TeacherProfile), which any user may create.
         if (! $user || (! in_array($user->role, ['teacher', 'admin']) && ! $user->hasTeacherAccount())) {
-            abort(403, 'Unauthorized. Teacher access required.');
+            abort(403, __('app.messages.unauthorized_teacher'));
         }
 
         return $next($request);

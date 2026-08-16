@@ -23,6 +23,10 @@ return [
     ],
 
     'verify' => [
+        'preheader' => 'Un clic et ton compte Harmoniva est actif',
+        'title' => 'Confirme ton e-mail',
+        'btn_sub' => 'Le lien est valable 60 minutes.',
+        'fallback' => 'Le bouton ne fonctionne pas ? Copie ce lien dans ton navigateur :',
         'subject' => 'Vérifie ton adresse e-mail',
         'line1' => 'Confirme ton adresse e-mail pour activer ton compte :app.',
         'action' => "Vérifier l'e-mail",

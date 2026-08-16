@@ -1,6 +1,15 @@
 <!-- Main Content -->
 <main wire:id="practice-mixed-{{ $currentPracticeIndex }}" class="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-    
+
+    {{-- Ahead of both branches, and outside them: the results screen and the
+         question screen both call pt() and musicLabel(), and the question
+         script runs initPracticeMixed() synchronously as soon as it is parsed.
+         These two partials used to sit inside the results branch alone, which
+         left pt undefined on the question screen — the play handler threw on
+         its own first line and the button stayed disabled with no feedback. --}}
+    @include('livewire.partials.practice-i18n')
+    @include('livewire.partials.music-labels')
+
     @if($showResults && $coachNotes)
     <!-- AI Coach Results Page -->
     <div class="card overflow-hidden mb-6">
@@ -151,7 +160,7 @@
                     <i data-lucide="sparkles" class="w-5 h-5"></i>
                     {{ __('app.practice_ui.mixed.new_session') }}
                 </a>
-                <a href="/learn" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                <a href="{{ locale_url('/learn') }}" class="flex-1 font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
                     {{ __('app.learn.title') }}
                 </a>
@@ -163,7 +172,6 @@
         </div>
     </div>
     
-    @include('livewire.partials.practice-i18n')
     <script>
         // Re-initialize Lucide icons for results page
         document.addEventListener('DOMContentLoaded', function() {
@@ -699,9 +707,10 @@
                      data-practice-id="{{ $practice['id'] ?? 0 }}"
                      data-type="{{ $type }}">
                     @foreach($chordOptions as $chordOpt)
+                        {{-- data-answer stays canonical; only the label is localised. --}}
                         <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 text-sm"
                                 data-answer="{{ strtolower($chordOpt) }}">
-                            {{ $chordOpt }}
+                            {{ music_label($chordOpt, 'chord') }}
                         </button>
                     @endforeach
                 </div>
@@ -725,9 +734,10 @@
                      data-practice-id="{{ $practice['id'] ?? 0 }}"
                      data-type="{{ $type }}">
                     @foreach($scaleOptions as $scaleOpt)
+                        {{-- data-answer stays canonical; only the label is localised. --}}
                         <button class="answer-btn rounded-xl p-4 text-center font-semibold text-gray-700 text-sm"
                                 data-answer="{{ strtolower($scaleOpt) }}">
-                            {{ $scaleOpt }}
+                            {{ music_label($scaleOpt, 'scale') }}
                         </button>
                     @endforeach
                 </div>
@@ -782,7 +792,7 @@
                             @php $mxKbd = 'px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs font-mono'; @endphp
                             {!! __('app.practice_ui.rhythm.kbd_hint', [
                                 'tab' => '<kbd class="'.$mxKbd.'">Tab</kbd>',
-                                'space' => '<kbd class="'.$mxKbd.'">Space</kbd>',
+                                'space' => '<kbd class="'.$mxKbd.'">'.__('app.practice_ui.common.key_space').'</kbd>',
                             ]) !!}
                         </p>
                         <button id="rhythmTapButton" type="button"
@@ -2152,7 +2162,9 @@
                                             ? noteToSymbol(target)
                                             : practiceType === 'interval_construction'
                                                 ? target.replace('##', 'x')
-                                                : target.charAt(0).toUpperCase() + target.slice(1);
+                                                : (practiceType === 'chord' || practiceType === 'scale')
+                                                    ? window.musicLabel(target, practiceType)
+                                                    : target.charAt(0).toUpperCase() + target.slice(1);
                                 feedbackMessage.textContent = pt('incorrect_answer_is', {answer: correctDisplay});
                                 feedbackMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700');
                                 feedbackMessage.classList.add('bg-red-100', 'text-red-700');

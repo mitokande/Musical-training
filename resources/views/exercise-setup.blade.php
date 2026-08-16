@@ -132,7 +132,7 @@
             <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ __('app.exercises.premium_feature') }}</h2>
             <p class="text-gray-600 mb-6">{{ __('app.exercises.premium_desc') }}</p>
             <div class="flex gap-3">
-                <a href="{{ auth()->check() ? route('checkout.show') : route('pricing.index') }}" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
+                <a href="{{ auth()->check() ? route('checkout.show') : locale_url('/pricing') }}" class="flex-1 btn-primary text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
                     <i data-lucide="crown" class="w-4 h-4"></i> {{ __('app.exercises.upgrade_to_premium') }}
                 </a>
                 <button @click="showPremiumModal = false"
@@ -242,7 +242,7 @@
                         {{ __('app.limits.cta_create_account') }}
                     </a>
                 @else
-                    <a href="{{ route('pricing.index') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
+                    <a href="{{ locale_url('/pricing') }}" class="shrink-0 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold">
                         {{ __('app.limits.cta_upgrade') }}
                     </a>
                 @endguest
@@ -327,23 +327,25 @@
                     <div class="mb-5">
                         <label class="block text-sm font-semibold text-gray-700 mb-3">{{ __('app.exercises.chord_types_label') }}</label>
 
+                        {{-- The Alpine value stays the canonical English name the generator
+                             expects; only the chip label is localised. --}}
                         <!-- Triads & Sus -->
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Triads &amp; Sus</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">{{ __('app.setup_ui.triads_sus') }}</p>
                         <div class="flex flex-wrap gap-2 mb-4">
                             @foreach(['Major','Minor','Diminished','Augmented','Sus2','Sus4'] as $chord)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
                                         :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
-                                        @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
+                                        @click="toggleChordType('{{ $chord }}')">{{ music_label($chord, 'chord') }}</button>
                             @endforeach
                         </div>
 
                         <!-- 7th Chords -->
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">7th Chords</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">{{ __('app.setup_ui.seventh_chords') }}</p>
                         <div class="flex flex-wrap gap-2 mb-4">
                             @foreach(['Major 7th','Dominant 7th','Minor 7th','Minor Major 7th','Half-Diminished 7th','Diminished 7th','Augmented 7th'] as $chord)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
                                         :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
-                                        @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
+                                        @click="toggleChordType('{{ $chord }}')">{{ music_label($chord, 'chord') }}</button>
                             @endforeach
                         </div>
 
@@ -353,7 +355,7 @@
                             @foreach(['Major 6th','Minor 6th','Add9','Minor Add9'] as $chord)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-orange-400 transition-all"
                                         :class="chordTypes.includes('{{ $chord }}') ? 'bg-orange-600 text-white border-orange-600' : ''"
-                                        @click="toggleChordType('{{ $chord }}')">{{ $chord }}</button>
+                                        @click="toggleChordType('{{ $chord }}')">{{ music_label($chord, 'chord') }}</button>
                             @endforeach
                         </div>
                     </div>
@@ -366,10 +368,10 @@
                             <div class="flex flex-col gap-1.5 h-20">
                                 <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
                                         :class="voicing === 'block' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                        @click="voicing = 'block'">🎹 Block</button>
+                                        @click="voicing = 'block'">🎹 {{ __('app.setup_ui.voicing_block') }}</button>
                                 <button class="flex-1 text-sm font-medium rounded-xl border transition-all"
                                         :class="voicing === 'arpeggiated' ? 'bg-slate-800 text-white border-slate-700 shadow-md' : 'border-gray-200 text-gray-600 hover:border-slate-400'"
-                                        @click="voicing = 'arpeggiated'">🎸 Arpeggio</button>
+                                        @click="voicing = 'arpeggiated'">🎸 {{ __('app.setup_ui.voicing_arpeggio') }}</button>
                             </div>
                         </div>
                         <!-- Right 50%: Include Inversions -->
@@ -811,10 +813,12 @@
 
                         <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">{{ __('app.setup_ui.scales_group') }}</p>
                         <div class="flex flex-wrap gap-2 mb-4">
+                            {{-- The Alpine value stays the canonical English name the generator
+                                 expects; only the chip label is localised. --}}
                             @foreach(['Major','Natural Minor','Harmonic Minor','Melodic Minor','Major Pentatonic','Minor Pentatonic','Blues Scale','Chromatic Scale','Whole Tone Scale'] as $scale)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
                                         :class="scaleTypes.includes('{{ $scale }}') ? 'bg-amber-500 text-white border-amber-500' : ''"
-                                        @click="toggleScaleType('{{ $scale }}')">{{ $scale }}</button>
+                                        @click="toggleScaleType('{{ $scale }}')">{{ music_label($scale, 'scale') }}</button>
                             @endforeach
                         </div>
 
@@ -823,7 +827,7 @@
                             @foreach(['Ionian','Dorian','Phrygian','Lydian','Mixolydian','Aeolian','Locrian'] as $scale)
                                 <button class="interval-chip py-2 px-3 text-sm font-semibold rounded-lg border border-gray-200 hover:border-amber-400 transition-all"
                                         :class="scaleTypes.includes('{{ $scale }}') ? 'bg-amber-500 text-white border-amber-500' : ''"
-                                        @click="toggleScaleType('{{ $scale }}')">{{ $scale }}</button>
+                                        @click="toggleScaleType('{{ $scale }}')">{{ music_label($scale, 'scale') }}</button>
                             @endforeach
                         </div>
                     </div>
@@ -957,15 +961,15 @@
                                     </div>
                                     <!-- Single-note: clef note range hint -->
                                     <p class="text-xs text-gray-400 mt-1" x-show="selectedCategory === 'single-note'" x-cloak>
-                                        <span x-show="clef === 'treble'">Treble (Sol) — octaves 4–5</span>
-                                        <span x-show="clef === 'bass'">Bass (Fa) — octaves 2–3</span>
-                                        <span x-show="clef === 'alto'">Alto (Do) — octaves 3–4</span>
+                                        <span x-show="clef === 'treble'">{{ __('app.setup_ui.clef_hint_treble_oct') }}</span>
+                                        <span x-show="clef === 'bass'">{{ __('app.setup_ui.clef_hint_bass_oct') }}</span>
+                                        <span x-show="clef === 'alto'">{{ __('app.setup_ui.clef_hint_alto_oct') }}</span>
                                     </p>
                                     <!-- Clef pitch range hint (must match MusicTheoryService::CLEF_RANGES) -->
                                     <p class="text-xs text-gray-400 mt-1" x-show="['intervals','chords','scales'].includes(selectedCategory)" x-cloak>
-                                        <span x-show="clef === 'treble'">Treble (Sol) — G3 – E5</span>
-                                        <span x-show="clef === 'bass'">Bass (Fa) — C2 – C4</span>
-                                        <span x-show="clef === 'alto'">Alto (Do) — C3 – C5</span>
+                                        <span x-show="clef === 'treble'">{{ __('app.setup_ui.clef_hint_treble_range') }}</span>
+                                        <span x-show="clef === 'bass'">{{ __('app.setup_ui.clef_hint_bass_range') }}</span>
+                                        <span x-show="clef === 'alto'">{{ __('app.setup_ui.clef_hint_alto_range') }}</span>
                                     </p>
                                 </div>
                                 <!-- Tempo — scales only -->

@@ -380,7 +380,7 @@ return [
 
     'piano_learners' => [
         'meta_title' => 'Harmoniva for Piano Learners',
-        'meta_description' => 'Elevate your piano practice with ear training. Recognize intervals, chords, and melodies by ear — and become the musician your piano teacher always knew you could be.',
+        'meta_description' => 'Elevate your piano practice with ear training: recognize intervals, chords and melodies by ear, and play with real musical freedom.',
 
         // Hero
         'hero_badge' => 'For Piano Learners',
@@ -611,7 +611,7 @@ return [
 
     'contact' => [
         'meta_title' => 'Contact Support',
-        'meta_description' => 'Get in touch with the Harmoniva support team. We typically respond within 24 hours and are here to help with any questions about your account, billing, or the platform.',
+        'meta_description' => 'Get in touch with the Harmoniva support team. We usually reply within 24 hours — account, billing and any question about the platform.',
         'hero_badge' => 'Support',
         'hero_title' => "We're Here to Help",
         'hero_subtitle' => "Send us a message and we'll get back to you within 24 hours.",
@@ -643,6 +643,7 @@ return [
         'privacy_note' => 'By submitting this form, you agree to our :privacy_link.',
         'privacy_link_text' => 'Privacy Policy',
 
+        'success' => 'Thanks — your message is on its way. Our support team typically replies within 24 hours.',
         // Response times
         'response_title' => 'Response Times',
         'resp_typical_label' => 'Typical response',
@@ -732,7 +733,7 @@ return [
 
     'about' => [
         'meta_title' => 'About Us — Our Mission and Story',
-        'meta_description' => "Learn about Harmoniva's mission to make professional-grade ear training accessible to every musician on the planet. AI-powered ear training for students, teachers, and music schools.",
+        'meta_description' => "Harmoniva's mission: make professional-grade ear training accessible to every musician — AI-powered, for students, teachers and schools.",
 
         'hero_badge' => 'Our Story',
         'hero_title_a' => 'Building the Future of',
@@ -912,7 +913,7 @@ return [
 
     'music_theory' => [
         'meta_title' => 'Music Theory Basics',
-        'meta_description' => 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly for musicians of all levels.',
+        'meta_description' => 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm and key signatures — explained simply, for every level.',
         'jsonld_headline' => 'Music Theory Basics',
         'jsonld_description' => 'Learn the fundamentals of music theory — notes, intervals, scales, chords, rhythm, and key signatures — explained simply and clearly.',
         'jsonld_about' => 'Music theory',
@@ -992,6 +993,7 @@ return [
         'cat_ai' => 'AI & Technology',
         'read_time' => ':min min read',
         'read_more' => 'Read more',
+        'coming_soon' => 'Coming soon',
 
         'a1_title' => 'How to Train Your Ear in 10 Minutes a Day',
         'a1_excerpt' => "You don't need marathon practice sessions to build strong ears. Discover a focused daily routine that delivers real results even on your busiest days.",
@@ -1021,7 +1023,7 @@ return [
 
     'find_teachers' => [
         'meta_title' => 'Find Teachers & Music Schools',
-        'meta_description' => 'Browse every verified music teacher and music school on Harmoniva. View their profiles, read student reviews, book a lesson, and start learning with expert guidance.',
+        'meta_description' => 'Browse verified music teachers and schools on Harmoniva: view profiles, read student reviews and book a lesson, online or in person.',
         'hero_badge' => 'Teachers & Schools',
         'hero_title' => 'Find Your Teacher or Music School',
         'hero_subtitle' => "Self-guided practice is powerful — expert guidance makes it unstoppable. Every teacher and school below has a verified Harmoniva profile: browse their background, read real student reviews, message them directly, and book a lesson when you're ready.",
@@ -1070,7 +1072,7 @@ return [
 
     'ear_guide' => [
         'meta_title' => 'The Complete Ear Training Guide',
-        'meta_description' => 'A comprehensive, chapter-by-chapter guide to ear training — from absolute basics to advanced techniques. Learn what to practice, how to practice, and how to get results.',
+        'meta_description' => 'A chapter-by-chapter guide to ear training, from the absolute basics to advanced technique — what to practise, how, and how to get results.',
         'jsonld_headline' => 'The Complete Ear Training Guide',
         'jsonld_description' => 'A comprehensive, chapter-by-chapter guide to ear training — from absolute basics to advanced techniques.',
         'jsonld_about' => 'Ear training',
@@ -1606,7 +1608,7 @@ return [
 
     'learn' => [
         'meta_title' => 'Free Ear Training Course — Learning Path',
-        'meta_description' => "Follow Harmoniva's structured ear-training Learning Path — a free, step-by-step course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.",
+        'meta_description' => "Harmoniva's free Learning Path: a step-by-step ear-training course through notes, intervals, chords, scales, rhythm and melodic dictation.",
         'og_title' => 'Structured Learning Path — Harmoniva',
         'og_description' => 'A free, step-by-step ear-training course covering notes, intervals, chords, scales, rhythm, and melodic dictation, from beginner to advanced.',
         'tw_title' => 'Structured Learning Path — Harmoniva',
@@ -1642,7 +1644,7 @@ return [
 
     'pricing_teachers' => [
         'meta_title' => 'Teachers & Schools Plan — Harmoniva',
-        'meta_description' => 'Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide — and use Harmoniva completely free when you bring enough Premium students.',
+        'meta_description' => 'Harmoniva for teachers and music schools: manage students, assign exercises, track progress — and use it free with enough Premium students.',
         'og_title' => 'Teachers & Schools Plan — Harmoniva',
         'og_description' => 'Harmoniva for educators and institutions. Manage students, assign exercises, track progress school-wide with AI-powered ear training.',
         'tw_title' => 'Teachers & Schools Plan — Harmoniva',

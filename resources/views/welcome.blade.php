@@ -37,6 +37,19 @@
                     'inLanguage' => $currentLandingLocale,
                 ],
                 [
+                    // The landing URL itself. WebSite/@id is shared across every
+                    // locale, so the per-language signal has to live on a node
+                    // that is unique per URL.
+                    '@type' => 'WebPage',
+                    '@id' => $canonicalUrl.'#webpage',
+                    'url' => $canonicalUrl,
+                    'name' => __('app.welcome.page_title'),
+                    'description' => __('app.welcome.page_description'),
+                    'inLanguage' => $currentLandingLocale,
+                    'isPartOf' => ['@id' => url('/').'#website'],
+                    'publisher' => ['@id' => url('/').'#organization'],
+                ],
+                [
                     '@type' => 'SoftwareApplication',
                     'name' => 'Harmoniva',
                     'url' => url('/'),
@@ -337,7 +350,7 @@
 
             {{-- Header --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #374151;flex-shrink:0;">
-                <span style="font-weight:700;color:white;font-size:0.95rem;">Menu</span>
+                <span style="font-weight:700;color:white;font-size:0.95rem;">{{ __('app.nav.menu') }}</span>
                 <button onclick="wlMenuClose()" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#9ca3af;background:none;border:none;cursor:pointer;border-radius:0.5rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
                 </button>
@@ -597,9 +610,9 @@
                         return ($requiresAuth && auth()->guest()) ? route('register') : $url;
                     };
                     $features = [
-                        ['icon' => 'piano', 'color' => 'cyan-400', 'bg' => 'cyan-500/15', 'title' => __('app.welcome.feature_ai_title'), 'desc' => __('app.welcome.feature_ai_desc'), 'url' => route('piano.studio'), 'auth' => false],
+                        ['icon' => 'piano', 'color' => 'cyan-400', 'bg' => 'cyan-500/15', 'title' => __('app.welcome.feature_ai_title'), 'desc' => __('app.welcome.feature_ai_desc'), 'url' => locale_url('/piano-studio'), 'auth' => false],
                         ['icon' => 'gamepad-2', 'color' => 'green-400', 'bg' => 'green-500/15', 'title' => __('app.welcome.feature_games_title'), 'desc' => __('app.welcome.feature_games_desc'), 'url' => route('games.index'), 'auth' => false],
-                        ['icon' => 'users', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc'), 'url' => auth()->check() ? url('/dashboard') : route('page.community-feed'), 'auth' => false],
+                        ['icon' => 'users', 'color' => 'primary-300', 'bg' => 'primary-400/15', 'title' => __('app.welcome.feature_piano_title'), 'desc' => __('app.welcome.feature_piano_desc'), 'url' => auth()->check() ? url('/dashboard') : locale_url('/community-feed'), 'auth' => false],
                         ['icon' => 'bar-chart-3', 'color' => 'blue-400', 'bg' => 'blue-500/15', 'title' => __('app.welcome.feature_analytics_title'), 'desc' => __('app.welcome.feature_analytics_desc'), 'url' => route('progress'), 'auth' => true],
                         ['icon' => 'zap', 'color' => 'amber-400', 'bg' => 'amber-500/15', 'title' => __('app.welcome.feature_feedback_title'), 'desc' => __('app.welcome.feature_feedback_desc'), 'url' => url('/practice/single-note-practice'), 'auth' => false],
                         ['icon' => 'message-circle', 'color' => 'rose-400', 'bg' => 'rose-500/15', 'title' => __('app.welcome.feature_assistant_title'), 'desc' => __('app.welcome.feature_assistant_desc'), 'url' => route('ai-chat.index'), 'auth' => true],
@@ -893,7 +906,7 @@
             </div>
 
             <div class="text-center mt-16 reveal">
-                <a href="{{ route('page.how-it-works') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-primary-200 text-primary-700 font-semibold text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-300 transition-all group">
+                <a href="{{ locale_url('/how-it-works') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white border-2 border-primary-200 text-primary-700 font-semibold text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-300 transition-all group">
                     {{ __('app.welcome.how_learn_more') }}
                     <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5"></i>
                 </a>
@@ -922,7 +935,7 @@
 
                 <div class="reveal flex flex-col gap-6" style="transition-delay:0.15s">
                     <div class="flex justify-end">
-                        <a href="{{ route('piano.studio') }}" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-semibold transition-all shadow-lg shadow-accent-500/25 hover:shadow-accent-400/30 hover:-translate-y-0.5 group">
+                        <a href="{{ locale_url('/piano-studio') }}" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-accent-500 hover:bg-accent-400 text-white text-sm font-semibold transition-all shadow-lg shadow-accent-500/25 hover:shadow-accent-400/30 hover:-translate-y-0.5 group">
                             Piano Studio
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"></i>
                         </a>
@@ -1064,8 +1077,8 @@
                             {{ __('app.welcome.plan_free_cta_register') }}
                         </a>
                         @endauth
-                        <a href="/pricing" class="block w-full text-center px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition-all border border-gray-200/60">
-                            Learn More — Full Details <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline ml-1"></i>
+                        <a href="{{ locale_url('/pricing') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl transition-all border border-gray-200/60">
+                            {{ __('app.welcome.plan_learn_more') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline ml-1"></i>
                         </a>
                     </div>
                 </div>
@@ -1128,7 +1141,7 @@
                             {{ __('app.welcome.plan_premium_cta_register') }}
                         </a>
                         @endauth
-                        <a href="{{ route('pricing.teachers') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold rounded-xl transition-all border" style="color:#c084fc;background:rgba(147,51,234,0.08);border-color:rgba(147,51,234,0.25);">
+                        <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold rounded-xl transition-all border" style="color:#c084fc;background:rgba(147,51,234,0.08);border-color:rgba(147,51,234,0.25);">
                             Teachers &amp; Schools <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline ml-1"></i>
                         </a>
                     </div>
@@ -1176,10 +1189,10 @@
                     <div class="flex flex-col gap-2.5 mt-6">
                         {{-- Teacher/School plans are role-specific; send everyone to the dedicated
                              Teachers & Schools page where the CTA funnels into the right account. --}}
-                        <a href="{{ route('pricing.teachers') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
+                        <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="block w-full text-center px-5 py-2.5 text-sm font-bold text-white rounded-xl transition-all hover:-translate-y-0.5 hover:opacity-90 shadow-lg" style="background:linear-gradient(135deg,#ea580c,#f97316);">
                             {{ __('app.welcome.plan_teachers_cta_start') }}
                         </a>
-                        <a href="{{ route('pricing.teachers') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold text-accent-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all border border-orange-200/60">
+                        <a href="{{ locale_url('/pricing/teachers-and-schools') }}" class="block w-full text-center px-5 py-2.5 text-sm font-semibold text-accent-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-all border border-orange-200/60">
                             {{ __('app.welcome.plan_teachers_cta_learn') }} <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline ml-1"></i>
                         </a>
                     </div>
@@ -1206,7 +1219,7 @@
             </div>
 
             <div class="grid lg:grid-cols-3 gap-6">
-                <a href="{{ route('page.students') }}" class="feature-card block rounded-2xl p-8 group reveal">
+                <a href="{{ locale_url('/students') }}" class="feature-card block rounded-2xl p-8 group reveal">
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-primary-600/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <i data-lucide="graduation-cap" class="w-7 h-7 text-primary-400"></i>
@@ -1224,7 +1237,7 @@
                     </ul>
                 </a>
 
-                <a href="{{ route('page.teachers-solution') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.1s">
+                <a href="{{ locale_url('/teachers') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.1s">
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-accent-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <i data-lucide="users" class="w-7 h-7 text-accent-400"></i>
@@ -1242,7 +1255,7 @@
                     </ul>
                 </a>
 
-                <a href="{{ route('page.schools') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.2s">
+                <a href="{{ locale_url('/schools') }}" class="feature-card block rounded-2xl p-8 group reveal" style="transition-delay:0.2s">
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-14 h-14 rounded-2xl bg-violet-500/15 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <i data-lucide="building-2" class="w-7 h-7 text-violet-400"></i>
@@ -1336,7 +1349,7 @@
                             </div>
                         </div>
                     </a>
-                    <a href="{{ $linkFor(route('learn'), true) }}" class="light-card block rounded-2xl p-6 group">
+                    <a href="{{ $linkFor(locale_url('/learn'), true) }}" class="light-card block rounded-2xl p-6 group">
                         <div class="flex items-start gap-4">
                             <div class="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                 <i data-lucide="route" class="w-6 h-6 text-orange-600"></i>

@@ -76,6 +76,11 @@ class SendEmailCenterMessage implements ShouldQueue
                 'ses_message_id' => $sesMessageId,
                 'status' => 'sent',
                 'sent_at' => now(),
+                // Persist what was actually sent. Until now the row kept the raw
+                // English template subject with its {{placeholders}} intact, so
+                // the admin log showed neither the recipient's language nor the
+                // resolved variables for every automation message.
+                'subject' => $subject,
             ]);
 
             $message->campaign?->increment('sent_count');

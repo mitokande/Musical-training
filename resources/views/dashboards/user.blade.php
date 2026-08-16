@@ -144,7 +144,7 @@
                             <i data-lucide="wand-sparkles" class="w-5 h-5"></i>
                             {{ __('app.nav.setup_studio') }}
                         </a>
-                        <a href="/piano-studio" class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm text-base">
+                        <a href="{{ locale_url('/piano-studio') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm text-base">
                             <i data-lucide="piano" class="w-5 h-5"></i>
                             {{ __('app.nav.piano') }}
                         </a>
@@ -159,7 +159,7 @@
                             <i data-lucide="message-square" class="w-5 h-5"></i>
                             {{ __('app.dashboard.ask_ai') }}
                         </a>
-                        <a href="/learn" class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm text-base">
+                        <a href="{{ locale_url('/learn') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm text-base">
                             <i data-lucide="play-circle" class="w-5 h-5"></i>
                             Practice
                         </a>
@@ -303,7 +303,7 @@
                 <div class="card p-5">
                     <h3 class="font-semibold text-gray-900 mb-4">{{ __('app.dashboard.quick_actions') }}</h3>
                     <div class="space-y-2">
-                        <a href="/learn" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                        <a href="{{ locale_url('/learn') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                             <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                                 <i data-lucide="play-circle" class="w-4 h-4 text-green-600"></i>
                             </div>

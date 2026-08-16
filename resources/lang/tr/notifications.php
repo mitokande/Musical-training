@@ -23,6 +23,10 @@ return [
     ],
 
     'verify' => [
+        'preheader' => 'Tek tıkla Harmoniva hesabın aktif',
+        'title' => 'E-posta adresini onayla',
+        'btn_sub' => 'Bağlantı 60 dakika geçerlidir.',
+        'fallback' => 'Buton çalışmıyor mu? Bu bağlantıyı tarayıcına kopyala:',
         'subject' => 'E-posta adresini doğrula',
         'line1' => ':app hesabını etkinleştirmek için lütfen e-posta adresini onayla.',
         'action' => 'E-posta adresini doğrula',

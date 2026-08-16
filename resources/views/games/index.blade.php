@@ -413,8 +413,8 @@
                         <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
                         <span class="text-amber-300 text-xs font-semibold uppercase tracking-wider">{{ __('app.games.daily_challenge') }}</span>
                     </div>
-                    <p class="text-white font-bold text-base leading-tight mb-1">Score 500+ in Note Rush</p>
-                    <p class="text-white/40 text-sm mb-4">{{ __('app.games.skill_focus') }}: Staff reading speed</p>
+                    <p class="text-white font-bold text-base leading-tight mb-1">{{ __('app.games.daily_challenge_task') }}</p>
+                    <p class="text-white/40 text-sm mb-4">{{ __('app.games.skill_focus') }}: {{ __('app.games.skill_focus_value') }}</p>
                     <a href="{{ route('games.show', 'note-rush') }}"
                        class="block w-full text-center py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 text-amber-300 text-sm font-semibold transition-all">
                         {{ __('app.games.challenge_cta') }} →
@@ -501,7 +501,7 @@
         {{-- ─── BRIDGE LINK ────────────────────────────────────────────────── --}}
         <div class="text-center py-4">
             <span class="text-white/25 text-sm">{{ __('app.games.structured_prompt') }}</span>
-            <a href="{{ route('learn') }}" class="text-violet-400 hover:text-violet-300 text-sm ml-2 transition-colors">
+            <a href="{{ locale_url('/learn') }}" class="text-violet-400 hover:text-violet-300 text-sm ml-2 transition-colors">
                 {{ __('app.games.back_practice') }} →
             </a>
         </div>
@@ -515,7 +515,7 @@
         <a href="/games/a" style="color:{{ $v==='a'?'#a78bfa':'rgba(255,255,255,0.4)' }};text-decoration:none;">A</a>
         <a href="/games/b" style="color:{{ $v==='b'?'#60a5fa':'rgba(255,255,255,0.4)' }};text-decoration:none;">B</a>
         <span style="color:rgba(255,255,255,0.3)">|</span>
-        <a href="/games" style="color:rgba(255,255,255,0.4);text-decoration:none;">Orijinal</a>
+        <a href="/games" style="color:rgba(255,255,255,0.4);text-decoration:none;">Original</a>
     </div>
     @endif
 

@@ -143,7 +143,13 @@ For `single-note-practice`, the blade does `explode(',', $currentPractice->other
 
 ### i18n
 
-15 locales in `resources/lang/` (NOT the Laravel-11-default root `lang/` — new lang files must go under `resources/lang/{locale}/`). `SetLocale` middleware applies `app()->setLocale()` from `User->locale`. `LearningPathExercise` has a `translations` JSON column; use `$exercise->getLocalizedTitle()`. Language switched via `POST /language/switch`.
+**Read `docs/i18n-guide.md` before any translation or multilingual-SEO work.** It carries the rules that are not derivable from the code: how to actually verify a language is complete (five separate scans — missing keys, keys called but absent, hardcoded blade text, inline-JS strings, hardcoded controller flash/abort messages), the per-language address form, the "canonical value stays English, only the label is translated" rule for music terms, the meta-length limits (Romance languages run 20–25% longer than English and overflow Google's cutoff), the canonical/hreflang single source, and the repo-specific traps (never `git stash` here; root-owned files; quoting styles in lang files).
+
+15 locales in `resources/lang/` (NOT the Laravel-11-default root `lang/` — new lang files must go under `resources/lang/{locale}/`); `en`, `de`, `es`, `fr`, `it`, `pt`, `tr` are fully translated. `SetLocale` middleware applies `app()->setLocale()` from `User->locale` — note `users.locale` has a DB default of `'tr'`, so any code path creating a user must set it explicitly. `LearningPathExercise` has a `translations` JSON column; use `$exercise->getLocalizedTitle()`. Language switched via `POST /language/switch`.
+
+Music-theory vocabulary is localized through `music_label($canonical, 'chord'|'scale')` (`app.music.*`, 7 locales) while `data-answer`, Alpine values and `config_json` keep the canonical English names the generator expects. Inline scripts get the same map via `livewire/partials/music-labels.blade.php`.
+
+Canonical / hreflang / `<html lang>` / `og:locale` all come from `App\Services\Seo\PublicPageSeo`, shared by `ShareSeoContext`. A `/{locale}` URL is only advertised as a real translation once its `pages.*` section actually exists in that locale (`locale_page_translated()`), which is what keeps untranslated variants out of the index.
 
 ### Email Center (Amazon SES)
 

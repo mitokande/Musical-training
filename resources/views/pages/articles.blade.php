@@ -44,17 +44,43 @@
     <div class="max-w-6xl mx-auto">
 
         @php
+        // Teasers still waiting for their article. Keyed by slot so a published
+        // post can claim one through its `featured_slot` in config('blog.posts').
         $articles = [
-            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a1_title'), 'excerpt' => __('pages.articles.a1_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 5]), 'icon' => 'headphones'],
-            ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a2_title'), 'excerpt' => __('pages.articles.a2_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 7]), 'icon' => 'music-2'],
-            ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a3_title'), 'excerpt' => __('pages.articles.a3_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'alert-triangle'],
-            ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a4_title'), 'excerpt' => __('pages.articles.a4_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 8]), 'icon' => 'brain'],
-            ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a5_title'), 'excerpt' => __('pages.articles.a5_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 5]), 'icon' => 'sliders'],
-            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a6_title'), 'excerpt' => __('pages.articles.a6_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 9]), 'icon' => 'pen-tool'],
-            ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a7_title'), 'excerpt' => __('pages.articles.a7_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'calendar-check'],
-            ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a8_title'), 'excerpt' => __('pages.articles.a8_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 7]), 'icon' => 'layers'],
-            ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a9_title'), 'excerpt' => __('pages.articles.a9_excerpt'), 'read_time' => __('pages.articles.read_time', ['min' => 6]), 'icon' => 'refresh-cw'],
+            'a1' => ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a1_title'), 'excerpt' => __('pages.articles.a1_excerpt'), 'read_time' => 5, 'icon' => 'headphones'],
+            'a2' => ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a2_title'), 'excerpt' => __('pages.articles.a2_excerpt'), 'read_time' => 7, 'icon' => 'music-2'],
+            'a3' => ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a3_title'), 'excerpt' => __('pages.articles.a3_excerpt'), 'read_time' => 6, 'icon' => 'alert-triangle'],
+            'a4' => ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a4_title'), 'excerpt' => __('pages.articles.a4_excerpt'), 'read_time' => 8, 'icon' => 'brain'],
+            'a5' => ['category' => __('pages.articles.cat_theory'), 'cat_color' => 'blue', 'title' => __('pages.articles.a5_title'), 'excerpt' => __('pages.articles.a5_excerpt'), 'read_time' => 5, 'icon' => 'sliders'],
+            'a6' => ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a6_title'), 'excerpt' => __('pages.articles.a6_excerpt'), 'read_time' => 9, 'icon' => 'pen-tool'],
+            'a7' => ['category' => __('pages.articles.cat_tips'), 'cat_color' => 'green', 'title' => __('pages.articles.a7_title'), 'excerpt' => __('pages.articles.a7_excerpt'), 'read_time' => 6, 'icon' => 'calendar-check'],
+            'a8' => ['category' => __('pages.articles.cat_ear'), 'cat_color' => 'purple', 'title' => __('pages.articles.a8_title'), 'excerpt' => __('pages.articles.a8_excerpt'), 'read_time' => 7, 'icon' => 'layers'],
+            'a9' => ['category' => __('pages.articles.cat_ai'), 'cat_color' => 'orange', 'title' => __('pages.articles.a9_title'), 'excerpt' => __('pages.articles.a9_excerpt'), 'read_time' => 6, 'icon' => 'refresh-cw'],
         ];
+
+        $catColorByKey = ['ear' => 'purple', 'theory' => 'blue', 'tips' => 'green', 'ai' => 'orange'];
+
+        // Published posts take over their declared slot. Title and excerpt come
+        // from the post's own blog.* section, so a translated post shows its
+        // translated card and an untranslated one falls back to English —
+        // exactly what the reader gets when they follow the link.
+        foreach ((array) config('blog.posts') as $slug => $blogPost) {
+            $slot = $blogPost['featured_slot'] ?? null;
+            if ($slot === null || ! isset($articles[$slot])) {
+                continue;
+            }
+
+            $section = 'blog.'.$blogPost['section'].'.';
+            $articles[$slot] = [
+                'category' => __('pages.articles.cat_'.$blogPost['category']),
+                'cat_color' => $catColorByKey[$blogPost['category']] ?? 'purple',
+                'title' => __($section.'title'),
+                'excerpt' => __($section.'meta_description'),
+                'read_time' => $blogPost['reading_time'],
+                'icon' => $blogPost['icon'],
+                'url' => locale_url('/blog/'.$slug),
+            ];
+        }
 
         $catBgMap = [
             'purple' => 'bg-purple-100 text-purple-700',
@@ -66,7 +92,12 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
             @foreach($articles as $article)
-            <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group reveal">
+            {{-- A published card is a single <a>, so the whole box is clickable;
+                 a teaser stays an <article> with no link to nowhere. --}}
+            @php $cardTag = isset($article['url']) ? 'a' : 'article'; @endphp
+            <{{ $cardTag }}
+                @isset($article['url']) href="{{ $article['url'] }}" @endisset
+                class="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-shadow group reveal {{ isset($article['url']) ? 'hover:shadow-lg hover:border-purple-200 cursor-pointer no-underline' : 'hover:shadow-md' }}">
                 <div class="p-6 flex flex-col h-full">
                     <div class="flex items-center justify-between mb-4">
                         <span class="text-xs font-semibold px-3 py-1 rounded-full {{ $catBgMap[$article['cat_color']] }}">
@@ -74,7 +105,7 @@
                         </span>
                         <span class="text-xs text-gray-400 flex items-center gap-1">
                             <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                            {{ $article['read_time'] }}
+                            {{ __('pages.articles.read_time', ['min' => $article['read_time']]) }}
                         </span>
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-{{ $article['cat_color'] }}-50 flex items-center justify-center mb-4">
@@ -86,11 +117,17 @@
                     <p class="text-sm text-gray-500 leading-relaxed mb-5 flex-1">
                         {{ $article['excerpt'] }}
                     </p>
-                    <a href="#" class="inline-flex items-center gap-1.5 text-purple-600 font-semibold text-sm hover:gap-2.5 transition-all">
+                    @isset($article['url'])
+                    <span class="inline-flex items-center gap-1.5 text-purple-600 font-semibold text-sm">
                         {{ __('pages.articles.read_more') }} <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
+                    </span>
+                    @else
+                    <span class="inline-flex items-center gap-1.5 text-gray-400 font-semibold text-sm">
+                        {{ __('pages.articles.coming_soon') }}
+                    </span>
+                    @endisset
                 </div>
-            </article>
+            </{{ $cardTag }}>
             @endforeach
         </div>
 
