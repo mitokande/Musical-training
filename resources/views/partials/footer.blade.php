@@ -243,6 +243,7 @@ $footerCurrent = $footerLanguages[$footerLocale] ?? $footerLanguages['en'];
                     <a href="{{ locale_url('/terms-of-service') }}" class="hover:text-white transition-colors">{{ __('app.footer.terms_of_service') }}</a>
                     <a href="{{ locale_url('/cookie-policy') }}"    class="hover:text-white transition-colors">{{ __('app.footer.cookie_policy') }}</a>
                     <a href="{{ locale_url('/refund-policy') }}"    class="hover:text-white transition-colors">{{ __('app.footer.refund_policy') }}</a>
+                    <a href="{{ locale_url('/delete-account') }}"   class="hover:text-white transition-colors">{{ __('app.footer.delete_account') }}</a>
                 </div>
             </div>
         </div>

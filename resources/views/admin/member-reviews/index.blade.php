@@ -206,7 +206,7 @@
                                 @if($profile->user->hasAvatar())
                                     <img src="{{ $profile->user->avatar }}" class="w-9 h-9 rounded-full object-cover" alt="">
                                 @else
-                                    <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">{{ strtoupper(substr($profile->user->name, 0, 1)) }}</div>
+                                    <div class="w-9 h-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">{{ strtoupper(substr($profile->user?->name ?? '?', 0, 1)) }}</div>
                                 @endif
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $profile->displayName() }}</p>
@@ -267,7 +267,7 @@
                         <div class="flex items-start gap-4">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-gray-900">
-                                    {{ $review->student->name }} {{ $review->student->surname }}
+                                    {{ $review->student?->name ?? '(deleted member)' }} {{ $review->student?->surname }}
                                     <span class="text-amber-500">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
                                     → <a href="{{ $review->teacherProfile->publicUrl() }}" class="text-purple-600 hover:underline">{{ $review->teacherProfile->display_name ?? $review->teacherProfile->user->name }}</a>
                                 </p>

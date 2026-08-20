@@ -33,11 +33,11 @@
             <img src="{{ $conversation->teacher->avatar }}" class="w-10 h-10 rounded-full object-cover" alt="">
         @else
             <div class="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
-                {{ strtoupper(substr($conversation->teacher->name, 0, 1)) }}
+                {{ strtoupper(substr($conversation->teacher?->name ?? '?', 0, 1)) }}
             </div>
         @endif
         <div>
-            <p class="font-bold text-gray-900">{{ $conversation->teacher->name }} {{ $conversation->teacher->surname }}</p>
+            <p class="font-bold text-gray-900">{{ $conversation->teacher?->name }} {{ $conversation->teacher?->surname }}</p>
             @if($conversation->teacher->teacherProfile?->isPubliclyVisible())
                 <a href="{{ $conversation->teacher->teacherProfile->publicUrl() }}" class="text-xs font-semibold text-primary-600 hover:text-primary-800">
                     {{ __('teacher.my_teachers.view_public_profile') }} →

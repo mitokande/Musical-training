@@ -11,6 +11,7 @@ use App\Models\Follow;
 use App\Models\GameScore;
 use App\Models\TeacherProfile;
 use App\Models\User;
+use App\Services\Account\AccountDeletionService;
 use App\Services\Payments\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $segment = $request->query('segment', 'all');
-        if (! in_array($segment, ['all', 'students', 'teachers', 'schools'], true)) {
+        if (! in_array($segment, ['all', 'students', 'teachers', 'schools', 'deleted'], true)) {
             $segment = 'all';
         }
 
@@ -47,6 +48,9 @@ class UserController extends Controller
                 $q->where('role', 'school')
                     ->orWhereHas('teacherProfile', fn ($p) => $p->where('entity_type', TeacherProfile::ENTITY_SCHOOL));
             }),
+            // Accounts the member believes are gone for good. Invisible
+            // everywhere else on the site; still fully readable here.
+            'deleted' => User::onlyTrashed(),
         };
 
         $stats = match ($segment) {
@@ -70,6 +74,11 @@ class UserController extends Controller
                 ['label' => 'Published Profiles', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_APPROVED)->count(), 'icon' => 'badge-check', 'color' => 'blue'],
                 ['label' => 'Pending Approval', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_SUBMITTED)->count(), 'icon' => 'clock', 'color' => 'amber'],
             ],
+            'deleted' => [
+                ['label' => 'Deleted Accounts', 'value' => (clone $base)->count(), 'icon' => 'trash-2', 'color' => 'purple'],
+                ['label' => 'Self-Deleted', 'value' => (clone $base)->whereNull('deleted_by')->count(), 'icon' => 'user-x', 'color' => 'orange'],
+                ['label' => 'Last 30 Days', 'value' => (clone $base)->where('deleted_at', '>=', now()->subDays(30))->count(), 'icon' => 'calendar', 'color' => 'green'],
+            ],
         };
 
         $users = $base
@@ -78,7 +87,10 @@ class UserController extends Controller
                 $q->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('username', 'like', "%{$search}%");
+                        ->orWhere('username', 'like', "%{$search}%")
+                        // Deleted accounts keep their real address here.
+                        ->orWhere('deleted_email', 'like', "%{$search}%")
+                        ->orWhere('deleted_username', 'like', "%{$search}%");
                 });
             })
             ->when($segment === 'all' && $request->role, fn ($q) => $q->where('role', $request->role))
@@ -90,7 +102,7 @@ class UserController extends Controller
                         ->orWhereNull('last_active_at');
                 });
             })
-            ->latest()
+            ->when($segment === 'deleted', fn ($q) => $q->latest('deleted_at'), fn ($q) => $q->latest())
             ->paginate(15)
             ->withQueryString();
 
@@ -170,12 +182,15 @@ class UserController extends Controller
                 'start_trial' => $this->grantTrial($user),
                 // Support gesture: lets the user claim the trial once more.
                 'reset_trial' => $user->forceFill(['trial_started_at' => null])->save(),
-                'delete' => $user->delete(),
+                'delete' => app(AccountDeletionService::class)->delete($user, actor: auth()->user()),
             };
         }
 
         $skipped = count($validated['user_ids']) - $count;
         $message = "Bulk action applied to {$count} member(s).";
+        if ($validated['action'] === 'delete') {
+            $message .= ' Deleted accounts remain visible under the Deleted tab.';
+        }
         if ($validated['action'] === 'start_trial') {
             $message .= ' Members who were already Premium, or who have used their trial, were left unchanged.';
         }
@@ -339,17 +354,60 @@ class UserController extends Controller
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(User $user)
+    public function destroy(User $user, AccountDeletionService $deletions)
     {
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'You cannot delete your own account.');
         }
 
-        $user->delete();
+        $deletions->delete($user, actor: auth()->user());
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
+            ->with('success', 'Member deleted. The account is gone for the member but stays visible under the Deleted tab.');
+    }
+
+    /**
+     * Bring a deleted account back to life.
+     */
+    public function restore(User $user, AccountDeletionService $deletions)
+    {
+        if (! $user->isDeleted()) {
+            return back()->with('error', 'This account is not deleted.');
+        }
+
+        $originalEmail = $user->deleted_email;
+
+        $deletions->restore($user);
+
+        $message = "{$user->name} has been restored.";
+        if ($originalEmail && $user->fresh()->email !== $originalEmail) {
+            $message .= " Their old address ({$originalEmail}) had been claimed by another account, so they were restored with a placeholder e-mail — edit the member to set a new one.";
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Permanently erase a deleted account. Unlike deletion this really is
+     * irreversible, so it is only reachable for already-deleted accounts.
+     */
+    public function forceDelete(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users.index', ['segment' => 'deleted'])
+                ->with('error', 'You cannot delete your own account.');
+        }
+
+        if (! $user->isDeleted()) {
+            return back()->with('error', 'Delete the account first — permanent erasure is only available for deleted accounts.');
+        }
+
+        $name = $user->displayEmail();
+        $user->forceDelete();
+
+        return redirect()->route('admin.users.index', ['segment' => 'deleted'])
+            ->with('success', "{$name} has been permanently erased.");
     }
 
     /**

@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Listeners\RecordAuthAnalytics;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\Ai\ChatCompletionClient;
+use App\Services\Ai\OpenAiChatCompletionClient;
 use App\Services\Analytics\PostHogService;
 use App\Services\Teacher\TeacherCapabilityService;
 use App\Services\Zoom\ZoomClient;
@@ -36,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
+        // The one seam between the AI features and OpenAI. Bound rather than
+        // constructed inline (as the web AI controllers do) so the mobile AI
+        // endpoints can be tested without an API key or a network call.
+        $this->app->bind(ChatCompletionClient::class, OpenAiChatCompletionClient::class);
+
         // Shared PostHog client. Held as a singleton so the underlying SDK is
         // initialised at most once per process and the batched event queue is
         // flushed a single time when the request ends.
@@ -64,6 +71,11 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('api-auth', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
         RateLimiter::for('api-answer', fn (Request $request) => Limit::perMinute(240)
+            ->by($request->user()?->id ?: $request->ip()));
+        // Model calls are billed per request, so they get their own ceiling well
+        // under `api`. This is the runaway-client guard, not the product limit —
+        // that is `ask_ai_daily` in the plan matrix, enforced in AiController.
+        RateLimiter::for('ai-generate', fn (Request $request) => Limit::perMinute(6)
             ->by($request->user()?->id ?: $request->ip()));
 
         // Throttle Email Center sends below the SES account MaxSendRate.

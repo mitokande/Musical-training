@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -20,7 +21,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, LogsActivity, Notifiable;
+    use HasApiTokens, HasFactory, LogsActivity, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -63,6 +64,8 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'plan_expires_at' => 'datetime',
             'trial_started_at' => 'datetime',
             'trial_ends_at' => 'datetime',
+            'deleted_at' => 'datetime',
+            'deletion_meta' => 'array',
         ];
     }
 
@@ -306,6 +309,33 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function isRestricted(): bool
     {
         return (bool) $this->is_restricted;
+    }
+
+    /**
+     * Whether this account has been (soft) deleted. Only ever true on a model
+     * that was loaded through withTrashed()/onlyTrashed() — the admin panel.
+     */
+    public function isDeleted(): bool
+    {
+        return ! is_null($this->deleted_at);
+    }
+
+    /**
+     * The address the account really belonged to. Deleting anonymises the
+     * live `email` column (so the address can be reused for a new sign-up),
+     * which is why admin surfaces must ask for this instead.
+     */
+    public function displayEmail(): string
+    {
+        return $this->deleted_email ?: (string) $this->email;
+    }
+
+    /**
+     * The username the account really had, for the same reason.
+     */
+    public function displayUsername(): string
+    {
+        return $this->deleted_username ?: (string) $this->username;
     }
 
     public function hasPassword(): bool

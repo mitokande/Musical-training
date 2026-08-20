@@ -28,6 +28,7 @@
             'students' => ['label' => 'Student Profiles', 'icon' => 'graduation-cap'],
             'teachers' => ['label' => 'Teacher Profiles', 'icon' => 'briefcase'],
             'schools' => ['label' => 'School Profiles', 'icon' => 'building'],
+            'deleted' => ['label' => 'Deleted', 'icon' => 'trash-2'],
         ];
     @endphp
     <div class="flex flex-wrap gap-2">
@@ -105,9 +106,10 @@
         </form>
     </div>
 
-    <!-- Bulk actions -->
+    <!-- Bulk actions (not offered on already-deleted accounts) -->
+    @if($segment !== 'deleted')
     <form id="bulkForm" method="POST" action="{{ route('admin.users.bulk-action') }}"
-          onsubmit="return document.querySelectorAll('.bulk-check:checked').length > 0 && (this.action_select_value = this.action.value, this.action.value !== 'delete' || confirm('Delete the selected members? This cannot be undone.'))">
+          onsubmit="return document.querySelectorAll('.bulk-check:checked').length > 0 && (this.action_select_value = this.action.value, this.action.value !== 'delete' || confirm('Delete the selected members? They lose access immediately; the accounts stay visible under the Deleted tab.'))">
         @csrf
         <div class="card p-4 flex flex-wrap items-center gap-3">
             <span class="text-sm text-gray-500"><span id="bulkCount">0</span> selected</span>
@@ -126,6 +128,7 @@
             <span class="text-xs text-gray-400">Admins and your own account are always skipped.</span>
         </div>
     </form>
+    @endif
 
     <!-- Table -->
     <div class="card overflow-hidden">
@@ -152,7 +155,7 @@
                     @forelse ($users as $user)
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-4 py-4">
-                            @if($user->role !== 'admin' && $user->id !== auth()->id())
+                            @if($segment !== 'deleted' && $user->role !== 'admin' && $user->id !== auth()->id())
                             <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" form="bulkForm"
                                    class="bulk-check w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                             @endif
@@ -174,12 +177,23 @@
                                                 <i data-lucide="lock" class="w-2.5 h-2.5"></i> Kısıtlı
                                             </span>
                                         @endif
+                                        @if($user->isDeleted())
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium"
+                                                  title="Deleted {{ $user->deleted_at->diffForHumans() }}{{ $user->deleted_by ? ' by an admin' : ' by the member' }}">
+                                                <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> Deleted
+                                            </span>
+                                        @endif
                                     </div>
                                     <p class="text-xs text-gray-500">ID: {{ $user->id }}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ $user->email }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            {{ $user->displayEmail() }}
+                            @if($user->isDeleted())
+                                <span class="block text-xs text-gray-400">released on delete</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             @switch($user->role)
                                 @case('admin')
@@ -243,7 +257,11 @@
                         @endif
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $user->country ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ $user->last_active_at ? $user->last_active_at->diffForHumans() : 'Never' }}
+                            @if($user->isDeleted())
+                                <span title="Deleted {{ $user->deleted_at->format('M j, Y H:i') }}">Deleted {{ $user->deleted_at->diffForHumans() }}</span>
+                            @else
+                                {{ $user->last_active_at ? $user->last_active_at->diffForHumans() : 'Never' }}
+                            @endif
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-1">
@@ -255,6 +273,21 @@
                                    class="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Edit">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </a>
+                                @if ($user->isDeleted())
+                                <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline" onsubmit="return confirm('Restore {{ $user->name }}? They will be able to log in again.')">
+                                    @csrf
+                                    <button type="submit" class="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Restore account">
+                                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.users.force-delete', $user) }}" method="POST" class="inline" onsubmit="return confirm('Permanently erase {{ $user->displayEmail() }}? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Erase permanently">
+                                        <i data-lucide="flame" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                                @else
                                 @if ($user->role !== 'admin' && $user->id !== auth()->id())
                                 <form action="{{ route('admin.users.impersonate', $user) }}" method="POST" class="inline" onsubmit="return confirm('Log in as {{ $user->name }}? You can return via the banner at the top.')">
                                     @csrf
@@ -264,13 +297,14 @@
                                 </form>
                                 @endif
                                 @if ($user->id !== auth()->id())
-                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this member?')">
+                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Delete this member? They lose access immediately; you can still find (and restore) the account under the Deleted tab.')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 </form>
+                                @endif
                                 @endif
                             </div>
                         </td>

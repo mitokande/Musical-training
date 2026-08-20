@@ -16,12 +16,15 @@ class StudentTeacherMessageController extends Controller
 
     public function index(Request $request)
     {
+        // A deleted teacher's thread drops out rather than rendering a null actor.
         $conversations = TeacherConversation::with('teacher')
+            ->whereHas('teacher')
             ->where('student_id', $request->user()->id)
             ->orderByDesc('last_message_at')
             ->get();
 
         $activeTeachers = TeacherStudentRelationship::with('teacher')
+            ->whereHas('teacher')
             ->active()
             ->where('student_id', $request->user()->id)
             ->get()

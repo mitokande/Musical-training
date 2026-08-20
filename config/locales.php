@@ -56,6 +56,7 @@ return [
         '/cookie-policy' => 'pages.cookie-policy',
         '/terms-of-service' => 'pages.terms-of-service',
         '/privacy-policy' => 'pages.privacy-policy',
+        '/delete-account' => 'pages.delete-account',
     ],
 
     /*
@@ -94,6 +95,7 @@ return [
         '/cookie-policy' => 'cookie',
         '/terms-of-service' => 'terms',
         '/privacy-policy' => 'privacy',
+        '/delete-account' => 'delete_account',
     ],
 
     /*

@@ -8,9 +8,11 @@ use App\Models\QuestionnaireQuestion;
 use App\Models\QuestionnaireResponse;
 use App\Models\UserPractice;
 use App\Models\UserProfile;
+use App\Services\Account\AccountDeletionService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -185,19 +187,47 @@ class ProfileController extends Controller
         return Redirect::back()->with('status', 'avatar-updated');
     }
 
-    public function toggleSuspend(Request $request): RedirectResponse
+    /**
+     * Delete the member's own account.
+     *
+     * This is a one-way door for the member: they are signed out immediately
+     * and can never get back in. The record itself is only soft-deleted, so
+     * support/admins keep an audit trail (see AccountDeletionService).
+     */
+    public function destroy(Request $request, AccountDeletionService $deletions): RedirectResponse
     {
         $user = $request->user();
 
-        if ($user->isSuspended()) {
-            $user->update(['suspended_at' => null]);
+        // Google-only accounts have no password to confirm with, so they type
+        // their e-mail address instead.
+        if ($user->hasPassword()) {
+            $request->validateWithBag('userDeletion', [
+                'password' => ['required', 'current_password'],
+                'reason' => ['nullable', 'string', 'max:500'],
+            ]);
+        } else {
+            $request->validateWithBag('userDeletion', [
+                'confirm_email' => ['required', 'string'],
+                'reason' => ['nullable', 'string', 'max:500'],
+            ]);
 
-            return Redirect::route('profile.edit')->with('status', 'account-activated');
+            if (mb_strtolower(trim($request->input('confirm_email'))) !== mb_strtolower($user->email)) {
+                // back(), not a fixed route: this form is served both from the
+                // profile Settings tab and from the public /delete-account page.
+                return Redirect::back()
+                    ->withErrors(['confirm_email' => __('app.profile.delete_email_mismatch')], 'userDeletion');
+            }
         }
 
-        $user->update(['suspended_at' => now()]);
+        $deletions->delete($user, $request->input('reason'));
 
-        return Redirect::route('profile.edit')->with('status', 'account-suspended');
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // The login page renders `status` as plain text — a last, unambiguous
+        // goodbye on the one screen they might try to come back through.
+        return Redirect::route('login')->with('status', __('app.profile.delete_done'));
     }
 
     public function editExtendedProfile(Request $request): View

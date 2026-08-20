@@ -10,6 +10,62 @@
         Back to Members
     </a>
 
+    @if($user->isDeleted())
+    <!-- Deleted account banner: invisible to the member, fully readable here -->
+    <div class="card p-5 border-l-4 border-red-500 bg-red-50/50">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex-1">
+                <h3 class="flex items-center gap-2 text-base font-bold text-red-800">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Deleted account
+                </h3>
+                <p class="text-sm text-red-700 mt-1">
+                    Deleted {{ $user->deleted_at->format('M j, Y H:i') }} ({{ $user->deleted_at->diffForHumans() }})
+                    @if($user->deleted_by)
+                        by admin #{{ $user->deleted_by }}.
+                    @else
+                        by the member.
+                    @endif
+                    For the member this is permanent — they are signed out and cannot log back in.
+                </p>
+                <dl class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                    <div class="flex gap-2">
+                        <dt class="text-red-700/70">Original e-mail:</dt>
+                        <dd class="font-medium text-red-900">{{ $user->deleted_email ?? '—' }}</dd>
+                    </div>
+                    <div class="flex gap-2">
+                        <dt class="text-red-700/70">Original username:</dt>
+                        <dd class="font-medium text-red-900">{{ $user->deleted_username ?? '—' }}</dd>
+                    </div>
+                    @if($user->deletion_reason)
+                    <div class="flex gap-2 sm:col-span-2">
+                        <dt class="text-red-700/70">Reason given:</dt>
+                        <dd class="font-medium text-red-900">{{ $user->deletion_reason }}</dd>
+                    </div>
+                    @endif
+                </dl>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <form action="{{ route('admin.users.restore', $user) }}" method="POST"
+                      onsubmit="return confirm('Restore this account? The member will be able to log in again.')">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Restore
+                    </button>
+                </form>
+                <form action="{{ route('admin.users.force-delete', $user) }}" method="POST"
+                      onsubmit="return confirm('Permanently erase this account and all of its rows? This cannot be undone.')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-red-300 text-red-700 hover:bg-red-50 text-sm font-semibold rounded-lg transition-colors">
+                        <i data-lucide="flame" class="w-4 h-4"></i> Erase
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Header Card -->
     <div class="card p-6">
         <div class="flex flex-col sm:flex-row items-start gap-6">
@@ -60,7 +116,7 @@
                     @endif
                 </div>
 
-                <p class="text-sm text-gray-500 mb-3">{{ $user->email }}</p>
+                <p class="text-sm text-gray-500 mb-3">{{ $user->displayEmail() }}</p>
 
                 <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                     <span class="flex items-center gap-1">

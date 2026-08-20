@@ -43,6 +43,7 @@ class GameScore extends Model
         return static::selectRaw('user_id, MAX(score) as best_score, MAX(max_streak) as best_streak')
             ->where('game_slug', $gameSlug)
             ->where('created_at', '>=', now()->startOfWeek())
+            ->whereHas('user')
             ->groupBy('user_id')
             ->orderByDesc('best_score')
             ->limit($limit)
@@ -54,6 +55,7 @@ class GameScore extends Model
     {
         return static::selectRaw('user_id, MAX(score) as best_score, MAX(max_streak) as best_streak')
             ->where('game_slug', $gameSlug)
+            ->whereHas('user')
             ->groupBy('user_id')
             ->orderByDesc('best_score')
             ->limit($limit)
@@ -73,7 +75,10 @@ class GameScore extends Model
             ->orderByDesc('total_score')
             ->limit($limit)
             ->get()
-            ->each(fn ($r) => $r->user = User::select(['id', 'name', 'country'])->find($r->user_id));
+            ->each(fn ($r) => $r->user = User::select(['id', 'name', 'country'])->find($r->user_id))
+            // Deleted accounts resolve to null — they leave the board.
+            ->filter(fn ($r) => $r->user !== null)
+            ->values();
     }
 
     public static function userRank(int $userId, string $gameSlug, bool $weekly = true): int

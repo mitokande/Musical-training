@@ -130,6 +130,27 @@ For `single-note-practice`, the blade does `explode(',', $currentPractice->other
 
 `User->plan`: `free`, `premium`. Limits defined in `config/plans.php`, accessed via `$user->getPlanLimit('feature_key')`. Free users: 3 exercises/day per type (`DailyExerciseCount::incrementCount()`), 3 saved templates, no AI mode. `-1` means unlimited.
 
+### Account deletion (soft)
+
+`User` uses `SoftDeletes`. Everything goes through `App\Services\Account\AccountDeletionService` — never call `$user->delete()` directly, or the side-effects below are skipped.
+
+Deleting: cancels live subscriptions (immediate), archives the `TeacherProfile` (public listings live in their own table, so the soft-delete scope does not hide them), revokes Sanctum tokens, then **anonymises the unique identity columns** — `email` → `deleted-user-{id}@deleted.invalid`, `username` → `deleted_user_{id}`, `google_id` → null — keeping the originals in `deleted_email` / `deleted_username`. The anonymisation is what makes deletion feel permanent *and* lets the same person sign up again: `unique:users` validation ignores model scopes, so a retained address would otherwise block re-registration with "email already taken".
+
+For the member it is a one-way door — the soft-delete scope hides them from the auth provider, so login, password reset and API tokens all fail. Self-service is `DELETE /profile` (`ProfileController::destroy`, the Settings tab), confirmed by password or, for Google-only accounts, by typing their own address. Admins see deleted accounts under the **Deleted** tab of `/admin/users` (`segment=deleted`, `onlyTrashed`), can `restore` (original e-mail handed back only if nobody claimed it meanwhile — the unique index does not care about `deleted_at`) or `forceDelete`. Admin routes for a trashed member need `->withTrashed()`.
+
+Because the global scope makes `belongsTo(User::class)` resolve to null for deleted accounts, user-visible lists filter with `whereHas(...)` instead of rendering a null actor: social feed, game leaderboards, public teacher reviews, student↔teacher conversations, school rosters. Any new list joining users needs the same guard.
+
+Self-service *suspension* used to occupy this slot in the profile Settings tab and was removed with this feature; `suspended_at` and `isSuspended()` remain (API auth still honours them), but nothing in the UI writes them any more.
+
+Three entry points, one service:
+- **Web, signed in** — `DELETE /profile` from the profile Settings tab.
+- **Public page** — `GET /delete-account` (`pages.delete-account`, no auth middleware). Required by the Play Store / App Store data-deletion policies: reachable without the app or an account. Signed-in visitors get the same confirm-and-delete modal inline (it posts to `DELETE /profile`, which is why `ProfileController::destroy` redirects with `back()` rather than a fixed route); signed-out visitors get sign-in and support-e-mail routes. It is in `config('locales.public_pages')` + `page_sections` (`delete_account`), so it carries localized URLs, hreflang and sitemap entries like any other public page, and it is linked from the footer.
+- **Mobile app** — `DELETE /api/v1/me/account` (`throttle:api-auth`), password or `confirm_email` for Google accounts, optional `reason`.
+
+The page's data disclosure (what is deleted / what is retained and why) must stay true to what the service actually does — it is the statement the app stores review against.
+
+Tests: `tests/Feature/AccountDeletionTest.php`, `tests/Feature/AccountDeletionPageTest.php`, plus the deletion cases in `tests/Feature/ProfileTest.php`.
+
 ### Adding a new practice type
 
 1. Migration + Model in `app/Models/`

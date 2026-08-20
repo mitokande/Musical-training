@@ -61,7 +61,9 @@ class SchoolTeacherController extends Controller
             ->where('status', SchoolTeacherRelationship::STATUS_ACTIVE)
             ->firstOrFail();
 
+        // Deleted student accounts drop off the roster.
         $students = TeacherStudentRelationship::with('student')
+            ->whereHas('student')
             ->active()
             ->where('teacher_id', $teacher->id)
             ->orderByDesc('approved_at')

@@ -129,6 +129,17 @@ return [
     ],
 
     'profile' => [
+        'delete_account' => 'Radera konto',
+        'delete_desc' => 'Stäng ditt konto permanent. Du förlorar åtkomsten till din profil, dina framsteg och din statistik och kan inte logga in igen.',
+        'delete_confirm_title' => 'Radera ditt konto?',
+        'delete_confirm_desc' => 'Det här går inte att ångra. Du loggas ut direkt och kan inte logga in igen – din profil, dina framsteg och din statistik blir otillgängliga.',
+        'delete_password_label' => 'Ange ditt lösenord för att bekräfta',
+        'delete_email_label' => 'Skriv din e-postadress (:email) för att bekräfta',
+        'delete_email_mismatch' => 'E-postadressen stämmer inte med ditt konto.',
+        'delete_reason_label' => 'Varför lämnar du oss? (valfritt)',
+        'delete_reason_placeholder' => 'Din feedback hjälper oss att bli bättre.',
+        'delete_confirm_button' => 'Ja, radera mitt konto',
+        'delete_done' => 'Ditt konto har raderats.',
         'title' => 'Profil',
         'general' => 'Allmän information',
         'music_profile' => 'Musikprofil',
@@ -533,6 +544,7 @@ return [
         'terms_of_service' => 'Användarvillkor',
         'cookie_policy' => 'Cookiepolicy',
         'refund_policy' => "Återbetalningspolicy",
+        'delete_account' => 'Radera konto',
     ],
 
     'language' => [

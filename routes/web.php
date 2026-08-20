@@ -174,6 +174,11 @@ Route::get('/terms-of-service', fn () => view('pages.terms-of-service'))->name('
 Route::get('/cookie-policy', fn () => view('pages.cookie-policy'))->name('page.cookie-policy');
 Route::get('/subscription-terms', fn () => view('pages.subscription-terms'))->name('page.subscription-terms');
 Route::get('/refund-policy', fn () => view('pages.refund-policy'))->name('page.refund-policy');
+// Public on purpose (no auth middleware): the Play Store / App Store data
+// deletion policies require the account-deletion route to be reachable without
+// installing the app. Signed-in visitors get the delete button inline; the
+// deletion itself still posts to the authenticated DELETE /profile.
+Route::get('/delete-account', fn () => view('pages.delete-account'))->name('page.delete-account');
 // 301, not the default 302: the section moved into the privacy policy for good,
 // and a temporary redirect keeps the old URL in Google's index as a "page with
 // redirect" instead of passing its signals to the destination.
@@ -301,7 +306,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/account/email-preferences', [EmailPreferenceController::class, 'edit'])->name('email-preferences.edit');
     Route::put('/account/email-preferences', [EmailPreferenceController::class, 'update'])->name('email-preferences.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
-    Route::post('/profile/suspend', [ProfileController::class, 'toggleSuspend'])->name('profile.suspend');
+    // Self-service account deletion (soft delete — see AccountDeletionService).
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/profile/music', [ProfileController::class, 'editExtendedProfile'])->name('profile.extended');
     Route::put('/profile/music', [ProfileController::class, 'updateExtendedProfile'])->name('profile.extended.update');
     Route::get('/profile/questionnaire', [ProfileController::class, 'showQuestionnaire'])->name('profile.questionnaire');
@@ -453,7 +459,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Member Reviews: new-member control & approvals + review moderation
     Route::get('member-reviews', [MemberReviewController::class, 'index'])->name('member-reviews.index');
 
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->withTrashed(['show', 'edit', 'update', 'destroy']);
+    Route::post('users/{user}/restore', [UserController::class, 'restore'])->withTrashed()->name('users.restore');
+    Route::delete('users/{user}/force-delete', [UserController::class, 'forceDelete'])->withTrashed()->name('users.force-delete');
     Route::post('users/{user}/toggle-restriction', [UserController::class, 'toggleRestriction'])->name('users.toggle-restriction');
     Route::post('users/{user}/verify-email', [UserController::class, 'verifyEmail'])->name('users.verify-email');
     Route::post('users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');

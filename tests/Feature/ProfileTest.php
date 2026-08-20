@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -63,36 +64,63 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    // Account deletion was replaced by suspend/reactivate
-    // (ProfileController::toggleSuspend); there is no DELETE /profile route.
-
-    public function test_user_can_suspend_their_account(): void
+    /**
+     * Self-service deletion is a one-way door for the member: signed out,
+     * unable to log back in, e-mail released. The row itself survives as a
+     * soft delete for the admin panel (see AccountDeletionTest).
+     */
+    public function test_user_can_delete_their_own_account(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['password' => Hash::make('password')]);
 
         $response = $this
             ->actingAs($user)
-            ->post('/profile/suspend');
+            ->delete('/profile', ['password' => 'password']);
 
         $response
-            ->assertRedirect(route('profile.edit', absolute: false))
-            ->assertSessionHas('status', 'account-suspended');
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('login', absolute: false));
 
-        $this->assertNotNull($user->refresh()->suspended_at);
+        $this->assertGuest();
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 
-    public function test_suspended_user_can_reactivate_their_account(): void
+    public function test_correct_password_must_be_provided_to_delete_account(): void
     {
-        $user = User::factory()->create(['suspended_at' => now()]);
+        $user = User::factory()->create(['password' => Hash::make('password')]);
 
         $response = $this
             ->actingAs($user)
-            ->post('/profile/suspend');
+            ->from('/profile')
+            ->delete('/profile', ['password' => 'wrong-password']);
 
         $response
-            ->assertRedirect(route('profile.edit', absolute: false))
-            ->assertSessionHas('status', 'account-activated');
+            ->assertSessionHasErrorsIn('userDeletion', 'password')
+            ->assertRedirect('/profile');
 
-        $this->assertNull($user->refresh()->suspended_at);
+        $this->assertAuthenticated();
+        $this->assertNull($user->fresh()->deleted_at);
+    }
+
+    /**
+     * Google-only accounts have no password to confirm with, so they confirm
+     * by typing their own address.
+     */
+    public function test_passwordless_account_confirms_deletion_with_its_email(): void
+    {
+        $user = User::factory()->create(['password' => null, 'google_id' => 'g-123']);
+
+        $this->actingAs($user)
+            ->from('/profile')
+            ->delete('/profile', ['confirm_email' => 'someone-else@example.com'])
+            ->assertSessionHasErrorsIn('userDeletion', 'confirm_email');
+
+        $this->assertNull($user->fresh()->deleted_at);
+
+        $this->actingAs($user)
+            ->delete('/profile', ['confirm_email' => strtoupper($user->email)])
+            ->assertRedirect(route('login', absolute: false));
+
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 }

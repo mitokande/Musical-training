@@ -66,7 +66,11 @@ class SocialFeed extends Component
 
     public function render()
     {
-        $query = FeedItem::with(['actor', 'subject'])->withCount('likes');
+        // whereHas('actor') leans on the users soft-delete scope: a deleted
+        // account's posts and activity drop out of the feed for everyone.
+        $query = FeedItem::with(['actor', 'subject'])
+            ->whereHas('actor')
+            ->withCount('likes');
 
         if ($this->scope === 'following') {
             // Only events from users I follow (plus my own activity).

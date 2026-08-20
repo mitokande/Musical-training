@@ -26,7 +26,7 @@ class StudentAssignmentController extends Controller
 
         return view('assignments', [
             'recipients' => $recipients,
-            'rewards' => $request->user()->studentRewards()->with('teacher')->orderByDesc('created_at')->limit(12)->get(),
+            'rewards' => $request->user()->studentRewards()->with('teacher')->whereHas('teacher')->orderByDesc('created_at')->limit(12)->get(),
         ]);
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\PracticeSessionController;
@@ -55,11 +56,30 @@ Route::prefix('v1')->group(function () {
             Route::delete('{uuid}', [PracticeSessionController::class, 'abandon']);
         });
 
+        // AI Coach and the music assistant. Entitlement is enforced in the
+        // controller from the plan matrix — `ai_coach` (premium-only, same as
+        // the web route gate) and the `ask_ai_daily` allowance. The throttles
+        // here are the separate, infrastructural guard against a client in a
+        // loop — a plan costs far more than an ordinary request, and neither is
+        // something a person can legitimately do at `throttle:api` speed.
+        Route::prefix('ai')->group(function () {
+            Route::get('coach/plan', [AiController::class, 'coachPlan']);
+            Route::post('coach/plan', [AiController::class, 'generateCoachPlan'])
+                ->middleware('throttle:ai-generate');
+            Route::get('chat/quota', [AiController::class, 'chatQuota']);
+            Route::post('chat', [AiController::class, 'chat'])
+                ->middleware('throttle:ai-generate');
+        });
+
         Route::prefix('me')->group(function () {
             Route::get('dashboard', [StatsController::class, 'dashboard']);
             Route::get('stats', [StatsController::class, 'stats']);
             Route::get('plan', [StatsController::class, 'plan']);
             Route::put('profile', [ProfileController::class, 'update']);
+            // In-app account deletion (Play Store / App Store requirement).
+            // Rate-limited like the auth endpoints: it takes a password.
+            Route::delete('account', [ProfileController::class, 'destroy'])
+                ->middleware('throttle:api-auth');
         });
     });
 });

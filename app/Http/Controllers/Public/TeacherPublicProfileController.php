@@ -65,7 +65,9 @@ class TeacherPublicProfileController extends Controller
             $this->recordView($request, $profile, $isOwner);
         }
 
+        // whereHas('student') hides reviews written by since-deleted accounts.
         $reviews = TeacherReview::with('student')
+            ->whereHas('student')
             ->approved()
             ->where('teacher_profile_id', $profile->id)
             ->orderByDesc('created_at')

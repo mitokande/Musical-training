@@ -75,8 +75,6 @@
                     @case('avatar-updated') {{ __('app.profile.avatar_updated') }} @break
                     @case('questionnaire-saved') {{ __('app.profile.questionnaire_saved') }} @break
                     @case('password-updated') {{ __('app.profile.password_updated') }} @break
-                    @case('account-suspended') {{ __('app.profile.account_suspended') }} @break
-                    @case('account-activated') {{ __('app.profile.account_reactivated') }} @break
                     @default {{ __('app.profile.action_success') }}
                 @endswitch
             </p>
@@ -931,28 +929,23 @@
                     @endif
                 </div>
 
-                {{-- Hesabı Dondur / Aktifleştir --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-amber-100 p-6"
-                     x-data="{ showModal: false }">
+                {{-- Hesabı Sil --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-6"
+                     x-data="{ showModal: {{ $errors->userDeletion->isNotEmpty() ? 'true' : 'false' }} }">
                     <div class="flex items-start justify-between">
                         <div>
                             <h2 class="text-base font-bold text-gray-900 mb-1 flex items-center gap-2">
-                                <i data-lucide="pause-circle" class="w-5 h-5 text-amber-500"></i>
-                                {{ $user->isSuspended() ? __('app.profile.account_reactivated') : __('app.profile.account_suspended') }}
+                                <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                                {{ __('app.profile.delete_account') }}
                             </h2>
-                            @if($user->isSuspended())
-                                <p class="text-sm text-amber-600 font-medium mb-1">{{ __('app.profile.account_suspended_desc') }}</p>
-                                <p class="text-sm text-gray-500">{{ __('app.profile.reactivate_desc') }}</p>
-                            @else
-                                <p class="text-sm text-gray-500">{{ __('app.profile.suspend_desc') }}</p>
-                            @endif
+                            <p class="text-sm text-gray-500">{{ __('app.profile.delete_desc') }}</p>
                         </div>
                     </div>
                     <div class="mt-5">
                         <button @click="showModal = true"
-                                class="inline-flex items-center gap-2 px-4 py-2 {{ $user->isSuspended() ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600' }} text-white rounded-lg transition text-sm font-medium">
-                            <i data-lucide="{{ $user->isSuspended() ? 'play-circle' : 'pause-circle' }}" class="w-4 h-4"></i>
-                            {{ $user->isSuspended() ? __('app.profile.account_reactivated') : __('app.profile.account_suspended') }}
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm font-medium">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            {{ __('app.profile.delete_account') }}
                         </button>
                     </div>
 
@@ -960,23 +953,57 @@
                          class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
                          @click.self="showModal = false">
                         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4" @click.stop>
-                            @if($user->isSuspended())
-                                <h3 class="text-lg font-bold text-gray-900 mb-2">{{ __('app.profile.reactivate_confirm_title') }}</h3>
-                                <p class="text-sm text-gray-600 mb-6">{{ __('app.profile.reactivate_confirm_desc') }}</p>
-                            @else
-                                <h3 class="text-lg font-bold text-gray-900 mb-2">{{ __('app.profile.suspend_confirm_title') }}</h3>
-                                <p class="text-sm text-gray-600 mb-6">{{ __('app.profile.suspend_confirm_desc') }}</p>
-                            @endif
-                            <form method="POST" action="{{ route('profile.suspend') }}">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900">{{ __('app.profile.delete_confirm_title') }}</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-5">{{ __('app.profile.delete_confirm_desc') }}</p>
+
+                            <form method="POST" action="{{ route('profile.destroy') }}">
                                 @csrf
-                                <div class="flex justify-end gap-3">
+                                @method('DELETE')
+
+                                <div class="space-y-4">
+                                    @if($user->hasPassword())
+                                        <div>
+                                            <label for="delete_password" class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.profile.delete_password_label') }}</label>
+                                            <input type="password" name="password" id="delete_password" required autocomplete="current-password"
+                                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                                            @error('password', 'userDeletion')
+                                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    @else
+                                        <div>
+                                            <label for="delete_confirm_email" class="block text-sm font-medium text-gray-700 mb-1">
+                                                {{ __('app.profile.delete_email_label', ['email' => $user->email]) }}
+                                            </label>
+                                            <input type="text" name="confirm_email" id="delete_confirm_email" required autocomplete="off"
+                                                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                                            @error('confirm_email', 'userDeletion')
+                                                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    @endif
+
+                                    <div>
+                                        <label for="delete_reason" class="block text-sm font-medium text-gray-700 mb-1">{{ __('app.profile.delete_reason_label') }}</label>
+                                        <textarea name="reason" id="delete_reason" rows="2" maxlength="500"
+                                                  placeholder="{{ __('app.profile.delete_reason_placeholder') }}"
+                                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex justify-end gap-3">
                                     <button type="button" @click="showModal = false"
                                             class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
                                         {{ __('app.common.cancel') }}
                                     </button>
                                     <button type="submit"
-                                            class="px-4 py-2 text-sm font-medium text-white {{ $user->isSuspended() ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-500 hover:bg-amber-600' }} rounded-lg transition">
-                                        {{ $user->isSuspended() ? __('app.profile.confirm_yes_activate') : __('app.profile.confirm_yes_suspend') }}
+                                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition">
+                                        {{ __('app.profile.delete_confirm_button') }}
                                     </button>
                                 </div>
                             </form>
