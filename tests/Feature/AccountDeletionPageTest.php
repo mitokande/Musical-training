@@ -114,6 +114,28 @@ class AccountDeletionPageTest extends TestCase
         $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 
+    /**
+     * The app has to know which confirmation to ask for before it draws the
+     * screen — otherwise a Google account is shown a password field it can
+     * never satisfy, and only learns better from a failed request.
+     */
+    public function test_the_user_payload_says_whether_the_account_has_a_password(): void
+    {
+        $withPassword = User::factory()->create(['password' => Hash::make('password')]);
+
+        $this->actingAs($withPassword, 'sanctum')
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonPath('data.has_password', true);
+
+        $google = User::factory()->create(['password' => null, 'google_id' => 'g-3']);
+
+        $this->actingAs($google, 'sanctum')
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonPath('data.has_password', false);
+    }
+
     public function test_the_api_endpoint_requires_authentication(): void
     {
         $this->deleteJson('/api/v1/me/account')->assertUnauthorized();

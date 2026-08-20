@@ -1,5 +1,6 @@
 {
   "enabledPlugins": {
-    "stripe@claude-plugins-official": true
+    "stripe@claude-plugins-official": true,
+    "paddle@claude-community": true
   }
 }

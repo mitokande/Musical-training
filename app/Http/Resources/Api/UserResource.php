@@ -16,6 +16,10 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'email' => $this->email,
             'email_verified' => $this->hasVerifiedEmail(),
+            // Google sign-in accounts have no password. The app needs this to
+            // pick the right challenge up front — password vs. type-your-own
+            // -address — for changing a password or deleting the account.
+            'has_password' => $this->hasPassword(),
             'avatar_url' => $this->avatar,
             'locale' => $this->locale,
             'country' => $this->country,
