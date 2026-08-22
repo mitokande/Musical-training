@@ -47,10 +47,49 @@ class PracticeAnswerGrader
         $isCorrect = $this->normalize($answer) === $this->normalize($correct);
 
         if (! $isCorrect && in_array($practiceType, self::NOTE_ANSWER_TYPES, true)) {
-            $isCorrect = $this->music->notesAreEnharmonic($answer, $correct);
+            $isCorrect = $this->notesMatch($answer, $correct);
         }
 
         return $isCorrect;
+    }
+
+    /**
+     * Note-for-note comparison, enharmonics allowed.
+     *
+     * A grouped single-note question answers with one comma-joined string
+     * ("C,E,G"), so this walks both sides in step: same length, and every
+     * note either spelled the same or an enharmonic of the one asked for.
+     * An ungrouped answer is the one-element case of the same rule.
+     */
+    private function notesMatch(string $answer, string $correct): bool
+    {
+        $given = $this->splitNotes($answer);
+        $wanted = $this->splitNotes($correct);
+
+        if ($given === [] || count($given) !== count($wanted)) {
+            return false;
+        }
+
+        foreach ($wanted as $i => $note) {
+            if ($this->normalize($given[$i]) === $this->normalize($note)) {
+                continue;
+            }
+
+            if (! $this->music->notesAreEnharmonic($given[$i], $note)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** @return array<int,string> */
+    private function splitNotes(string $value): array
+    {
+        return array_values(array_filter(
+            array_map('trim', explode(',', $value)),
+            fn ($n) => $n !== '',
+        ));
     }
 
     /**

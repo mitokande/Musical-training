@@ -295,7 +295,11 @@ class PracticeSessionService
 
     private function generateFromExercise(LearningPathExercise $exercise, int $questionCount, string $practiceType): array
     {
-        $generated = $this->generator->generate($exercise, $questionCount)
+        // A grouped drill asks for one question per group but generates a note
+        // per beat of it, so the generator is asked for the product.
+        $groupSize = $this->groupSize($practiceType, $exercise->config_json ?? []);
+
+        $generated = $this->generator->generate($exercise, $questionCount * $groupSize)
             ->values()
             ->map(function ($q, $i) {
                 $q->id = $i + 1;
@@ -310,10 +314,67 @@ class PracticeSessionService
         $serialized = $this->generator->serializeForSession($generated);
 
         // Freeze the answer-option order now so it survives resume.
-        return array_map(
+        $prepared = array_map(
             fn (array $q) => $this->presenter->prepare($q, $practiceType),
             $serialized,
         );
+
+        return $groupSize > 1 ? $this->groupQuestions($prepared, $groupSize) : $prepared;
+    }
+
+    /**
+     * Notes per question, for the one drill that has them.
+     *
+     * Single note is the only type the web plays in groups ("Play notes in
+     * groups of 2-9"), and the setting travels in the mapped config_json so a
+     * resumed session still knows the shape it was generated in.
+     */
+    private function groupSize(string $practiceType, array $configJson): int
+    {
+        if ($practiceType !== 'single-note-practice') {
+            return 1;
+        }
+
+        return max(1, (int) ($configJson['group_size'] ?? 1));
+    }
+
+    /**
+     * Fold every `$groupSize` generated notes into one question.
+     *
+     * The first note of the group carries the question — its clef, octave,
+     * reference note and answer keys stand for the whole group — and `group`
+     * holds each note the question sounds, in order. `target` becomes the
+     * comma-joined answer, which is what MusicTheoryService reads back out and
+     * what PracticeAnswerGrader compares note by note.
+     *
+     * A short tail is dropped rather than asked as an undersized group; the
+     * generator cycles its pool, so there is always a whole number of groups
+     * to be had.
+     *
+     * @param  array<int,array<string,mixed>>  $questions
+     * @return array<int,array<string,mixed>>
+     */
+    private function groupQuestions(array $questions, int $groupSize): array
+    {
+        $grouped = [];
+
+        foreach (array_chunk($questions, $groupSize) as $chunk) {
+            if (count($chunk) < $groupSize) {
+                break;
+            }
+
+            $merged = $chunk[0];
+            $merged['group'] = array_map(fn (array $q) => [
+                'target' => (string) ($q['target'] ?? ''),
+                'octave' => (int) ($q['octave'] ?? 4),
+            ], $chunk);
+            $merged['target'] = implode(',', array_column($merged['group'], 'target'));
+            $merged['id'] = count($grouped) + 1;
+
+            $grouped[] = $merged;
+        }
+
+        return $grouped;
     }
 
     private function persist(User $user, array $attributes): PracticeSession

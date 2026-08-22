@@ -66,17 +66,31 @@ class QuestionAudioResolver
         };
     }
 
+    /**
+     * The reference note, then every note of the group at the same pace.
+     *
+     * An ungrouped question is the same shape with one note in it, which is
+     * what a lesson and any pre-groups session still produce.
+     */
     private function singleNote(array $q): array
     {
         $octave = (int) ($q['octave'] ?? 4);
-        $target = $this->pitch($q['target'] ?? null, $octave);
+        $group = $this->arrayField($q['group'] ?? null);
+
+        $notes = $group !== null && $group !== []
+            ? array_map(
+                fn ($n) => $this->pitch($n['target'] ?? null, (int) ($n['octave'] ?? $octave)),
+                $group,
+            )
+            : [$this->pitch($q['target'] ?? null, $octave)];
+
         $reference = isset($q['reference_note'])
             ? $this->pitch($q['reference_note'], $octave)
             : null;
 
         return $this->payload(
             playback: 'sequential',
-            notes: array_values(array_filter([$target])),
+            notes: array_values(array_filter($notes)),
             gapMs: self::SINGLE_NOTE_GAP_MS,
             referenceNote: $reference,
         );

@@ -273,6 +273,81 @@ class PracticeSessionApiTest extends TestCase
         ])->assertStatus(404)->assertJsonPath('error.code', 'not_found');
     }
 
+    public function test_single_note_groups_sound_every_note_and_are_answered_as_one(): void
+    {
+        $response = $this->postJson('/api/v1/sessions', [
+            'source' => 'studio',
+            'practice_type' => 'single-note-practice',
+            'question_count' => 4,
+            'config' => ['group_size' => 3, 'allowed_notes' => ['C', 'D', 'E', 'F#']],
+        ])->assertCreated();
+
+        // Four questions, not twelve: the group is the question.
+        $response->assertJsonPath('data.session.question_count', 4);
+        $questions = $response->json('data.questions');
+        $this->assertCount(4, $questions);
+
+        foreach ($questions as $q) {
+            $this->assertCount(3, $q['audio']['notes'], 'Every note of the group should sound.');
+            $this->assertSame(3, $q['meta']['group_size']);
+            $this->assertNotNull($q['audio']['reference_note']);
+        }
+
+        $stored = PracticeSession::where('uuid', $response->json('data.session.uuid'))->first();
+        $correct = app(PracticeAnswerGrader::class)
+            ->correctAnswerFor($stored->questionAt(0), 'single-note-practice');
+
+        $this->assertCount(3, explode(',', $correct));
+
+        $this->postJson("/api/v1/sessions/{$stored->uuid}/answers", [
+            'index' => 0,
+            'answer' => $correct,
+        ])->assertOk()->assertJsonPath('data.is_correct', true);
+    }
+
+    public function test_a_group_answer_is_wrong_when_one_note_is_wrong(): void
+    {
+        $response = $this->postJson('/api/v1/sessions', [
+            'source' => 'studio',
+            'practice_type' => 'single-note-practice',
+            'question_count' => 2,
+            'config' => ['group_size' => 2, 'allowed_notes' => ['C', 'D', 'E']],
+        ])->assertCreated();
+
+        $stored = PracticeSession::where('uuid', $response->json('data.session.uuid'))->first();
+        $notes = explode(',', app(PracticeAnswerGrader::class)
+            ->correctAnswerFor($stored->questionAt(0), 'single-note-practice'));
+
+        // Right notes, wrong order — a group is answered in the order it played.
+        $this->postJson("/api/v1/sessions/{$stored->uuid}/answers", [
+            'index' => 0,
+            'answer' => implode(',', array_reverse($notes)),
+        ])->assertOk()->assertJsonPath('data.is_correct', $notes[0] === $notes[1]);
+    }
+
+    public function test_an_ungrouped_single_note_session_still_sounds_one_note(): void
+    {
+        $questions = $this->createSession('single-note-practice', 3)['questions'];
+
+        $this->assertCount(3, $questions);
+        foreach ($questions as $q) {
+            $this->assertCount(1, $q['audio']['notes']);
+            $this->assertArrayNotHasKey('group_size', $q['meta']);
+        }
+    }
+
+    public function test_the_single_note_schema_publishes_the_setup_the_web_offers(): void
+    {
+        $schema = collect($this->getJson('/api/v1/catalog/practice-types')->json('data'))
+            ->firstWhere('slug', 'single-note-practice')['config_schema'];
+
+        $this->assertContains('F#', $schema['allowed_notes']['values']);
+        $this->assertSame(['C'], $schema['allowed_notes']['default']);
+        $this->assertSame(2, $schema['group_size']['default']);
+        $this->assertSame(9, $schema['group_size']['max']);
+        $this->assertSame('keyboard', $schema['answer_mode']['default']);
+    }
+
     private function createSession(string $slug, int $count = 5): array
     {
         return $this->postJson('/api/v1/sessions', [

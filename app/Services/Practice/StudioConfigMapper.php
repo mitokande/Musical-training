@@ -20,6 +20,15 @@ class StudioConfigMapper
 {
     private const DEFAULT_ROOTS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
+    /**
+     * The single-note keyboard the web setup screen actually draws: twelve
+     * keys, sharps included (exercise-setup.blade.php).
+     */
+    private const SINGLE_NOTE_KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+    /** "Play notes in groups of" — the web ladder starts at two. */
+    private const GROUP_SIZES = [2, 3, 4, 5, 6, 7, 8, 9];
+
     /** Note values the rhythm generator understands as cell tokens. */
     private const DEFAULT_RHYTHM_VALUES = ['quarter', 'eighth', 'half'];
 
@@ -57,6 +66,10 @@ class StudioConfigMapper
                 'allowed_notes' => $this->allowedNotes($config),
                 'distractor_count' => 3,
                 'answer_mode' => $config['answer_mode'] ?? 'note-names',
+                // How many notes one question sounds. Read back out of
+                // config_json by PracticeSessionService, which is where the
+                // grouping happens — the generator itself is per-note.
+                'group_size' => $this->groupSize($config),
             ],
 
             'chord-practice' => $base + [
@@ -128,10 +141,22 @@ class StudioConfigMapper
                 'interval_pool' => ['type' => 'multi', 'values' => $intervals, 'default' => ['M3', 'P5']],
                 'direction' => ['type' => 'enum', 'values' => ['ascending', 'descending', 'mixed'], 'default' => 'ascending'],
             ],
+            // Transcribed from the web's own setup screen: twelve keys opening
+            // on C alone, a group ladder of 2-9, and an unlabelled keyboard by
+            // default. This schema used to publish seven naturals, no group
+            // size and 'note-names', which left the mobile app widening it
+            // client-side and offering a group size the API then ignored.
             'single-note-practice' => $common + [
                 'clef' => ['type' => 'enum', 'values' => $clefs, 'default' => 'treble'],
-                'allowed_notes' => ['type' => 'multi', 'values' => self::DEFAULT_ROOTS, 'default' => self::DEFAULT_ROOTS],
-                'answer_mode' => ['type' => 'enum', 'values' => ['note-names', 'keyboard'], 'default' => 'note-names'],
+                'allowed_notes' => ['type' => 'multi', 'values' => self::SINGLE_NOTE_KEYS, 'default' => ['C']],
+                'group_size' => [
+                    'type' => 'int',
+                    'values' => array_map('strval', self::GROUP_SIZES),
+                    'min' => self::GROUP_SIZES[0],
+                    'max' => self::GROUP_SIZES[count(self::GROUP_SIZES) - 1],
+                    'default' => self::GROUP_SIZES[0],
+                ],
+                'answer_mode' => ['type' => 'enum', 'values' => ['keyboard', 'note-names'], 'default' => 'keyboard'],
             ],
             'chord-practice' => $common + [
                 'clef' => ['type' => 'enum', 'values' => $clefs, 'default' => 'treble'],
@@ -230,9 +255,23 @@ class StudioConfigMapper
 
     private function allowedNotes(array $config): array
     {
-        $notes = array_values(array_filter((array) ($config['allowed_notes'] ?? [])));
+        $notes = array_values(array_filter(
+            (array) ($config['allowed_notes'] ?? []),
+            fn ($n) => in_array($n, self::SINGLE_NOTE_KEYS, true),
+        ));
 
         return $notes ?: self::DEFAULT_ROOTS;
+    }
+
+    /**
+     * Notes per question. Absent — an older client, or a lesson — means one,
+     * which is the shape every caller had before groups existed.
+     */
+    private function groupSize(array $config): int
+    {
+        $size = (int) ($config['group_size'] ?? 1);
+
+        return max(1, min(self::GROUP_SIZES[count(self::GROUP_SIZES) - 1], $size));
     }
 
     private function chordTypes(array $config): array

@@ -198,6 +198,10 @@ class QuestionPresenter
             'mode' => $q['mode'] ?? null,
             'include_rhythm' => isset($q['include_rhythm']) ? (bool) $q['include_rhythm'] : null,
             'tempo_preset' => is_string($q['tempo'] ?? null) ? $q['tempo'] : null,
+            // How many notes this question sounds, and therefore how many
+            // answers it wants. Only single note groups; everything else is
+            // one note and leaves this out.
+            'group_size' => is_array($q['group'] ?? null) ? count($q['group']) : null,
         ];
 
         // Interval construction tells the user which interval to build, so the
