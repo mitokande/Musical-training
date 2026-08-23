@@ -94,7 +94,10 @@ class ChordPractice extends Model
             // Most chords are built in stacked thirds (0, 2, 4, 6 letter steps).
             // Sus / 6th / Add9 chords use custom step arrays stored in chordLetterSteps().
             $step = $customSteps !== null ? $customSteps[$i] : $i * 2;
-            $spelled = $music->spellNote($root, $octave, $step, $semitones);
+            // `simplify: false` — a chord is read, not typed, so it is spelled
+            // the way it is built: B augmented is B-D#-F##, F diminished is
+            // F-Ab-Cb, C diminished 7th is C-Eb-Gb-Bbb.
+            $spelled = $music->spellNote($root, $octave, $step, $semitones, simplify: false);
             if ($spelled !== null) {
                 $noteArray[] = $spelled['note'].$spelled['octave'];
             }

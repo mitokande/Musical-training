@@ -113,6 +113,13 @@
 
     <script>
     window.HarmonivaAudio = (function () {
+        // Tone spells a double sharp "Fx"; the staff (and VexFlow) spell it
+        // "F##", which is what the server sends. Without this the sampler
+        // rejects a correctly spelled augmented chord outright — its note test
+        // is /^[a-g](b|#|x|bb)?[0-9]/, and "F##5" does not match it. Double
+        // flats ("Bbb4") Tone already understands, so they pass straight
+        // through, as does every everyday spelling.
+        const toneNote = (n) => (typeof n === 'string' ? n.replace('##', 'x') : n);
         let sampler = null;
         let ready = false;
 
@@ -145,24 +152,24 @@
         return {
             async playNote(note, duration) {
                 await ensureReady();
-                sampler.triggerAttackRelease(note, duration ?? 1);
+                sampler.triggerAttackRelease(toneNote(note), duration ?? 1);
             },
             async playSimultaneous(notes, duration) {
                 await ensureReady();
                 const now = Tone.now();
-                notes.forEach(n => sampler.triggerAttackRelease(n, duration ?? 2, now));
+                notes.forEach(n => sampler.triggerAttackRelease(toneNote(n), duration ?? 2, now));
             },
             async playSequential(notes, intervalMs, duration) {
                 await ensureReady();
                 const now = Tone.now();
                 notes.forEach((n, i) =>
-                    sampler.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
+                    sampler.triggerAttackRelease(toneNote(n), duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
             },
             async playArpeggio(notes, delayMs, duration) {
                 await ensureReady();
                 const now = Tone.now();
                 notes.forEach((n, i) =>
-                    sampler.triggerAttackRelease(n, duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
+                    sampler.triggerAttackRelease(toneNote(n), duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
             },
             totalMs(notes, delayMs) {
                 return (notes.length - 1) * (delayMs ?? 400) + 2000;
@@ -174,7 +181,7 @@
             now() { return Tone.now(); },
             playNoteAt(note, duration, time) {
                 if (!sampler) return;
-                sampler.triggerAttackRelease(note, duration ?? 1, time);
+                sampler.triggerAttackRelease(toneNote(note), duration ?? 1, time);
             },
             stop() { if (sampler) sampler.releaseAll(); }
         };

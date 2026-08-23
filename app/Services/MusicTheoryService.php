@@ -103,11 +103,25 @@ class MusicTheoryService
     public function midiNumber(string $note, int $octave): ?int
     {
         $index = self::NOTE_SEMITONES[$note] ?? null;
-        if ($index === null) {
+        if ($index !== null) {
+            return ($octave + 1) * 12 + $index;
+        }
+
+        // NOTE_SEMITONES only lists the twelve everyday spellings. A correctly
+        // spelled chord or scale also produces Cb, B#, F## and Bbb, whose pitch
+        // is the letter's natural plus its accidentals — and whose written
+        // octave is the one the letter is written in, so Cb5 sounds B4 (71) and
+        // B#4 sounds C5 (72). Both are what the staff and the sampler expect.
+        if (! preg_match('/^([A-G])(#{1,2}|b{1,2}|x)?$/i', trim($note), $m)) {
             return null;
         }
 
-        return ($octave + 1) * 12 + $index;
+        $natural = self::LETTER_NATURAL[strtoupper($m[1])] ?? null;
+        if ($natural === null) {
+            return null;
+        }
+
+        return ($octave + 1) * 12 + $natural + $this->accidentalOffset($m[2] ?? '');
     }
 
     /**
@@ -259,11 +273,23 @@ class MusicTheoryService
      * chords show the correct accidental — flats where the spelling calls for them
      * (e.g. 2 letters + 3 semitones above C → Eb, not D#; augmented 5th above C → G#).
      *
-     * Returns ['note' => 'Eb', 'octave' => 4]. To avoid confusing double accidentals,
-     * a result that would need ##/bb falls back to a single-accidental (flat-preferred)
-     * enharmonic spelling. Returns null for an unparseable root.
+     * Returns ['note' => 'Eb', 'octave' => 4].
+     *
+     * `$simplify` decides what happens when the honest spelling needs a double
+     * accidental, or Cb / B#. Left on — which is what every caller answering
+     * with a note name wants — the result falls back to a single-accidental,
+     * flat-preferred enharmonic: the piano answer keyboard only offers the
+     * twelve everyday spellings, so an answer of F## could never be typed.
+     *
+     * Turned off, the true spelling comes back. That is what a chord or a scale
+     * needs: they are read, not typed, and B augmented is B-D#-F## — writing it
+     * B-D#-G puts two G-ish letters where the third belongs and turns an
+     * augmented triad into something unreadable. Same for F diminished, which
+     * is F-Ab-Cb and not F-Ab-B.
+     *
+     * Returns null for an unparseable root.
      */
-    public function spellNote(string $rootNote, int $octave, int $letterStep, int $semitones): ?array
+    public function spellNote(string $rootNote, int $octave, int $letterStep, int $semitones, bool $simplify = true): ?array
     {
         if (! preg_match('/^([A-G])(#{1,2}|b{1,2}|x)?$/i', trim($rootNote), $m)) {
             return null;
@@ -287,21 +313,31 @@ class MusicTheoryService
         $targetLetterMidi = ($targetOctave + 1) * 12 + self::LETTER_NATURAL[$targetLetter];
         $accOffset = $targetMidi - $targetLetterMidi;
 
-        // Double accidental (e.g. a diminished-7th's bb7) → readable single-flat enharmonic.
-        if ($accOffset < -1 || $accOffset > 1) {
+        if ($accOffset < -2 || $accOffset > 2) {
+            // Beyond a double accidental nothing readable is left to write.
             $flats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
             $pc = (($targetMidi % 12) + 12) % 12;
 
             return ['note' => $flats[$pc], 'octave' => intdiv($targetMidi, 12) - 1];
         }
 
-        $accidental = $accOffset === 1 ? '#' : ($accOffset === -1 ? 'b' : '');
+        $accidental = match ($accOffset) {
+            2 => '##',
+            1 => '#',
+            -1 => 'b',
+            -2 => 'bb',
+            default => '',
+        };
         $spelled = $targetLetter.$accidental;
 
-        // Cb/B# are excluded from NOTE_SEMITONES (their written octave differs
-        // from the sounding one, breaking midiNumber and playback) — use the
-        // enharmonic spelling with the sounding octave instead.
-        if (! isset(self::NOTE_SEMITONES[$spelled])) {
+        if (! $simplify) {
+            return ['note' => $spelled, 'octave' => $targetOctave];
+        }
+
+        // Double accidental (e.g. a diminished-7th's bb7) → readable single-flat
+        // enharmonic, and likewise Cb/B#, whose written octave is not the one
+        // they sound in.
+        if ($accOffset < -1 || $accOffset > 1 || ! isset(self::NOTE_SEMITONES[$spelled])) {
             $flats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
             $pc = (($targetMidi % 12) + 12) % 12;
 

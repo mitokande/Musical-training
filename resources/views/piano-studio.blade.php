@@ -951,6 +951,13 @@
 
     <script>
     window.HarmonivaAudio = (function () {
+        // Tone spells a double sharp "Fx"; the staff (and VexFlow) spell it
+        // "F##", which is what the server sends. Without this the sampler
+        // rejects a correctly spelled augmented chord outright — its note test
+        // is /^[a-g](b|#|x|bb)?[0-9]/, and "F##5" does not match it. Double
+        // flats ("Bbb4") Tone already understands, so they pass straight
+        // through, as does every everyday spelling.
+        const toneNote = (n) => (typeof n === 'string' ? n.replace('##', 'x') : n);
         let sampler = null;
         let synth = null;
         let ready = false;      // Salamander samples finished loading
@@ -1023,24 +1030,24 @@
             async playNote(note, duration) {
                 await start();
                 if (!ready) await waitForReady(350);   // prefer real piano on the first notes
-                voice().triggerAttackRelease(note, duration ?? 1);
+                voice().triggerAttackRelease(toneNote(note), duration ?? 1);
             },
             async playSimultaneous(notes, duration) {
                 await start();
                 const v = voice(), now = Tone.now();
-                notes.forEach(n => v.triggerAttackRelease(n, duration ?? 2, now));
+                notes.forEach(n => v.triggerAttackRelease(toneNote(n), duration ?? 2, now));
             },
             async playSequential(notes, intervalMs, duration) {
                 await start();
                 const v = voice(), now = Tone.now();
                 notes.forEach((n, i) =>
-                    v.triggerAttackRelease(n, duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
+                    v.triggerAttackRelease(toneNote(n), duration ?? 1, now + i * ((intervalMs ?? 600) / 1000)));
             },
             async playArpeggio(notes, delayMs, duration) {
                 await start();
                 const v = voice(), now = Tone.now();
                 notes.forEach((n, i) =>
-                    v.triggerAttackRelease(n, duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
+                    v.triggerAttackRelease(toneNote(n), duration ?? 1.5, now + i * ((delayMs ?? 400) / 1000)));
             },
             totalMs(notes, delayMs) {
                 return (notes.length - 1) * (delayMs ?? 400) + 2000;

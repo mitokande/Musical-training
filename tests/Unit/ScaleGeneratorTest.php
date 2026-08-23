@@ -163,7 +163,10 @@ class ScaleGeneratorTest extends TestCase
                 );
 
                 foreach ($notes as $spelled) {
-                    $this->assertSame(1, preg_match('/^([A-G][b#]?)(\d)$/', $spelled, $m), "$label: unparsable pitch '$spelled'");
+                    // Double accidentals are part of a correct spelling — Cdim7 reaches
+                    // Bbb, B augmented reaches F## — so the pitch is parsed, not
+                    // restricted, and midiNumber below is what proves it playable.
+                    $this->assertSame(1, preg_match('/^([A-G](?:#{1,2}|b{1,2})?)(\d)$/', $spelled, $m), "$label: unparsable pitch '$spelled'");
                     $midi = $this->music->midiNumber($m[1], (int) $m[2]);
                     $this->assertNotNull($midi, "$label: unplayable pitch $spelled");
                     $this->assertGreaterThanOrEqual($min, $midi, "$label: $spelled below {$config['clef']} range");

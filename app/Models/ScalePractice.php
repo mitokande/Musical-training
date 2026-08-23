@@ -90,7 +90,9 @@ class ScalePractice extends Model
 
         $noteArray = [];
         foreach ($intervals as $i => $semitone) {
-            $spelled = $music->spellNote($root, $octave, $steps[$i] ?? $i, $semitone);
+            // `simplify: false` — one letter per degree, whatever accidental
+            // that takes: G# harmonic minor reaches F##, not G.
+            $spelled = $music->spellNote($root, $octave, $steps[$i] ?? $i, $semitone, simplify: false);
             if ($spelled !== null) {
                 $noteArray[] = $spelled['note'].$spelled['octave'];
             }
