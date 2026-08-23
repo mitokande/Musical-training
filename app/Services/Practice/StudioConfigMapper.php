@@ -33,6 +33,25 @@ class StudioConfigMapper
     private const DEFAULT_RHYTHM_VALUES = ['quarter', 'eighth', 'half'];
 
     /**
+     * Meters the rhythm generator supports, in the order the web setup screen
+     * lists them. x/8 is read as compound (num/3 dotted-quarter beats) and x/2
+     * as alla breve; 5/8 and 7/8 are deliberately absent, since intdiv($num, 3)
+     * would give them the wrong beats per bar.
+     */
+    private const TIME_SIGNATURES = ['2/4', '3/4', '4/4', '6/8', '9/8', '2/2', '3/2', '4/2'];
+
+    /**
+     * Note values a rhythm question can be built from. The five plain values
+     * plus the dotted ones and the triplet eighth — all of which already have
+     * generator cells and already survive `rhythmValues()`.
+     */
+    private const RHYTHM_NOTE_VALUES = [
+        'whole', 'half', 'quarter', 'eighth', 'sixteenth',
+        'dotted-half', 'dotted-quarter', 'dotted-eighth',
+        'triplet-eighth',
+    ];
+
+    /**
      * @return array<string,mixed> config_json for LearningPathQuestionGenerator
      */
     public function map(string $practiceType, array $config): array
@@ -90,10 +109,14 @@ class StudioConfigMapper
 
             'rhythm-practice' => [
                 'practice_type' => $practiceType,
-                'time_signatures' => [$config['time_signature'] ?? '4/4'],
-                'allowed_note_values' => $this->rhythmValues($config),
-                'tempo_range' => $this->tempoRange($config, 80),
-                'bars' => (int) ($config['bars'] ?? 1),
+                'time_signatures' => [$timeSignature = (string) ($config['time_signature'] ?? '4/4')],
+                'allowed_note_values' => $this->rhythmValues($config, $timeSignature),
+                'tempo_range' => $this->tempoRange($config, 80, 40, 160),
+                // Clamped to what the schema publishes. Unclamped, bars = 0 asks
+                // the generator for a pattern of nothing and gets a 422 back,
+                // and bars = 12 quietly builds a twelve-bar question no setup
+                // screen offers.
+                'bars' => max(1, min(2, (int) ($config['bars'] ?? 1))),
                 'include_rests' => (bool) ($config['include_rests'] ?? false),
                 'rhythm_difficulty' => $config['rhythm_difficulty'] ?? 'medium',
             ],
@@ -179,15 +202,33 @@ class StudioConfigMapper
                 'scale_tempo' => ['type' => 'enum', 'values' => ['slow', 'normal', 'fast'], 'default' => 'normal'],
             ],
             'rhythm-practice' => $common + [
-                'time_signature' => ['type' => 'enum', 'values' => ['2/4', '3/4', '4/4', '6/8'], 'default' => '4/4'],
+                // Every meter the Exercise Setup Studio offers, and every one
+                // the generator handles: den 8 is compound, den 2 is alla breve
+                // (num * 2 quarter-units), everything else is simple. The four
+                // published before were a subset of what already worked, which
+                // left the apps either short of the website or carrying their
+                // own list to make up the difference.
+                'time_signature' => [
+                    'type' => 'enum',
+                    'values' => self::TIME_SIGNATURES,
+                    'default' => '4/4',
+                ],
+                // The tokens `rhythmValues()` lets through and the cell pools
+                // are built from. Rests are absent on purpose: they are not cell
+                // tokens, they arrive through `include_rests`.
                 'note_values' => [
                     'type' => 'multi',
-                    'values' => ['whole', 'half', 'quarter', 'eighth', 'sixteenth'],
+                    'values' => self::RHYTHM_NOTE_VALUES,
                     'default' => self::DEFAULT_RHYTHM_VALUES,
                 ],
                 'tempo' => ['type' => 'int', 'min' => 40, 'max' => 160, 'default' => 80],
                 'bars' => ['type' => 'int', 'min' => 1, 'max' => 2, 'default' => 1],
                 'include_rests' => ['type' => 'bool', 'default' => false],
+                // Playback, not generation: `map()` never forwards it and the
+                // generator never sees it. It is published because it is part
+                // of the exercise as a learner sets it up — the website has the
+                // switch, so a client that renders this schema gets it too.
+                'metronome' => ['type' => 'bool', 'default' => true],
             ],
             'melodic-dictation' => $common + [
                 'clef' => ['type' => 'enum', 'values' => $clefs, 'default' => 'treble'],
@@ -291,15 +332,36 @@ class StudioConfigMapper
     /**
      * Rests and triplet-quarter are not cell tokens; rests are injected after
      * assembly via include_rests instead (mirrors PracticeRhythm::mount()).
+     *
+     * The selection also has to leave the bar fillable. A pool of nothing but
+     * long values has no cell that fits a short bar — {whole} in 3/4, say — and
+     * the generator answers that by returning nothing at all, which surfaces to
+     * the learner as a 422 rather than as an exercise. Worse, when the filter
+     * empties the pool the generator falls back to the ENTIRE unfiltered pool,
+     * so a compound selection without an eighth silently practises tokens
+     * nobody asked for. One added token keeps the choice honest in both cases:
+     * the beat unit of the meter, which every bar can be filled with.
      */
-    private function rhythmValues(array $config): array
+    private function rhythmValues(array $config, string $timeSignature = '4/4'): array
     {
         $values = array_values(array_filter(
             (array) ($config['note_values'] ?? []),
             fn ($v) => ! str_contains((string) $v, '_rest') && $v !== 'triplet-quarter',
         ));
 
-        return $values ?: self::DEFAULT_RHYTHM_VALUES;
+        $values = $values ?: self::DEFAULT_RHYTHM_VALUES;
+
+        // Compound meters count in dotted-quarter beats and every one of their
+        // cells is built from eighths; simple meters need something no longer
+        // than a quarter.
+        $compound = (int) (explode('/', $timeSignature)[1] ?? 4) === 8;
+        $fits = $compound ? ['eighth'] : ['quarter', 'eighth', 'sixteenth'];
+
+        if (array_intersect($values, $fits) === []) {
+            $values[] = $compound ? 'eighth' : 'quarter';
+        }
+
+        return $values;
     }
 
     private function dictationValues(array $config): array
@@ -312,9 +374,15 @@ class StudioConfigMapper
         return $values ?: ['quarter', 'eighth'];
     }
 
-    private function tempoRange(array $config, int $default): array
+    /**
+     * A single tempo, held as the degenerate range the generator expects and
+     * clamped to the range the schema publishes — the value is written straight
+     * onto every question, and nothing downstream would question a 9999.
+     */
+    private function tempoRange(array $config, int $default, int $min = 20, int $max = 240): array
     {
         $tempo = (int) ($config['tempo'] ?? $default);
+        $tempo = max($min, min($max, $tempo));
 
         return [$tempo, $tempo];
     }

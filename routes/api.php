@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
+use App\Http\Controllers\Api\V1\ExercisePlanController;
 use App\Http\Controllers\Api\V1\PracticeSessionController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\StatsController;
@@ -69,6 +70,17 @@ Route::prefix('v1')->group(function () {
             Route::get('chat/quota', [AiController::class, 'chatQuota']);
             Route::post('chat', [AiController::class, 'chat'])
                 ->middleware('throttle:ai-generate');
+        });
+
+        // Saved practice plans, the same rows the website's Exercise Setup
+        // Studio writes. The allowance is a plan feature, enforced in the
+        // controller like the AI gates rather than by middleware, so the app
+        // gets a 403 it can explain instead of a bare rejection.
+        Route::prefix('plans')->group(function () {
+            Route::get('/', [ExercisePlanController::class, 'index']);
+            Route::post('/', [ExercisePlanController::class, 'store']);
+            Route::put('{id}', [ExercisePlanController::class, 'update']);
+            Route::delete('{id}', [ExercisePlanController::class, 'destroy']);
         });
 
         Route::prefix('me')->group(function () {
