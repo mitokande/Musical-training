@@ -1785,6 +1785,59 @@ return [
             'Pentatonic' => 'Pentatônica',
             'Blues' => 'Blues',
         ],
+
+        /*
+         * Canonical interval name => on-screen label.
+         *
+         * The keys are the exact MusicTheoryService::INTERVAL_SEMITONES names
+         * and must never be translated — the generator, the answer checker and
+         * the /api/v1 payloads all speak them. Read via
+         * music_label($name, 'interval'); an unlisted name falls back to its
+         * canonical English spelling.
+         *
+         * 'Tritone', 'Augmented 4th' and 'Diminished 5th' sound alike but are
+         * three separate keys — keep three separate labels.
+         */
+        'interval' => [
+            'Perfect Unison' => 'Uníssono justo',
+            'Minor 2nd' => 'Segunda menor',
+            'Major 2nd' => 'Segunda maior',
+            'Minor 3rd' => 'Terça menor',
+            'Major 3rd' => 'Terça maior',
+            'Perfect 4th' => 'Quarta justa',
+            'Tritone' => 'Trítono',
+            'Augmented 4th' => 'Quarta aumentada',
+            'Diminished 5th' => 'Quinta diminuta',
+            'Perfect 5th' => 'Quinta justa',
+            'Minor 6th' => 'Sexta menor',
+            'Major 6th' => 'Sexta maior',
+            'Minor 7th' => 'Sétima menor',
+            'Major 7th' => 'Sétima maior',
+            'Perfect Octave' => 'Oitava justa',
+        ],
+    ],
+
+    /*
+     * Learning Path catalog labels.
+     *
+     * The keys are the exercise_categories.slug values — canonical identifiers
+     * shared with the DB and the API — so only the value is localized. Short
+     * enough to fit a mobile list row.
+     */
+    'catalog' => [
+        'categories' => [
+            'intervals' => 'Intervalos',
+            'melodic-intervals' => 'Intervalos melódicos',
+            'interval-direction' => 'Direção do intervalo',
+            'single-note' => 'Reconhecimento de notas',
+            'harmonic-intervals' => 'Intervalos harmônicos',
+            'scales-modes' => 'Escalas e modos',
+            'interval-comparison' => 'Comparação de intervalos',
+            'chords' => 'Acordes',
+            'interval-construction' => 'Construção de intervalos',
+            'rhythm' => 'Ritmo',
+            'melodic-dictation' => 'Ditado melódico',
+        ],
     ],
 
     'practice_ui' => [

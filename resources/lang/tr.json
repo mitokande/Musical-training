@@ -1,0 +1,18 @@
+{
+    "The provided password does not match your current password.": "Girdiğiniz şifre mevcut şifrenizle eşleşmiyor.",
+    "You have reached your daily question limit. Upgrade to Premium for more.": "Günlük soru limitinize ulaştınız. Daha fazlası için Premium'a geçin.",
+    "Session not found.": "Alıştırma oturumu bulunamadı.",
+    "You have reached the number of saved plans your plan allows.": "Planınızın izin verdiği kayıtlı plan sayısına ulaştınız.",
+    "This saved plan no longer exists.": "Bu kayıtlı plan artık mevcut değil.",
+    "Lesson not found.": "Ders bulunamadı.",
+    "Your account has been suspended.": "Hesabınız donduruldu.",
+    "Your account is currently restricted.": "Hesabınız şu anda kısıtlanmış durumda.",
+    "You have reached your daily limit for this feature.": "Bu özellik için günlük limitinize ulaştınız.",
+    "Unknown practice type.": "Bilinmeyen alıştırma türü.",
+    "Could not build questions for this configuration.": "Bu ayarlarla soru üretilemedi.",
+    "Longer sessions are a Premium feature.": "Daha uzun alıştırma oturumları bir Premium özelliğidir.",
+    "This lesson is not playable yet.": "Bu ders henüz kullanıma hazır değil.",
+    "This session is no longer active.": "Bu alıştırma oturumu artık aktif değil.",
+    "Unexpected question index.": "Bu soru beklenen sırada değil.",
+    "Question not found in this session.": "Bu alıştırma oturumunda soru bulunamadı."
+}

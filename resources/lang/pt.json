@@ -1,0 +1,18 @@
+{
+    "The provided password does not match your current password.": "A senha informada não confere com sua senha atual.",
+    "You have reached your daily question limit. Upgrade to Premium for more.": "Você atingiu seu limite diário de perguntas. Atualize para Premium para ter mais.",
+    "Session not found.": "Sessão de prática não encontrada.",
+    "You have reached the number of saved plans your plan allows.": "Você atingiu o número de planos salvos permitido pelo seu plano.",
+    "This saved plan no longer exists.": "Este plano salvo não existe mais.",
+    "Lesson not found.": "Lição não encontrada.",
+    "Your account has been suspended.": "Sua conta foi suspensa.",
+    "Your account is currently restricted.": "Sua conta está atualmente restrita.",
+    "You have reached your daily limit for this feature.": "Você atingiu seu limite diário para este recurso.",
+    "Unknown practice type.": "Tipo de exercício desconhecido.",
+    "Could not build questions for this configuration.": "Não foi possível gerar perguntas para estas configurações.",
+    "Longer sessions are a Premium feature.": "Sessões de prática mais longas são um recurso Premium.",
+    "This lesson is not playable yet.": "Esta lição ainda não pode ser praticada.",
+    "This session is no longer active.": "Esta sessão de prática não está mais ativa.",
+    "Unexpected question index.": "Houve um problema com a ordem das perguntas.",
+    "Question not found in this session.": "Esta pergunta não foi encontrada na sessão de prática."
+}

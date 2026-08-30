@@ -62,7 +62,65 @@ class PracticeCatalog
         'melodic-dictation' => 'notes',
     ];
 
+    /**
+     * Slug => the `app.exercises.*` key that names it.
+     *
+     * The website has rendered these names from the lang files all along, while
+     * the API served practices.name / .description straight out of the table —
+     * columns that only ever held English. Reusing the existing keys keeps one
+     * source of truth for both clients, and needs no new column and no write to
+     * the practices table.
+     */
+    public const LABEL_KEYS = [
+        'single-note-practice' => 'single_note',
+        'interval-direction-practice' => 'interval_direction',
+        'interval-comparison-practice' => 'interval_comparison',
+        'melodic-interval-practice' => 'melodic_interval',
+        'harmonic-interval-practice' => 'harmonic_interval',
+        'interval-construction-practice' => 'interval_construction',
+        'chord-practice' => 'chord',
+        'scale-practice' => 'scale',
+        'rhythm-practice' => 'rhythm',
+        'melodic-dictation' => 'melodic_dictation',
+    ];
+
     private const CACHE_KEY = 'practice_catalog.db_ids';
+
+    /**
+     * The translated name of a practice type, falling back to the stored column
+     * and then to the slug itself, so a type with no lang key still reads.
+     */
+    public function displayName(string $slug, ?string $fallback = null): string
+    {
+        return $this->translate($slug, '')
+            ?? $fallback
+            ?? ucwords(str_replace('-', ' ', $slug));
+    }
+
+    /** The translated one-line description, or the stored column. */
+    public function displayDescription(string $slug, ?string $fallback = null): ?string
+    {
+        return $this->translate($slug, '_desc') ?? $fallback;
+    }
+
+    /**
+     * A translation, or null when there is no key for this slug.
+     *
+     * __() echoes the key back when it finds nothing, and an unresolved key
+     * reaching the app would read as a bug rather than as English; a nested
+     * lookup can also return the whole sub-array, which is never a label.
+     */
+    private function translate(string $slug, string $suffix): ?string
+    {
+        if (! isset(self::LABEL_KEYS[$slug])) {
+            return null;
+        }
+
+        $key = 'app.exercises.'.self::LABEL_KEYS[$slug].$suffix;
+        $value = __($key);
+
+        return is_string($value) && $value !== $key ? $value : null;
+    }
 
     /** Every practice slug the app knows about, in curriculum order. */
     public function slugs(): array

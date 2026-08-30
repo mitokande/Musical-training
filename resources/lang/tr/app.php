@@ -1970,6 +1970,60 @@ return [
             'Pentatonic' => 'Pentatonik',
             'Blues' => 'Blues',
         ],
+
+        /*
+         * Canonical interval name => on-screen label.
+         *
+         * The keys are the exact MusicTheoryService::INTERVAL_SEMITONES names
+         * and must never be translated — the generator, the answer checker and
+         * the /api/v1 payloads all speak them. Read via music_label($x,
+         * 'interval'); an unlisted name falls back to canonical English.
+         *
+         * Turkish names interval quality with küçük/büyük/tam — major/minor
+         * stay as Majör/Minör only for chords and scales above. 'Tritone',
+         * 'Augmented 4th' and 'Diminished 5th' share a sound but are three
+         * separate spellings, so each keeps its own term.
+         */
+        'interval' => [
+            'Perfect Unison' => 'Tam Birli',
+            'Minor 2nd' => 'Küçük 2\'li',
+            'Major 2nd' => 'Büyük 2\'li',
+            'Minor 3rd' => 'Küçük 3\'lü',
+            'Major 3rd' => 'Büyük 3\'lü',
+            'Perfect 4th' => 'Tam 4\'lü',
+            'Tritone' => 'Triton',
+            'Augmented 4th' => 'Artmış 4\'lü',
+            'Diminished 5th' => 'Eksilmiş 5\'li',
+            'Perfect 5th' => 'Tam 5\'li',
+            'Minor 6th' => 'Küçük 6\'lı',
+            'Major 6th' => 'Büyük 6\'lı',
+            'Minor 7th' => 'Küçük 7\'li',
+            'Major 7th' => 'Büyük 7\'li',
+            'Perfect Octave' => 'Tam Oktav',
+        ],
+    ],
+
+    /*
+     * Learning Path catalogue: exercise_categories.slug => on-screen name.
+     *
+     * The slugs are the canonical identifiers; the DB `name` column stays
+     * English so the admin and the generator keep one label per category,
+     * and only what the learner reads is translated here.
+     */
+    'catalog' => [
+        'categories' => [
+            'intervals' => 'Aralıklar',
+            'melodic-intervals' => 'Melodik Aralıklar',
+            'interval-direction' => 'Aralık Yönü',
+            'single-note' => 'Tek Nota Tanıma',
+            'harmonic-intervals' => 'Armonik Aralıklar',
+            'scales-modes' => 'Gamlar ve Modlar',
+            'interval-comparison' => 'Aralık Karşılaştırma',
+            'chords' => 'Akorlar',
+            'interval-construction' => 'Aralık Kurma',
+            'rhythm' => 'Ritim',
+            'melodic-dictation' => 'Melodik Dikte',
+        ],
     ],
 
     'practice_ui' => [

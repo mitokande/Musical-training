@@ -15,17 +15,84 @@ class SetApiLocale
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $supported = array_keys(config('locales.supported', ['en' => []]));
+        $supported = config('locales.supported', ['en']);
 
-        $locale = $request->user()?->locale;
+        // The guard is named rather than left to the default. A bare user()
+        // does happen to work on the authenticated routes — Laravel's
+        // middleware priority hoists Authenticate ahead of this group, and it
+        // calls shouldUse('sanctum'), so the default resolver is already the
+        // token's by the time we run. But that is a property of the priority
+        // table, not of this file, and it does not hold on the anonymous
+        // routes, where the default guard is the session-backed `web` one and
+        // a request that does carry a token would be read as a stranger.
+        // Naming the guard is what actually makes the line mean what it says.
+        $locale = $request->user('sanctum')?->locale;
 
         if (! $locale || ! in_array($locale, $supported, true)) {
-            $header = substr((string) $request->header('Accept-Language'), 0, 2);
-            $locale = in_array($header, $supported, true) ? $header : config('app.locale');
+            $locale = $this->fromHeader($request, $supported) ?? config('app.locale');
         }
 
         app()->setLocale($locale);
 
-        return $next($request);
+        $response = $next($request);
+
+        // Tell the client which language it actually got. The app cannot infer
+        // this: it asks with Accept-Language but the account's saved locale
+        // outranks the header, so a phone set to English belonging to a member
+        // who chose Turkish is answered in Turkish. Without this the app has no
+        // way to know its own request header lost, and no way to tell a real
+        // translation apart from an English fallback.
+        $response->headers->set('Content-Language', $locale);
+
+        return $response;
+    }
+
+    /**
+     * The best-weighted supported language in Accept-Language, or null.
+     *
+     * Reading the first two characters is not enough. A client is entitled to
+     * send its list in any order so long as it weights it, so `en-US;q=0.5, tr`
+     * asks for Turkish, and a leading space or a bare `*` derails a substr.
+     */
+    private function fromHeader(Request $request, array $supported): ?string
+    {
+        $candidates = [];
+
+        foreach (explode(',', (string) $request->header('Accept-Language')) as $entry) {
+            $parts = explode(';', trim($entry));
+            $tag = strtolower(trim($parts[0]));
+
+            if ($tag === '' || $tag === '*') {
+                continue;
+            }
+
+            $quality = 1.0;
+
+            foreach (array_slice($parts, 1) as $parameter) {
+                $parameter = trim($parameter);
+
+                if (str_starts_with($parameter, 'q=')) {
+                    $quality = (float) substr($parameter, 2);
+                }
+            }
+
+            // `tr-TR` and `tr` are the same offer as far as we are concerned.
+            $language = explode('-', $tag)[0];
+
+            if (in_array($language, $supported, true)) {
+                // First mention wins at equal weight, so the header's own order
+                // still means what it looks like it means.
+                $candidates[$language] ??= $quality;
+            }
+        }
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        // arsort is stable as of PHP 8.0, so equal weights keep header order.
+        arsort($candidates);
+
+        return array_key_first($candidates);
     }
 }

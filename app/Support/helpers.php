@@ -280,7 +280,7 @@ if (! function_exists('locale_page_translated')) {
 
 if (! function_exists('music_label')) {
     /**
-     * Display name for a canonical chord/scale type.
+     * Display name for a canonical chord/scale/interval type.
      *
      * The generator, the answer checker and every stored config speak the
      * canonical English names ('Dominant 7th', 'Natural Minor', …) — those must
@@ -289,7 +289,7 @@ if (! function_exists('music_label')) {
      * "dominant 7th". An unknown name falls through to the canonical spelling,
      * so a newly added chord type shows up in English instead of blank.
      *
-     * @param  string  $kind  'chord' or 'scale'
+     * @param  string  $kind  'chord', 'scale' or 'interval'
      */
     function music_label(string $canonical, string $kind = 'chord', ?string $locale = null): string
     {

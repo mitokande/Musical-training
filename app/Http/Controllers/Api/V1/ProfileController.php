@@ -24,7 +24,7 @@ class ProfileController extends Controller
                 'sometimes', 'string', 'lowercase', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'locale' => ['sometimes', 'string', Rule::in(array_keys(config('locales.supported', ['en' => []])))],
+            'locale' => ['sometimes', 'string', Rule::in(config('locales.supported', ['en']))],
             'country' => ['sometimes', 'nullable', 'string', 'max:100'],
             'city' => ['sometimes', 'nullable', 'string', 'max:100'],
             'date_of_birth' => ['sometimes', 'nullable', 'date'],

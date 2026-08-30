@@ -82,7 +82,7 @@ class StatsController extends Controller
 
             $perPractice[] = [
                 'slug' => $slug,
-                'name' => $names[$slug] ?? ucwords(str_replace('-', ' ', $slug)),
+                'name' => $this->catalog->displayName($slug, $names[$slug] ?? null),
                 'total_questions' => $total,
                 'correct_answers' => (int) ($stat->correct_answers ?? 0),
                 'accuracy' => $total > 0 ? round(($stat->correct_answers / $total) * 100, 1) : 0.0,

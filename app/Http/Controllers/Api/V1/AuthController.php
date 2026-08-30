@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 
@@ -23,7 +24,11 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'device_name' => ['required', 'string', 'max:120'],
-            'locale' => ['nullable', 'string', 'max:5'],
+            // Same rule as ProfileController::update. This used to take any
+            // five characters, so a client sending 'en-US' wrote a value the
+            // supported-locale list never matches — and the column defaults to
+            // 'tr', so getting it wrong is not a quiet failure.
+            'locale' => ['nullable', 'string', Rule::in(config('locales.supported', ['en']))],
             'country' => ['nullable', 'string', 'max:100'],
         ]);
 

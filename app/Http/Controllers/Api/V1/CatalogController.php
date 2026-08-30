@@ -53,8 +53,8 @@ class CatalogController extends Controller
             $data[] = [
                 'slug' => $slug,
                 'practice_id' => $practiceId,
-                'name' => $practice?->name ?? $this->humanize($slug),
-                'description' => $practice?->description,
+                'name' => $this->catalog->displayName($slug, $practice?->name),
+                'description' => $this->catalog->displayDescription($slug, $practice?->description),
                 'is_premium' => (bool) ($practice?->is_premium ?? false),
                 'answer_mode' => $this->presenter->answerMode($slug),
                 'config_schema' => $this->mapper->configSchema($slug),
@@ -101,7 +101,7 @@ class CatalogController extends Controller
         $data = $categories->map(fn (ExerciseCategory $category) => [
             'id' => $category->id,
             'slug' => $category->slug,
-            'name' => $category->name,
+            'name' => $this->categoryName($category->slug, $category->name),
             'description' => $category->description,
             'icon' => $category->icon,
             'is_premium' => (bool) $category->is_premium,
@@ -148,7 +148,7 @@ class CatalogController extends Controller
             'id' => $e->id,
             'slug' => $e->slug,
             'title' => $e->getLocalizedTitle(),
-            'description' => $e->description,
+            'description' => $e->getLocalizedDescription(),
             'level' => $e->level,
             'sort_order' => $e->sort_order,
             'practice_type' => $e->config_json['practice_type'] ?? null,
@@ -168,6 +168,31 @@ class CatalogController extends Controller
                 'completed_at' => $progress?->completed_at?->toIso8601String(),
             ],
         ];
+    }
+
+    /**
+     * Learning Path categories are seeded rows, so their names live in the
+     * table in English only. Slugs are stable, so they key the translation —
+     * and a category the map has not heard of (an admin-created one, a test
+     * fixture) keeps falling back to the column rather than losing its name.
+     */
+    private function categoryName(?string $slug, ?string $fallback): ?string
+    {
+        return $this->translate('app.catalog.categories.'.((string) $slug)) ?? $fallback;
+    }
+
+    /**
+     * A translation, or null when the key is missing.
+     *
+     * __() hands back the key itself when it finds nothing, and an unresolved
+     * key reaching the app would read as a bug rather than as English. Nested
+     * lookups can also return the whole sub-array, which is never a label.
+     */
+    private function translate(string $key): ?string
+    {
+        $value = __($key);
+
+        return is_string($value) && $value !== $key ? $value : null;
     }
 
     private function humanize(string $slug): string

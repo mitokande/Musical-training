@@ -208,6 +208,13 @@ class QuestionPresenter
         // interval name is the prompt rather than the answer.
         if ($practiceType === 'interval-construction-practice') {
             $meta['interval'] = $q['interval'] ?? null;
+            // "Build a minor 3rd above C4" — the prompt, not the answer, and the
+            // one interval name the learner actually reads. `interval` stays
+            // canonical for the client's own logic; this is the display twin,
+            // the same split as an option's value/label.
+            $meta['interval_label'] = isset($q['interval'])
+                ? music_label($q['interval'], 'interval')
+                : null;
             $meta['direction'] = $q['direction'] ?? null;
             $meta['given_note'] = $q['note1'] ?? null;
         }
@@ -246,15 +253,38 @@ class QuestionPresenter
     /**
      * Human label for an option value. Rhythm option values are token
      * sequences, which the client renders as notation rather than text.
+     *
+     * `value` stays canonical English in every language — it is what the client
+     * submits and what PracticeAnswerGrader compares — so only this display
+     * half is translated. That is the same split the web blades already make
+     * with music_label(); the API was the one client still showing the raw
+     * canonical name to every user.
      */
     private function label(string $value, string $practiceType): string
     {
         return match ($practiceType) {
-            'interval-direction-practice' => ucfirst($value),
+            'interval-direction-practice' => $this->translate('app.exercises.'.$value) ?? ucfirst($value),
+            // 'a' / 'b' — which of the two intervals was wider. Nothing to translate.
             'interval-comparison-practice' => strtoupper($value),
             'rhythm-practice' => '',
+            'chord-practice' => music_label($value, 'chord'),
+            'scale-practice' => music_label($value, 'scale'),
+            // Interval construction is absent on purpose: its options are the
+            // note names the learner picks, not interval names. Its interval is
+            // the prompt, and is labelled in meta() instead.
+            'melodic-interval-practice',
+            'harmonic-interval-practice' => music_label($value, 'interval'),
+            // Note names. Deliberately untranslated — see the patch preamble.
             default => $value,
         };
+    }
+
+    /** A translation, or null when the key is missing (__() echoes the key). */
+    private function translate(string $key): ?string
+    {
+        $value = __($key);
+
+        return is_string($value) && $value !== $key ? $value : null;
     }
 
     private function noteDto(string $note, int $octave): array
