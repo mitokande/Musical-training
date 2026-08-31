@@ -267,6 +267,16 @@ class SubscriptionService
     /**
      * A recurring cycle was charged by the provider: extend the paid-through
      * period, keep Premium, and record a paid invoice for the billing history.
+     *
+     * $note is stored verbatim on the invoice, so each provider names its own
+     * charge the way that provider names it — a Stripe invoice number and an
+     * App Store product id are not the same kind of thing and must not be
+     * labelled as if they were.
+     *
+     * Re-running with a $paymentRef already on file is a no-op for the billing
+     * history: the period is still extended, but the charge is not recorded
+     * twice. A provider can redeliver the same charge under a fresh event id,
+     * which no upstream event ledger can collapse.
      */
     public function renew(
         Subscription $subscription,
@@ -274,7 +284,7 @@ class SubscriptionService
         float $amount,
         string $currency,
         ?string $paymentRef = null,
-        ?string $externalNumber = null,
+        ?string $note = null,
     ): void {
         $months = (int) (config("payments.cycles.{$subscription->billing_cycle}.months") ?? 1);
         $end = $periodEnd
@@ -283,29 +293,35 @@ class SubscriptionService
                 ? $subscription->ends_at->copy()->addMonthsNoOverflow($months)
                 : now()->addMonthsNoOverflow($months));
 
-        DB::transaction(function () use ($subscription, $end, $amount, $currency, $paymentRef, $externalNumber) {
+        DB::transaction(function () use ($subscription, $end, $amount, $currency, $paymentRef, $note) {
             $subscription->update([
                 'status' => 'active',
                 'ends_at' => $end,
                 'cancelled_at' => null,
             ]);
 
-            Invoice::create([
-                'user_id' => $subscription->user_id,
-                'subscription_id' => $subscription->id,
-                'invoice_number' => Invoice::generateNumber(),
-                'billing_cycle' => $subscription->billing_cycle,
-                'amount' => $amount,
-                'tax_amount' => 0,
-                'total_amount' => $amount,
-                'currency' => $currency ?: $subscription->currency,
-                'status' => 'paid',
-                'paid_at' => now(),
-                'payment_method' => $subscription->payment_provider,
-                'provider' => $subscription->payment_provider,
-                'provider_reference' => $paymentRef,
-                'notes' => $externalNumber ? "Stripe invoice {$externalNumber}" : null,
-            ]);
+            $alreadyBilled = $paymentRef && Invoice::where('provider', $subscription->payment_provider)
+                ->where('provider_reference', $paymentRef)
+                ->exists();
+
+            if (! $alreadyBilled) {
+                Invoice::create([
+                    'user_id' => $subscription->user_id,
+                    'subscription_id' => $subscription->id,
+                    'invoice_number' => Invoice::generateNumber(),
+                    'billing_cycle' => $subscription->billing_cycle,
+                    'amount' => $amount,
+                    'tax_amount' => 0,
+                    'total_amount' => $amount,
+                    'currency' => $currency ?: $subscription->currency,
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'payment_method' => $subscription->payment_provider,
+                    'provider' => $subscription->payment_provider,
+                    'provider_reference' => $paymentRef,
+                    'notes' => $note,
+                ]);
+            }
 
             $user = $subscription->user;
             if ($user->role !== 'admin') {

@@ -17,19 +17,35 @@ class SetApiLocale
     {
         $supported = config('locales.supported', ['en']);
 
-        // The guard is named rather than left to the default. A bare user()
-        // does happen to work on the authenticated routes — Laravel's
-        // middleware priority hoists Authenticate ahead of this group, and it
-        // calls shouldUse('sanctum'), so the default resolver is already the
-        // token's by the time we run. But that is a property of the priority
-        // table, not of this file, and it does not hold on the anonymous
-        // routes, where the default guard is the session-backed `web` one and
-        // a request that does carry a token would be read as a stranger.
-        // Naming the guard is what actually makes the line mean what it says.
-        $locale = $request->user('sanctum')?->locale;
+        // The header wins, and the account's column is only the fallback.
+        //
+        // This is the opposite of the web twin, deliberately. SetLocale serves a
+        // browser, where the saved preference is the best evidence of what the
+        // reader wants. This serves one app, which knows what language it is
+        // currently rendering and says so on every request — and it says so
+        // explicitly rather than letting the platform fill the header in,
+        // precisely because a device-derived language once had the AI coach
+        // answering a Turkish handset in Turkish inside an English app.
+        //
+        // Deferring to the column would reintroduce that: the app ships with
+        // its language picker behind __DEV__, so a member who signed up on the
+        // Turkish website would read Turkish answer options and Turkish
+        // validation errors under English chrome. The column is still the right
+        // answer for a caller that offers nothing.
+        $locale = $this->fromHeader($request, $supported);
 
-        if (! $locale || ! in_array($locale, $supported, true)) {
-            $locale = $this->fromHeader($request, $supported) ?? config('app.locale');
+        if (! $locale) {
+            // The guard is named rather than left to the default. A bare user()
+            // does happen to work on the authenticated routes — middleware
+            // priority hoists Authenticate ahead of this group, and it calls
+            // shouldUse('sanctum'). But that is a property of the priority
+            // table, not of this file, and it does not hold on the anonymous
+            // routes, where the default guard is the session-backed `web` one.
+            $account = $request->user('sanctum')?->locale;
+
+            $locale = in_array($account, $supported, true)
+                ? $account
+                : config('app.locale');
         }
 
         app()->setLocale($locale);

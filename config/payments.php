@@ -49,6 +49,26 @@ return [
         'yearly' => ['label' => 'Yearly', 'months' => 12],
     ],
 
+    // In-app purchases relayed from Adapty. Never the `driver`: nothing here is
+    // charged by us, the stores bill the customer and the webhook tells us what
+    // happened (see App\Services\Payments\AdaptyEventProcessor). Credentials
+    // live in config/services.php with the other third-party secrets.
+    'adapty' => [
+        // vendor product id => billing cycle, for the subscriptions ledger.
+        // Anything not listed falls back to reading the period out of the
+        // product id, and then out of the purchase → expiry distance the event
+        // carries, so an unlisted product still records a sensible cycle.
+        //
+        // Note the app sells a weekly plan the web checkout does not: 'weekly'
+        // is a valid value here and is stored as-is rather than rounded to the
+        // nearest thing /checkout offers.
+        'products' => [
+            // 'com.harmoniva.premium.weekly' => 'weekly',
+            // 'com.harmoniva.premium.monthly' => 'monthly',
+            // 'com.harmoniva.premium.yearly' => 'yearly',
+        ],
+    ],
+
     'manual' => [
         // true  → checkout instantly activates Premium (test / staging).
         // false → subscription is created 'pending'; an admin confirms payment

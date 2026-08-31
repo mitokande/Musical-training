@@ -70,6 +70,37 @@ return [
         ],
     ],
 
+    // Adapty — the mobile app's in-app purchases. Apple and Google take the
+    // money; Adapty watches both stores and posts the subscription lifecycle to
+    // /webhooks/adapty, which is the only place this server learns about a
+    // renewal, a cancellation made in the store's own settings, or a refund.
+    // The SDK key in the app is public by design and is NOT one of these.
+    'adapty' => [
+        // The shared secret Adapty presents on every call. Configure the same
+        // header name and value under Dashboard → Integrations → Webhook.
+        // Without it the endpoint refuses everything, so a misconfiguration is
+        // an outage, never an open door.
+        'webhook_header' => env('ADAPTY_WEBHOOK_HEADER', 'Authorization'),
+        'webhook_secret' => env('ADAPTY_WEBHOOK_SECRET'),
+
+        // Optional second gate: an HMAC-SHA256 of the raw body, for workspaces
+        // that have request signing switched on. Left empty, the header above is
+        // the only check.
+        'signing_secret' => env('ADAPTY_WEBHOOK_SIGNING_SECRET'),
+        'signature_header' => env('ADAPTY_WEBHOOK_SIGNATURE_HEADER', 'Adapty-Signature'),
+
+        // The access level the products grant, as configured in the Adapty
+        // dashboard. Must match PREMIUM_ACCESS_LEVEL in the mobile app
+        // (src/billing/entitlement.ts) — events for any other level are ignored.
+        'access_level' => env('ADAPTY_ACCESS_LEVEL', 'premium'),
+
+        // Sandbox purchases cost nothing and anyone with a TestFlight or
+        // internal-testing build can make one. Leave this on while testing;
+        // turn it off in production so a tester cannot grant themselves Premium
+        // on the live database.
+        'accept_sandbox' => (bool) env('ADAPTY_ACCEPT_SANDBOX', true),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

@@ -16,6 +16,11 @@ class PaymentManager
     private array $gateways = [
         'manual' => ManualGateway::class,
         'stripe' => StripeGateway::class,
+        // Never the active driver — a store subscription cannot be started from
+        // the web. Registered so subscriptions bought in the mobile app resolve
+        // to a gateway that refuses on their behalf instead of falling through
+        // to the manual one, which would report a refund we never made.
+        'adapty' => AdaptyGateway::class,
         // 'paddle' => PaddleGateway::class,
         // 'iyzico' => IyzicoGateway::class,
     ];

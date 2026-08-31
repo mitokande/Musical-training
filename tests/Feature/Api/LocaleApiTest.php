@@ -52,15 +52,58 @@ class LocaleApiTest extends TestCase
         ];
     }
 
-    public function test_the_account_locale_wins_over_the_header(): void
+    /**
+     * The header wins over the account column, which is the opposite of the web
+     * twin and is the point of this middleware.
+     *
+     * The app sends Accept-Language explicitly on every request because it
+     * knows what language it is rendering. Its language picker ships behind
+     * __DEV__, so a member who signed up on the Turkish website would otherwise
+     * read Turkish options under English chrome.
+     */
+    public function test_the_header_wins_over_the_account_locale(): void
     {
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
 
-        $this->withHeader('Accept-Language', 'en-US, en;q=0.9')
+        $this->withHeader('Accept-Language', 'en')
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertHeader('Content-Language', 'en');
+
+        $this->assertSame('en', app()->getLocale());
+    }
+
+    /**
+     * With nothing offered, the account's own language is the fallback.
+     *
+     * Symfony's test request factory injects Accept-Language: en-us,en;q=0.5
+     * unless told otherwise, so "sent no header" has to be written as an empty
+     * one. A real caller that omits it reaches the same branch.
+     */
+    public function test_the_account_locale_is_used_when_no_header_is_sent(): void
+    {
+        Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
+
+        $this->withHeader('Accept-Language', '')
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertHeader('Content-Language', 'tr');
+
+        $this->assertSame('tr', app()->getLocale());
+    }
+
+    /** An unsupported column value must not win over a usable default. */
+    public function test_an_unreadable_account_locale_falls_back_to_the_app_default(): void
+    {
+        // Accounts predating the validation rule can hold anything varchar(10)
+        // accepts, and users.locale defaults to 'tr' at the column level.
+        Sanctum::actingAs(User::factory()->create(['locale' => 'en-US']));
+
+        $this->withHeader('Accept-Language', '')
             ->getJson('/api/v1/auth/me')
             ->assertOk();
 
-        $this->assertSame('tr', app()->getLocale());
+        $this->assertSame(config('app.locale'), app()->getLocale());
     }
 
     public function test_the_header_is_used_when_the_request_is_anonymous(): void
@@ -90,26 +133,15 @@ class LocaleApiTest extends TestCase
         $this->assertSame(config('app.locale'), app()->getLocale());
     }
 
-    public function test_an_unreadable_account_locale_falls_through_to_the_header(): void
-    {
-        // Accounts predating the validation rule can hold anything varchar(10)
-        // accepts, so an unsupported column value must not win.
-        Sanctum::actingAs(User::factory()->create(['locale' => 'en-US']));
-
-        $this->withHeader('Accept-Language', 'tr')
-            ->getJson('/api/v1/auth/me')
-            ->assertOk();
-
-        $this->assertSame('tr', app()->getLocale());
-    }
-
     public function test_the_resolved_locale_is_reported_back_in_content_language(): void
     {
-        // The app asks with Accept-Language but the account's saved locale
-        // outranks it, so the client cannot infer what it was answered in.
+        // The client reads this into serverLanguage(): what it asked for is not
+        // always what it got, because an unsupported ask falls back silently.
         Sanctum::actingAs(User::factory()->create(['locale' => 'de']));
 
-        $this->withHeader('Accept-Language', 'en-US, en;q=0.9')
+        // Asked for Japanese, which is not supported; the account column is the
+        // fallback, so the answer is German and the header says so.
+        $this->withHeader('Accept-Language', 'ja-JP, ja;q=0.9')
             ->getJson('/api/v1/auth/me')
             ->assertOk()
             ->assertHeader('Content-Language', 'de');
@@ -246,6 +278,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
+        $this->withHeader('Accept-Language', 'tr');
 
         $types = collect($this->getJson('/api/v1/catalog/practice-types')->assertOk()->json('data'))
             ->keyBy('slug');
@@ -277,6 +310,7 @@ class LocaleApiTest extends TestCase
         ]);
 
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
+        $this->withHeader('Accept-Language', 'tr');
 
         $translated = trans('app.catalog.categories.melodic-dictation', [], 'tr');
 
@@ -310,6 +344,7 @@ class LocaleApiTest extends TestCase
         ]);
 
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
+        $this->withHeader('Accept-Language', 'tr');
 
         $this->getJson('/api/v1/catalog/learning-path')
             ->assertOk()
@@ -341,6 +376,7 @@ class LocaleApiTest extends TestCase
         ]);
 
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr']));
+        $this->withHeader('Accept-Language', 'tr');
 
         $this->getJson('/api/v1/catalog/learning-path/thirds')
             ->assertOk()
@@ -360,6 +396,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'es', 'plan' => 'premium']));
+        $this->withHeader('Accept-Language', 'es');
 
         $options = $this->postJson('/api/v1/sessions', [
             'source' => 'studio',
@@ -386,6 +423,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'es', 'plan' => 'premium']));
+        $this->withHeader('Accept-Language', 'es');
 
         $options = $this->postJson('/api/v1/sessions', [
             'source' => 'studio',
@@ -417,6 +455,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'es', 'plan' => 'premium']));
+        $this->withHeader('Accept-Language', 'es');
 
         $meta = $this->postJson('/api/v1/sessions', [
             'source' => 'studio',
@@ -434,6 +473,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'tr', 'plan' => 'premium']));
+        $this->withHeader('Accept-Language', 'tr');
 
         $options = $this->postJson('/api/v1/sessions', [
             'source' => 'studio',
@@ -458,6 +498,7 @@ class LocaleApiTest extends TestCase
         $this->seed(NewPracticeTypeSeeder::class);
         app(PracticeCatalog::class)->flushCache();
         Sanctum::actingAs(User::factory()->create(['locale' => 'es', 'plan' => 'premium']));
+        $this->withHeader('Accept-Language', 'es');
 
         $uuid = $this->postJson('/api/v1/sessions', [
             'source' => 'studio',

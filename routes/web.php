@@ -82,6 +82,7 @@ use App\Http\Controllers\TeacherBookingController;
 use App\Http\Controllers\TeacherInvitationAcceptController;
 use App\Http\Controllers\TeacherReviewController;
 use App\Http\Controllers\TrialController;
+use App\Http\Controllers\Webhooks\AdaptyWebhookController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use App\Http\Middleware\ForceLocaleFromUrl;
@@ -658,6 +659,12 @@ Route::post('/language/switch', [LanguageController::class, 'switch'])->name('la
 // Point the Stripe Dashboard endpoint here.
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'events'])
     ->name('webhooks.stripe');
+
+// Adapty events for the mobile app's App Store / Play Store subscriptions
+// (shared-secret authenticated in the controller, CSRF-exempt). Point the
+// endpoint in Adapty Dashboard → Integrations → Webhook here.
+Route::post('/webhooks/adapty', [AdaptyWebhookController::class, 'events'])
+    ->name('webhooks.adapty');
 
 // --- Email Center public endpoints ---
 // Amazon SNS event notifications (signature-validated in the controller, CSRF-exempt)

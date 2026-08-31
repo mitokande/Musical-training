@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\Api\V1\AiController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ExercisePlanController;
 use App\Http\Controllers\Api\V1\PracticeSessionController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\StatsController;
+use App\Http\Controllers\Webhooks\AdaptyWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +27,21 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+    // Adapty's server-side events for the mobile app's store subscriptions.
+    // Unauthenticated in the Sanctum sense — Adapty is a server, not a signed-in
+    // person, so it presents the shared secret configured in the dashboard and
+    // AdaptyWebhookController checks it. It lives on the api surface because
+    // that is the URL registered in the Adapty workspace; the equivalent
+    // /webhooks/adapty (registered in web.php next to Stripe and SES) points at
+    // the same controller and the same idempotency ledger, so whichever one a
+    // delivery arrives on, a duplicate is still collapsed.
+    //
+    // Deliberately un-throttled: the store can fan out a burst of renewals at a
+    // billing boundary, and a rejected delivery is a customer whose Premium
+    // arrives late.
+    Route::post('adapty/events', [AdaptyWebhookController::class, 'events'])
+        ->name('webhooks.adapty.api');
+
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
@@ -88,6 +105,11 @@ Route::prefix('v1')->group(function () {
             Route::get('stats', [StatsController::class, 'stats']);
             Route::get('plan', [StatsController::class, 'plan']);
             Route::put('profile', [ProfileController::class, 'update']);
+            // Claims an Adapty profile for this account. Only needed for a
+            // purchase made during onboarding, before the account existed —
+            // every later event identifies its own user. Grants nothing on its
+            // own: it replays what the webhook already recorded.
+            Route::post('billing/adapty', [BillingController::class, 'linkAdapty']);
             // In-app account deletion (Play Store / App Store requirement).
             // Rate-limited like the auth endpoints: it takes a password.
             Route::delete('account', [ProfileController::class, 'destroy'])

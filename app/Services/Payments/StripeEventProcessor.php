@@ -112,7 +112,16 @@ class StripeEventProcessor
         $amount = ((int) ($invoice['amount_paid'] ?? 0)) / 100;
         $currency = strtoupper((string) ($invoice['currency'] ?? $local->currency));
 
-        $this->subscriptions->renew($local, $periodEnd, $amount, $currency, $paymentRef, $invoice['number'] ?? null);
+        $number = $invoice['number'] ?? null;
+
+        $this->subscriptions->renew(
+            $local,
+            $periodEnd,
+            $amount,
+            $currency,
+            $paymentRef,
+            $number ? "Stripe invoice {$number}" : null,
+        );
     }
 
     private function handleInvoicePaymentFailed(array $invoice): void
