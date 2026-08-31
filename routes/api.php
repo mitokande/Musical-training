@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ExercisePlanController;
+use App\Http\Controllers\Api\V1\OnboardingController;
 use App\Http\Controllers\Api\V1\PracticeSessionController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\StatsController;
@@ -105,6 +106,12 @@ Route::prefix('v1')->group(function () {
             Route::get('stats', [StatsController::class, 'stats']);
             Route::get('plan', [StatsController::class, 'plan']);
             Route::put('profile', [ProfileController::class, 'update']);
+            // The app's onboarding answers, folded into the learner profile
+            // and the survey the website keeps — the same records the AI coach
+            // reads before it writes a plan. The app already asks most of what
+            // they want, and until this existed an account created in the app
+            // arrived on the web with both of them empty.
+            Route::post('onboarding', [OnboardingController::class, 'store']);
             // Claims an Adapty profile for this account. Only needed for a
             // purchase made during onboarding, before the account existed —
             // every later event identifies its own user. Grants nothing on its
