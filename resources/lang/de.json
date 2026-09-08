@@ -14,5 +14,8 @@
     "This lesson is not playable yet.": "Diese Lektion kann noch nicht gestartet werden.",
     "This session is no longer active.": "Diese Übungseinheit ist nicht mehr aktiv.",
     "Unexpected question index.": "Diese Frage passt nicht zum aktuellen Stand der Übungseinheit.",
-    "Question not found in this session.": "Diese Frage gibt es in der Übungseinheit nicht."
+    "Question not found in this session.": "Diese Frage gibt es in der Übungseinheit nicht.",
+    "Google sign-in is not configured on this server.": "Die Google-Anmeldung ist auf diesem Server nicht eingerichtet.",
+    "Could not reach Google to verify your sign-in. Please try again.": "Google konnte zur Prüfung deiner Anmeldung nicht erreicht werden. Bitte versuche es erneut.",
+    "That Google sign-in could not be verified. Please try again.": "Diese Google-Anmeldung konnte nicht bestätigt werden. Bitte versuche es erneut."
 }

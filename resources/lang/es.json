@@ -14,5 +14,8 @@
     "This lesson is not playable yet.": "Esta lección aún no se puede practicar.",
     "This session is no longer active.": "Esta sesión de práctica ya no está activa.",
     "Unexpected question index.": "Esta respuesta no corresponde a la pregunta actual.",
-    "Question not found in this session.": "No se ha encontrado esta pregunta en la sesión de práctica."
+    "Question not found in this session.": "No se ha encontrado esta pregunta en la sesión de práctica.",
+    "Google sign-in is not configured on this server.": "El inicio de sesión con Google no está configurado en este servidor.",
+    "Could not reach Google to verify your sign-in. Please try again.": "No se pudo contactar con Google para verificar tu inicio de sesión. Inténtalo de nuevo.",
+    "That Google sign-in could not be verified. Please try again.": "No se pudo verificar ese inicio de sesión con Google. Inténtalo de nuevo."
 }

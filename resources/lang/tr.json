@@ -14,5 +14,8 @@
     "This lesson is not playable yet.": "Bu ders henüz kullanıma hazır değil.",
     "This session is no longer active.": "Bu alıştırma oturumu artık aktif değil.",
     "Unexpected question index.": "Bu soru beklenen sırada değil.",
-    "Question not found in this session.": "Bu alıştırma oturumunda soru bulunamadı."
+    "Question not found in this session.": "Bu alıştırma oturumunda soru bulunamadı.",
+    "Google sign-in is not configured on this server.": "Google ile giriş bu sunucuda yapılandırılmamış.",
+    "Could not reach Google to verify your sign-in. Please try again.": "Girişinizi doğrulamak için Google'a ulaşılamadı. Lütfen tekrar deneyin.",
+    "That Google sign-in could not be verified. Please try again.": "Bu Google girişi doğrulanamadı. Lütfen tekrar deneyin."
 }

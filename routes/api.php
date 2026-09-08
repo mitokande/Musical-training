@@ -46,6 +46,12 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
+        // Native Google Sign-In from the app. Anonymous like login: the
+        // caller proves who they are with the ID token in the body, which
+        // GoogleIdTokenVerifier checks against Google before any account is
+        // touched. Throttled with the rest so a stolen token cannot be
+        // brute-forced against the audience list.
+        Route::post('google', [AuthController::class, 'google']);
         Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     });
 

@@ -101,10 +101,25 @@ return [
         'accept_sandbox' => (bool) env('ADAPTY_ACCEPT_SANDBOX', true),
     ],
 
+    // Google — the web sign-in (Socialite's redirect flow, SocialAuthController)
+    // and the mobile one (a native sign-in on the device, its ID token verified
+    // by GoogleIdTokenVerifier) share this project.
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+
+        // Extra OAuth client ids the mobile app may sign in with, comma
+        // separated — the iOS client, and the Android one if you ever stop
+        // passing the web client id as serverClientId. These are audiences we
+        // accept ID tokens for; anything not listed here (or in client_id
+        // above) is refused, which is what stops a token minted for someone
+        // else's app being spent on an account here. Public values, not
+        // secrets, but the list must be exact.
+        'mobile_client_ids' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('GOOGLE_MOBILE_CLIENT_IDS', '')),
+        ))),
     ],
 
     // Zoom live lessons. Two separate Marketplace apps are required:
