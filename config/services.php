@@ -122,6 +122,22 @@ return [
         ))),
     ],
 
+    // Apple — the native Sign in with Apple in the mobile app. There is no
+    // secret and no redirect here: the device does the whole flow with Apple
+    // and posts the identity token, which AppleIdTokenVerifier checks. A web
+    // flow would need a Services ID and a signing key; nothing here uses one.
+    'apple' => [
+        // Bundle identifiers whose tokens this server accepts, comma
+        // separated: the App Store build and the dev variant. Public values,
+        // not secrets, but the list must be exact — it is the only thing
+        // stopping a token minted for someone else's app being spent here, so
+        // never widen it to get a build working.
+        'client_ids' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('APPLE_CLIENT_IDS', '')),
+        ))),
+    ],
+
     // Zoom live lessons. Two separate Marketplace apps are required:
     //   • Server-to-Server OAuth — creates/updates/deletes meetings on the
     //     pooled host accounts and issues host ZAK tokens.

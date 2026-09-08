@@ -41,6 +41,7 @@ class AccountDeletionService
         DB::transaction(function () use ($user, $reason, $actor) {
             $meta = [
                 'google_id' => $user->google_id,
+                'apple_id' => $user->apple_id,
                 'plan' => $user->plan,
                 'role' => $user->role,
             ];
@@ -70,6 +71,12 @@ class AccountDeletionService
                 'email' => $this->anonymisedEmail($user),
                 'username' => $this->anonymisedUsername($user),
                 'google_id' => null,
+                // Released for the same reason as the address: apple_id is
+                // unique, and a deleted row still holding it would make the
+                // same Apple ID unable to sign up again — the button would
+                // fail on the unique index with nothing the learner could do
+                // about it.
+                'apple_id' => null,
                 'remember_token' => null,
                 'suspended_at' => null,
             ])->save();
@@ -111,6 +118,7 @@ class AccountDeletionService
             if ($user->deleted_email && ! $this->identityTaken('email', $user->deleted_email, $user->id)) {
                 $attributes['email'] = $user->deleted_email;
                 $attributes['google_id'] = $meta['google_id'] ?? null;
+                $attributes['apple_id'] = $meta['apple_id'] ?? null;
             }
 
             if ($user->deleted_username && ! $this->identityTaken('username', $user->deleted_username, $user->id)) {

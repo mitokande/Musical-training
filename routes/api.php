@@ -52,6 +52,10 @@ Route::prefix('v1')->group(function () {
         // touched. Throttled with the rest so a stolen token cannot be
         // brute-forced against the audience list.
         Route::post('google', [AuthController::class, 'google']);
+        // Sign in with Apple from the app, on the same terms — and not
+        // optional: an iOS app offering Google sign-in must offer this one
+        // too, so these two routes ship together or the build is rejected.
+        Route::post('apple', [AuthController::class, 'apple']);
         Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     });
 

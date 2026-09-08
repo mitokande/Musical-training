@@ -17,5 +17,9 @@
     "Question not found in this session.": "Domanda non trovata in questa sessione di esercizi.",
     "Google sign-in is not configured on this server.": "L'accesso con Google non è configurato su questo server.",
     "Could not reach Google to verify your sign-in. Please try again.": "Impossibile contattare Google per verificare il tuo accesso. Riprova.",
-    "That Google sign-in could not be verified. Please try again.": "Non è stato possibile verificare questo accesso con Google. Riprova."
+    "That Google sign-in could not be verified. Please try again.": "Non è stato possibile verificare questo accesso con Google. Riprova.",
+    "Apple sign-in is not configured on this server.": "L'accesso con Apple non è configurato su questo server.",
+    "Could not reach Apple to verify your sign-in. Please try again.": "Impossibile contattare Apple per verificare il tuo accesso. Riprova.",
+    "That Apple sign-in could not be verified. Please try again.": "Non è stato possibile verificare questo accesso con Apple. Riprova.",
+    "Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.": "Apple non ha condiviso un indirizzo e-mail per questo account. Accedi di nuovo scegliendo di condividere la tua e-mail, oppure crea un account con il tuo indirizzo."
 }

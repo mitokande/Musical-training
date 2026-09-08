@@ -38,6 +38,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'stripe_customer_id',
         'locale',
         'google_id',
+        'apple_id',
         'avatar_url',
         'phone',
         'country',

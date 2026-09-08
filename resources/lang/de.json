@@ -17,5 +17,9 @@
     "Question not found in this session.": "Diese Frage gibt es in der Übungseinheit nicht.",
     "Google sign-in is not configured on this server.": "Die Google-Anmeldung ist auf diesem Server nicht eingerichtet.",
     "Could not reach Google to verify your sign-in. Please try again.": "Google konnte zur Prüfung deiner Anmeldung nicht erreicht werden. Bitte versuche es erneut.",
-    "That Google sign-in could not be verified. Please try again.": "Diese Google-Anmeldung konnte nicht bestätigt werden. Bitte versuche es erneut."
+    "That Google sign-in could not be verified. Please try again.": "Diese Google-Anmeldung konnte nicht bestätigt werden. Bitte versuche es erneut.",
+    "Apple sign-in is not configured on this server.": "Die Apple-Anmeldung ist auf diesem Server nicht eingerichtet.",
+    "Could not reach Apple to verify your sign-in. Please try again.": "Apple konnte zur Prüfung deiner Anmeldung nicht erreicht werden. Bitte versuche es erneut.",
+    "That Apple sign-in could not be verified. Please try again.": "Diese Apple-Anmeldung konnte nicht bestätigt werden. Bitte versuche es erneut.",
+    "Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.": "Apple hat für dieses Konto keine E-Mail-Adresse weitergegeben. Melde dich erneut an und wähle, deine E-Mail zu teilen, oder erstelle ein Konto mit deiner Adresse."
 }

@@ -31,7 +31,11 @@ class RecordAuthAnalytics
             'role' => $event->user->role,
             // Social signups skip the password form entirely, so the two paths
             // are worth telling apart when comparing signup conversion.
-            'method' => $event->user->google_id ? 'google' : 'password',
+            'method' => match (true) {
+                (bool) $event->user->google_id => 'google',
+                (bool) $event->user->apple_id => 'apple',
+                default => 'password',
+            },
         ], $event->user);
     }
 

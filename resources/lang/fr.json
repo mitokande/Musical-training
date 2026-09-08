@@ -17,5 +17,9 @@
     "Question not found in this session.": "Cette question est introuvable dans cette séance.",
     "Google sign-in is not configured on this server.": "La connexion Google n'est pas configurée sur ce serveur.",
     "Could not reach Google to verify your sign-in. Please try again.": "Impossible de joindre Google pour vérifier votre connexion. Veuillez réessayer.",
-    "That Google sign-in could not be verified. Please try again.": "Cette connexion Google n'a pas pu être vérifiée. Veuillez réessayer."
+    "That Google sign-in could not be verified. Please try again.": "Cette connexion Google n'a pas pu être vérifiée. Veuillez réessayer.",
+    "Apple sign-in is not configured on this server.": "La connexion Apple n'est pas configurée sur ce serveur.",
+    "Could not reach Apple to verify your sign-in. Please try again.": "Impossible de joindre Apple pour vérifier votre connexion. Veuillez réessayer.",
+    "That Apple sign-in could not be verified. Please try again.": "Cette connexion Apple n'a pas pu être vérifiée. Veuillez réessayer.",
+    "Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.": "Apple n'a pas partagé d'adresse e-mail pour ce compte. Reconnectez-vous en choisissant de partager votre e-mail, ou créez un compte avec votre adresse."
 }

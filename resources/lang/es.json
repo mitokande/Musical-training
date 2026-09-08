@@ -17,5 +17,9 @@
     "Question not found in this session.": "No se ha encontrado esta pregunta en la sesión de práctica.",
     "Google sign-in is not configured on this server.": "El inicio de sesión con Google no está configurado en este servidor.",
     "Could not reach Google to verify your sign-in. Please try again.": "No se pudo contactar con Google para verificar tu inicio de sesión. Inténtalo de nuevo.",
-    "That Google sign-in could not be verified. Please try again.": "No se pudo verificar ese inicio de sesión con Google. Inténtalo de nuevo."
+    "That Google sign-in could not be verified. Please try again.": "No se pudo verificar ese inicio de sesión con Google. Inténtalo de nuevo.",
+    "Apple sign-in is not configured on this server.": "El inicio de sesión con Apple no está configurado en este servidor.",
+    "Could not reach Apple to verify your sign-in. Please try again.": "No se pudo contactar con Apple para verificar tu inicio de sesión. Inténtalo de nuevo.",
+    "That Apple sign-in could not be verified. Please try again.": "No se pudo verificar ese inicio de sesión con Apple. Inténtalo de nuevo.",
+    "Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.": "Apple no compartió una dirección de correo para esta cuenta. Inicia sesión de nuevo y elige compartir tu correo, o crea una cuenta con tu dirección."
 }

@@ -17,5 +17,9 @@
     "Question not found in this session.": "Bu alıştırma oturumunda soru bulunamadı.",
     "Google sign-in is not configured on this server.": "Google ile giriş bu sunucuda yapılandırılmamış.",
     "Could not reach Google to verify your sign-in. Please try again.": "Girişinizi doğrulamak için Google'a ulaşılamadı. Lütfen tekrar deneyin.",
-    "That Google sign-in could not be verified. Please try again.": "Bu Google girişi doğrulanamadı. Lütfen tekrar deneyin."
+    "That Google sign-in could not be verified. Please try again.": "Bu Google girişi doğrulanamadı. Lütfen tekrar deneyin.",
+    "Apple sign-in is not configured on this server.": "Apple ile giriş bu sunucuda yapılandırılmamış.",
+    "Could not reach Apple to verify your sign-in. Please try again.": "Girişinizi doğrulamak için Apple'a ulaşılamadı. Lütfen tekrar deneyin.",
+    "That Apple sign-in could not be verified. Please try again.": "Bu Apple girişi doğrulanamadı. Lütfen tekrar deneyin.",
+    "Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.": "Apple bu hesap için bir e-posta adresi paylaşmadı. Tekrar giriş yapıp e-postanızı paylaşmayı seçin veya adresinizle bir hesap oluşturun."
 }

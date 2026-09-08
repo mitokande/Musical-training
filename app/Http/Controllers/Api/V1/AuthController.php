@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Exceptions\Api\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\UserResource;
 use App\Models\User;
+use App\Services\Auth\AppleIdTokenVerifier;
 use App\Services\Auth\GoogleIdTokenVerifier;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +20,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly GoogleIdTokenVerifier $googleTokens) {}
+    public function __construct(
+        private readonly GoogleIdTokenVerifier $googleTokens,
+        private readonly AppleIdTokenVerifier $appleTokens,
+    ) {}
 
     public function register(Request $request): JsonResponse
     {
@@ -170,6 +175,104 @@ class AuthController extends Controller
                 'user' => new UserResource($user),
                 // Lets the app send a brand-new account straight to onboarding
                 // instead of guessing from local state.
+                'created' => $created,
+            ],
+        ], $created ? 201 : 200);
+    }
+
+    /**
+     * Sign in (or sign up) with the identity token from a native Sign in with
+     * Apple. The Google endpoint above, with three differences worth knowing.
+     *
+     * The name arrives in the request body rather than in the token. Apple
+     * releases it to the app once — on the first authorisation of that Apple ID
+     * for this bundle id — and never again, in any form. If it is not written
+     * here it cannot be recovered, so `full_name` is read only when the account
+     * is created and ignored otherwise: a later sign-in sends null, and null
+     * must not blank a name the learner has since edited.
+     *
+     * The address may be missing, and may be a relay alias. Both are the
+     * learner's choice and neither is an error; an account already matched on
+     * `apple_id` needs no address at all. Only creating one does, which is the
+     * single case that can fail here.
+     *
+     * And there is no avatar. Apple does not have one to give.
+     */
+    public function apple(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'identity_token' => ['required', 'string'],
+            'full_name' => ['nullable', 'string', 'max:255'],
+            'device_name' => ['required', 'string', 'max:120'],
+            'locale' => ['nullable', 'string', Rule::in(config('locales.supported', ['en']))],
+        ]);
+
+        $identity = $this->appleTokens->verify($validated['identity_token']);
+
+        $user = User::where('apple_id', $identity->id)->first();
+        $created = false;
+
+        if (! $user && $identity->email) {
+            $user = User::where('email', $identity->email)->first();
+
+            if ($user) {
+                // An existing account — password, Google, or both — meeting
+                // Apple for the first time. Adds a way in, replaces nothing.
+                $user->update(['apple_id' => $identity->id]);
+            }
+        }
+
+        if (! $user) {
+            if (! $identity->email) {
+                // Nothing to build an account on. The learner hid their address
+                // *and* has never signed in here before, or Apple sent one it
+                // will not vouch for. Recoverable, and only they can do it, so
+                // this one failure says what to do rather than hiding behind
+                // the generic refusal.
+                throw new ApiException(
+                    'apple_email_unavailable',
+                    __('Apple did not share an email address for this account. Sign in again and choose to share your email, or create an account with your address.'),
+                    422,
+                );
+            }
+
+            $name = trim((string) ($validated['full_name'] ?? '')) ?: Str::before($identity->email, '@');
+
+            $user = User::create([
+                'name' => $name,
+                'username' => $this->uniqueUsername($name),
+                'email' => $identity->email,
+                'apple_id' => $identity->id,
+                'role' => 'user',
+                'plan' => 'free',
+                // Same reasoning as register() and google(): the picker has had
+                // its say by now, and the users.locale default would win.
+                'locale' => $validated['locale'] ?? config('app.locale'),
+                // The verifier drops any address Apple would not vouch for, so
+                // one that survived to here is proven — including a relay
+                // alias, which Apple delivers to and therefore stands behind.
+                'email_verified_at' => now(),
+            ]);
+
+            $created = true;
+
+            event(new Registered($user));
+        }
+
+        if ($user->isSuspended()) {
+            return response()->json([
+                'error' => ['code' => 'account_suspended', 'message' => __('Your account has been suspended.')],
+            ], 403);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return response()->json([
+            'data' => [
+                'token' => $user->createToken($validated['device_name'])->plainTextToken,
+                'user' => new UserResource($user),
                 'created' => $created,
             ],
         ], $created ? 201 : 200);
