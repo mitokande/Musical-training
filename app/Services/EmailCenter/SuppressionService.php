@@ -33,6 +33,21 @@ class SuppressionService
     }
 
     /**
+     * Lift only the suppression we added for a given reason.
+     *
+     * For the case where the thing that suppressed an address tells us it is
+     * over: Apple says a relay alias forwards again. An address that is *also*
+     * on the list for a hard bounce or a complaint must stay on it — those are
+     * nobody else's to clear, and `unsuppress` would clear them.
+     */
+    public function unsuppressReason(string $email, string $reason): void
+    {
+        EmailSuppression::where('email', mb_strtolower($email))
+            ->where('reason', $reason)
+            ->delete();
+    }
+
+    /**
      * Frequency cap: marketing emails per user per rolling 7 days.
      */
     public function isOverFrequencyCap(User $user): bool

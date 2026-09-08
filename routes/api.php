@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\PracticeSessionController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\StatsController;
 use App\Http\Controllers\Webhooks\AdaptyWebhookController;
+use App\Http\Controllers\Webhooks\AppleNotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,6 +43,17 @@ Route::prefix('v1')->group(function () {
     // arrives late.
     Route::post('adapty/events', [AdaptyWebhookController::class, 'events'])
         ->name('webhooks.adapty.api');
+
+    // Apple's server-to-server notifications for Sign in with Apple — the URL
+    // set in the Developer portal under the primary App ID. Unauthenticated in
+    // the Sanctum sense, like Adapty's: Apple is a server, and it proves itself
+    // by signing the payload rather than by presenting a secret.
+    //
+    // Un-throttled for the same reason as well. Apple retries what it cannot
+    // deliver, and a 429 would turn a burst — an Apple ID deletion fans out one
+    // notification per app the person ever used — into a queue of retries.
+    Route::post('apple/notifications', [AppleNotificationController::class, 'notifications'])
+        ->name('webhooks.apple.api');
 
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
