@@ -68,13 +68,14 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureApiUserActive::class,
         ]);
         // AWS SNS posts signed JSON (validated in SesWebhookController);
-        // Stripe posts signature-verified events (StripeWebhookController);
+        // Stripe and Paddle post signature-verified events (their controllers);
         // Adapty posts store-subscription events carrying a shared secret
         // (AdaptyWebhookController); unsubscribe POST is the RFC 8058 one-click
         // coming from mail clients.
         $middleware->validateCsrfTokens(except: [
             'webhooks/aws/ses/*',
             'webhooks/stripe',
+            'webhooks/paddle',
             'webhooks/adapty',
             'email/unsubscribe/*',
         ]);

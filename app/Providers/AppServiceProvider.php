@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Paddle\SDK\Client as PaddleClient;
+use Paddle\SDK\Environment as PaddleEnvironment;
+use Paddle\SDK\Options as PaddleOptions;
 use Stripe\StripeClient;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +39,22 @@ class AppServiceProvider extends ServiceProvider
                 'api_key' => (string) config('services.stripe.secret'),
                 'stripe_version' => config('services.stripe.api_version'),
             ]);
+        });
+
+        // Single shared Paddle API client, built lazily from config so it is
+        // only constructed when the Paddle gateway is actually used. The
+        // environment matters as much as the key: the sandbox and production
+        // systems hold separate customers, prices and subscriptions, and a key
+        // from one is rejected by the other.
+        $this->app->singleton(PaddleClient::class, function () {
+            return new PaddleClient(
+                (string) config('services.paddle.api_key'),
+                new PaddleOptions(
+                    config('services.paddle.environment') === 'sandbox'
+                        ? PaddleEnvironment::SANDBOX
+                        : PaddleEnvironment::PRODUCTION,
+                ),
+            );
         });
 
         // The one seam between the AI features and OpenAI. Bound rather than

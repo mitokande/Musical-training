@@ -1642,6 +1642,21 @@ return [
         'status_cancelled' => 'Storniert',
     ],
 
+    // Paddle's default payment link (/pay). Reached from our own checkout
+    // redirect and from Paddle's card-update and dunning emails, so the copy
+    // cannot assume the reader just clicked Buy.
+    'pay' => [
+        'meta_title' => 'Zahlung abschließen · :app',
+        'opening' => 'Sicherer Bezahlvorgang wird geöffnet…',
+        'opening_hint' => 'Gleich erscheint ein Zahlungsfenster von Paddle. Bitte schließe diese Seite nicht.',
+        'error_title' => 'Wir konnten den Bezahlvorgang nicht öffnen',
+        'error_body' => 'Das Zahlungsfenster konnte nicht geladen werden. Versuche es bitte erneut über deine Rechnungsseite oder wende dich an den Support, wenn es weiterhin auftritt.',
+        'bare_title' => 'Aktuell ist nichts zu bezahlen',
+        'bare_body' => 'Diese Seite öffnet eine Zahlung, wenn du über einen Bezahllink oder eine Rechnungs-E-Mail hierherkommst. Gehe zu deiner Rechnungsseite, um dein Abo zu verwalten.',
+        'go_billing' => 'Zur Rechnungsseite',
+        'go_pricing' => 'Tarife ansehen',
+    ],
+
     'checkout' => [
         'meta_title' => 'Kasse — :app Premium',
         'back_to_pricing' => 'Zurück zu den Preisen',

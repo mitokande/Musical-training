@@ -1651,6 +1651,21 @@ return [
         'status_cancelled' => 'Cancelled',
     ],
 
+    // Paddle's default payment link (/pay). Reached from our own checkout
+    // redirect and from Paddle's card-update and dunning emails, so the copy
+    // cannot assume the reader just clicked Buy.
+    'pay' => [
+        'meta_title' => 'Complete your payment · :app',
+        'opening' => 'Opening secure checkout…',
+        'opening_hint' => "A payment window from Paddle will appear in a moment. Please don't close this page.",
+        'error_title' => "We couldn't open the checkout",
+        'error_body' => 'Something blocked the payment window from loading. Please try again from your billing page, or contact support if it keeps happening.',
+        'bare_title' => 'Nothing to pay right now',
+        'bare_body' => 'This page opens a payment when you arrive from a checkout link or a billing email. Head to your billing page to manage your subscription.',
+        'go_billing' => 'Go to billing',
+        'go_pricing' => 'See plans',
+    ],
+
     'checkout' => [
         'meta_title' => 'Checkout — :app Premium',
         'back_to_pricing' => 'Back to pricing',

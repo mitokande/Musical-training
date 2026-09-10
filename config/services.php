@@ -70,6 +70,55 @@ return [
         ],
     ],
 
+    // Paddle Billing — the web checkout and recurring subscriptions. Paddle is
+    // the Merchant of Record: it sells to the customer on our behalf, and it
+    // collects and remits the sales tax/VAT, so nothing here charges a card
+    // directly (config('payments.driver') must be 'paddle' to activate).
+    'paddle' => [
+        // Server-side API key (pdl_live_… / pdl_sdbx_…). Only ever in .env.
+        'api_key' => env('PADDLE_API_KEY'),
+
+        // 'production' or 'sandbox' — selects which Paddle system the API key
+        // and the price ids below belong to. The two systems are completely
+        // separate; a live key with sandbox price ids fails at checkout.
+        'environment' => env('PADDLE_ENVIRONMENT', 'production'),
+
+        // Client-side token (live_… / test_…) for Paddle.js on the /pay page.
+        // Public by design — it is rendered into the page.
+        'client_token' => env('PADDLE_CLIENT_TOKEN'),
+
+        // Signing secret of the notification destination that points at
+        // /webhooks/paddle. Paddle returns it once, when the destination is
+        // created; it is the only thing authenticating the webhook.
+        'webhook_secret' => env('PADDLE_WEBHOOK_SECRET'),
+
+        // How much clock skew to tolerate on the webhook signature timestamp,
+        // in seconds. Paddle's own guidance is 5s; this server's clock is not
+        // NTP-tight, so the default is looser. Never set this to 0 (disables
+        // the replay window entirely).
+        'signature_tolerance' => (int) env('PADDLE_SIGNATURE_TOLERANCE', 60),
+
+        // Recurring Price ids, role-keyed like the Stripe block above so each
+        // tier bills its own amount. The flat 'monthly'/'yearly' keys are the
+        // fallback for the individual-user tier.
+        'prices' => [
+            'monthly' => env('PADDLE_PRICE_MONTHLY'),
+            'yearly' => env('PADDLE_PRICE_YEARLY'),
+            'user' => [
+                'monthly' => env('PADDLE_PRICE_MONTHLY'),
+                'yearly' => env('PADDLE_PRICE_YEARLY'),
+            ],
+            'teacher' => [
+                'monthly' => env('PADDLE_PRICE_TEACHER_MONTHLY'),
+                'yearly' => env('PADDLE_PRICE_TEACHER_YEARLY'),
+            ],
+            'school' => [
+                'monthly' => env('PADDLE_PRICE_SCHOOL_MONTHLY'),
+                'yearly' => env('PADDLE_PRICE_SCHOOL_YEARLY'),
+            ],
+        ],
+    ],
+
     // Adapty — the mobile app's in-app purchases. Apple and Google take the
     // money; Adapty watches both stores and posts the subscription lifecycle to
     // /webhooks/adapty, which is the only place this server learns about a

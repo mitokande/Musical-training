@@ -16,6 +16,8 @@
         "livewire/livewire": "^3.7",
         "maatwebsite/excel": "^3.1",
         "openai-php/client": "^0.18.0",
+        "paddlehq/paddle-php-sdk": "^1.18",
+        "php-http/guzzle7-adapter": "^1.1",
         "posthog/posthog-php": "^4.12",
         "spatie/laravel-activitylog": "^4.12",
         "stripe/stripe-php": "^21.0",

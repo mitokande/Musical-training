@@ -1642,6 +1642,21 @@ return [
         'status_cancelled' => 'Cancelada',
     ],
 
+    // Paddle's default payment link (/pay). Reached from our own checkout
+    // redirect and from Paddle's card-update and dunning emails, so the copy
+    // cannot assume the reader just clicked Buy.
+    'pay' => [
+        'meta_title' => 'Conclua o seu pagamento · :app',
+        'opening' => 'A abrir o pagamento seguro…',
+        'opening_hint' => 'Dentro de instantes vai aparecer uma janela de pagamento da Paddle. Não feche esta página.',
+        'error_title' => 'Não conseguimos abrir o pagamento',
+        'error_body' => 'Algo impediu o carregamento da janela de pagamento. Tente novamente a partir da sua página de faturação ou contacte o suporte se continuar a acontecer.',
+        'bare_title' => 'Neste momento não há nada a pagar',
+        'bare_body' => 'Esta página abre um pagamento quando você chega através de um link de pagamento ou de um e-mail de faturação. Vá à sua página de faturação para gerir a sua subscrição.',
+        'go_billing' => 'Ir para faturação',
+        'go_pricing' => 'Ver planos',
+    ],
+
     'checkout' => [
         'meta_title' => 'Pagamento — :app Premium',
         'back_to_pricing' => 'Voltar aos preços',

@@ -172,6 +172,53 @@ class SubscriptionService
     }
 
     /**
+     * The provider started a free trial on a subscription we opened for a
+     * purchase — Paddle does this when the price carries a trial period.
+     *
+     * Nothing has been charged, so this deliberately does NOT touch the pending
+     * invoice: it stays pending until the first real payment arrives, and
+     * activate() then marks that same row paid. Recording it as paid here would
+     * put money in the billing history that the provider never collected.
+     *
+     * Distinct from startTrial(), which is the app's own no-card offer. Both end
+     * in the same place — plan='premium' with a null plan_cycle — so every
+     * premium gate and the hourly expiry sweep already handle this.
+     */
+    public function startProviderTrial(Subscription $subscription, ?CarbonInterface $trialEnd): void
+    {
+        $end = $trialEnd?->copy();
+        $alreadyTrialing = $subscription->status === 'trialing';
+
+        DB::transaction(function () use ($subscription, $end) {
+            $subscription->update(array_filter([
+                'status' => 'trialing',
+                'ends_at' => $end,
+                'trial_ends_at' => $end,
+                'cancelled_at' => null,
+            ], fn ($v, $k) => $k === 'cancelled_at' || $v !== null, ARRAY_FILTER_USE_BOTH));
+
+            $user = $subscription->user;
+            if ($user->role !== 'admin') {
+                $user->forceFill(array_filter([
+                    'plan' => 'premium',
+                    // Null cycle is what marks a trial rather than a paid
+                    // monthly/yearly subscription on the billing screen.
+                    'plan_cycle' => null,
+                    'plan_expires_at' => $end,
+                    'trial_started_at' => $user->trial_started_at ?: now(),
+                    'trial_ends_at' => $end,
+                ], fn ($v, $k) => $k === 'plan_cycle' || $v !== null, ARRAY_FILTER_USE_BOTH))->save();
+
+                $user->syncTeacherTierWithPlan();
+            }
+        });
+
+        if (! $alreadyTrialing) {
+            $this->track('trial_started', $subscription, ['source' => $subscription->payment_provider]);
+        }
+    }
+
+    /**
      * Mark a subscription active, pay its invoice, and grant Premium. Called by a
      * gateway once payment is confirmed (webhook, manual admin confirm, or the
      * auto-confirm test path).
@@ -416,6 +463,25 @@ class SubscriptionService
         });
 
         return true;
+    }
+
+    /**
+     * Undo a refund that the provider ultimately refused.
+     *
+     * Only Paddle can reach this: it reviews refunds after accepting them, so a
+     * refund recorded here can still come back 'rejected' (see
+     * PaddleEventProcessor). The invoice goes back to paid because the money
+     * never left. The subscription is deliberately left cancelled — the
+     * cancellation was already sent to the provider and cannot be recalled from
+     * here, so this needs a human, not a guess.
+     */
+    public function revertRefund(Invoice $invoice): void
+    {
+        if ($invoice->status !== 'refunded') {
+            return;
+        }
+
+        $invoice->update(['status' => 'paid', 'refunded_at' => null]);
     }
 
     /**

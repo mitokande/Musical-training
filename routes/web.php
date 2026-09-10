@@ -64,6 +64,7 @@ use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\MyTeachersController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PayController;
 use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\BlogPostController;
@@ -83,6 +84,7 @@ use App\Http\Controllers\TeacherInvitationAcceptController;
 use App\Http\Controllers\TeacherReviewController;
 use App\Http\Controllers\TrialController;
 use App\Http\Controllers\Webhooks\AdaptyWebhookController;
+use App\Http\Controllers\Webhooks\PaddleWebhookController;
 use App\Http\Controllers\Webhooks\SesWebhookController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use App\Http\Middleware\ForceLocaleFromUrl;
@@ -222,6 +224,10 @@ Route::prefix('{locale}')
 // ── End public static pages ───────────────────────────────────────────────
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+
+// Paddle's default payment link. Public on purpose: Paddle mails this URL to
+// customers whose card needs updating, and they are not necessarily signed in.
+Route::get('/pay', [PayController::class, 'show'])->name('pay.show');
 
 // ── Checkout & Billing (Premium purchase) ─────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -659,6 +665,11 @@ Route::post('/language/switch', [LanguageController::class, 'switch'])->name('la
 // Point the Stripe Dashboard endpoint here.
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'events'])
     ->name('webhooks.stripe');
+
+// Paddle Billing webhooks (signature-verified in the controller, CSRF-exempt).
+// Point the notification destination in Paddle > Developer tools > Notifications here.
+Route::post('/webhooks/paddle', [PaddleWebhookController::class, 'events'])
+    ->name('webhooks.paddle');
 
 // Adapty events for the mobile app's App Store / Play Store subscriptions
 // (shared-secret authenticated in the controller, CSRF-exempt). Point the

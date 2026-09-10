@@ -1651,6 +1651,21 @@ return [
         'status_cancelled' => 'İptal edildi',
     ],
 
+    // Paddle's default payment link (/pay). Reached from our own checkout
+    // redirect and from Paddle's card-update and dunning emails, so the copy
+    // cannot assume the reader just clicked Buy.
+    'pay' => [
+        'meta_title' => 'Ödemenizi tamamlayın · :app',
+        'opening' => 'Güvenli ödeme ekranı açılıyor…',
+        'opening_hint' => "Paddle'ın ödeme penceresi birazdan görünecek. Lütfen bu sayfayı kapatmayın.",
+        'error_title' => 'Ödeme ekranını açamadık',
+        'error_body' => 'Ödeme penceresinin yüklenmesi engellendi. Lütfen faturalandırma sayfanızdan tekrar deneyin; sorun sürerse destek ekibimize yazın.',
+        'bare_title' => 'Şu anda ödenecek bir tutar yok',
+        'bare_body' => 'Bu sayfa, bir ödeme bağlantısından veya faturalandırma e-postasından geldiğinizde ödeme ekranını açar. Aboneliğinizi yönetmek için faturalandırma sayfanıza gidin.',
+        'go_billing' => 'Faturalandırmaya git',
+        'go_pricing' => 'Planları gör',
+    ],
+
     'checkout' => [
         'meta_title' => 'Ödeme — :app Premium',
         'back_to_pricing' => 'Fiyatlandırmaya dön',

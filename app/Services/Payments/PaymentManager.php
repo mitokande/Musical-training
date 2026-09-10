@@ -21,7 +21,7 @@ class PaymentManager
         // to a gateway that refuses on their behalf instead of falling through
         // to the manual one, which would report a refund we never made.
         'adapty' => AdaptyGateway::class,
-        // 'paddle' => PaddleGateway::class,
+        'paddle' => PaddleGateway::class,
         // 'iyzico' => IyzicoGateway::class,
     ];
 
