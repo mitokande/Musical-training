@@ -28,6 +28,7 @@
             'students' => ['label' => 'Student Profiles', 'icon' => 'graduation-cap'],
             'teachers' => ['label' => 'Teacher Profiles', 'icon' => 'briefcase'],
             'schools' => ['label' => 'School Profiles', 'icon' => 'building'],
+            'mobile' => ['label' => 'Mobile App', 'icon' => 'smartphone'],
             'deleted' => ['label' => 'Deleted', 'icon' => 'trash-2'],
         ];
     @endphp

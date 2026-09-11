@@ -50,6 +50,7 @@ class AuthController extends Controller
             // Mobile signup is always a learner account.
             'role' => 'user',
             'plan' => 'free',
+            'signup_source' => 'mobile',
             'locale' => $validated['locale'] ?? config('app.locale'),
             'country' => $validated['country'] ?? null,
         ]);
@@ -142,6 +143,7 @@ class AuthController extends Controller
                 'avatar_url' => $identity->avatar,
                 'role' => 'user',
                 'plan' => 'free',
+                'signup_source' => 'mobile',
                 // The app's picker has had its say by the time anyone reaches
                 // the sign-in screen; without this the users.locale default
                 // ('tr') would win. Same reasoning as register().
@@ -245,6 +247,7 @@ class AuthController extends Controller
                 'apple_id' => $identity->id,
                 'role' => 'user',
                 'plan' => 'free',
+                'signup_source' => 'mobile',
                 // Same reasoning as register() and google(): the picker has had
                 // its say by now, and the users.locale default would win.
                 'locale' => $validated['locale'] ?? config('app.locale'),

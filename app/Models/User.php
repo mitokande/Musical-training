@@ -31,6 +31,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'password',
         'role',
         'plan',
+        'signup_source',
         'plan_expires_at',
         'plan_cycle',
         'trial_started_at',

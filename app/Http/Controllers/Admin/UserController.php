@@ -31,7 +31,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $segment = $request->query('segment', 'all');
-        if (! in_array($segment, ['all', 'students', 'teachers', 'schools', 'deleted'], true)) {
+        if (! in_array($segment, ['all', 'students', 'teachers', 'schools', 'mobile', 'deleted'], true)) {
             $segment = 'all';
         }
 
@@ -48,6 +48,8 @@ class UserController extends Controller
                 $q->where('role', 'school')
                     ->orWhereHas('teacherProfile', fn ($p) => $p->where('entity_type', TeacherProfile::ENTITY_SCHOOL));
             }),
+            // Accounts created from the Expo app (Api\V1\AuthController).
+            'mobile' => User::where('signup_source', 'mobile'),
             // Accounts the member believes are gone for good. Invisible
             // everywhere else on the site; still fully readable here.
             'deleted' => User::onlyTrashed(),
@@ -73,6 +75,11 @@ class UserController extends Controller
                 ['label' => 'Total Schools', 'value' => (clone $base)->count(), 'icon' => 'building', 'color' => 'amber'],
                 ['label' => 'Published Profiles', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_APPROVED)->count(), 'icon' => 'badge-check', 'color' => 'blue'],
                 ['label' => 'Pending Approval', 'value' => TeacherProfile::where('entity_type', TeacherProfile::ENTITY_SCHOOL)->where('status', TeacherProfile::STATUS_SUBMITTED)->count(), 'icon' => 'clock', 'color' => 'amber'],
+            ],
+            'mobile' => [
+                ['label' => 'Mobile Signups', 'value' => (clone $base)->count(), 'icon' => 'smartphone', 'color' => 'purple'],
+                ['label' => 'Premium Members', 'value' => (clone $base)->where('plan', 'premium')->count(), 'icon' => 'crown', 'color' => 'orange'],
+                ['label' => 'Last 30 Days', 'value' => (clone $base)->where('created_at', '>=', now()->subDays(30))->count(), 'icon' => 'calendar', 'color' => 'green'],
             ],
             'deleted' => [
                 ['label' => 'Deleted Accounts', 'value' => (clone $base)->count(), 'icon' => 'trash-2', 'color' => 'purple'],
