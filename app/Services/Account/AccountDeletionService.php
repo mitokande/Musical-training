@@ -2,6 +2,8 @@
 
 namespace App\Services\Account;
 
+use App\Models\AppEvent;
+use App\Models\AppInstall;
 use App\Models\Subscription;
 use App\Models\TeacherProfile;
 use App\Models\User;
@@ -17,9 +19,11 @@ use Illuminate\Support\Facades\Log;
  * public traces disappear, their API tokens are revoked and their e-mail /
  * username are released so the address can be used for a brand new account.
  *
- * Nothing is actually destroyed. The row survives behind `deleted_at` with
- * the original identity in `deleted_email` / `deleted_username`, so the admin
- * panel can still list, inspect and restore deleted accounts.
+ * Almost nothing is actually destroyed. The row survives behind `deleted_at`
+ * with the original identity in `deleted_email` / `deleted_username`, so the
+ * admin panel can still list, inspect and restore deleted accounts. The
+ * exception is the mobile app's event log, which is deleted and does not come
+ * back with a restore.
  */
 class AccountDeletionService
 {
@@ -59,6 +63,14 @@ class AccountDeletionService
 
             // Kill every mobile / API session.
             $user->tokens()->delete();
+
+            // The one thing deleted outright rather than kept for a restore:
+            // what they did in the app, screen by screen. The stores require an
+            // account's data to go with it, and a behavioural log is the part of
+            // it nobody expects to survive. Their installs stay, unlinked — an
+            // install id alone says nothing about anyone.
+            AppEvent::where('user_id', $user->id)->delete();
+            AppInstall::where('user_id', $user->id)->update(['user_id' => null]);
 
             $user->forceFill([
                 'deleted_email' => $user->email,

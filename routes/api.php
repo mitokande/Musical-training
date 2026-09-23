@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\OnboardingController;
 use App\Http\Controllers\Api\V1\PracticeSessionController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\StatsController;
+use App\Http\Controllers\Api\V1\TelemetryController;
 use App\Http\Controllers\Webhooks\AdaptyWebhookController;
 use App\Http\Controllers\Webhooks\AppleNotificationController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,14 @@ Route::prefix('v1')->group(function () {
     // notification per app the person ever used — into a queue of retries.
     Route::post('apple/notifications', [AppleNotificationController::class, 'notifications'])
         ->name('webhooks.apple.api');
+
+    // The app's event outbox. Outside `auth:sanctum` on purpose: onboarding
+    // runs before there is an account, and a visitor who leaves it is the one
+    // the funnel most needs to count. The controller reads the token itself
+    // when there is one, and treats a dead one as anonymous rather than
+    // answering 401 — which the app would take as a sign-out.
+    Route::post('telemetry', [TelemetryController::class, 'store'])
+        ->middleware('throttle:telemetry');
 
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);

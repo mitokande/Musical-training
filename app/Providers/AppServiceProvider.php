@@ -96,6 +96,16 @@ class AppServiceProvider extends ServiceProvider
         // that is `ask_ai_daily` in the plan matrix, enforced in AiController.
         RateLimiter::for('ai-generate', fn (Request $request) => Limit::perMinute(6)
             ->by($request->user()?->id ?: $request->ip()));
+        // Telemetry is anonymous as often as not, so it is keyed on the install
+        // rather than the IP alone: a carrier NAT puts thousands of phones
+        // behind one address. The install id is the client's own claim, so the
+        // per-IP ceiling stays as the backstop against one client minting ids.
+        // The app sends at most five batches per wake-up, a few wake-ups a minute.
+        RateLimiter::for('telemetry', fn (Request $request) => [
+            Limit::perMinute(30)->by('telemetry:'.($request->user('sanctum')?->id
+                ?? (is_string($request->input('device.install_id')) ? $request->input('device.install_id') : $request->ip()))),
+            Limit::perMinute(600)->by('telemetry-ip:'.$request->ip()),
+        ]);
 
         // Throttle Email Center sends below the SES account MaxSendRate.
         RateLimiter::for('email-center-send', function () {

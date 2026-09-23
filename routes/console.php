@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AppEvent;
 use App\Services\Teacher\TeacherSubscriptionBenefitService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -31,6 +32,13 @@ Schedule::command('support:fetch-mail')->everyFiveMinutes()->withoutOverlapping(
 Schedule::call(function () {
     app(TeacherSubscriptionBenefitService::class)->expireLapsedBenefits();
 })->daily()->name('teacher:expire-benefits')->withoutOverlapping();
+
+// --- Mobile telemetry ---
+
+// Drop raw app events past their retention (AppEvent::RETENTION_DAYS).
+Schedule::command('model:prune', ['--model' => [AppEvent::class]])
+    ->dailyAt('03:30')
+    ->withoutOverlapping();
 
 // --- Paid subscriptions ---
 
