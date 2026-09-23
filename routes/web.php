@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdStudioController;
 use App\Http\Controllers\Admin\AiCoachAdminController;
 use App\Http\Controllers\Admin\AiUsageController;
+use App\Http\Controllers\Admin\AppAnalyticsController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\CommunityController;
@@ -578,6 +579,15 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('ai-coach', [ReportController::class, 'aiCoach'])->name('ai-coach');
         Route::get('content', [ReportController::class, 'content'])->name('content');
         Route::get('export/{type}', [ReportController::class, 'export'])->name('export');
+    });
+
+    // Mobile App — the app's own telemetry (app_events / app_installs)
+    Route::prefix('app-analytics')->name('app-analytics.')->controller(AppAnalyticsController::class)->group(function () {
+        Route::get('/', 'overview')->name('overview');
+        Route::get('funnels', 'funnels')->name('funnels');
+        Route::get('retention', 'retention')->name('retention');
+        Route::get('learning', 'learning')->name('learning');
+        Route::get('activity', 'activity')->name('activity');
     });
 
     // System Health

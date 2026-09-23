@@ -274,6 +274,21 @@
                 </div>
             </div>
 
+            {{-- Mobile App --}}
+            <div>
+                <button @click="toggle('appanalytics')" class="sidebar-item flex items-center justify-between w-full px-3 py-2.5 text-sm {{ request()->routeIs('admin.app-analytics.*') ? 'active' : 'text-gray-700' }}">
+                    <span class="flex items-center gap-3"><i data-lucide="smartphone" class="w-[18px] h-[18px]"></i> Mobile App</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="isOpen('appanalytics') ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="isOpen('appanalytics')" x-collapse class="ml-6 mt-1 space-y-0.5">
+                    <a href="{{ route('admin.app-analytics.overview') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.overview') ? 'active' : 'text-gray-600' }}">Overview</a>
+                    <a href="{{ route('admin.app-analytics.funnels') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.funnels') ? 'active' : 'text-gray-600' }}">Funnels</a>
+                    <a href="{{ route('admin.app-analytics.retention') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.retention') ? 'active' : 'text-gray-600' }}">Retention</a>
+                    <a href="{{ route('admin.app-analytics.learning') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.learning') ? 'active' : 'text-gray-600' }}">Learning</a>
+                    <a href="{{ route('admin.app-analytics.activity') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.activity') ? 'active' : 'text-gray-600' }}">Activity</a>
+                </div>
+            </div>
+
             {{-- System Health --}}
             <a href="{{ route('admin.system-health.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ request()->routeIs('admin.system-health.*') ? 'active' : 'text-gray-700' }}">
                 <i data-lucide="heart-pulse" class="w-[18px] h-[18px]"></i> System Health

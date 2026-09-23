@@ -151,6 +151,9 @@
                 <a href="{{ route('admin.users.edit', $user) }}" class="btn-primary inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg">
                     <i data-lucide="pencil" class="w-4 h-4"></i> Edit
                 </a>
+                <a href="{{ route('admin.app-analytics.activity', ['q' => $user->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium rounded-lg transition-colors">
+                    <i data-lucide="smartphone" class="w-4 h-4"></i> App activity
+                </a>
                 @if($user->role !== 'admin' && $user->id !== auth()->id())
                 <form action="{{ route('admin.users.impersonate', $user) }}" method="POST" class="inline" onsubmit="return confirm('Log in as {{ $user->name }}? You can return via the banner at the top.')">
                     @csrf
