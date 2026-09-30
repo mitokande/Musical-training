@@ -27,6 +27,12 @@ class TelemetryIngestor
     public const NAME_PATTERN = '/^[a-z][a-z0-9_]{0,63}$/';
 
     /**
+     * A screen is an expo-router route pattern — `(tabs)/index`,
+     * `learn/[lesson]/run` — never a concrete URL, so it is short and plain.
+     */
+    public const SCREEN_PATTERN = '/^[A-Za-z0-9_\-\/\[\]\(\)\.\+]{1,96}$/';
+
+    /**
      * The largest `props` accepted, encoded. The biggest event the app sends
      * today is a few hundred bytes; anything near this is a bug, not data.
      */
@@ -141,6 +147,7 @@ class TelemetryIngestor
             'user_id' => $user?->id,
             'install_id' => $device['install_id'],
             'session_id' => is_string($session) && Str::isUuid($session) ? strtolower($session) : null,
+            'screen' => $this->screen($event['screen'] ?? null, $name, $props),
             'name' => $name,
             'props' => $encoded,
             'platform' => $device['platform'],
@@ -148,6 +155,21 @@ class TelemetryIngestor
             'occurred_at' => $occurred->format('Y-m-d H:i:s.v'),
             'received_at' => $now,
         ];
+    }
+
+    /**
+     * The screen an event happened on: the one the app stamped it with, or —
+     * for a build from before the stamp — a screen event's own. A value that is
+     * not a route is dropped rather than the event: the screen is context, and
+     * the event is still true without it.
+     */
+    private function screen(mixed $stamped, string $name, array $props): ?string
+    {
+        if ($stamped === null && $name === 'screen') {
+            $stamped = $props['name'] ?? null;
+        }
+
+        return is_string($stamped) && preg_match(self::SCREEN_PATTERN, $stamped) ? $stamped : null;
     }
 
     /**

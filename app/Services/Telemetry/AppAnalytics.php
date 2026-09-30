@@ -134,10 +134,13 @@ class AppAnalytics
         $prev = $this->json('prev');
         $prevMs = $this->json('prevMs');
 
+        // `route`, not `screen`: `app_events` has a `screen` column of its own,
+        // and MySQL resolves a GROUP BY name against the table before the
+        // select list — grouping by the column instead of the alias.
         $views = $range->events()
             ->where('name', 'screen')
-            ->selectRaw("$name as screen, COUNT(*) as views, COUNT(DISTINCT install_id) as installs")
-            ->groupBy('screen')
+            ->selectRaw("$name as route, COUNT(*) as views, COUNT(DISTINCT install_id) as installs")
+            ->groupBy('route')
             ->orderByDesc('views')
             ->limit(30)
             ->toBase()
@@ -147,16 +150,16 @@ class AppAnalytics
             ->where('name', 'screen')
             ->whereNotNull('props->prev')
             ->whereRaw("$prevMs < ?", [self::SCREEN_TIME_CAP_MS])
-            ->selectRaw("$prev as screen, AVG($prevMs) as ms")
-            ->groupBy('screen')
+            ->selectRaw("$prev as route, AVG($prevMs) as ms")
+            ->groupBy('route')
             ->toBase()
-            ->pluck('ms', 'screen');
+            ->pluck('ms', 'route');
 
         return $views->map(fn ($row) => [
-            'screen' => $row->screen,
+            'screen' => $row->route,
             'views' => (int) $row->views,
             'installs' => (int) $row->installs,
-            'avgSeconds' => isset($dwell[$row->screen]) ? round($dwell[$row->screen] / 1000, 1) : null,
+            'avgSeconds' => isset($dwell[$row->route]) ? round($dwell[$row->route] / 1000, 1) : null,
         ]);
     }
 

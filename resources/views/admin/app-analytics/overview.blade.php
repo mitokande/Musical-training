@@ -44,7 +44,13 @@
                     <tbody>
                         @forelse ($screens as $screen)
                             <tr class="border-b border-gray-50">
-                                <td class="py-2 pr-4 font-mono text-xs text-gray-800">{{ $screen['screen'] }}</td>
+                                <td class="py-2 pr-4 font-mono text-xs text-gray-800">
+                                    @if ($screen['screen'] === 'onboarding')
+                                        {{ $screen['screen'] }}
+                                    @else
+                                        <a href="{{ route('admin.app-analytics.screen', $range->query() + ['name' => $screen['screen']]) }}" class="hover:text-purple-700 hover:underline">{{ $screen['screen'] }}</a>
+                                    @endif
+                                </td>
                                 <td class="py-2 pr-4 text-right">{{ number_format($screen['views']) }}</td>
                                 <td class="py-2 pr-4 text-right">{{ number_format($screen['installs']) }}</td>
                                 <td class="py-2 text-right text-gray-600">{{ $screen['avgSeconds'] === null ? '—' : $screen['avgSeconds'].'s' }}</td>
@@ -79,6 +85,23 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div class="card p-5">
+        <div class="flex items-baseline justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-700">Busiest events</h3>
+            <a href="{{ route('admin.app-analytics.events', $range->query()) }}" class="text-xs text-purple-600 hover:underline">All events →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+            @forelse ($topEvents as $event)
+                <div class="flex items-center justify-between gap-3 text-sm border-b border-gray-50 py-1.5">
+                    <a href="{{ route('admin.app-analytics.event', ['name' => $event['name']] + $range->query()) }}" class="font-mono text-xs text-purple-700 hover:underline">{{ $event['name'] }}</a>
+                    <span class="text-gray-900">{{ number_format($event['events']) }} <span class="text-xs text-gray-400">· {{ number_format($event['installs']) }} installs</span></span>
+                </div>
+            @empty
+                <p class="text-sm text-gray-400">No events in this range.</p>
+            @endforelse
         </div>
     </div>
 

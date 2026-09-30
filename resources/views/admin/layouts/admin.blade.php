@@ -282,10 +282,14 @@
                 </button>
                 <div x-show="isOpen('appanalytics')" x-collapse class="ml-6 mt-1 space-y-0.5">
                     <a href="{{ route('admin.app-analytics.overview') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.overview') ? 'active' : 'text-gray-600' }}">Overview</a>
+                    <a href="{{ route('admin.app-analytics.users') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.users', 'admin.app-analytics.journey') ? 'active' : 'text-gray-600' }}">Users &amp; journeys</a>
+                    <a href="{{ route('admin.app-analytics.flows') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.flows') ? 'active' : 'text-gray-600' }}">Flows</a>
+                    <a href="{{ route('admin.app-analytics.screens') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.screens', 'admin.app-analytics.screen') ? 'active' : 'text-gray-600' }}">Screens &amp; taps</a>
+                    <a href="{{ route('admin.app-analytics.events') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.events', 'admin.app-analytics.event') ? 'active' : 'text-gray-600' }}">Events</a>
                     <a href="{{ route('admin.app-analytics.funnels') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.funnels') ? 'active' : 'text-gray-600' }}">Funnels</a>
                     <a href="{{ route('admin.app-analytics.retention') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.retention') ? 'active' : 'text-gray-600' }}">Retention</a>
                     <a href="{{ route('admin.app-analytics.learning') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.learning') ? 'active' : 'text-gray-600' }}">Learning</a>
-                    <a href="{{ route('admin.app-analytics.activity') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.activity') ? 'active' : 'text-gray-600' }}">Activity</a>
+                    <a href="{{ route('admin.app-analytics.activity') }}" class="sidebar-sub-item block px-3 py-2 text-sm {{ request()->routeIs('admin.app-analytics.activity') ? 'active' : 'text-gray-600' }}">Live</a>
                 </div>
             </div>
 

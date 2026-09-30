@@ -584,6 +584,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Mobile App — the app's own telemetry (app_events / app_installs)
     Route::prefix('app-analytics')->name('app-analytics.')->controller(AppAnalyticsController::class)->group(function () {
         Route::get('/', 'overview')->name('overview');
+        Route::get('users', 'users')->name('users');
+        Route::get('journey', 'journey')->name('journey');
+        Route::get('flows', 'flows')->name('flows');
+        Route::get('screens', 'screens')->name('screens');
+        Route::get('screen', 'screen')->name('screen');
+        Route::get('events', 'events')->name('events');
+        Route::get('events/{name}', 'event')->where('name', '[a-z][a-z0-9_]{0,63}')->name('event');
         Route::get('funnels', 'funnels')->name('funnels');
         Route::get('retention', 'retention')->name('retention');
         Route::get('learning', 'learning')->name('learning');

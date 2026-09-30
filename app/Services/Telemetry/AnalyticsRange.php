@@ -45,6 +45,25 @@ final class AnalyticsRange
         return new self($from, $to, $platform);
     }
 
+    /** The window of the same length that ends where this one starts, for "vs. previous period". */
+    public function previous(): self
+    {
+        $days = (int) $this->from->diffInDays($this->to->startOfDay()) + 1;
+
+        return new self($this->from->subDays($days), $this->from->subSecond(), $this->platform);
+    }
+
+    /** Every day of the window, as `Y-m-d`, so a quiet day is a zero rather than a gap. */
+    public function days(): array
+    {
+        $days = [];
+        for ($day = $this->from->startOfDay(); $day->lte($this->to); $day = $day->addDay()) {
+            $days[] = $day->toDateString();
+        }
+
+        return $days;
+    }
+
     /** Events inside the window, on the platform. */
     public function events(): Builder
     {

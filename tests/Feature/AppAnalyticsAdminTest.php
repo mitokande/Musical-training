@@ -278,7 +278,7 @@ class AppAnalyticsAdminTest extends TestCase
     {
         $member = User::factory()->create(['role' => 'user']);
 
-        foreach (['overview', 'funnels', 'retention', 'learning', 'activity'] as $page) {
+        foreach (['overview', 'users', 'journey', 'flows', 'screens', 'screen', 'events', 'funnels', 'retention', 'learning', 'activity'] as $page) {
             $this->actingAs($member)->get(route('admin.app-analytics.'.$page))->assertForbidden();
         }
     }
@@ -287,7 +287,7 @@ class AppAnalyticsAdminTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
-        foreach (['overview', 'funnels', 'retention', 'learning', 'activity'] as $page) {
+        foreach (['overview', 'users', 'journey', 'flows', 'screens', 'screen', 'events', 'funnels', 'retention', 'learning', 'activity'] as $page) {
             $this->actingAs($admin)->get(route('admin.app-analytics.'.$page))->assertOk();
         }
 
@@ -310,25 +310,47 @@ class AppAnalyticsAdminTest extends TestCase
         $this->actingAs($admin)->get(route('admin.app-analytics.funnels'))->assertOk()->assertSee('settings');
         $this->actingAs($admin)->get(route('admin.app-analytics.retention'))->assertOk();
         $this->actingAs($admin)->get(route('admin.app-analytics.learning'))->assertOk()->assertSee('Confusion matrix');
-        $this->actingAs($admin)->get(route('admin.app-analytics.activity', ['q' => $learner->email]))
+        $this->actingAs($admin)->get(route('admin.app-analytics.activity'))->assertOk()->assertSee('Wrong: P5');
+        $this->actingAs($admin)->get(route('admin.app-analytics.users'))->assertOk()->assertSee($learner->name);
+        $this->actingAs($admin)->get(route('admin.app-analytics.journey', ['q' => $learner->email]))
             ->assertOk()
             ->assertSee($learner->name)
-            ->assertSee('task_answered');
-        $this->actingAs($admin)->get(route('admin.app-analytics.activity', ['q' => $a]))
+            ->assertSee('Wrong: P5 → picked P4');
+        $this->actingAs($admin)->get(route('admin.app-analytics.journey', ['q' => $a]))
             ->assertOk()
             ->assertSee('Last signed in as');
-        $this->actingAs($admin)->get(route('admin.app-analytics.activity', ['q' => 'nobody@example.com']))
+        $this->actingAs($admin)->get(route('admin.app-analytics.journey', ['q' => 'nobody@example.com']))
             ->assertOk()
             ->assertSee('Nobody found');
+        $this->actingAs($admin)->get(route('admin.app-analytics.flows'))->assertOk()->assertSee('onboarding/hello');
+        // The flow's anchor is `step`: `from` is the range's first day on every page.
+        $this->actingAs($admin)->get(route('admin.app-analytics.flows', ['step' => '(tabs)', 'direction' => 'before', 'from' => $this->now->subDays(3)->toDateString()]))
+            ->assertOk()
+            ->assertSee('What leads to');
+        $this->actingAs($admin)->get(route('admin.app-analytics.screens'))->assertOk()->assertSee('(tabs)');
+        $this->actingAs($admin)->get(route('admin.app-analytics.screen', ['name' => '(tabs)']))->assertOk()->assertSee('Came from');
+        $this->actingAs($admin)->get(route('admin.app-analytics.events'))->assertOk()->assertSee('task_answered');
+        $this->actingAs($admin)->get(route('admin.app-analytics.event', ['name' => 'task_answered', 'by' => 'chosen']))
+            ->assertOk()
+            ->assertSee('P4');
+        $this->actingAs($admin)->get(route('admin.app-analytics.event', ['name' => 'never_sent']))->assertNotFound();
     }
 
-    public function test_the_member_page_links_to_their_app_activity(): void
+    public function test_an_old_activity_link_opens_the_journey(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->get(route('admin.app-analytics.activity', ['q' => 42]))
+            ->assertRedirect(route('admin.app-analytics.journey', ['q' => 42]));
+    }
+
+    public function test_the_member_page_links_to_their_app_journey(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $member = User::factory()->create();
 
         $this->actingAs($admin)->get(route('admin.users.show', $member))
             ->assertOk()
-            ->assertSee(route('admin.app-analytics.activity', ['q' => $member->id]), false);
+            ->assertSee(route('admin.app-analytics.journey', ['q' => $member->id]), false);
     }
 }

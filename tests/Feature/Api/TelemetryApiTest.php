@@ -192,6 +192,24 @@ class TelemetryApiTest extends TestCase
         $this->assertSame($props, AppEvent::sole()->props);
     }
 
+    public function test_every_event_keeps_the_screen_it_happened_on(): void
+    {
+        $this->postJson('/api/v1/telemetry', $this->batch([
+            $this->event(['name' => 'tap', 'props' => ['id' => 'common:action.back', 'kind' => 'press'], 'screen' => 'learn/[lesson]/run']),
+            $this->event(['name' => 'tap', 'props' => ['id' => null, 'kind' => 'press'], 'screen' => 'onboarding/goals']),
+            // Not a route: the event still lands, without the screen.
+            $this->event(['name' => 'tap', 'props' => ['id' => 'x', 'kind' => 'press'], 'screen' => "'; DROP TABLE app_events; --"]),
+            // A build from before the stamp: a screen event is its own screen.
+            $this->event(['name' => 'screen', 'props' => ['name' => '(tabs)/profile', 'path' => '/profile']]),
+            $this->event(['name' => 'app_open', 'props' => ['cold' => true]]),
+        ]))->assertStatus(202)->assertJsonPath('data.accepted', 5);
+
+        $this->assertSame(
+            ['learn/[lesson]/run', 'onboarding/goals', null, '(tabs)/profile', null],
+            AppEvent::orderBy('id')->pluck('screen')->all(),
+        );
+    }
+
     public function test_a_batch_without_a_device_is_refused_whole(): void
     {
         $this->postJson('/api/v1/telemetry', ['sent_at' => $this->nowMs(), 'events' => [$this->event()]])
