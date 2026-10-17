@@ -168,6 +168,19 @@
             </div>
         @endif
 
+        @if(app(\App\Services\Derslik\DerslikClient::class)->configured())
+            @if($caps['hostLiveLessons'])
+                <a href="{{ crm_route('live-lessons.index') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ crm_route_is('live-lessons.*') ? 'active' : 'text-gray-700' }}">
+                    <i data-lucide="video" class="w-[18px] h-[18px]"></i> {{ crm_trans('nav.live_lessons') }}
+                </a>
+            @else
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400 cursor-not-allowed">
+                    <i data-lucide="video" class="w-[18px] h-[18px]"></i> {{ crm_trans('nav.live_lessons') }}
+                    {!! $lockedBadge !!}
+                </div>
+            @endif
+        @endif
+
         <a href="{{ crm_route('profile.edit') }}" class="sidebar-item flex items-center gap-3 px-3 py-2.5 text-sm {{ crm_route_is('profile.*') ? 'active' : 'text-gray-700' }}">
             <i data-lucide="user-pen" class="w-[18px] h-[18px]"></i> {{ crm_trans('nav.profile') }}
         </a>
@@ -200,6 +213,7 @@
                     'profile-submitted' => crm_trans('profile.submitted'),
                     'cover-updated' => crm_trans('profile.cover_updated'),
                     'teacher-account-created' => crm_trans('become.created'),
+                    'live-lesson-ended' => crm_trans('live_lessons.ended_flash'),
                 ];
             @endphp
             <div class="mb-6 px-4 py-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">

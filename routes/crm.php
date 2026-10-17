@@ -7,6 +7,7 @@ use App\Http\Controllers\Teacher\TeacherClassController;
 use App\Http\Controllers\Teacher\TeacherContentController;
 use App\Http\Controllers\Teacher\TeacherDashboardController;
 use App\Http\Controllers\Teacher\TeacherInvitationController;
+use App\Http\Controllers\Teacher\TeacherLiveLessonController;
 use App\Http\Controllers\Teacher\TeacherMediaController;
 use App\Http\Controllers\Teacher\TeacherMessageController;
 use App\Http\Controllers\Teacher\TeacherPaymentLinkController;
@@ -123,6 +124,13 @@ Route::post('/appointments/{appointment}/reschedule', [TeacherCalendarController
 Route::post('/appointments/{appointment}/complete', [TeacherCalendarController::class, 'complete'])->name('appointments.complete');
 Route::post('/appointments/{appointment}/no-show', [TeacherCalendarController::class, 'noShow'])->name('appointments.no-show');
 Route::put('/appointments/{appointment}/note', [TeacherCalendarController::class, 'updateNote'])->name('appointments.note');
+
+// Live lessons on Derslik (meeting.harmoniva.app). The room pages themselves
+// live in routes/web.php — the student link is public.
+Route::get('/live-lessons', [TeacherLiveLessonController::class, 'index'])->name('live-lessons.index');
+Route::post('/live-lessons', [TeacherLiveLessonController::class, 'store'])
+    ->middleware('throttle:10,1')->name('live-lessons.store');
+Route::post('/live-lessons/{liveLesson}/end', [TeacherLiveLessonController::class, 'end'])->name('live-lessons.end');
 
 Route::post('/payment-links', [TeacherPaymentLinkController::class, 'store'])->name('payment-links.store');
 Route::put('/payment-links/{paymentLink}', [TeacherPaymentLinkController::class, 'update'])->name('payment-links.update');

@@ -205,4 +205,17 @@ return [
         'sdk_secret' => env('ZOOM_SDK_SECRET'),
     ],
 
+    // Derslik — the self-hosted lesson video platform (meeting.harmoniva.app).
+    // Teachers start ad-hoc lessons from the CRM dashboard; the room is created
+    // over Derslik's REST API and embedded in an iframe on Harmoniva's own
+    // pages, so every link a teacher shares is a harmoniva.app link. The API key
+    // is created in Derslik's admin panel (API tab) and must stay server-side.
+    // An empty key hides the feature.
+    'derslik' => [
+        'url' => rtrim((string) env('DERSLIK_URL', 'https://meeting.harmoniva.app'), '/'),
+        'api_key' => env('DERSLIK_API_KEY'),
+        // A lesson nobody ended is closed (and its Derslik room deleted) after this many hours.
+        'lesson_hours' => (int) env('DERSLIK_LESSON_HOURS', 12),
+    ],
+
 ];

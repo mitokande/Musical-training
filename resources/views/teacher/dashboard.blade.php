@@ -74,6 +74,11 @@
         </div>
     @endif
 
+    {{-- Live lesson (Derslik): start a lesson and share its link --}}
+    @if($liveLessonsEnabled)
+        @include('teacher.live-lessons._card', ['lessons' => $openLiveLessons, 'canHost' => $capabilities['hostLiveLessons']])
+    @endif
+
     {{-- Row 1: Notifications & Messages · Appointment requests · Upcoming lessons --}}
     <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
         {{-- Notifications & Messages --}}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Models\LiveLesson;
 use App\Models\SchoolTeacherRelationship;
 use App\Models\TeacherAppointment;
 use App\Models\TeacherAssignment;
@@ -11,6 +12,7 @@ use App\Models\TeacherClass;
 use App\Models\TeacherConversationMessage;
 use App\Models\TeacherProfile;
 use App\Models\TeacherStudentRelationship;
+use App\Services\Derslik\DerslikClient;
 use App\Services\Teacher\TeacherCapabilityService;
 use App\Services\Teacher\TeacherSubscriptionBenefitService;
 use Illuminate\Http\Request;
@@ -22,6 +24,7 @@ class TeacherDashboardController extends Controller
     public function __construct(
         private TeacherCapabilityService $capabilities,
         private TeacherSubscriptionBenefitService $benefits,
+        private DerslikClient $derslik,
     ) {}
 
     public function index(Request $request): View
@@ -77,8 +80,16 @@ class TeacherDashboardController extends Controller
             'assignment', fn ($q) => $q->where('teacher_id', $user->id)
         );
 
+        // Live lessons (Derslik): the card is hidden entirely while no API key is configured.
+        $liveLessonsEnabled = $this->derslik->configured();
+        $openLiveLessons = $liveLessonsEnabled && $this->capabilities->canHostLiveLessons($user)
+            ? LiveLesson::open()->where('teacher_id', $user->id)->latest()->limit(5)->get()
+            : collect();
+
         return view('teacher.dashboard', [
             'user' => $user,
+            'liveLessonsEnabled' => $liveLessonsEnabled,
+            'openLiveLessons' => $openLiveLessons,
             'profile' => $profile,
             'capabilities' => $this->capabilities->capabilities($user),
             'activeBenefit' => $profile->exists ? $this->benefits->activeBenefit($user) : null,

@@ -45,6 +45,11 @@ Schedule::command('model:prune', ['--model' => [AppEvent::class]])
 // Expire paid subscriptions whose period has ended (downgrades lapsed users).
 Schedule::command('subscriptions:expire')->hourly()->withoutOverlapping();
 
+// --- Derslik live lessons ---
+
+// Close live lessons nobody ended and delete their Derslik rooms.
+Schedule::command('derslik:close-stale-lessons')->hourly()->withoutOverlapping();
+
 // --- Ad Studio ---
 
 // Build and render pending ad creatives. NOT on the application queue: the

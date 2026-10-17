@@ -172,6 +172,17 @@ Music-theory vocabulary is localized through `music_label($canonical, 'chord'|'s
 
 Canonical / hreflang / `<html lang>` / `og:locale` all come from `App\Services\Seo\PublicPageSeo`, shared by `ShareSeoContext`. A `/{locale}` URL is only advertised as a real translation once its `pages.*` section actually exists in that locale (`locale_page_translated()`), which is what keeps untranslated variants out of the index.
 
+### Live lessons on Derslik (meeting.harmoniva.app)
+
+Ad-hoc video lessons a teacher starts from the CRM dashboard ("Live lesson" card, also `/teacher|school/live-lessons`). Derslik is the self-hosted lesson platform (separate repo `mitokande/derslik`); Harmoniva talks to its REST API (`/api/v1`, Bearer key from Derslik's admin panel → API tab) through `App\Services\Derslik\DerslikClient`, and all lifecycle goes through `LiveLessonService` (start / end / liveStatus). Config: `services.derslik` (`DERSLIK_URL`, `DERSLIK_API_KEY`, `DERSLIK_LESSON_HOURS`) — **an empty key hides the feature** (card, nav item, routes 404). Requires the `hostLiveLessons` capability (premium), like the Zoom lesson room.
+
+- `live_lessons` table: `derslik_room_id`, `teacher_url` (**encrypted cast** — contains Derslik's teacher key), `student_url`, `share_token` (24 chars), `ended_at`.
+- Every shared link is a harmoniva.app page that embeds Derslik in an iframe (`?embed=1&name=`): teacher side `GET /live-lessons/{liveLesson}/room` (owner only, `no-store`), student side `GET /live/{token}` (**public** — Derslik's waiting room keeps people out until the teacher admits them; signed-in users get their name prefilled; ended/expired → 410 page). The Derslik student URL itself is never shown.
+- The room page answers Derslik's `ready`/`joined` postMessage with `{ type: 'share-url', url }`, so Derslik's own share button also shows the harmoniva.app link. Derslik only accepts a URL on the parent page's own origin, and its `FRAME_ANCESTORS` must list harmoniva.app.
+- Ending (`POST …/live-lessons/{id}/end`) disconnects everyone and deletes the Derslik room; the link closes even if Derslik is unreachable. `derslik:close-stale-lessons` (hourly) does the same for lessons older than `DERSLIK_LESSON_HOURS`. Max 5 open lessons per teacher.
+
+Tests: `tests/Feature/DerslikLiveLessonTest.php` (Derslik faked with `Http::fake`).
+
 ### Email Center (Amazon SES)
 
 Admin module at `/admin/email-center` (sidebar: Email Center + Support Inbox). All outbound mail goes through Amazon SES (eu-central-1, domain `harmoniva.app` verified, config set `harmoniva-email-events` publishes send/delivery/open/click/bounce/complaint events to SNS → `POST /webhooks/aws/ses/events`, validated by `SnsMessageValidator`).

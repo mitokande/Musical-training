@@ -60,6 +60,7 @@ use App\Http\Controllers\GameController as MusicGameController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LearningPathController;
 use App\Http\Controllers\LessonRoomController;
+use App\Http\Controllers\LiveLessonRoomController;
 use App\Http\Controllers\MyAppointmentsController;
 use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\MyTeachersController;
@@ -381,6 +382,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/lessons/{appointment}/signature', [LessonRoomController::class, 'signature'])
         ->middleware('throttle:20,1')->name('lessons.room.signature');
 
+    // Derslik live lesson — the teacher's side (owner only). The student side
+    // is the public /live/{token} route below.
+    Route::get('/live-lessons/{liveLesson}/room', [LiveLessonRoomController::class, 'room'])->name('live-lessons.room');
+
     Route::get('/teachers/{slug}/slots', [TeacherBookingController::class, 'slots'])->name('teachers.slots');
     Route::post('/teachers/{slug}/book', [TeacherBookingController::class, 'book'])
         ->middleware('throttle:10,1')->name('teachers.book');
@@ -392,6 +397,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assignments/{recipient}/start', [StudentAssignmentController::class, 'start'])->name('assignments.start');
     Route::get('/assignments/media/{media}/download', [StudentAssignmentController::class, 'downloadMedia'])->name('assignments.media.download');
 });
+
+// Derslik live lesson — the link teachers share with students. Public: the
+// student may have no account, and Derslik's waiting room keeps everyone out
+// until the teacher admits them.
+Route::get('/live/{token}', [LiveLessonRoomController::class, 'join'])
+    ->middleware('throttle:60,1')->where('token', '[A-Za-z0-9]{24}')->name('live-lessons.join');
 
 // Article Routes (teachers and schools)
 Route::middleware(['auth', 'teacher'])->group(function () {
